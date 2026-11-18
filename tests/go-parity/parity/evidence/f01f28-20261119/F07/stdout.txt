@@ -1,0 +1,177 @@
+PASS generate#1 rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "8a7c169f-70e0-40b9-8fef-5086fa424b34",
+   
+PASS generate#1 wrote config: /work/evidence/F07/f07-work/gen1.json
+PASS generate#2 wrote config: /work/evidence/F07/f07-work/gen2.json
+PASS auto shortId is 8 lowercase hex: 1bfbc5c6
+PASS two runs generate different shortId: 1bfbc5c6 != dc9d1284
+PASS runtime config shortIds equals generated value: ["1bfbc5c6"]
+PASS JSON shortIds mirrors config
+PASS share URI scheme is vless: vless
+PASS share URI carries the client UUID
+PASS share URI host/port: example.com:8443
+PASS share URI sid equals generated shortId: ['1bfbc5c6']
+PASS share URI security=reality
+PASS share URI flow
+PASS share URI default fingerprint is chrome
+PASS share URI type=raw
+PASS share URI has no target (Bash template does): dict_keys(['encryption', 'flow', 'security', 'sni', 'fp', 'pbk', 'sid', 'type'])
+PASS auto generate does not invent spiderX
+PASS share URI public key is 43-char base64url
+PASS generated config mode is 0600: 0o600
+PASS explicit 16-hex shortId accepted: {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+ 
+PASS explicit shortId echoed: 1111111111111111
+PASS explicit shortId written to config
+PASS explicit shortId in share URI
+PASS 4-hex shortId accepted (Bash requires 16): {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+ 
+PASS 4-hex shortId persisted
+PASS invalid shortId (odd) rc=2: shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (odd) writes no file
+PASS invalid shortId (too_long) rc=2: shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (too_long) writes no file
+PASS invalid shortId (not_hex) rc=2: shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (not_hex) writes no file
+PASS invalid shortId (space) rc=2: shortId must be 1-16 hex characters with even length (or empty)
+
+PASS invalid shortId (space) writes no file
+PASS empty shortId falls back to auto generation: {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "8f
+PASS empty shortId produced 8-hex value: 4eaa7118
+PASS user add --short-id rc=0: {
+  "entry": {
+    "id": "1795042733216204859-2206",
+    "state": "COMMITTED",
+    "target": "/work/evidence/F07/f07-work/root/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "
+PASS user add transaction COMMITTED: COMMITTED
+PASS user add returned the new client
+PASS user add appends the shortId: ["1bfbc5c6", "2222222222222222"]
+PASS user add appends exactly one client: 2
+PASS user add leaves non-user fields unchanged
+PASS user add keeps config mode 0640: 0o640
+PASS user add without --short-id rc=0: {
+  "entry": {
+    "id": "1795042733223738833-2218",
+    "state": "COMMITTED",
+    "target": "/work/evidence/F07/f07-work/root/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/bin/true",
+    "
+PASS user add without shortId does not mint one (Bash mints a fresh sID)
+PASS plain user add appended a client
+PASS duplicate shortId rc=2: shortId already present
+
+PASS duplicate shortId is named in the error
+PASS duplicate shortId writes nothing
+PASS invalid shortId on user add rc=2: shortId must be 1-16 hex characters with even length
+
+PASS invalid shortId on user add writes nothing
+PASS no transaction leftovers after refusals: []
+PASS --short-id on a non-Reality inbound rc=2: --short-id requires a Reality inbound
+
+PASS non-Reality refusal explains the requirement
+PASS non-Reality refusal writes nothing
+PASS share rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "8a7c169f-70e0-40b9-8fef-5086fa424b34",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 8443,
+  "shareU
+PASS share sid is the first accepted inbound shortId: ['1bfbc5c6']
+PASS share has no spx without metadata preference
+PASS share defaults to chrome
+PASS share does not modify the runtime config
+PASS share with link-only metadata rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "8a7c169f-70e0-40b9-8fef-5086fa424b34",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 8443,
+  "shareU
+PASS metadata fingerprint decorates the link: ['firefox']
+PASS metadata spiderX decorates the link (literal, Bash quotes it): ['/assets/abc.css']
+PASS link preferences keep the inbound sid
+PASS link-only preferences never rewrite the runtime config
+PASS share --user rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "4e84183b-c080-40f7-8f3a-9018e9e836d3",
+  "email": "sid@example.invalid",
+  "host": "example.com",
+  "port": 8443,
+  "shareUri": "vless://4e84183
+PASS share --user selects the requested client
+PASS share keeps the inbound sid for a client added with another sID
+PASS share has no per-client sID binding (Bash mapping missing)
+PASS share with unknown user rc=1: user "ghost@example.invalid" not found in inbound 0
+
+PASS unknown user error is explicit
+PASS unknown user produces no URI
+PASS short-id-list rc=0: short-id="1bfbc5c6" share: vless://8a7c169f-70e0-40b9-8fef-5086fa424b34@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=firefox&pbk=MQBHxdMHhWtn6JSki6amJ6AWG
+PASS short-id-list prints one line per accepted sid: 2 lines / 2 sids
+PASS every listed line is short-id/share shape
+PASS listed shortIds match the config order
+PASS listed link carries sid=1bfbc5c6
+PASS listed link carries sid=2222222222222222
+PASS short-id-list writes nothing
+PASS Bash function generate_reality_short_id found in install.sh
+PASS Bash generate_reality_short_id executed: 0eabf0241ec81bbc
+481fcec22a8e7861
+6179a5e3125bb266
+
+PASS Bash generate_reality_short_id produced 3 values: 3
+PASS Bash function generate_spiderx found in install.sh
+PASS Bash generate_spiderx executed: /assets/vboee04j.css
+/assets/d5v5okny.css
+/static/dw9olf82.js
+
+PASS Bash generate_spiderx produced 3 values: 3
+PASS Bash auto shortId is 16 hex: 0eabf0241ec81bbc
+PASS Bash auto shortId is 16 hex: 481fcec22a8e7861
+PASS Bash auto shortId is 16 hex: 6179a5e3125bb266
+PASS Bash spiderX shape: /assets/vboee04j.css
+PASS Bash spiderX shape: /assets/d5v5okny.css
+PASS Bash spiderX shape: /static/dw9olf82.js
+PASS Bash custom shortId must be exactly 16 hex
+PASS Bash keeps a per-user reality_clients mapping
+PASS Bash URL-quotes spiderX in the link
+PASS Bash reality link template includes target
+== F07: 94 passed, 0 failed, 0.08s ==

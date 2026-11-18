@@ -1,0 +1,7 @@
+[nginx-tls-error]
+enabled  = true
+filter   = nginx-tls-error
+logpath  = /usr/local/nginx/logs/tls_error.log
+bantime  = 43200
+maxretry = 8
+findtime = 300

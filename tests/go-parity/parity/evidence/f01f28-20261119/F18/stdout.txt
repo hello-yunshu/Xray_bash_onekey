@@ -1,0 +1,299 @@
+PASS generate reality rc=0 and wrote config: {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "a79d7f96-2914-436d-b5c1-e5edc203a1d2",
+   
+PASS generate reality-ws rc=0 and wrote config: {
+  "mode": "reality",
+  "transport": "ws",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "e358a7e5-1b09-4446-9102-d854ed79e7e9",
+    
+PASS generate tls-ws rc=0 and wrote config: {
+  "mode": "tls",
+  "transport": "ws",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "a2057150-9e34-4ead-bc62-5d772b5b675e",
+      
+PASS generate tls-grpc rc=0 and wrote config: {
+  "mode": "tls",
+  "transport": "grpc",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "94f921bf-8466-4b12-83ed-572e77c7857c",
+    
+PASS generate tls-xhttp rc=0 and wrote config: {
+  "mode": "tls",
+  "transport": "xhttp",
+  "port": 11000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "402ae376-80a6-4191-8506-e284470ac9fe",
+   
+PASS generate none-ws rc=0 and wrote config: {
+  "mode": "none",
+  "transport": "ws",
+  "port": 8080,
+  "publicPort": 8080,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "305a025c-faa2-433e-a3af-6ff973e87f61",
+     
+PASS reality config mode is 0600: 0o600
+PASS reality-ws config mode is 0600: 0o600
+PASS tls-ws config mode is 0600: 0o600
+PASS tls-grpc config mode is 0600: 0o600
+PASS tls-xhttp config mode is 0600: 0o600
+PASS none-ws config mode is 0600: 0o600
+PASS reality share rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "a79d7f96-2914-436d-b5c1-e5edc203a1d2",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 8443,
+  "shareU
+PASS reality share mode: reality
+PASS reality share transport: raw
+PASS reality share uuid matches config client
+PASS reality share email: me@hey.run
+PASS reality share flow: xtls-rprx-vision
+PASS reality share host: example.com
+PASS reality share port is the config port: 8443
+PASS reality URI scheme: vless
+PASS reality URI user is the client uuid
+PASS reality URI authority: example.com:8443
+PASS reality URI encryption=none
+PASS reality URI flow
+PASS reality URI security
+PASS reality URI sni
+PASS reality URI fp
+PASS reality URI pbk equals the generated public key: aUNceirFDpN1C6a3cz1MJbYNdkhqh6PySujVTjJvUDA
+PASS reality URI sid equals config shortId: ['d90a843f']
+PASS reality URI type=raw
+PASS reality URI has no spx without metadata
+PASS reality URI has no target (Bash template does): ['encryption', 'flow', 'fp', 'pbk', 'security', 'sid', 'sni', 'type']
+PASS reality URI fragment: idleleo-reality
+PASS reality share has no warnings: []
+PASS reality Clash line: proxies:
+PASS reality Clash line: - name: "idleleo-reality"
+PASS reality Clash line: type: vless
+PASS reality Clash line: server: example.com
+PASS reality Clash line: port: 8443
+PASS reality Clash line: uuid: a79d7f96-2914-436d-b5c1-e5edc203a1d2
+PASS reality Clash line: network: tcp
+PASS reality Clash line: udp: true
+PASS reality Clash line: tls: true
+PASS reality Clash line: servername: example.com
+PASS reality Clash line: flow: xtls-rprx-vision
+PASS reality Clash line: client-fingerprint: chrome
+PASS reality Clash line: reality-opts:
+PASS reality Clash line: public-key: aUNceirFDpN1C6a3cz1MJbYNdkhqh6PySujVTjJvUDA
+PASS reality Clash line: short-id: d90a843f
+PASS reality Clash omits spider-x without metadata
+PASS generate preview and share agree on the Reality URI
+PASS generate preview and share agree on the Reality Clash proxy
+PASS reality share never rewrites the runtime config
+PASS reality share --public-port rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "a79d7f96-2914-436d-b5c1-e5edc203a1d2",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": 
+PASS public port overrides the URI port: 443
+PASS public port appears in the JSON view: 443
+PASS public port overrides the Clash port
+PASS --public-port never rewrites the runtime config
+PASS reality --transport ws generated two inbounds: 2
+PASS reality-ws companion share rc=0: {
+  "mode": "none",
+  "transport": "ws",
+  "uuid": "e358a7e5-1b09-4446-9102-d854ed79e7e9",
+  "email": "ws@hey.run",
+  "host": "example.com",
+  "port": 10000,
+  "shareUri": "vless://e358a7e5-1b09-4446-
+PASS companion inbound renders as plain ws: none/ws
+PASS companion share uses inbound 1 port: 10000
+PASS companion URI carries inbound 1 port
+PASS companion URI security=none
+PASS companion URI type=ws
+PASS companion URI path from wsSettings: ['/ray/']
+PASS companion URI host
+PASS companion URI sets sni from the caller host (Bash none-ws has none)
+PASS companion URI has no flow
+PASS companion URI has no pbk
+PASS companion URI has no sid
+PASS companion URI has no spx
+PASS companion URI fragment: idleleo-none
+PASS companion Clash network=ws
+PASS companion Clash carries the ws path
+PASS companion Clash is not tls
+PASS out-of-range inbound rc=1: inbound index 9 out of range
+
+PASS out-of-range inbound renders no URI
+PASS loopback security=none share is refused as ambiguous: inbound listens on loopback 127.0.0.1 with security=none: public security is ambiguous between an Nginx TLS front and a plain public port; pass --public-security tls|none (use the install metadata tls
+PASS ambiguity refusal names the problem
+PASS ambiguity refusal names the remedy
+PASS ambiguous share renders no URI
+PASS tls-ws share with --public-security tls rc=0: {
+  "mode": "tls",
+  "transport": "ws",
+  "uuid": "a2057150-9e34-4ead-bc62-5d772b5b675e",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 443,
+  "shareUri": "vless://a2057150-9e34-4ead-bc6
+PASS tls-ws view: tls/ws
+PASS tls-ws public port is 443: 443
+PASS tls-ws share warns that the proxy terminates TLS: ["public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller"]
+PASS tls-ws URI public port 443
+PASS tls-ws URI security=tls
+PASS tls-ws URI sni
+PASS tls-ws URI type=ws
+PASS tls-ws URI path
+PASS tls-ws URI host
+PASS tls-ws URI has no fp (Bash always adds fp=chrome)
+PASS tls-ws URI has no flow
+PASS tls-ws Clash line: network: ws
+PASS tls-ws Clash line: tls: true
+PASS tls-ws Clash line: servername: example.com
+PASS tls-ws Clash line: ws-opts:
+PASS tls-ws Clash line: path: /ray/
+PASS tls-ws Clash line: Host: example.com
+PASS tls-ws Clash omits client-fingerprint (Bash always adds it)
+PASS tls-ws Clash omits skip-cert-verify (Bash always adds it)
+PASS tls-ws share never rewrites the runtime config
+PASS tls-grpc share rc=0: {
+  "mode": "tls",
+  "transport": "grpc",
+  "uuid": "94f921bf-8466-4b12-83ed-572e77c7857c",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 443,
+  "shareUri": "vless://94f921bf-8466-4b12-8
+PASS tls-grpc transport
+PASS tls-grpc URI type=grpc
+PASS tls-grpc URI serviceName: ['idleleo-grpc']
+PASS tls-grpc URI has no path
+PASS tls-grpc URI public port 443
+PASS tls-grpc Clash line: network: grpc
+PASS tls-grpc Clash line: grpc-opts:
+PASS tls-grpc Clash line: grpc-service-name: idleleo-grpc
+PASS tls-xhttp share rc=0: {
+  "mode": "tls",
+  "transport": "xhttp",
+  "uuid": "402ae376-80a6-4191-8506-e284470ac9fe",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 443,
+  "shareUri": "vless://402ae376-80a6-4191-
+PASS tls-xhttp transport
+PASS tls-xhttp URI type=xhttp
+PASS tls-xhttp URI path
+PASS tls-xhttp URI security=tls
+PASS xhttp JSON has no Clash proxy: None
+PASS xhttp share warns instead of fabricating Clash: ["public-tls-terminated-by-proxy: runtime stream security is none, --public-security tls supplied by caller", "clash-xhttp-unsupported"]
+PASS tls-xhttp text share rc=0: mode=tls transport=xhttp uuid=402ae376-80a6-4191-8506-e284470ac9fe email=me@hey.run host=example.com port=443
+share: vless://402ae376-80a6-4191-8506-e284470ac9f
+PASS xhttp text output prints the warning
+PASS xhttp text output contains no Clash proxy
+PASS xhttp text output still carries the URI
+PASS none ws without --public-security is refused: inbound listens on loopback 127.0.0.1 with security=none: public security is ambiguous between an Nginx TLS front and a plain public port; pass --public-security tls|none (use the install metadata tls
+PASS none ws refusal names the ambiguity
+PASS none-ws share with --public-security none rc=0: {
+  "mode": "none",
+  "transport": "ws",
+  "uuid": "305a025c-faa2-433e-a3af-6ff973e87f61",
+  "email": "me@hey.run",
+  "host": "example.com",
+  "port": 8080,
+  "shareUri": "vless://305a025c-faa2-433e-a
+PASS none-ws view: none/ws
+PASS none-ws port is the config port: 8080
+PASS none-ws share has no warnings
+PASS none-ws URI security=none
+PASS none-ws URI type=ws
+PASS none-ws Clash is plain ws
+PASS none-ws Clash has no servername
+PASS none-ws text share rc=0: mode=none transport=ws uuid=305a025c-faa2-433e-a3af-6ff973e87f61 email=me@hey.run host=example.com port=8080
+share: vless://305a025c-faa2-433e-a3af-6ff973e87f61
+PASS none-ws text header: mode=none transport=ws uuid=305a025c-faa2-433e-a3af-6ff973e87f61 email=me@hey.run host=example.com port=8080
+PASS none-ws text output carries the share URI
+PASS none-ws text output appends the Clash proxy
+PASS invalid --public-security rc=1: --public-security must be tls, none or reality (got "bogus")
+
+PASS invalid --public-security is named
+PASS S8 share without --qr stays text-only: mode=reality transport=raw uuid=a79d7f96-2914-436d-b5c1-e5edc203a1d2 email=me@hey.run host=example.com port=8443
+share: vless://a79d7f96-2914-436d-b5c1-e5edc203
+PASS S8 share line carries the URI: vless://a79d7f96-2914-436d-b5c1-e5edc203a1d2@example.com:8443?encryption=none&fl
+PASS S8 share --qr exits 0: mode=reality transport=raw uuid=a79d7f96-2914-436d-b5c1-e5edc203a1d2 email=me@hey.run host=example.com port=8443
+share: vless://a79d7f96-2914-436d-b5c1-e5edc203
+PASS S8 --qr prints a QR matrix: █████████████████████████████████████████████████████████████
+██████████████████
+PASS S8 real qrencode baseline runs
+PASS S8 matrix is byte-identical to qrencode -o - -t utf8: go=e86afe4e75efdda5 qrencode=e86afe4e75efdda5
+PASS S8 --json --qr is rejected (rc=2): --qr prints a terminal QR code and cannot be combined with --json
+
+PASS S8 rejected --json --qr prints no matrix
+PASS S8 missing qrencode fails with no partial output: qrencode is not installed; --qr needs it (Debian/Ubuntu: apt-get install qrencode, RHEL: dnf install qrencode, Alpine: apk add libqrencode-tools)
+
+PASS S8 missing qrencode names the dependency: qrencode is not installed; --qr needs it (Debian/Ubuntu: apt-get install qrencode, RHEL: dnf install qrencode, Alpine: apk add libqrencode-tools)
+
+PASS S8 unknown share flag still rc=2: unknown flag: --qr-bogus
+
+PASS Bash function generate_vless_link found in install.sh
+PASS Bash function generate_clash_config found in install.sh
+PASS Bash Reality link template includes target
+PASS Bash ws link template hard-codes path=%2f...%3Fed%3D2048
+PASS Bash xhttp link template includes mode=auto
+PASS Bash link templates always include fp=chrome
+PASS Bash ws_tls fragment is '<host> ws协议'
+PASS Bash grpc_tls fragment is '<host> gRPC协议'
+PASS Bash xhttp_tls fragment is '<host> xHTTP协议'
+PASS Bash none-ws fragment is '<host> 单栈ws协议'
+PASS Bash reality link reads a per-user spiderX mapping
+PASS Bash Clash proxy always sets client-fingerprint
+PASS Bash Clash proxy always sets skip-cert-verify
+PASS Bash Clash renders an xhttp proxy (Go refuses)
+PASS Bash Clash reality-opts carries the sID
+PASS Bash Clash adds spider-x when present
+PASS Bash Clash file starts from a bare proxies list
+PASS Bash link generator covers reality
+PASS Bash link generator covers ws_tls
+PASS Bash link generator covers grpc_tls
+PASS Bash link generator covers xhttp_tls
+PASS Bash link generator covers ws
+PASS Bash link generator covers grpc
+PASS Bash link generator covers xhttp
+PASS Bash prints QR codes for every share link: 10 qrencode call sites
+PASS Bash prints the primary Reality QR code
+PASS Bash prints the xHTTP QR code
+== F18: 178 passed, 0 failed, 0.09s ==

@@ -1,0 +1,5 @@
+# back, and never downloads a third-party script. The legacy tcp.sh keeps
+log_echo "${Warning} ${YellowBG} $(gettext "legacy tcp.sh 会替换内核且不可回滚, 仅用于兼容旧环境") ${Font}"
+if [[ ! -f "${scripts_dir}/tcp.sh" ]]; then
+log_echo "${Error} ${RedBG} $(gettext "本地不存在 tcp.sh, 已不再自动下载第三方脚本") ${Font}"
+(cd "${scripts_dir}" && chmod +x ./tcp.sh && ./tcp.sh)

@@ -1,0 +1,1567 @@
+== F04 go=/work/bin/idleleo bash=/bash host=aarch64
+$ /opt/xray/xray version (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+$ /opt/xray/xray version (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+$ nginx -v (rc=0 0.01s)
+  stderr: nginx version: nginx/1.24.0 (Ubuntu)
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-default/config.json --nginx-out /work/evidence/F04/f04-work/primary-default/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-default/fragments --json --server-names example.com --role primary --port 8443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "JIAb55lcR6XS3THiLgiyalE1c1aAQC2oVriA6OkAtzU",
+            "publicKey": "7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 8443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS S1 primary generate rc=0 and wrote the config {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary
+PASS S1 payload mode/transport reality-balance/raw
+PASS S1 payload balance role primary
+PASS S1 primary ports are backend 9443 / front 8443 9443/8443
+PASS S1 payload listen is 0.0.0.0 0.0.0.0
+PASS S1 serverName and default target example.com/example.com:443
+PASS S1 a balanced primary reports no warnings []
+PASS S1 runtime config is 0600 0o600
+PASS S1 exactly one backend inbound 1
+PASS S1 backend tag/protocol VLESS-Reality-in/vless
+PASS S1 backend listens on 9443/0.0.0.0 9443/0.0.0.0
+PASS S1 raw Reality backend raw/reality
+PASS S1 Reality target/serverNames/shortIds {"target": "example.com:443", "serverNames": ["example.com"], "shortIds": ["abcd1234"]}
+PASS S1 client UUID/flow eeeeeeee-4444-4444-8444-444444444444/xtls-rprx-vision
+PASS S1 routing targets the Reality inbound 
+PASS S1 share URI uses the server name and the public port vless/example.com/8443
+PASS S1 share security/sni reality/example.com
+PASS S1 share flow/sid/type xtls-rprx-vision/abcd1234/raw
+PASS S1 share carries the generated public key 
+PASS S1 share fragment names the mode idleleo-reality-balance
+PASS S1 Clash contains type: vless proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 Clash contains server: example.com proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 Clash contains port: 8443 proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 Clash contains network: tcp proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 Clash contains tls: true proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 Clash contains servername: example.com proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 Clash contains flow: xtls-rprx-vision proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 Clash contains client-fingerprint: chrome proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 Clash contains reality-opts: proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 Clash contains public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4 proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 Clash contains short-id: abcd1234 proxies:
+  - name: "idleleo-reality-balance"
+    type: vless
+    server: example.com
+    port: 8443
+    uuid: eeeeeeee-4444-4444-8444-444444444444
+    network: tcp
+    udp: true
+    tls: true
+    servername: example.com
+    flow: xtls-rprx-vision
+    client-fingerprint: chrome
+    reality-opts:
+      public-key: 7PTpV4pfcvwDe4ygMH0pL8wjzoJMfKCAym9jPGvhmj4
+      short-id: abcd1234
+
+PASS S1 stream config contains stream { 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 stream config contains map $ssl_preread_protocol $is_valid_protocol { 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 stream config contains include /etc/idleleo/conf/nginx/*.serverNames; 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 stream config contains include /etc/idleleo/conf/nginx/*.realityServers; 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 stream config contains default deny; 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 stream config contains upstream reality { 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 stream config contains server 127.0.0.1:9403; 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 stream config contains ssl_preread on; 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 stream config contains listen 8443 reuseport so_keepalive=on backlog=65535; 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 stream config contains /usr/local/nginx/logs/tls_error.log 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 stream config contains /usr/local/nginx/logs/sni_error.log 
+stream {
+    map $ssl_preread_protocol $is_valid_protocol {
+        #TLSv1.2    1;
+        TLSv1.3    1;
+        default    0;
+    }
+
+    map $ssl_preread_server_name $sni_upstream {
+        include /etc/idleleo/conf/nginx/*.serverNames;
+        default deny;
+    }
+
+    map "$sni_upstream:$is_valid_protocol" $final_upstream {
+        # 格式：上游名称:协议标记 => 最终上游
+        ~^reality:1$     reality;
+        default          deny;
+    }
+
+    map $final_upstream $is_abnormal {
+        deny    1;
+        de
+PASS S1 isolate deny upstream is 9403 
+PASS S1 primary writes exactly the isolate fragment set ['03-isolate.conf', '127.0.0.1.realityServers', 'example.com.serverNames']
+PASS S1 local upstream line is byte exact 
+PASS S1 serverNames line is byte exact 
+PASS S1 isolate site is byte exact 
+PASS S1 fragment 03-isolate.conf is 0644 0o644
+PASS S1 fragment 127.0.0.1.realityServers is 0644 0o644
+PASS S1 fragment example.com.serverNames is 0644 0o644
+$ /opt/xray/xray -test -config /work/evidence/F04/f04-work/primary-default/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:51.820092 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/primary-default/config.json Format:json}
+          2026/11/18 22:58:51.822651 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+          Configuration OK.
+PASS S1 primary config: real xray -test accepts the config hing.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/18 22:58:51.820092 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/primary-default/config.json Format:json}
+2026/11/18 22:58:51.822651 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+Configuration OK.
+
+$ /usr/sbin/nginx -t -c /work/evidence/F04/f04-work/nginx-runs/S1-primary/main.conf -p /work/evidence/F04/f04-work/nginx-runs/S1-primary (rc=0 0.01s)
+  stderr: nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S1-primary/main.conf syntax is ok
+          nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S1-primary/main.conf test is successful
+PASS S1 primary: real nginx -t accepts the generated stream config nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S1-primary/main.conf syntax is ok
+nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S1-primary/main.conf test is successful
+
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/secondary-default/config.json --nginx-out /work/evidence/F04/f04-work/secondary-default/nginx.conf --fragments-out /work/evidence/F04/f04-work/secondary-default/fragments --json --server-names example.com --role secondary --port 8443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "Uoi1FxPtnkn7ZtGEiQRHAQX5AYtnhriRMk8ezp6s5JY",
+            "publicKey": "M_ox6Y7Pm3dKGA96JVsMDLkYz4kr8TSqyCYYSp56iSg",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=M_ox6Y7Pm3dKGA96JVsMDLkYz4kr8TSqyCYYSp56iSg&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: M_ox6Y7Pm3dKGA96JVsMDLkYz4kr8TSqyCYYSp56iSg\n      short-id: abcd1234\n",
+            "balanceRole": "secondary",
+            "warnings": []
+          }
+PASS S2 secondary generate rc=0 {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary
+PASS S2 secondary reports the operator port as inbound and public 8443/8443
+PASS S2 secondary inbound is <port>/0.0.0.0 8443/0.0.0.0
+PASS S2 secondary keeps the Reality backend 
+PASS S2 secondary share URI points at the same public port 8443/reality
+PASS S2 secondary writes no Nginx artifacts False/False
+$ /opt/xray/xray -test -config /work/evidence/F04/f04-work/secondary-default/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:51.855007 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/secondary-default/config.json Format:json}
+          2026/11/18 22:58:51.855856 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+          Configuration OK.
+PASS S2 secondary config: real xray -test accepts the config ng.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/18 22:58:51.855007 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/secondary-default/config.json Format:json}
+2026/11/18 22:58:51.855856 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/secondary-backend/config.json --nginx-out /work/evidence/F04/f04-work/secondary-backend/nginx.conf --fragments-out /work/evidence/F04/f04-work/secondary-backend/fragments --json --server-names example.com --role secondary --port 8443 --backend 10.0.0.2:9443 (rc=2 0.0s)
+  stderr: reality-balance secondary has no Nginx front; --backend is primary only
+PASS S2 secondary refuses --backend rc=2 reality-balance secondary has no Nginx front; --backend is primary only
+
+PASS S2 secondary backend: no runtime config was written /work/evidence/F04/f04-work/secondary-backend/config.json
+PASS S2 secondary backend: no Nginx config was written /work/evidence/F04/f04-work/secondary-backend/nginx.conf
+PASS S2 secondary backend: no Nginx fragments were written /work/evidence/F04/f04-work/secondary-backend/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-reject/config.json --nginx-out /work/evidence/F04/f04-work/primary-reject/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-reject/fragments --json --server-names example.com --role primary --port 8443 --unknown-sni-policy reject (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "vFg1_gF7j2pbUi_jPhwg4s1EhpHRIw0CzJzTeNIGIRU",
+            "publicKey": "9qAvQ6orjangvw-t2deuy_IUSmML32fhm2VHHEFOp1c",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=9qAvQ6orjangvw-t2deuy_IUSmML32fhm2VHHEFOp1c&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: 9qAvQ6orjangvw-t2deuy_IUSmML32fhm2VHHEFOp1c\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9404;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 8443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS S3 reject policy generates {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary
+PASS S3 reject policy points the deny upstream at 9404 
+PASS S3 reject policy writes no isolate site ['127.0.0.1.realityServers', 'example.com.serverNames']
+$ /opt/xray/xray -test -config /work/evidence/F04/f04-work/primary-reject/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:51.879153 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/primary-reject/config.json Format:json}
+          2026/11/18 22:58:51.880004 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+          Configuration OK.
+PASS S3 reject config: real xray -test accepts the config thing.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/18 22:58:51.879153 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/primary-reject/config.json Format:json}
+2026/11/18 22:58:51.880004 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+Configuration OK.
+
+$ /usr/sbin/nginx -t -c /work/evidence/F04/f04-work/nginx-runs/S3-reject/main.conf -p /work/evidence/F04/f04-work/nginx-runs/S3-reject (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S3-reject/main.conf syntax is ok
+          nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S3-reject/main.conf test is successful
+PASS S3 reject: real nginx -t accepts the generated stream config nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S3-reject/main.conf syntax is ok
+nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S3-reject/main.conf test is successful
+
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-decoy/config.json --nginx-out /work/evidence/F04/f04-work/primary-decoy/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-decoy/fragments --json --server-names example.com --role primary --port 8443 --unknown-sni-policy decoy (rc=2 0.0s)
+  stderr: unknown-sni-policy decoy needs pre-existing decoy cert/site artifacts and is not generated by the Go CLI
+PASS S3 decoy is refused with an explicit message rc=2 unknown-sni-policy decoy needs pre-existing decoy cert/site artifacts and is not generated by the Go CLI
+
+PASS S3 decoy: no runtime config was written /work/evidence/F04/f04-work/primary-decoy/config.json
+PASS S3 decoy: no Nginx config was written /work/evidence/F04/f04-work/primary-decoy/nginx.conf
+PASS S3 decoy: no Nginx fragments were written /work/evidence/F04/f04-work/primary-decoy/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-bogus-policy/config.json --nginx-out /work/evidence/F04/f04-work/primary-bogus-policy/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-bogus-policy/fragments --json --server-names example.com --role primary --port 8443 --unknown-sni-policy bogus (rc=2 0.0s)
+  stderr: unsupported unknown-sni-policy "bogus"
+PASS S3 unknown SNI policy exits 2 rc=2 unsupported unknown-sni-policy "bogus"
+
+PASS S3 bogus policy: no runtime config was written /work/evidence/F04/f04-work/primary-bogus-policy/config.json
+PASS S3 bogus policy: no Nginx config was written /work/evidence/F04/f04-work/primary-bogus-policy/nginx.conf
+PASS S3 bogus policy: no Nginx fragments were written /work/evidence/F04/f04-work/primary-bogus-policy/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-backends/config.json --nginx-out /work/evidence/F04/f04-work/primary-backends/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-backends/fragments --json --server-names example.com --role primary --port 8443 --backend 10.0.0.2:9443 --backend 10.0.0.3:9443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "04XWnGiEn8lwgXx-nhdZFg33rWrtiFDBi8oaytJrohw",
+            "publicKey": "qdzGLQdfe-XQB7XBAimQ6Iczio0hDT4dLXjZTb1hCHY",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=qdzGLQdfe-XQB7XBAimQ6Iczio0hDT4dLXjZTb1hCHY&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: qdzGLQdfe-XQB7XBAimQ6Iczio0hDT4dLXjZTb1hCHY\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 8443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "10.0.0.2.realityServers": "server 10.0.0.2:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "10.0.0.3.realityServers": "server 10.0.0.3:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS S4 two backends generate {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary
+PASS S4 each backend gets its own fragment file ['03-isolate.conf', '10.0.0.2.realityServers', '10.0.0.3.realityServers', '127.0.0.1.realityServers', 'example.com.serverNames']
+PASS S4 IPv4 backend line is byte exact 
+PASS S4 second backend line is byte exact 
+PASS S4 local backend line is preserved 
+$ /opt/xray/xray -test -config /work/evidence/F04/f04-work/primary-backends/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:51.907217 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/primary-backends/config.json Format:json}
+          2026/11/18 22:58:51.908091 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+          Configuration OK.
+PASS S4 backends config: real xray -test accepts the config ing.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/18 22:58:51.907217 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/primary-backends/config.json Format:json}
+2026/11/18 22:58:51.908091 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+Configuration OK.
+
+$ /usr/sbin/nginx -t -c /work/evidence/F04/f04-work/nginx-runs/S4-backends/main.conf -p /work/evidence/F04/f04-work/nginx-runs/S4-backends (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S4-backends/main.conf syntax is ok
+          nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S4-backends/main.conf test is successful
+PASS S4 backends: real nginx -t accepts the generated stream config nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S4-backends/main.conf syntax is ok
+nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S4-backends/main.conf test is successful
+
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-dns-backend/config.json --nginx-out /work/evidence/F04/f04-work/primary-dns-backend/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-dns-backend/fragments --json --server-names example.com --role primary --port 8443 --backend backend.example.net:9443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "r6qnWbp8OcjJXTnR0F2mDJsjdVVBE8_hBzekUhIU9yg",
+            "publicKey": "hkPHaHb4HIDCNLTMMKwU_TRrF8W4cVr2PEdwcq5XcDE",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=hkPHaHb4HIDCNLTMMKwU_TRrF8W4cVr2PEdwcq5XcDE&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: hkPHaHb4HIDCNLTMMKwU_TRrF8W4cVr2PEdwcq5XcDE\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 8443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "backend.example.net.realityServers": "server backend.example.net:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS S4 DNS backend generates {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary
+PASS S4 DNS backend fragment is named by host ['03-isolate.conf', '127.0.0.1.realityServers', 'backend.example.net.realityServers', 'example.com.serverNames']
+PASS S4 DNS backend line is byte exact 
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-duplicate-backend/config.json --nginx-out /work/evidence/F04/f04-work/primary-duplicate-backend/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-duplicate-backend/fragments --json --server-names example.com --role primary --port 8443 --backend 10.0.0.2:9443 --backend 10.0.0.2:9443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "1Jvzgvp4Y4oFA5wS2h_fNBk10-JmtE1PElTMveSbMpg",
+            "publicKey": "UXx5PWVgzEPMiSVzgewFUqbchZWzcUMMpvr9wfdzgx0",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=UXx5PWVgzEPMiSVzgewFUqbchZWzcUMMpvr9wfdzgx0&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: UXx5PWVgzEPMiSVzgewFUqbchZWzcUMMpvr9wfdzgx0\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 8443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "10.0.0.2.realityServers": "server 10.0.0.2:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS S4 identical duplicate backend is accepted {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary
+PASS S4 identical duplicate is deduplicated ['03-isolate.conf', '10.0.0.2.realityServers', '127.0.0.1.realityServers', 'example.com.serverNames']
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-loopback-backend/config.json --nginx-out /work/evidence/F04/f04-work/primary-loopback-backend/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-loopback-backend/fragments --json --server-names example.com --role primary --port 8443 --backend 127.0.0.1:9443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "J9SDfzJlLCJxKX9m69fxTpDQUHOoAOSXz_HOutyaHD0",
+            "publicKey": "HOq95yfKakb6Trl6kUCVAuZKiFrlQEIGTS-mfSgwumg",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=HOq95yfKakb6Trl6kUCVAuZKiFrlQEIGTS-mfSgwumg&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: HOq95yfKakb6Trl6kUCVAuZKiFrlQEIGTS-mfSgwumg\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 8443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS S4 explicit local backend is accepted {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary
+PASS S4 explicit local backend does not add a second file ['03-isolate.conf', '127.0.0.1.realityServers', 'example.com.serverNames']
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-ipv6-backend/config.json --nginx-out /work/evidence/F04/f04-work/primary-ipv6-backend/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-ipv6-backend/fragments --json --server-names example.com --role primary --port 8443 --backend [2001:db8::2]:9443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 8443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "BXpnnXcC3R1pEvB75UNAyxgLtE8-tzaC7ul-pay3xdw",
+            "publicKey": "fqIKXbAuzJ7q3He7dDxKYRwFl3sxkZl4adZeGalHwQc",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=fqIKXbAuzJ7q3He7dDxKYRwFl3sxkZl4adZeGalHwQc&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: fqIKXbAuzJ7q3He7dDxKYRwFl3sxkZl4adZeGalHwQc\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 8443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "2001:db8::2.realityServers": "server [2001:db8::2]:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS S4 IPv6 backend is accepted {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 8443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary
+PASS S4 IPv6 backend fragment is named by host ['03-isolate.conf', '127.0.0.1.realityServers', '2001:db8::2.realityServers', 'example.com.serverNames']
+PASS S4 IPv6 backend line keeps the brackets 
+$ /usr/sbin/nginx -t -c /work/evidence/F04/f04-work/nginx-runs/S4-ipv6/main.conf -p /work/evidence/F04/f04-work/nginx-runs/S4-ipv6 (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S4-ipv6/main.conf syntax is ok
+          nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S4-ipv6/main.conf test is successful
+PASS S4 ipv6: real nginx -t accepts the generated stream config nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S4-ipv6/main.conf syntax is ok
+nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S4-ipv6/main.conf test is successful
+
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/backend-same-host-two-ports/config.json --nginx-out /work/evidence/F04/f04-work/backend-same-host-two-ports/nginx.conf --fragments-out /work/evidence/F04/f04-work/backend-same-host-two-ports/fragments --json --server-names example.com --role primary --port 8443 --backend 10.0.0.2:9443 --backend 10.0.0.2:9444 (rc=2 0.0s)
+  stderr: backend host "10.0.0.2" appears twice (9443 and 9444); the Bash fragment model keeps one file per host, so use one port per host
+PASS S4 invalid backend same-host-two-ports exits 2 rc=2 backend host "10.0.0.2" appears twice (9443 and 9444); the Bash fragment model keeps one file per host, so use one port per host
+
+PASS S4 invalid backend same-host-two-ports: no runtime config was written /work/evidence/F04/f04-work/backend-same-host-two-ports/config.json
+PASS S4 invalid backend same-host-two-ports: no Nginx config was written /work/evidence/F04/f04-work/backend-same-host-two-ports/nginx.conf
+PASS S4 invalid backend same-host-two-ports: no Nginx fragments were written /work/evidence/F04/f04-work/backend-same-host-two-ports/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/backend-missing-port/config.json --nginx-out /work/evidence/F04/f04-work/backend-missing-port/nginx.conf --fragments-out /work/evidence/F04/f04-work/backend-missing-port/fragments --json --server-names example.com --role primary --port 8443 --backend 10.0.0.2 (rc=2 0.0s)
+  stderr: invalid backend "10.0.0.2": expected host:port
+PASS S4 invalid backend missing-port exits 2 rc=2 invalid backend "10.0.0.2": expected host:port
+
+PASS S4 invalid backend missing-port: no runtime config was written /work/evidence/F04/f04-work/backend-missing-port/config.json
+PASS S4 invalid backend missing-port: no Nginx config was written /work/evidence/F04/f04-work/backend-missing-port/nginx.conf
+PASS S4 invalid backend missing-port: no Nginx fragments were written /work/evidence/F04/f04-work/backend-missing-port/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/backend-zero-port/config.json --nginx-out /work/evidence/F04/f04-work/backend-zero-port/nginx.conf --fragments-out /work/evidence/F04/f04-work/backend-zero-port/fragments --json --server-names example.com --role primary --port 8443 --backend 10.0.0.2:0 (rc=2 0.0s)
+  stderr: invalid backend port in "10.0.0.2:0"
+PASS S4 invalid backend zero-port exits 2 rc=2 invalid backend port in "10.0.0.2:0"
+
+PASS S4 invalid backend zero-port: no runtime config was written /work/evidence/F04/f04-work/backend-zero-port/config.json
+PASS S4 invalid backend zero-port: no Nginx config was written /work/evidence/F04/f04-work/backend-zero-port/nginx.conf
+PASS S4 invalid backend zero-port: no Nginx fragments were written /work/evidence/F04/f04-work/backend-zero-port/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/backend-high-port/config.json --nginx-out /work/evidence/F04/f04-work/backend-high-port/nginx.conf --fragments-out /work/evidence/F04/f04-work/backend-high-port/fragments --json --server-names example.com --role primary --port 8443 --backend 10.0.0.2:70000 (rc=2 0.0s)
+  stderr: invalid backend port in "10.0.0.2:70000"
+PASS S4 invalid backend high-port exits 2 rc=2 invalid backend port in "10.0.0.2:70000"
+
+PASS S4 invalid backend high-port: no runtime config was written /work/evidence/F04/f04-work/backend-high-port/config.json
+PASS S4 invalid backend high-port: no Nginx config was written /work/evidence/F04/f04-work/backend-high-port/nginx.conf
+PASS S4 invalid backend high-port: no Nginx fragments were written /work/evidence/F04/f04-work/backend-high-port/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/backend-slash-host/config.json --nginx-out /work/evidence/F04/f04-work/backend-slash-host/nginx.conf --fragments-out /work/evidence/F04/f04-work/backend-slash-host/fragments --json --server-names example.com --role primary --port 8443 --backend bad/host:9443 (rc=2 0.0s)
+  stderr: invalid backend host "bad/host": only [A-Za-z0-9._:-] is allowed
+PASS S4 invalid backend slash-host exits 2 rc=2 invalid backend host "bad/host": only [A-Za-z0-9._:-] is allowed
+
+PASS S4 invalid backend slash-host: no runtime config was written /work/evidence/F04/f04-work/backend-slash-host/config.json
+PASS S4 invalid backend slash-host: no Nginx config was written /work/evidence/F04/f04-work/backend-slash-host/nginx.conf
+PASS S4 invalid backend slash-host: no Nginx fragments were written /work/evidence/F04/f04-work/backend-slash-host/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/backend-double-dot-host/config.json --nginx-out /work/evidence/F04/f04-work/backend-double-dot-host/nginx.conf --fragments-out /work/evidence/F04/f04-work/backend-double-dot-host/fragments --json --server-names example.com --role primary --port 8443 --backend a..b:9443 (rc=2 0.0s)
+  stderr: invalid backend host "a..b": expected an IPv4 address, DNS name or IPv6 address
+PASS S4 invalid backend double-dot-host exits 2 rc=2 invalid backend host "a..b": expected an IPv4 address, DNS name or IPv6 address
+
+PASS S4 invalid backend double-dot-host: no runtime config was written /work/evidence/F04/f04-work/backend-double-dot-host/config.json
+PASS S4 invalid backend double-dot-host: no Nginx config was written /work/evidence/F04/f04-work/backend-double-dot-host/nginx.conf
+PASS S4 invalid backend double-dot-host: no Nginx fragments were written /work/evidence/F04/f04-work/backend-double-dot-host/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/backend-space-host/config.json --nginx-out /work/evidence/F04/f04-work/backend-space-host/nginx.conf --fragments-out /work/evidence/F04/f04-work/backend-space-host/fragments --json --server-names example.com --role primary --port 8443 --backend bad host:9443 (rc=2 0.0s)
+  stderr: invalid backend host "bad host": only [A-Za-z0-9._:-] is allowed
+PASS S4 invalid backend space-host exits 2 rc=2 invalid backend host "bad host": only [A-Za-z0-9._:-] is allowed
+
+PASS S4 invalid backend space-host: no runtime config was written /work/evidence/F04/f04-work/backend-space-host/config.json
+PASS S4 invalid backend space-host: no Nginx config was written /work/evidence/F04/f04-work/backend-space-host/nginx.conf
+PASS S4 invalid backend space-host: no Nginx fragments were written /work/evidence/F04/f04-work/backend-space-host/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-default-port/config.json --nginx-out /work/evidence/F04/f04-work/primary-default-port/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-default-port/fragments --json --server-names example.com --role primary (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "MX-i1l286XFwECKF8eh0ZT1W4Rje4KR5tIOrPxMNnEY",
+            "publicKey": "I3uadcmPilPMioI_0N3IA2GG1A5SzU2qmnW3Cz6Ly3A",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=I3uadcmPilPMioI_0N3IA2GG1A5SzU2qmnW3Cz6Ly3A&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: I3uadcmPilPMioI_0N3IA2GG1A5SzU2qmnW3Cz6Ly3A\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS S5 primary defaults to front 443 / backend 9443 9443/443
+PASS S5 primary default stream listens on 443 
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/secondary-default-port/config.json --nginx-out /work/evidence/F04/f04-work/secondary-default-port/nginx.conf --fragments-out /work/evidence/F04/f04-work/secondary-default-port/fragments --json --server-names example.com --role secondary (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 443,
+            "publicPort": 443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "3PW1ESvSbz6R4iRmb7o7PBFCo_Sg1baJatoVxO-_DT4",
+            "publicKey": "L56nmb8uvUc_oghGA53BJvZkm2lwyS72KM3kAI_tdT4",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=L56nmb8uvUc_oghGA53BJvZkm2lwyS72KM3kAI_tdT4&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: L56nmb8uvUc_oghGA53BJvZkm2lwyS72KM3kAI_tdT4\n      short-id: abcd1234\n",
+            "balanceRole": "secondary",
+            "warnings": []
+          }
+PASS S5 secondary defaults to 443 443/443
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/missing-role/config.json --nginx-out /work/evidence/F04/f04-work/missing-role/nginx.conf --fragments-out /work/evidence/F04/f04-work/missing-role/fragments --json --server-names example.com --port 8443 (rc=2 0.0s)
+  stderr: reality-balance requires --role primary or secondary
+PASS S5 missing role exits 2 rc=2 reality-balance requires --role primary or secondary
+
+PASS S5 missing role: no runtime config was written /work/evidence/F04/f04-work/missing-role/config.json
+PASS S5 missing role: no Nginx config was written /work/evidence/F04/f04-work/missing-role/nginx.conf
+PASS S5 missing role: no Nginx fragments were written /work/evidence/F04/f04-work/missing-role/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/bogus-role/config.json --nginx-out /work/evidence/F04/f04-work/bogus-role/nginx.conf --fragments-out /work/evidence/F04/f04-work/bogus-role/fragments --json --server-names example.com --role bogus --port 8443 (rc=2 0.0s)
+  stderr: reality-balance requires --role primary or secondary
+PASS S5 invalid role exits 2 rc=2 reality-balance requires --role primary or secondary
+
+PASS S5 bogus role: no runtime config was written /work/evidence/F04/f04-work/bogus-role/config.json
+PASS S5 bogus role: no Nginx config was written /work/evidence/F04/f04-work/bogus-role/nginx.conf
+PASS S5 bogus role: no Nginx fragments were written /work/evidence/F04/f04-work/bogus-role/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/port-9403/config.json --nginx-out /work/evidence/F04/f04-work/port-9403/nginx.conf --fragments-out /work/evidence/F04/f04-work/port-9403/fragments --json --server-names example.com --role primary --port 9403 (rc=2 0.0s)
+  stderr: port 9403 is reserved for Reality internals (9403, 9404, 9443, 9444)
+PASS S5 --port 9403 is refused rc=2 port 9403 is reserved for Reality internals (9403, 9404, 9443, 9444)
+
+PASS S5 reserved port 9403: no runtime config was written /work/evidence/F04/f04-work/port-9403/config.json
+PASS S5 reserved port 9403: no Nginx config was written /work/evidence/F04/f04-work/port-9403/nginx.conf
+PASS S5 reserved port 9403: no Nginx fragments were written /work/evidence/F04/f04-work/port-9403/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/port-9404/config.json --nginx-out /work/evidence/F04/f04-work/port-9404/nginx.conf --fragments-out /work/evidence/F04/f04-work/port-9404/fragments --json --server-names example.com --role primary --port 9404 (rc=2 0.0s)
+  stderr: port 9404 is reserved for Reality internals (9403, 9404, 9443, 9444)
+PASS S5 --port 9404 is refused rc=2 port 9404 is reserved for Reality internals (9403, 9404, 9443, 9444)
+
+PASS S5 reserved port 9404: no runtime config was written /work/evidence/F04/f04-work/port-9404/config.json
+PASS S5 reserved port 9404: no Nginx config was written /work/evidence/F04/f04-work/port-9404/nginx.conf
+PASS S5 reserved port 9404: no Nginx fragments were written /work/evidence/F04/f04-work/port-9404/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/port-9443/config.json --nginx-out /work/evidence/F04/f04-work/port-9443/nginx.conf --fragments-out /work/evidence/F04/f04-work/port-9443/fragments --json --server-names example.com --role primary --port 9443 (rc=2 0.0s)
+  stderr: port 9443 is reserved for Reality internals (9403, 9404, 9443, 9444)
+PASS S5 --port 9443 is refused rc=2 port 9443 is reserved for Reality internals (9403, 9404, 9443, 9444)
+
+PASS S5 reserved port 9443: no runtime config was written /work/evidence/F04/f04-work/port-9443/config.json
+PASS S5 reserved port 9443: no Nginx config was written /work/evidence/F04/f04-work/port-9443/nginx.conf
+PASS S5 reserved port 9443: no Nginx fragments were written /work/evidence/F04/f04-work/port-9443/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/port-9444/config.json --nginx-out /work/evidence/F04/f04-work/port-9444/nginx.conf --fragments-out /work/evidence/F04/f04-work/port-9444/fragments --json --server-names example.com --role primary --port 9444 (rc=2 0.0s)
+  stderr: port 9444 is reserved for Reality internals (9403, 9404, 9443, 9444)
+PASS S5 --port 9444 is refused rc=2 port 9444 is reserved for Reality internals (9403, 9404, 9443, 9444)
+
+PASS S5 reserved port 9444: no runtime config was written /work/evidence/F04/f04-work/port-9444/config.json
+PASS S5 reserved port 9444: no Nginx config was written /work/evidence/F04/f04-work/port-9444/nginx.conf
+PASS S5 reserved port 9444: no Nginx fragments were written /work/evidence/F04/f04-work/port-9444/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/public-port-9443/config.json --nginx-out /work/evidence/F04/f04-work/public-port-9443/nginx.conf --fragments-out /work/evidence/F04/f04-work/public-port-9443/fragments --json --server-names example.com --role primary --port 8443 --public-port 9443 (rc=2 0.0s)
+  stderr: public port 9443 is reserved for Reality internals (9403, 9404, 9443, 9444)
+PASS S5 public port 9443 is refused for a primary front rc=2 public port 9443 is reserved for Reality internals (9403, 9404, 9443, 9444)
+
+PASS S5 reserved public port 9443: no runtime config was written /work/evidence/F04/f04-work/public-port-9443/config.json
+PASS S5 reserved public port 9443: no Nginx config was written /work/evidence/F04/f04-work/public-port-9443/nginx.conf
+PASS S5 reserved public port 9443: no Nginx fragments were written /work/evidence/F04/f04-work/public-port-9443/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/public-port-9403/config.json --nginx-out /work/evidence/F04/f04-work/public-port-9403/nginx.conf --fragments-out /work/evidence/F04/f04-work/public-port-9403/fragments --json --server-names example.com --role primary --port 8443 --public-port 9403 (rc=2 0.01s)
+  stderr: public port 9403 is reserved for Reality internals (9403, 9404, 9443, 9444)
+PASS S5 public port 9403 is refused for a primary front rc=2 public port 9403 is reserved for Reality internals (9403, 9404, 9443, 9444)
+
+PASS S5 reserved public port 9403: no runtime config was written /work/evidence/F04/f04-work/public-port-9403/config.json
+PASS S5 reserved public port 9403: no Nginx config was written /work/evidence/F04/f04-work/public-port-9403/nginx.conf
+PASS S5 reserved public port 9403: no Nginx fragments were written /work/evidence/F04/f04-work/public-port-9403/fragments
+$ /work/bin/idleleo xray generate --mode reality-nginx --domain example.com --port 8443 --public-port 9443 --out /work/evidence/F04/f04-work/reality-nginx-public/config.json --nginx-out /work/evidence/F04/f04-work/reality-nginx-public/nginx.conf --json (rc=2 0.0s)
+  stderr: public port 9443 is reserved for Reality internals (9403, 9404, 9443, 9444)
+PASS S5 reality-nginx also refuses a reserved public port rc=2 public port 9443 is reserved for Reality internals (9403, 9404, 9443, 9444)
+
+PASS S5 rejected reality-nginx public port writes nothing 
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/primary-public-port/config.json --nginx-out /work/evidence/F04/f04-work/primary-public-port/nginx.conf --fragments-out /work/evidence/F04/f04-work/primary-public-port/fragments --json --server-names example.com --role primary --port 8443 --public-port 8444 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 8444,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "t_da4LejrBz9qqbp13c2gQ38FWzizR3Y0MstN5dEFRU",
+            "publicKey": "cd20KIQuw0NBKnmmIfMH-kaBWfn-XlqrQoXblUsD-HE",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:8444?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=cd20KIQuw0NBKnmmIfMH-kaBWfn-XlqrQoXblUsD-HE&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 8444\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: cd20KIQuw0NBKnmmIfMH-kaBWfn-XlqrQoXblUsD-HE\n      short-id: abcd1234\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 8444 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "balanceRole": "primary",
+            "warnings": []
+          }
+PASS S5 a normal public port is accepted {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 8444,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary
+PASS S5 parse-public-port keeps backend 9443 and front 8444 9443/8444
+$ /usr/sbin/nginx -t -c /work/evidence/F04/f04-work/nginx-runs/S5-public-port/main.conf -p /work/evidence/F04/f04-work/nginx-runs/S5-public-port (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S5-public-port/main.conf syntax is ok
+          nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S5-public-port/main.conf test is successful
+PASS S5 public port: real nginx -t accepts the generated stream config nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S5-public-port/main.conf syntax is ok
+nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S5-public-port/main.conf test is successful
+
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/secondary-public-port/config.json --nginx-out /work/evidence/F04/f04-work/secondary-public-port/nginx.conf --fragments-out /work/evidence/F04/f04-work/secondary-public-port/fragments --json --server-names example.com --role secondary --port 8443 --public-port 9443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-balance",
+            "transport": "raw",
+            "port": 8443,
+            "publicPort": 9443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+            "shortId": "abcd1234",
+            "shortIds": [
+              "abcd1234"
+            ],
+            "privateKey": "pcPF_rmS_pwT8kA5_NxzOG-xlwMtNobBtH9Ibrrufl4",
+            "publicKey": "S-pkl-jyPGTH-Ossl5JeM44m2G5vsxuix1jEr3zzd0Q",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://eeeeeeee-4444-4444-8444-444444444444@example.com:9443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=S-pkl-jyPGTH-Ossl5JeM44m2G5vsxuix1jEr3zzd0Q&sid=abcd1234&type=raw#idleleo-reality-balance",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-balance\"\n    type: vless\n    server: example.com\n    port: 9443\n    uuid: eeeeeeee-4444-4444-8444-444444444444\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: S-pkl-jyPGTH-Ossl5JeM44m2G5vsxuix1jEr3zzd0Q\n      short-id: abcd1234\n",
+            "balanceRole": "secondary",
+            "warnings": []
+          }
+PASS S5 secondary --public-port only shapes the client view {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 8443,
+  "publicPort": 9443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary
+PASS S5 secondary inbound stays 8443 while the share port is 9443 8443/9443
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/transport-ws/config.json --nginx-out /work/evidence/F04/f04-work/transport-ws/nginx.conf --fragments-out /work/evidence/F04/f04-work/transport-ws/fragments --json --server-names example.com --role primary --port 8443 --transport ws (rc=2 0.0s)
+  stderr: reality-balance does not support transport "ws"
+PASS S5 balance refuses transport ws rc=2 reality-balance does not support transport "ws"
+
+PASS S5 transport ws: no runtime config was written /work/evidence/F04/f04-work/transport-ws/config.json
+PASS S5 transport ws: no Nginx config was written /work/evidence/F04/f04-work/transport-ws/nginx.conf
+PASS S5 transport ws: no Nginx fragments were written /work/evidence/F04/f04-work/transport-ws/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/transport-grpc/config.json --nginx-out /work/evidence/F04/f04-work/transport-grpc/nginx.conf --fragments-out /work/evidence/F04/f04-work/transport-grpc/fragments --json --server-names example.com --role primary --port 8443 --transport grpc (rc=2 0.0s)
+  stderr: reality-balance does not support transport "grpc"
+PASS S5 balance refuses transport grpc rc=2 reality-balance does not support transport "grpc"
+
+PASS S5 transport grpc: no runtime config was written /work/evidence/F04/f04-work/transport-grpc/config.json
+PASS S5 transport grpc: no Nginx config was written /work/evidence/F04/f04-work/transport-grpc/nginx.conf
+PASS S5 transport grpc: no Nginx fragments were written /work/evidence/F04/f04-work/transport-grpc/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/transport-xhttp/config.json --nginx-out /work/evidence/F04/f04-work/transport-xhttp/nginx.conf --fragments-out /work/evidence/F04/f04-work/transport-xhttp/fragments --json --server-names example.com --role primary --port 8443 --transport xhttp (rc=2 0.0s)
+  stderr: reality-balance does not support transport "xhttp"
+PASS S5 balance refuses transport xhttp rc=2 reality-balance does not support transport "xhttp"
+
+PASS S5 transport xhttp: no runtime config was written /work/evidence/F04/f04-work/transport-xhttp/config.json
+PASS S5 transport xhttp: no Nginx config was written /work/evidence/F04/f04-work/transport-xhttp/nginx.conf
+PASS S5 transport xhttp: no Nginx fragments were written /work/evidence/F04/f04-work/transport-xhttp/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/transport-ws-grpc-xhttp/config.json --nginx-out /work/evidence/F04/f04-work/transport-ws-grpc-xhttp/nginx.conf --fragments-out /work/evidence/F04/f04-work/transport-ws-grpc-xhttp/fragments --json --server-names example.com --role primary --port 8443 --transport ws+grpc+xhttp (rc=2 0.0s)
+  stderr: reality-balance does not support transport "ws+grpc+xhttp"
+PASS S5 balance refuses transport ws+grpc+xhttp rc=2 reality-balance does not support transport "ws+grpc+xhttp"
+
+PASS S5 transport ws+grpc+xhttp: no runtime config was written /work/evidence/F04/f04-work/transport-ws-grpc-xhttp/config.json
+PASS S5 transport ws+grpc+xhttp: no Nginx config was written /work/evidence/F04/f04-work/transport-ws-grpc-xhttp/nginx.conf
+PASS S5 transport ws+grpc+xhttp: no Nginx fragments were written /work/evidence/F04/f04-work/transport-ws-grpc-xhttp/fragments
+$ /work/bin/idleleo xray generate --mode reality-balance --uuid eeeeeeee-4444-4444-8444-444444444444 --short-id abcd1234 --out /work/evidence/F04/f04-work/two-server-names/config.json --nginx-out /work/evidence/F04/f04-work/two-server-names/nginx.conf --fragments-out /work/evidence/F04/f04-work/two-server-names/fragments --json --server-names a.com,b.com --role primary --port 8443 (rc=2 0.0s)
+  stderr: reality-balance requires exactly one --server-name
+PASS S5 two server names are refused rc=2 reality-balance requires exactly one --server-name
+
+PASS S5 two server names: no runtime config was written /work/evidence/F04/f04-work/two-server-names/config.json
+PASS S5 two server names: no Nginx config was written /work/evidence/F04/f04-work/two-server-names/nginx.conf
+PASS S5 two server names: no Nginx fragments were written /work/evidence/F04/f04-work/two-server-names/fragments
+PASS S6 all required Bash baseline functions were found []
+$ jq --arg id eeeeeeee-4444-4444-8444-444444444444 --arg key JIAb55lcR6XS3THiLgiyalE1c1aAQC2oVriA6OkAtzU --arg sid abcd1234 .inbounds[0].settings.clients[0].id = $id | .inbounds[0].streamSettings.realitySettings.privateKey = $key | .inbounds[0].streamSettings.realitySettings.shortIds = [$sid] /work/evidence/F04/f04-work/bash/xray-primary.json (rc=0 0.01s)
+  stdout: {
+            "log": {
+              "access": "/var/log/xray/access.log",
+              "error": "/var/log/xray/error.log",
+              "loglevel": "warning"
+            },
+            "inbounds": [
+              {
+                "port": 9443,
+                "listen": "0.0.0.0",
+                "protocol": "VLESS",
+                "tag": "VLESS-Reality-in",
+                "settings": {
+                  "clients": [
+                    {
+                      "id": "eeeeeeee-4444-4444-8444-444444444444",
+                      "flow": "xtls-rprx-vision",
+                      "level": 0,
+                      "email": "me@hey.run"
+                    }
+                  ],
+                  "decryption": "none"
+                },
+                "streamSettings": {
+                  "network": "raw",
+                  "security": "reality",
+                  "realitySettings": {
+                    "target": "example.com:443",
+                    "serverNames": [
+                      "example.com"
+                    ],
+                    "minClientVer": "1.0.0",
+                    "privateKey": "JIAb55lcR6XS3THiLgiyalE1c1aAQC2oVriA6OkAtzU",
+                    "shortIds": [
+                      "abcd1234"
+                    ]
+                  }
+                }
+              }
+            ],
+            "outbounds": [
+              {
+                "protocol": "freedom",
+                "streamSettings": {
+                  "sockopt": {
+                    "domainStrategy": "UseIPv4v6"
+                  }
+                },
+                "tag": "direct"
+              },
+              {
+                "protocol": "blackhole",
+                "tag": "blocked"
+              }
+            ],
+            "dns": {
+              "servers": [
+                "https+local://dns.google/dns-query",
+                "https+local://cloudflare-dns.com/dns-query",
+                "https+local://doh.opendns.com/dns-query",
+                "208.67.222.222",
+                "8.8.8.8",
+                "1.1.1.1",
+                "localhost"
+              ],
+              "disableCache": false
+            },
+            "routing": {
+              "domainStrategy": "AsIs",
+              "rules": [
+                {
+                  "type": "field",
+                  "inboundTag": [
+                    "VLESS-Reality-in"
+                  ],
+                  "outboundTag": "direct"
+                }
+              ]
+            }
+          }
+PASS S6 primary template placeholders replaced g": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "VLESS-Reality-in"
+        ],
+        "outboundTag": "direct"
+      }
+    ]
+  }
+}
+
+$ jq --arg id eeeeeeee-4444-4444-8444-444444444444 --arg key JIAb55lcR6XS3THiLgiyalE1c1aAQC2oVriA6OkAtzU --arg sid abcd1234 .inbounds[0].settings.clients[0].id = $id | .inbounds[0].streamSettings.realitySettings.privateKey = $key | .inbounds[0].streamSettings.realitySettings.shortIds = [$sid] /work/evidence/F04/f04-work/bash/xray-secondary.json (rc=0 0.0s)
+  stdout: {
+            "log": {
+              "access": "/var/log/xray/access.log",
+              "error": "/var/log/xray/error.log",
+              "loglevel": "warning"
+            },
+            "inbounds": [
+              {
+                "port": 9443,
+                "listen": "0.0.0.0",
+                "protocol": "VLESS",
+                "tag": "VLESS-Reality-in",
+                "settings": {
+                  "clients": [
+                    {
+                      "id": "eeeeeeee-4444-4444-8444-444444444444",
+                      "flow": "xtls-rprx-vision",
+                      "level": 0,
+                      "email": "me@hey.run"
+                    }
+                  ],
+                  "decryption": "none"
+                },
+                "streamSettings": {
+                  "network": "raw",
+                  "security": "reality",
+                  "realitySettings": {
+                    "target": "example.com:443",
+                    "serverNames": [
+                      "example.com"
+                    ],
+                    "minClientVer": "1.0.0",
+                    "privateKey": "JIAb55lcR6XS3THiLgiyalE1c1aAQC2oVriA6OkAtzU",
+                    "shortIds": [
+                      "abcd1234"
+                    ]
+                  }
+                }
+              }
+            ],
+            "outbounds": [
+              {
+                "protocol": "freedom",
+                "streamSettings": {
+                  "sockopt": {
+                    "domainStrategy": "UseIPv4v6"
+                  }
+                },
+                "tag": "direct"
+              },
+              {
+                "protocol": "blackhole",
+                "tag": "blocked"
+              }
+            ],
+            "dns": {
+              "servers": [
+                "https+local://dns.google/dns-query",
+                "https+local://cloudflare-dns.com/dns-query",
+                "https+local://doh.opendns.com/dns-query",
+                "208.67.222.222",
+                "8.8.8.8",
+                "1.1.1.1",
+                "localhost"
+              ],
+              "disableCache": false
+            },
+            "routing": {
+              "domainStrategy": "AsIs",
+              "rules": [
+                {
+                  "type": "field",
+                  "inboundTag": [
+                    "VLESS-Reality-in"
+                  ],
+                  "outboundTag": "direct"
+                }
+              ]
+            }
+          }
+PASS S6 secondary template placeholders replaced g": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "VLESS-Reality-in"
+        ],
+        "outboundTag": "direct"
+      }
+    ]
+  }
+}
+
+$ bash /work/evidence/F04/f04-work/bash-baseline.sh (rc=0 0.02s)
+  stdout: profile-primary-rc=0
+          primary|Reality|on|on|off|None|primary|Nginx+Reality+Balance
+          profile-secondary-rc=0
+          secondary|Reality|off|on|off|None|secondary|Reality+Balance
+          port-primary-rc=0
+          port-secondary-rc=0
+          conf-isolate-rc=0
+          servers-rc=0
+          names-rc=0
+          names-stale-rc=0
+          conf-reject-rc=0
+          servers-reject-rc=0
+          names-reject-rc=0
+PASS S6 Bash baseline script completed profile-primary-rc=0
+primary|Reality|on|on|off|None|primary|Nginx+Reality+Balance
+profile-secondary-rc=0
+secondary|Reality|off|on|off|None|secondary|Reality+Balance
+port-primary-rc=0
+port-secondary-rc=0
+conf-isolate-rc=0
+servers-rc=0
+names-rc=0
+names-stale-rc=0
+conf-reject-rc=0
+servers-reject-rc=0
+names-reject-rc=0
+
+PASS S6 Bash profile-primary rc=0 0
+PASS S6 Bash profile-secondary rc=0 0
+PASS S6 Bash port-primary rc=0 0
+PASS S6 Bash port-secondary rc=0 0
+PASS S6 Bash conf-isolate rc=0 0
+PASS S6 Bash servers rc=0 0
+PASS S6 Bash names rc=0 0
+PASS S6 Bash names-stale rc=0 0
+PASS S6 Bash conf-reject rc=0 0
+PASS S6 Bash servers-reject rc=0 0
+PASS S6 Bash names-reject rc=0 0
+PASS S6 Bash primary profile sets Nginx+Reality+Balance ['Reality', 'on', 'on', 'off', 'None', 'primary', 'Nginx+Reality+Balance']
+PASS S6 Bash secondary profile has no Nginx front ['Reality', 'off', 'on', 'off', 'None', 'secondary', 'Reality+Balance']
+PASS S6 Bash primary keeps the 9443/0.0.0.0 backend 9443/0.0.0.0
+PASS S6 Bash secondary writes the operator port and keeps 0.0.0.0 8443/0.0.0.0
+$ /opt/xray/xray -test -config /work/evidence/F04/f04-work/bash/xray-primary.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:52.169888 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/bash/xray-primary.json Format:json}
+          2026/11/18 22:58:52.170374 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+          Configuration OK.
+PASS S6 bash primary template: real xray -test accepts the config verything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/18 22:58:52.169888 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/bash/xray-primary.json Format:json}
+2026/11/18 22:58:52.170374 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+Configuration OK.
+
+$ /opt/xray/xray -test -config /work/evidence/F04/f04-work/bash/xray-secondary.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:52.183975 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/bash/xray-secondary.json Format:json}
+          2026/11/18 22:58:52.188067 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+          Configuration OK.
+PASS S6 bash secondary template: real xray -test accepts the config rything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/18 22:58:52.183975 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F04/f04-work/bash/xray-secondary.json Format:json}
+2026/11/18 22:58:52.188067 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+Configuration OK.
+
+PASS S6 Bash local realityServers line matches Go byte for byte 
+PASS S6 Bash serverNames fragment matches Go byte for byte 
+PASS S6 Bash removes the corrupt stale serverNames fragment 
+PASS S6 Bash isolate site matches the Go fragment byte for byte 
+PASS S6 Bash inserts the isolate include into the http block 
+PASS S6 Bash isolate stream config equals the Go primary config byte for byte 
+PASS S6 Bash reject stream config equals the Go reject config byte for byte 
+$ /usr/sbin/nginx -t -c /work/evidence/F04/f04-work/nginx-runs/S6-bash-isolate/main.conf -p /work/evidence/F04/f04-work/nginx-runs/S6-bash-isolate (rc=0 0.01s)
+  stderr: nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S6-bash-isolate/main.conf syntax is ok
+          nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S6-bash-isolate/main.conf test is successful
+PASS S6 bash isolate: real nginx -t accepts the generated stream config nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S6-bash-isolate/main.conf syntax is ok
+nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S6-bash-isolate/main.conf test is successful
+
+$ /usr/sbin/nginx -t -c /work/evidence/F04/f04-work/nginx-runs/S6-bash-reject/main.conf -p /work/evidence/F04/f04-work/nginx-runs/S6-bash-reject (rc=0 0.0s)
+  stderr: nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S6-bash-reject/main.conf syntax is ok
+          nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S6-bash-reject/main.conf test is successful
+PASS S6 bash reject: real nginx -t accepts the generated stream config nginx: the configuration file /work/evidence/F04/f04-work/nginx-runs/S6-bash-reject/main.conf syntax is ok
+nginx: configuration file /work/evidence/F04/f04-work/nginx-runs/S6-bash-reject/main.conf test is successful
+

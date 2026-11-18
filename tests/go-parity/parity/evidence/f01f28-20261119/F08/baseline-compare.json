@@ -1,0 +1,97 @@
+{
+  "bashInstallSha256": "a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c",
+  "comparisons": {
+    "edit.port.link": {
+      "bash": "after a port change every link is regenerated from the new public port",
+      "go": "the edit report and xray share both advertise the edited port (direct Reality)",
+      "status": "parity"
+    },
+    "serverNames.cardinality": {
+      "bash": "serverNames_set accepts exactly one domain and rewrites a one-element array",
+      "go": "config edit --server-names accepts a comma-separated list on direct Reality",
+      "status": "go-more-permissive"
+    },
+    "sni-guard.decoy": {
+      "bash": "decoy_site_setup writes 03-decoy.conf and an HTTPS fallback site",
+      "go": "generation refuses decoy because the artifacts are not produced",
+      "status": "go-gap"
+    },
+    "sni-guard.deny-port-conflict": {
+      "bash": "sni_guard_port_conflicts refuses 9403/9404/9444 when it collides with port/xport/gport/xhttpport",
+      "go": "balanceDenyPort maps isolate->9403 / reject->9404 without a conflict probe",
+      "status": "go-gap"
+    },
+    "sni-guard.runtime-switch": {
+      "bash": "reset_sni_guard_policy + sni_guard_policy_choose switch isolate/decoy/reject at runtime",
+      "go": "no config-edit switch; --sni-guard and --unknown-sni-policy are unknown flags (rc=2)",
+      "mitigation": "regenerate with --mode reality-nginx --unknown-sni-policy isolate|reject",
+      "status": "go-gap"
+    },
+    "sni-guard.upgrade-defaults": {
+      "bash": "ensure_reality_sni_guard_defaults backfills upgraded installs",
+      "go": "no in-place upgrade backfill; the generator always emits the policy explicitly",
+      "status": "go-gap"
+    },
+    "target.port": {
+      "bash": "modify_target_serverNames always writes \"${target}:443\"",
+      "go": "--target preserves an explicit host:port and defaults a bare host to :443",
+      "status": "go-more-permissive"
+    }
+  },
+  "fixture": "F08",
+  "functions": {
+    "ensure_reality_sni_guard_defaults": true,
+    "modify_target_serverNames": true,
+    "nginx_reality_serverNames_add": true,
+    "reset_sni_guard_policy": true,
+    "serverNames_set": true,
+    "sni_guard_policy_choose": true,
+    "sni_guard_port_conflicts": true
+  },
+  "missingFunctions": [],
+  "observed": {
+    "base": {
+      "configSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+      "listen": "0.0.0.0",
+      "port": 18443,
+      "serverNames": [
+        "example.com"
+      ],
+      "target": "example.com:443"
+    },
+    "edits": {
+      "port": {
+        "configSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+        "from": 18443,
+        "shareUriPort": 19443,
+        "to": 19443
+      },
+      "rejectedCandidate": {
+        "configSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+        "rc": 1
+      },
+      "targetServerNames": {
+        "configSha256": "8607c48c1d839788edafbe57be3ca1bd77147fb427db22728199cf4a33bc2f8a",
+        "serverNames": [
+          "a.example.com",
+          "b.example.com"
+        ],
+        "target": "other.example.org:8443"
+      }
+    },
+    "sniGuard": {
+      "decoy": "refused: needs pre-existing decoy artifacts",
+      "isolate": {
+        "denyPort": 9403,
+        "fragments": [
+          "03-isolate.conf",
+          "127.0.0.1.realityServers",
+          "example.com.serverNames"
+        ]
+      },
+      "reject": {
+        "denyPort": 9404
+      }
+    }
+  }
+}

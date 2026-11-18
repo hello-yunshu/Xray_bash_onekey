@@ -1,0 +1,95 @@
+{
+  "baseline": {
+    "goStarted": [
+      "nginx",
+      "xray"
+    ],
+    "systemctlCalls": [
+      "start xray",
+      "start nginx",
+      "stop nginx",
+      "stop xray"
+    ]
+  },
+  "delivery": {
+    "dockerfileSha256": "76bdceab883a13b284d1cc1425c72fc7b478f996ddc6c2f86b4d24974ee27c3a",
+    "entrypointSha256": "b8943e5811917f3765a0ea88e473079c1d32acaa28764c939a71ac55af4eb81e",
+    "goBranchUsesSystemctl": false
+  },
+  "down": {
+    "real": {
+      "mode": "direct",
+      "root": "/work/evidence/F24/f24-work/container-root",
+      "schemaVersion": 1,
+      "stopped": [
+        "xray",
+        "nginx"
+      ]
+    }
+  },
+  "gates": {
+    "realRootRc": 2,
+    "unknownFlagRc": 2,
+    "unmarkedRc": 2
+  },
+  "status": {
+    "empty": {
+      "inContainer": true,
+      "mode": "direct",
+      "nginx": {
+        "alive": false,
+        "config": false,
+        "pid": 0,
+        "pidFile": "/work/evidence/F24/f24-work/empty-root/run/idleleo/container-nginx.pid",
+        "required": false,
+        "source": "direct"
+      },
+      "root": "/work/evidence/F24/f24-work/empty-root",
+      "schemaVersion": 1,
+      "warnings": [
+        "manager metadata read: open /work/evidence/F24/f24-work/empty-root/etc/idleleo/v1/metadata.json: no such file or directory",
+        "metadata unreadable: manager metadata read: open /work/evidence/F24/f24-work/empty-root/etc/idleleo/v1/metadata.json: no such file or directory"
+      ],
+      "xray": {
+        "alive": false,
+        "config": false,
+        "pid": 0,
+        "pidFile": "/work/evidence/F24/f24-work/empty-root/run/idleleo/container-xray.pid",
+        "required": true,
+        "source": "direct"
+      }
+    }
+  },
+  "up": {
+    "real": {
+      "dryRun": false,
+      "mode": "direct",
+      "pids": {
+        "nginx": 7716,
+        "xray": 7714
+      },
+      "root": "/work/evidence/F24/f24-work/container-root",
+      "schemaVersion": 1,
+      "skipped": [],
+      "started": [
+        "xray",
+        "nginx"
+      ]
+    },
+    "repeat": {
+      "dryRun": false,
+      "mode": "direct",
+      "pids": {
+        "nginx": 7716,
+        "xray": 7714
+      },
+      "root": "/work/evidence/F24/f24-work/container-root",
+      "schemaVersion": 1,
+      "skipped": [
+        "xray",
+        "nginx"
+      ],
+      "started": []
+    }
+  }
+}

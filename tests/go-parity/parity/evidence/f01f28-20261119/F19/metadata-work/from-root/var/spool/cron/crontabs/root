@@ -1,0 +1,2 @@
+0 4 * * * /etc/idleleo/scripts/geo_update.sh >> /var/log/idleleo/geo.log 2>&1
+30 2 * * * /usr/local/bin/user-task --quiet

@@ -1,0 +1,1 @@
+{"schemaVersion": 1, "activeEngine": "xray", "role": "node", "tls": "Reality", "transport": "raw", "runtimeConfigPath": "usr/local/etc/xray/config.json", "runtimeSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "ownedResources": [], "updatedAt": "2026-01-01T00:00:00Z", "install": {"port": 9443, "serverNames": ["example.com"]}, "balanceRole": "primary"}

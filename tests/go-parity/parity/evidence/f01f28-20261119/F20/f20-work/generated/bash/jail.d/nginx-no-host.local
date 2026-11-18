@@ -1,0 +1,7 @@
+[nginx-no-host]
+enabled  = true
+filter   = nginx-no-host
+logpath  = /usr/local/nginx/logs/sni_error.log
+bantime  = 604800
+maxretry = 5
+findtime = 120

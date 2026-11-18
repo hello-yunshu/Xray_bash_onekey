@@ -1,0 +1,11 @@
+{
+  "certificateFile": "/work/evidence/F12/acme-work/standalone/xray.crt",
+  "domain": "example.com",
+  "due": true,
+  "keyFile": "/work/evidence/F12/acme-work/standalone/xray.key",
+  "notAfter": "2027-02-16T22:58:56Z",
+  "reason": "certificate is user-managed; renewal is external",
+  "renewAt": "2026-11-18T21:58:56Z",
+  "renewBefore": "2161h0m0s",
+  "userManaged": true
+}

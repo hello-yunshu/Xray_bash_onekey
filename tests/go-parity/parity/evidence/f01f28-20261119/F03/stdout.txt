@@ -1,0 +1,444 @@
+PASS S1 none/ws generate rc=0 and wrote the config: {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-333
+PASS S1 runtime config is 0600: 0o600
+PASS S1 exactly one inbound: 1
+PASS S1 payload mode/transport: none/ws
+PASS S1 payload defaults to port/publicPort 10086: 10086/10086
+PASS S1 payload listen is loopback: 127.0.0.1
+PASS S1 ws tag: VLESS-ws-in
+PASS S1 protocol is lowercase vless: vless
+PASS S1 no-TLS inbound keeps the default 10086: 10086
+PASS S1 inbound listens on loopback: 127.0.0.1
+PASS S1 no TLS on the inbound: none
+PASS S1 ws path defaults to /ray/: ws//ray/
+PASS S1 client UUID is applied: cccccccc-3333-4333-8333-333333333333
+PASS S1 default email: me@hey.run
+PASS S1 routing targets the ws inbound: ["VLESS-ws-in"]
+PASS S1 share URI port is the inbound port: vless/10086
+PASS S1 share security=none: none
+PASS S1 share ws path: ws//ray/
+PASS S1 share host follows the loopback listen: 127.0.0.1
+PASS S1 Clash proxy describes ws: proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 10086
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: ws
+    udp: true
+    ws-opts:
+      path: /ray/
+
+PASS S1 Clash does not pretend TLS is enabled: proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 10086
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: ws
+    udp: true
+    ws-opts:
+      path: /ray/
+
+PASS S1 no-TLS mode writes no Nginx artifacts: False/False
+PASS S1 default ws: real xray -test accepts the generated config: ti-censorship.
+2026/11/18 22:58:50.336047 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F03/f03-work/default-ws/config.json Format:json}
+2026/11/18 22:58:50.336599 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+PASS S2 non-loopback listen without the flag exits 2: rc=2 non-loopback listen "0.0.0.0" requires explicit confirmation
+
+PASS S2 refusal names the explicit confirmation requirement: non-loopback listen "0.0.0.0" requires explicit confirmation
+
+PASS S2 guard denial: no runtime config was written: /work/evidence/F03/f03-work/guard-deny/config.json
+PASS S2 guard denial: no Nginx config was written: /work/evidence/F03/f03-work/guard-deny/nginx.conf
+PASS S2 guard denial: no Nginx fragments were written: /work/evidence/F03/f03-work/guard-deny/fragments
+PASS S2 --allow-non-loopback accepts 0.0.0.0: {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3333-
+PASS S2 accepted non-loopback listen is written literally: 0.0.0.0
+PASS S2 share host follows the accepted listen: 0.0.0.0
+PASS S2 allow 0.0.0.0: real xray -test accepts the generated config: i-censorship.
+2026/11/18 22:58:50.358869 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F03/f03-work/guard-allow/config.json Format:json}
+2026/11/18 22:58:50.358880 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+PASS S2 explicit IPv6 loopback needs no confirmation: {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "::1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3333-4333
+PASS S2 ::1 is written as-is: ::1
+PASS S2 IPv6 share authority is bracketed: ::1:10086
+PASS S2 IPv6 share host decodes to ::1: ::1
+PASS S2 ::1: real xray -test accepts the generated config: censorship.
+2026/11/18 22:58:50.369758 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F03/f03-work/ipv6-loopback/config.json Format:json}
+2026/11/18 22:58:50.372601 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+PASS S2 global IPv6 listen is refused without the flag: rc=2
+PASS S2 ipv6 guard: no runtime config was written: /work/evidence/F03/f03-work/ipv6-guard/config.json
+PASS S2 ipv6 guard: no Nginx config was written: /work/evidence/F03/f03-work/ipv6-guard/nginx.conf
+PASS S2 ipv6 guard: no Nginx fragments were written: /work/evidence/F03/f03-work/ipv6-guard/fragments
+PASS S2 --allow-non-loopback accepts a global IPv6 listen: {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "2001:db8::1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3
+PASS S2 2001:db8::1: real xray -test accepts the generated config: ti-censorship.
+2026/11/18 22:58:50.389397 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F03/f03-work/ipv6-allow/config.json Format:json}
+2026/11/18 22:58:50.389966 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+PASS S2 invalid listen text is accepted at generate time (recorded gap): {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "not-an-ip",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-333
+PASS S2 real xray -test rejects the unvalidated listen address: for anti-censorship.
+2026/11/18 22:58:50.410095 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F03/f03-work/invalid-listen/config.json Format:json}
+Failed to start: main: failed to load config files: [/work/evidence/F03/f03-work/invalid-listen/config.json] > infra/conf: failed to build inbound config with tag VLESS-ws-in > infra/conf: unable to listen on domain address: not-an-ip
+
+PASS S3 none/grpc generate succeeds: {
+  "mode": "none",
+  "transport": "grpc",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3
+PASS S3 gRPC inbound identity: VLESS-gRPC-in/grpc
+PASS S3 gRPC stream settings match Bash: {"idle_timeout": 20, "multiMode": true, "serviceName": "idleleo-grpc"}
+PASS S3 gRPC keeps loopback and the primary port: 127.0.0.1:10086
+PASS S3 share carries type=grpc and the service name: grpc/idleleo-grpc
+PASS S3 gRPC Clash proxy is cleartext: proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 10086
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: grpc
+    udp: true
+    grpc-opts:
+      grpc-service-name: idleleo-grpc
+
+PASS S3 grpc: real xray -test accepts the generated config: anti-censorship.
+2026/11/18 22:58:50.416566 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F03/f03-work/grpc/config.json Format:json}
+2026/11/18 22:58:50.416974 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+PASS S3 none/xhttp generate succeeds: {
+  "mode": "none",
+  "transport": "xhttp",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-
+PASS S3 xHTTP inbound identity: VLESS-xhttp-in/xhttp
+PASS S3 xHTTP mode is auto: auto
+PASS S3 standalone xHTTP inherits the default /ray/ path: /ray/
+PASS S3 share carries type=xhttp and the path: xhttp//ray/
+PASS S3 xHTTP refuses to fake a Clash proxy: ["clash-xhttp-unsupported"]
+PASS S3 xhttp: real xray -test accepts the generated config: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/18 22:58:50.424350 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F03/f03-work/xhttp/config.json Format:json}
+Configuration OK.
+
+PASS S3 multi pinned generate succeeds: {
+  "mode": "none",
+  "transport": "ws+grpc+xhttp",
+  "port": 12086,
+  "publicPort": 12086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "c
+PASS S3 multi has three transports: ["grpc", "ws", "xhttp"]
+PASS S3 multi ws is the primary inbound and uses --port: 12086
+PASS S3 pinned grpc/xhttp ports are honoured: 12444/12445
+PASS S3 default multi keeps every inbound on loopback: {"ws": "127.0.0.1", "grpc": "127.0.0.1", "xhttp": "127.0.0.1"}
+PASS S3 added xHTTP uses the /xhttp/ path: /xhttp/
+PASS S3 multi warns that only the primary share link is emitted: ["multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"]
+PASS S3 routing covers all three inbounds
+PASS S3 multi pinned: real xray -test accepts the generated config: ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/18 22:58:50.450659 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+PASS S3 multi auto generate succeeds: {
+  "mode": "none",
+  "transport": "ws+grpc+xhttp",
+  "port": 12086,
+  "publicPort": 12086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "c
+PASS S3 auto multi ws stays on --port: 12086
+PASS S3 auto gRPC port comes from the 10000-10999 pool: 10000
+PASS S3 auto xHTTP port comes from the 11000-11999 pool: 11000
+PASS S3 auto ports are distinct: {"ws": 12086, "grpc": 10000, "xhttp": 11000}
+PASS S3 multi accepts an explicit non-loopback listen with the flag: {
+  "mode": "none",
+  "transport": "ws+grpc+xhttp",
+  "port": 12086,
+  "publicPort": 12086,
+  "listen": "10.10.0.5",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "c
+PASS S3 every added transport follows --listen (Bash parity): {"ws": "10.10.0.5", "grpc": "10.10.0.5", "xhttp": "10.10.0.5"}
+PASS S3 multi non-loopback: real xray -test accepts the generated config: ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/18 22:58:50.470329 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+PASS S3 grpc-equals-primary exits 2: rc=2
+PASS S3 grpc-equals-primary explains the refusal: grpc port 10086 is already used by another inbound
+
+PASS S3 grpc-equals-primary: no runtime config was written: /work/evidence/F03/f03-work/grpc-equals-primary/config.json
+PASS S3 grpc-equals-primary: no Nginx config was written: /work/evidence/F03/f03-work/grpc-equals-primary/nginx.conf
+PASS S3 grpc-equals-primary: no Nginx fragments were written: /work/evidence/F03/f03-work/grpc-equals-primary/fragments
+PASS S3 xhttp-equals-primary exits 2: rc=2
+PASS S3 xhttp-equals-primary explains the refusal: xhttp port 10086 is already used by another inbound
+
+PASS S3 xhttp-equals-primary: no runtime config was written: /work/evidence/F03/f03-work/xhttp-equals-primary/config.json
+PASS S3 xhttp-equals-primary: no Nginx config was written: /work/evidence/F03/f03-work/xhttp-equals-primary/nginx.conf
+PASS S3 xhttp-equals-primary: no Nginx fragments were written: /work/evidence/F03/f03-work/xhttp-equals-primary/fragments
+PASS S3 grpc-equals-xhttp exits 2: rc=2
+PASS S3 grpc-equals-xhttp explains the refusal: xhttp port 12444 is already used by another inbound
+
+PASS S3 grpc-equals-xhttp: no runtime config was written: /work/evidence/F03/f03-work/grpc-equals-xhttp/config.json
+PASS S3 grpc-equals-xhttp: no Nginx config was written: /work/evidence/F03/f03-work/grpc-equals-xhttp/nginx.conf
+PASS S3 grpc-equals-xhttp: no Nginx fragments were written: /work/evidence/F03/f03-work/grpc-equals-xhttp/fragments
+PASS S3 xhttp-out-of-range exits 2: rc=2
+PASS S3 xhttp-out-of-range explains the refusal: xhttp port must be between 1 and 65535
+
+PASS S3 xhttp-out-of-range: no runtime config was written: /work/evidence/F03/f03-work/xhttp-out-of-range/config.json
+PASS S3 xhttp-out-of-range: no Nginx config was written: /work/evidence/F03/f03-work/xhttp-out-of-range/nginx.conf
+PASS S3 xhttp-out-of-range: no Nginx fragments were written: /work/evidence/F03/f03-work/xhttp-out-of-range/fragments
+PASS S3 raw is not a no-TLS transport: unsupported transport "raw" for mode none
+
+PASS S3 raw: no runtime config was written: /work/evidence/F03/f03-work/raw/config.json
+PASS S3 raw: no Nginx config was written: /work/evidence/F03/f03-work/raw/nginx.conf
+PASS S3 raw: no Nginx fragments were written: /work/evidence/F03/f03-work/raw/fragments
+PASS S4 --public-port generate succeeds: {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 8443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-3333
+PASS S4 publicPort is separate from the inbound port: 10086/8443
+PASS S4 the runtime inbound is unchanged: 127.0.0.1:10086
+PASS S4 share URI uses the public port: 8443
+PASS S4 Clash uses the public port: proxies:
+  - name: "idleleo-none"
+    type: vless
+    server: 127.0.0.1
+    port: 8443
+    uuid: cccccccc-3333-4333-8333-333333333333
+    network: ws
+    udp: true
+    ws-opts:
+      path: /ray/
+
+PASS S4 no-TLS mode still writes no Nginx artifacts
+PASS S4 public port: real xray -test accepts the generated config: i-censorship.
+2026/11/18 22:58:50.497167 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F03/f03-work/public-port/config.json Format:json}
+2026/11/18 22:58:50.497617 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+PASS S5 existing output is refused without --force: rc=2
+PASS S5 refusal leaves the original bytes untouched
+PASS S5 --force overwrites the output: {
+  "mode": "none",
+  "transport": "ws",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "cccccccc-333
+PASS S5 forced output is a real config
+PASS S5 transport names are case-insensitive: {
+  "mode": "none",
+  "transport": "grpc",
+  "port": 10086,
+  "publicPort": 10086,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "cccccccc-3333-4333-8333-333333333333",
+ 
+PASS S6 Bash template exists: /bash/config/vless_tls.json
+PASS S6 template pins VLESS-ws-in on 127.0.0.1:10086: VLESS-ws-in 127.0.0.1:10086
+PASS S6 template spells the protocol uppercase: VLESS
+PASS S6 template ws stream settings
+PASS S6 template routing targets the ws inbound
+PASS S6 Bash function update_json_config extracted
+PASS S6 Bash function modify_listen_address extracted
+PASS S6 Bash function modify_inbound_port extracted
+PASS S6 Bash function add_ws_inbound extracted
+PASS S6 Bash function add_grpc_inbound extracted
+PASS S6 Bash function add_xhttp_inbound extracted
+PASS S6 Bash function modify_path extracted
+PASS S6 Bash function modify_email_address extracted
+PASS S6 Bash function ws_backend_listen_default extracted
+PASS S6 Bash function is_valid_listen_address extracted
+PASS S6 Bash function resolve_ws_backend_listen_addr extracted
+PASS S6 Bash function apply_install_profile extracted
+PASS S6 Bash function transport_choose extracted
+PASS S6 Bash defaults the no-TLS listen to loopback
+PASS S6 Bash validates IPv4 and IPv6 listen addresses
+PASS S6 Bash falls back to loopback for an invalid listen address
+PASS S6 Bash resolves the no-TLS listen address
+PASS S6 Bash rewrites VLESS-ws-in to the resolved listen address
+PASS S6 Bash rewrites VLESS-gRPC-in to the resolved listen address
+PASS S6 Bash rewrites VLESS-xhttp-in to the resolved listen address
+PASS S6 Bash no-TLS ports come from xport/gport/xhttpport
+PASS S6 Bash add_ws_inbound defaults to loopback
+PASS S6 Bash gRPC template matches the Go stream settings
+PASS S6 Bash xHTTP template matches the Go stream settings
+PASS S6 Bash transport_only profile is the no-TLS branch
+PASS S6 Bash menu 5 is ws+gRPC+xHTTP
+PASS S6 single-ws: extracted Bash functions run for real
+PASS S6 single-ws Bash config was produced
+PASS S6 Bash falls back to loopback when no address is chosen: 127.0.0.1
+PASS S6 Bash applies xport to the ws inbound: 12443
+PASS S6 Bash ws path: /ray/
+PASS S6 bash single ws: real xray -test accepts the generated config: ensorship.
+2026/11/18 22:58:50.551256 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F03/f03-work/bash/single-ws/config.json Format:json}
+2026/11/18 22:58:50.551262 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+PASS S6 multi-loopback: extracted Bash functions run for real
+PASS S6 multi-loopback Bash config was produced
+PASS S6 Bash baseline has three transports: ["grpc", "ws", "xhttp"]
+PASS S6 Bash default multi listens on loopback everywhere: {"ws": "127.0.0.1", "grpc": "127.0.0.1", "xhttp": "127.0.0.1"}
+PASS S6 Bash applies xport/gport/xhttpport: {"ws": 12443, "grpc": 12444, "xhttp": 12445}
+PASS S6 bash multi loopback: real xray -test accepts the generated config: ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/18 22:58:50.627317 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+PASS S6 multi-nonloopback: extracted Bash functions run for real
+PASS S6 multi-nonloopback Bash config was produced
+PASS S6 Bash rewrites every added transport to the chosen address: {"ws": "10.10.0.5", "grpc": "10.10.0.5", "xhttp": "10.10.0.5"}
+PASS S6 bash multi non-loopback: real xray -test accepts the generated config: ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/18 22:58:50.711908 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+== F03: 159 passed, 0 failed, 0.41s ==

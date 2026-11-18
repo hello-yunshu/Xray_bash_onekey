@@ -1,0 +1,5746 @@
+== F17 go=/work/bin/idleleo bash=/bash host=aarch64
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:41754 --domain dual.f17.test --policy auto --server-ipv4 203.0.113.10 --server-ipv6 2001:db8::10 --json (rc=0 0.0s)
+  stdout: {
+            "domain": "dual.f17.test",
+            "policy": "auto",
+            "serverIPv4": "203.0.113.10",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [
+              "203.0.113.10"
+            ],
+            "resolved6": [
+              "2001:db8::10"
+            ],
+            "mode": "dual",
+            "hasA": true,
+            "hasAAAA": true,
+            "aOK": true,
+            "aaaaOK": true,
+            "badA": false,
+            "badAAAA": false
+          }
+PASS dual: JSON report parsed {
+  "domain": "dual.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "dual",
+  "hasA": true,
+  "hasAAA
+PASS dual domain rc=0 {
+  "domain": "dual.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "dual",
+  "hasA": true,
+  "hasAAA
+PASS dual mode and both families match {"aOK": true, "aaaaOK": true, "badA": false, "badAAAA": false, "domain": "dual.f17.test", "hasA": true, "hasAAAA": true, "mode": "dual", "policy": "auto", "resolved4": ["203.0.113.10"], "resolved6": ["2001:db8::10"], "serverIPv4": "203.0.113.10", "serverIPv6": "2001:db8::10"}
+PASS resolved4 order ['203.0.113.10']
+PASS resolved6 order ['2001:db8::10']
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:41754 --domain staleaaaa.f17.test --policy auto --server-ipv4 203.0.113.10 --server-ipv6 2001:db8::10 --json (rc=2 0.0s)
+  stdout: {
+            "domain": "staleaaaa.f17.test",
+            "policy": "auto",
+            "serverIPv4": "203.0.113.10",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [
+              "203.0.113.10"
+            ],
+            "resolved6": [
+              "2001:db8::99"
+            ],
+            "mode": "ipv4",
+            "hasA": true,
+            "hasAAAA": true,
+            "aOK": true,
+            "aaaaOK": false,
+            "badA": false,
+            "badAAAA": true
+          }
+  stderr: domain resolves to a foreign address for an enabled family
+PASS stale-aaaa: JSON report parsed {
+  "domain": "staleaaaa.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::99"
+  ],
+  "mode": "ipv4",
+  "hasA": true,
+  "h
+PASS stale AAAA exits 2 {
+  "domain": "staleaaaa.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::99"
+  ],
+  "mode": "ipv4",
+  "hasA": true,
+  "h
+PASS stale AAAA reports badAAAA {"aOK": true, "aaaaOK": false, "badA": false, "badAAAA": true, "domain": "staleaaaa.f17.test", "hasA": true, "hasAAAA": true, "mode": "ipv4", "policy": "auto", "resolved4": ["203.0.113.10"], "resolved6": ["2001:db8::99"], "serverIPv4": "203.0.113.10", "serverIPv6": "2001:db8::10"}
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:41754 --domain staleaaaa.f17.test --policy ipv4 --server-ipv4 203.0.113.10 --server-ipv6 2001:db8::10 --json (rc=2 0.0s)
+  stdout: {
+            "domain": "staleaaaa.f17.test",
+            "policy": "ipv4",
+            "serverIPv4": "203.0.113.10",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [
+              "203.0.113.10"
+            ],
+            "resolved6": [
+              "2001:db8::99"
+            ],
+            "mode": "ipv4",
+            "hasA": true,
+            "hasAAAA": true,
+            "aOK": true,
+            "aaaaOK": false,
+            "badA": false,
+            "badAAAA": true
+          }
+  stderr: domain resolves to a foreign address for an enabled family
+PASS explicit-ipv4: JSON report parsed {
+  "domain": "staleaaaa.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::99"
+  ],
+  "mode": "ipv4",
+  "hasA": true,
+  "h
+PASS explicit ipv4 still rejects a foreign AAAA {
+  "domain": "staleaaaa.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::99"
+  ],
+  "mode": "ipv4",
+  "hasA": true,
+  "h
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:41754 --domain v4only.f17.test --policy ipv4 --server-ipv4 203.0.113.10 --server-ipv6 2001:db8::10 --json (rc=0 0.0s)
+  stdout: {
+            "domain": "v4only.f17.test",
+            "policy": "ipv4",
+            "serverIPv4": "203.0.113.10",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [
+              "203.0.113.10"
+            ],
+            "resolved6": [],
+            "mode": "ipv4",
+            "hasA": true,
+            "hasAAAA": false,
+            "aOK": true,
+            "aaaaOK": false,
+            "badA": false,
+            "badAAAA": false
+          }
+PASS v4-only: JSON report parsed {
+  "domain": "v4only.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [],
+  "mode": "ipv4",
+  "hasA": true,
+  "hasAAAA": false,
+  "aOK": 
+PASS ipv4-only domain passes an explicit ipv4 policy {
+  "domain": "v4only.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [],
+  "mode": "ipv4",
+  "hasA": true,
+  "hasAAAA": false,
+  "aOK": 
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:41754 --domain v6only.f17.test --policy auto --server-ipv4 203.0.113.10 --server-ipv6 2001:db8::10 --json (rc=0 0.0s)
+  stdout: {
+            "domain": "v6only.f17.test",
+            "policy": "auto",
+            "serverIPv4": "203.0.113.10",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [],
+            "resolved6": [
+              "2001:db8::10"
+            ],
+            "mode": "ipv6",
+            "hasA": false,
+            "hasAAAA": true,
+            "aOK": false,
+            "aaaaOK": true,
+            "badA": false,
+            "badAAAA": false
+          }
+PASS v6-only: JSON report parsed {
+  "domain": "v6only.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "ipv6",
+  "hasA": false,
+  "hasAAAA": true,
+  "aOK": 
+PASS AAAA-only domain passes auto {
+  "domain": "v6only.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "ipv6",
+  "hasA": false,
+  "hasAAAA": true,
+  "aOK": 
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:41754 --domain v6only.f17.test --policy ipv4 --server-ipv4 203.0.113.10 --server-ipv6 2001:db8::10 --json (rc=1 0.0s)
+  stdout: {
+            "domain": "v6only.f17.test",
+            "policy": "ipv4",
+            "serverIPv4": "203.0.113.10",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [],
+            "resolved6": [
+              "2001:db8::10"
+            ],
+            "mode": "none",
+            "hasA": false,
+            "hasAAAA": true,
+            "aOK": false,
+            "aaaaOK": true,
+            "badA": false,
+            "badAAAA": false
+          }
+  stderr: no resolved address family matches this server
+PASS v6only-ipv4: JSON report parsed {
+  "domain": "v6only.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "none",
+  "hasA": false,
+  "hasAAAA": true,
+  "aOK": 
+PASS no ipv4 match exits 1 with mode=none {
+  "domain": "v6only.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "none",
+  "hasA": false,
+  "hasAAAA": true,
+  "aOK": 
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:41754 --domain nx.f17.test --policy auto --server-ipv4 203.0.113.10 --server-ipv6 2001:db8::10 --json (rc=1 0.0s)
+  stdout: {
+            "domain": "nx.f17.test",
+            "policy": "auto",
+            "serverIPv4": "203.0.113.10",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [],
+            "resolved6": [],
+            "mode": "none",
+            "hasA": false,
+            "hasAAAA": false,
+            "aOK": false,
+            "aaaaOK": false,
+            "badA": false,
+            "badAAAA": false
+          }
+  stderr: no resolved address family matches this server
+PASS nxdomain: JSON report parsed {
+  "domain": "nx.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [],
+  "mode": "none",
+  "hasA": false,
+  "hasAAAA": false,
+  "aOK": false,
+  "aaaaOK": false,
+PASS NXDOMAIN exits 1 with mode=none {
+  "domain": "nx.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [],
+  "mode": "none",
+  "hasA": false,
+  "hasAAAA": false,
+  "aOK": false,
+  "aaaaOK": false,
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 443 --udp 443 --family dual --json (rc=0 0.03s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": [
+                443
+              ]
+            },
+            "oldFamilies": [],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": true,
+            "rolledBack": false,
+            "dryRun": false
+          }
+PASS apply-first: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": [
+      443
+    ]
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "iptab
+PASS first apply persists {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": [
+      443
+    ]
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "iptables",
+      "args": [
+        "-C",
+        "INPUT",
+       
+PASS v4 has 4 rules after the first apply ['INPUT -p tcp --dport 443 -j ACCEPT', 'OUTPUT -p tcp --sport 443 -j ACCEPT', 'INPUT -p udp --dport 443 -j ACCEPT', 'OUTPUT -p udp --sport 443 -j ACCEPT']
+PASS v6 has 4 rules after the first apply ['INPUT -p tcp --dport 443 -j ACCEPT', 'OUTPUT -p tcp --sport 443 -j ACCEPT', 'INPUT -p udp --dport 443 -j ACCEPT', 'OUTPUT -p udp --sport 443 -j ACCEPT']
+PASS report new ports 443/443 {"tcp": [443], "udp": [443]}
+PASS report families dual ['iptables', 'ip6tables']
+PASS managed_ports.json written 
+PASS both persisted rulesets written 
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 8443 --udp 8443 --json (rc=0 0.06s)
+  stdout: {
+            "old": {
+              "tcp": [
+                443
+              ],
+              "udp": [
+                443
+              ]
+            },
+            "new": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": true,
+            "rolledBack": false,
+            "dryRun": false
+          }
+PASS apply-diff: JSON report parsed {
+  "old": {
+    "tcp": [
+      443
+    ],
+    "udp": [
+      443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptabl
+PASS port diff apply rc=0 {
+  "old": {
+    "tcp": [
+      443
+    ],
+    "udp": [
+      443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin":
+PASS report old ports [443] {'tcp': [443], 'udp': [443]}
+PASS v4 holds exactly the 8443 rules ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT']
+PASS no duplicate rules after the diff ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT']
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 8443 --udp 8443 --family ipv4 --json (rc=0 0.03s)
+  stdout: {
+            "old": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "new": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables"
+            ],
+            "commands": [
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": true,
+            "rolledBack": false,
+            "dryRun": false
+          }
+PASS apply-switch-v4: JSON report parsed {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "ipta
+PASS dual -> ipv4 rc=0 {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip6tables",
+ 
+PASS the ip6tables ruleset is empty after dual -> ipv4 []
+PASS state families no longer contain ip6tables 
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 8443 --udp 8443 --family dual --json (rc=0 0.02s)
+  stdout: {
+            "old": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "new": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "oldFamilies": [
+              "iptables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": true,
+            "rolledBack": false,
+            "dryRun": false
+          }
+PASS apply-switch-dual: JSON report parsed {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6ta
+PASS ipv4 -> dual rc=0 {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "ip6tables",
+ 
+PASS ip6tables rules are re-created on ipv4 -> dual ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT']
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 8443 --udp 8443 --family ipv6 --json (rc=0 0.03s)
+  stdout: {
+            "old": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "new": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": true,
+            "rolledBack": false,
+            "dryRun": false
+          }
+PASS apply-switch-v6: JSON report parsed {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "ip6t
+PASS dual -> ipv6 removes the managed v4 rules rc=0 []
+PASS the v6 rules survive dual -> ipv6 ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT']
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 8443 --udp 8443 --family dual --json (rc=0 0.02s)
+  stdout: {
+            "old": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "new": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "oldFamilies": [
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": true,
+            "rolledBack": false,
+            "dryRun": false
+          }
+PASS apply-restore-dual: JSON report parsed {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6t
+PASS ipv6 -> dual restores the v4 rules ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT']
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 9443 --family dual --json (rc=1 0.07s)
+  stdout: {
+            "old": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "new": {
+              "tcp": [
+                9443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "9443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "9443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "9443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "9443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "9443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "9443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": true,
+            "dryRun": false
+          }
+  stderr: ip6tables -I INPUT -p tcp --dport 9443 -j ACCEPT exited 1
+PASS rollback: JSON report parsed {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      9443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6t
+PASS injected rule failure exits 1 {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      9443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "iptables",
+ 
+PASS rollback reported {"commands": [{"args": ["-C", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-D", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-D", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-D", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-D", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "INPUT", "-p", "tcp", "--dport", "9443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-I", "INPUT", "-p", "tcp", "--dport", "9443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "9443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-I", "OUTPUT", "-p", "tcp", "--sport", "9443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-D", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-D", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-D", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-D", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "INPUT", "-p", "tcp", "--dport", "9443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-I", "INPUT", "-p", "tcp", "--dport", "9443", "-j", "ACCEPT"], "bin": "ip6tables"}], "dryRun": false, "new": {"tcp": [9443], "udp": []}, "newFamilies": ["iptables", "ip6tables"], "old": {"tcp": [8443], "udp": [8443]}, "oldFamilies": ["iptables", "ip6tables"], "persisted": false, "rolledBack": true}
+PASS v4 rules restored ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT'] -> ['OUTPUT -p udp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p tcp --dport 8443 -j ACCEPT']
+PASS v6 rules restored ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT'] -> ['OUTPUT -p udp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p tcp --dport 8443 -j ACCEPT']
+PASS the failed port never stuck 
+PASS state still points at 8443 {
+  "tcp": [
+    8443
+  ],
+  "udp": [
+    8443
+  ]
+}
+
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 10443 --family dual --json (rc=10 0.06s)
+  stdout: {
+            "old": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "new": {
+              "tcp": [
+                10443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "10443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "10443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "10443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "10443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "10443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "10443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": true,
+            "dryRun": false
+          }
+  stderr: firewall rollback failed: iptables -D INPUT -p tcp --dport 10443 -j ACCEPT exited 1
+PASS rollback-failed: JSON report parsed {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      10443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6
+PASS a failing undo exits 10 {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      10443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "iptables",
+
+PASS the failed undo still reports rolledBack 
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 8443 --udp 8443 --family dual (rc=0 0.02s)
+  stdout: old: tcp=8443 udp=8443
+          new: tcp=8443 udp=8443
+          families: iptables ip6tables -> iptables ip6tables
+          persisted=true rolledBack=false dryRun=false
+PASS a normal apply repairs the failed rollback old: tcp=8443 udp=8443
+new: tcp=8443 udp=8443
+families: iptables ip6tables -> iptables ip6tables
+persisted=true rolledBack=false dryRun=false
+
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 2053 --family dual --dry-run --json (rc=0 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "new": {
+              "tcp": [
+                2053
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "2053",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "2053",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "2053",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "2053",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "2053",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "2053",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "2053",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "2053",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+PASS dry-run: JSON report parsed {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      2053
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6t
+PASS dry-run rc=0 {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      2053
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6t
+PASS dry-run lists commands {"commands": [{"args": ["-C", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-D", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"a
+PASS dry-run touched no rule 
+PASS dry-run did not rewrite the state 
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/gate-root net firewall apply --tcp 443 --family ipv4 --json (rc=0 0.01s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [],
+            "newFamilies": [
+              "iptables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": true,
+            "rolledBack": false,
+            "dryRun": false
+          }
+PASS gate-open: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "iptables",
+      "args": [
+        "-
+PASS the gate sandbox is usable {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin"
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/gate-root net dns --domain x.f17.test --policy bogus (rc=2 0.0s)
+  stderr: unknown --policy: bogus
+PASS unknown policy exits 2 unknown --policy: bogus
+
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/gate-root net firewall apply --tcp 0 (rc=2 0.01s)
+  stderr: invalid port "0": want 1-65535
+PASS port 0 exits 2 invalid port "0": want 1-65535
+
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/gate-root net firewall apply --tcp 65536 (rc=2 0.0s)
+  stderr: invalid port "65536": want 1-65535
+PASS port 65536 exits 2 invalid port "65536": want 1-65535
+
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/gate-root net firewall apply --tcp abc (rc=2 0.0s)
+  stderr: invalid port "abc": want 1-65535
+PASS non-numeric port exits 2 invalid port "abc": want 1-65535
+
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/gate-root net firewall apply --family bogus (rc=2 0.0s)
+  stderr: unknown --family: bogus
+PASS unknown family exits 2 unknown --family: bogus
+
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/gate-root net firewall apply --bogus (rc=2 0.0s)
+  stderr: unknown flag: --bogus
+PASS unknown flag exits 2 unknown flag: --bogus
+
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/gate-root net firewall status --json --bogus (rc=2 0.0s)
+  stderr: unknown flag: --bogus
+PASS unknown status flag exits 2 unknown flag: --bogus
+
+$ /work/bin/idleleo --root / net firewall apply --tcp 443 (rc=2 0.0s)
+  stderr: container root writes require --container
+PASS real root without --container exits 2 container root writes require --container
+
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/unmarked-root net firewall apply --tcp 443 --family ipv4 (rc=2 0.0s)
+  stderr: sandbox marker required: open /work/evidence/F17/f17-work/unmarked-root/.idleleo-phase01-sandbox: no such file or directory
+PASS unmarked sandbox exits 2 sandbox marker required: open /work/evidence/F17/f17-work/unmarked-root/.idleleo-phase01-sandbox: no such file or directory
+
+PASS rejected requests wrote nothing 
+PASS the unmarked sandbox got no state directory 
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall status --json (rc=0 0.02s)
+  stdout: {
+            "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+            "installed": true,
+            "ports": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "families": [
+              "iptables",
+              "ip6tables"
+            ],
+            "checks": [
+              {
+                "family": "iptables",
+                "proto": "tcp",
+                "port": 8443,
+                "input": "present",
+                "output": "present"
+              },
+              {
+                "family": "iptables",
+                "proto": "udp",
+                "port": 8443,
+                "input": "present",
+                "output": "present"
+              },
+              {
+                "family": "ip6tables",
+                "proto": "tcp",
+                "port": 8443,
+                "input": "present",
+                "output": "present"
+              },
+              {
+                "family": "ip6tables",
+                "proto": "udp",
+                "port": 8443,
+                "input": "present",
+                "output": "present"
+              }
+            ]
+          }
+PASS status: JSON report parsed {
+  "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "families": [
+    "iptables",
+    "ip6tables"
+  ],
+
+PASS status sees the state {
+  "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "families": [
+    "iptables",
+    "ip6tables"
+  ],
+  "checks": [
+    {
+      "family": "iptables",
+      "proto
+PASS status reports present rules {('iptables', 'tcp', 8443): ('present', 'present'), ('iptables', 'udp', 8443): ('present', 'present'), ('ip6tables', 'tcp', 8443): ('present', 'present'), ('ip6tables', 'udp', 8443): ('present', 'present')}
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall status --json (rc=0 0.02s)
+  stdout: {
+            "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+            "installed": true,
+            "ports": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "families": [
+              "iptables",
+              "ip6tables"
+            ],
+            "checks": [
+              {
+                "family": "iptables",
+                "proto": "tcp",
+                "port": 8443,
+                "input": "present",
+                "output": "missing"
+              },
+              {
+                "family": "iptables",
+                "proto": "udp",
+                "port": 8443,
+                "input": "present",
+                "output": "missing"
+              },
+              {
+                "family": "ip6tables",
+                "proto": "tcp",
+                "port": 8443,
+                "input": "present",
+                "output": "present"
+              },
+              {
+                "family": "ip6tables",
+                "proto": "udp",
+                "port": 8443,
+                "input": "present",
+                "output": "present"
+              }
+            ]
+          }
+PASS status-missing: JSON report parsed {
+  "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "families": [
+    "iptables",
+    "ip6tables"
+  ],
+
+PASS status reports the missing OUTPUT rules [{'family': 'iptables', 'proto': 'tcp', 'port': 8443, 'input': 'present', 'output': 'missing'}, {'family': 'iptables', 'proto': 'udp', 'port': 8443, 'input': 'present', 'output': 'missing'}, {'family': 'ip6tables', 'proto': 'tcp', 'port': 8443, 'input': 'present', 'output': 'present'}, {'family': 'ip6tables', 'proto': 'udp', 'port': 8443, 'input': 'present', 'output': 'present'}]
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall revert --json (rc=0 0.04s)
+  stdout: {
+            "old": {
+              "tcp": [
+                8443
+              ],
+              "udp": [
+                8443
+              ]
+            },
+            "new": {
+              "tcp": [],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "udp",
+                  "--dport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-D",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "udp",
+                  "--sport",
+                  "8443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": true,
+            "rolledBack": false,
+            "dryRun": false
+          }
+PASS revert: JSON report parsed {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "c
+PASS revert empties both rulesets [] []
+PASS revert empties the state port set 
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall revert --json (rc=0 0.01s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [],
+            "persisted": true,
+            "rolledBack": false,
+            "dryRun": false
+          }
+PASS revert-again: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [],
+  "persisted": tru
+PASS second revert is a no-op {"commands": [], "dryRun": false, "new": {"tcp": [], "udp": []}, "newFamilies": ["iptables", "ip6tables"], "old": {"tcp": [], "udp": []}, "oldFamilies": ["iptables", "ip6tables"], "persisted": true, "
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall status --json (rc=0 0.0s)
+  stdout: {
+            "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+            "installed": true,
+            "ports": {
+              "tcp": [],
+              "udp": []
+            },
+            "families": [
+              "iptables",
+              "ip6tables"
+            ],
+            "checks": []
+          }
+PASS status-after-revert: JSON report parsed {
+  "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [],
+    "udp": []
+  },
+  "families": [
+    "iptables",
+    "ip6tables"
+  ],
+  "checks": []
+}
+
+PASS status after revert has no rules to check {
+  "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [],
+    "udp": []
+  },
+  "families": [
+    "iptables",
+    "ip6tables"
+  ],
+  "checks": []
+}
+
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/subset-root net firewall apply --tcp 443 --family ipv4 --json (rc=0 0.01s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [],
+            "newFamilies": [
+              "iptables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": true,
+            "rolledBack": false,
+            "dryRun": false
+          }
+PASS subset-apply: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "iptables",
+      "args": [
+        "-
+PASS the ipv4-only apply is accepted {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin"
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/subset-root net firewall status --json (rc=0 0.0s)
+  stdout: {
+            "stateFile": "/work/evidence/F17/f17-work/subset-root/etc/idleleo/managed_ports.json",
+            "installed": true,
+            "ports": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "families": [
+              "iptables"
+            ],
+            "checks": [
+              {
+                "family": "iptables",
+                "proto": "tcp",
+                "port": 443,
+                "input": "present",
+                "output": "present"
+              }
+            ]
+          }
+PASS status-subset: JSON report parsed {
+  "stateFile": "/work/evidence/F17/f17-work/subset-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "families": [
+    "iptables"
+  ],
+  "checks": [
+    {
+      "fam
+PASS status reports only the managed family {
+  "stateFile": "/work/evidence/F17/f17-work/subset-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "families": [
+    "iptables"
+  ],
+  "checks": [
+    {
+      "family": "iptables",
+      "proto": "tcp",
+      "port": 443,
+ 
+PASS status does not inspect an unmanaged family [{'family': 'iptables', 'proto': 'tcp', 'port': 443, 'input': 'present', 'output': 'present'}]
+PASS an ipv4-only apply did not persist an ip6tables ruleset 
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --tcp 8443 --family dual --json (rc=1 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                8443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": false
+          }
+  stderr: required netfilter tool is missing: ip6tables
+PASS no-ip6tables: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [],
+  
+PASS dual without ip6tables exits 1 {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [],
+  
+PASS the error names the missing family {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [],
+  
+PASS fail-closed added no rule 
+PASS fail-closed left the state untouched 
+$ bash /work/evidence/F17/f17-work/baseline-classify.sh 203.0.113.10
+2001:db8::10 (rc=0 0.02s)
+  stdout: v4=203.0.113.10,
+          v6=2001:db8::10,
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:57939 --domain c1.f17.test --policy auto --server-ipv4 198.51.100.7 --server-ipv6 2001:db8::10 --json (rc=2 0.0s)
+  stdout: {
+            "domain": "c1.f17.test",
+            "policy": "auto",
+            "serverIPv4": "198.51.100.7",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [
+              "203.0.113.10"
+            ],
+            "resolved6": [
+              "2001:db8::10"
+            ],
+            "mode": "ipv6",
+            "hasA": true,
+            "hasAAAA": true,
+            "aOK": false,
+            "aaaaOK": true,
+            "badA": true,
+            "badAAAA": false
+          }
+  stderr: domain resolves to a foreign address for an enabled family
+PASS classify-c1: JSON report parsed {
+  "domain": "c1.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "ipv6",
+  "hasA": true,
+  "hasAAAA"
+$ bash /work/evidence/F17/f17-work/baseline-classify.sh 203.0.113.10
+2001:db8::99
+203.0.113.11 (rc=0 0.02s)
+  stdout: v4=203.0.113.10,203.0.113.11,
+          v6=2001:db8::99,
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:57939 --domain c2.f17.test --policy auto --server-ipv4 198.51.100.7 --server-ipv6 2001:db8::10 --json (rc=1 0.0s)
+  stdout: {
+            "domain": "c2.f17.test",
+            "policy": "auto",
+            "serverIPv4": "198.51.100.7",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [
+              "203.0.113.10",
+              "203.0.113.11"
+            ],
+            "resolved6": [
+              "2001:db8::99"
+            ],
+            "mode": "none",
+            "hasA": true,
+            "hasAAAA": true,
+            "aOK": false,
+            "aaaaOK": false,
+            "badA": false,
+            "badAAAA": false
+          }
+  stderr: no resolved address family matches this server
+PASS classify-c2: JSON report parsed {
+  "domain": "c2.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10",
+    "203.0.113.11"
+  ],
+  "resolved6": [
+    "2001:db8::99"
+  ],
+  "mode": "none",
+  "hasA
+$ bash /work/evidence/F17/f17-work/baseline-classify.sh 2001:db8::10 (rc=0 0.01s)
+  stdout: v4=
+          v6=2001:db8::10,
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:57939 --domain c3.f17.test --policy auto --server-ipv4 198.51.100.7 --server-ipv6 2001:db8::10 --json (rc=0 0.0s)
+  stdout: {
+            "domain": "c3.f17.test",
+            "policy": "auto",
+            "serverIPv4": "198.51.100.7",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [],
+            "resolved6": [
+              "2001:db8::10"
+            ],
+            "mode": "ipv6",
+            "hasA": false,
+            "hasAAAA": true,
+            "aOK": false,
+            "aaaaOK": true,
+            "badA": false,
+            "badAAAA": false
+          }
+PASS classify-c3: JSON report parsed {
+  "domain": "c3.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "ipv6",
+  "hasA": false,
+  "hasAAAA": true,
+  "aOK": fals
+$ bash /work/evidence/F17/f17-work/baseline-classify.sh  (rc=0 0.0s)
+  stdout: v4=
+          v6=
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:57939 --domain c4.f17.test --policy auto --server-ipv4 198.51.100.7 --server-ipv6 2001:db8::10 --json (rc=1 0.0s)
+  stdout: {
+            "domain": "c4.f17.test",
+            "policy": "auto",
+            "serverIPv4": "198.51.100.7",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [],
+            "resolved6": [],
+            "mode": "none",
+            "hasA": false,
+            "hasAAAA": false,
+            "aOK": false,
+            "aaaaOK": false,
+            "badA": false,
+            "badAAAA": false
+          }
+  stderr: no resolved address family matches this server
+PASS classify-c4: JSON report parsed {
+  "domain": "c4.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [],
+  "mode": "none",
+  "hasA": false,
+  "hasAAAA": false,
+  "aOK": false,
+  "aaaaOK": false,
+$ bash /work/evidence/F17/f17-work/baseline-classify.sh 198.51.100.7 (rc=0 0.01s)
+  stdout: v4=198.51.100.7,
+          v6=
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:57939 --domain c5.f17.test --policy auto --server-ipv4 198.51.100.7 --server-ipv6 2001:db8::10 --json (rc=0 0.0s)
+  stdout: {
+            "domain": "c5.f17.test",
+            "policy": "auto",
+            "serverIPv4": "198.51.100.7",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [
+              "198.51.100.7"
+            ],
+            "resolved6": [],
+            "mode": "ipv4",
+            "hasA": true,
+            "hasAAAA": false,
+            "aOK": true,
+            "aaaaOK": false,
+            "badA": false,
+            "badAAAA": false
+          }
+PASS classify-c5: JSON report parsed {
+  "domain": "c5.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "198.51.100.7"
+  ],
+  "resolved6": [],
+  "mode": "ipv4",
+  "hasA": true,
+  "hasAAAA": false,
+  "aOK": true
+$ bash /work/evidence/F17/f17-work/baseline-classify.sh 198.51.100.7
+2001:db8::10
+2001:db8::11 (rc=0 0.02s)
+  stdout: v4=198.51.100.7,
+          v6=2001:db8::10,2001:db8::11,
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/dns-root net dns --resolver 127.0.0.1:57939 --domain c6.f17.test --policy auto --server-ipv4 198.51.100.7 --server-ipv6 2001:db8::10 --json (rc=0 0.0s)
+  stdout: {
+            "domain": "c6.f17.test",
+            "policy": "auto",
+            "serverIPv4": "198.51.100.7",
+            "serverIPv6": "2001:db8::10",
+            "resolved4": [
+              "198.51.100.7"
+            ],
+            "resolved6": [
+              "2001:db8::10",
+              "2001:db8::11"
+            ],
+            "mode": "dual",
+            "hasA": true,
+            "hasAAAA": true,
+            "aOK": true,
+            "aaaaOK": true,
+            "badA": false,
+            "badAAAA": false
+          }
+PASS classify-c6: JSON report parsed {
+  "domain": "c6.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "198.51.100.7"
+  ],
+  "resolved6": [
+    "2001:db8::10",
+    "2001:db8::11"
+  ],
+  "mode": "dual",
+  "hasA
+PASS Bash classify_resolved_ips matches Go 
+$ bash /work/evidence/F17/f17-work/baseline-families.sh (rc=0 0.0s)
+  stdout: auto=iptables,ip6tables
+          ipv4=iptables
+          ipv6=ip6tables
+          dual=iptables,ip6tables
+          manual=iptables
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --dry-run --tcp 443 --family auto --json (rc=0 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+PASS families-auto: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --dry-run --tcp 443 --family ipv4 --json (rc=0 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+PASS families-ipv4: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --dry-run --tcp 443 --family ipv6 --json (rc=0 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+PASS families-ipv6: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "i
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --dry-run --tcp 443 --family dual --json (rc=0 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "ip6tables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+PASS families-dual: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --dry-run --tcp 443 --family manual --json (rc=0 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+PASS families-manual: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip
+$ bash /work/evidence/F17/f17-work/baseline-families.sh (rc=0 0.01s)
+  stdout: auto=iptables
+          ipv4=iptables
+          ipv6=ip6tables
+          dual=iptables,ip6tables
+          manual=iptables
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --dry-run --tcp 443 --family auto --json (rc=0 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+PASS families-auto: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --dry-run --tcp 443 --family ipv4 --json (rc=0 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+PASS families-ipv4: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --dry-run --tcp 443 --family ipv6 --json (rc=1 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "ip6tables"
+            ],
+            "commands": [],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+  stderr: required netfilter tool is missing: ip6tables
+PASS families-ipv6: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "ip6tables"
+  ],
+  "commands": [],
+  "persisted": fals
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --dry-run --tcp 443 --family dual --json (rc=1 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "commands": [],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+  stderr: required netfilter tool is missing: ip6tables
+PASS families-dual: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [],
+  "
+$ /work/bin/idleleo --root /work/evidence/F17/f17-work/fw-root net firewall apply --dry-run --tcp 443 --family manual --json (rc=0 0.0s)
+  stdout: {
+            "old": {
+              "tcp": [],
+              "udp": []
+            },
+            "new": {
+              "tcp": [
+                443
+              ],
+              "udp": []
+            },
+            "oldFamilies": [
+              "iptables",
+              "ip6tables"
+            ],
+            "newFamilies": [
+              "iptables"
+            ],
+            "commands": [
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "INPUT",
+                  "-p",
+                  "tcp",
+                  "--dport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-C",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              },
+              {
+                "bin": "iptables",
+                "args": [
+                  "-I",
+                  "OUTPUT",
+                  "-p",
+                  "tcp",
+                  "--sport",
+                  "443",
+                  "-j",
+                  "ACCEPT"
+                ]
+              }
+            ],
+            "persisted": false,
+            "rolledBack": false,
+            "dryRun": true
+          }
+PASS families-manual: JSON report parsed {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip
+PASS Bash managed_fw_families_for_mode matches Go 

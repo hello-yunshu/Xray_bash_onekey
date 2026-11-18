@@ -1,0 +1,112 @@
+== F01 go=/work/bin/idleleo bash=/bash host=aarch64
+$ systemctl is-system-running (rc=0 0.0s)
+  stdout: running
+PASS systemd is usable running after 0.0s
+$ /opt/xray/xray version (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+$ systemctl stop xray (rc=5 0.01s)
+  stderr: Failed to stop xray.service: Unit xray.service not loaded.
+$ systemctl disable xray (rc=1 0.0s)
+  stderr: Failed to disable unit: Unit file xray.service does not exist.
+$ systemctl daemon-reload (rc=0 0.04s)
+$ systemctl reset-failed xray (rc=1 0.0s)
+  stderr: Failed to reset failed state of unit xray.service: Unit xray.service not loaded.
+$ /work/bin/idleleo xray install --binary /opt/xray/xray --mode reality --server-names bad name! --port 8443 --container --json (rc=2 0.0s)
+  stderr: invalid server name "bad name!"
+PASS invalid serverName refused with exit 2 rc=2
+PASS invalid request wrote nothing config=False unit=False bin=False
+$ /work/bin/idleleo xray install --binary /opt/xray/xray --mode reality --domain example.com --port 8443 --container --json (rc=0 0.58s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "tls": "Reality",
+            "binaryPath": "/usr/local/bin/xray",
+            "configPath": "/etc/idleleo/conf/xray/config.json",
+            "unitPath": "/etc/systemd/system/xray.service",
+            "metadataPath": "/etc/idleleo/v1/metadata.json",
+            "configSha256": "f4566db7820bceb475f1c18c6b4a1f1590ac9849e15fa1e599fc86382a9a22fe",
+            "serviceActive": "active",
+            "serviceEnabled": "enabled",
+            "preservedConfig": false,
+            "validatorExit": 0,
+            "ownedResources": [
+              "usr/local/bin/xray",
+              "etc/idleleo/conf/xray/config.json",
+              "etc/systemd/system/xray.service"
+            ],
+            "warnings": [],
+            "nginxManaged": false,
+            "nginxVerified": false
+          }
+PASS reality install exit 0 rc=0 
+PASS report mode=reality reality
+PASS report tls=Reality Reality
+PASS report validatorExit=0 0
+PASS report serviceActive=active active
+PASS report serviceEnabled=enabled enabled
+PASS runtime config exists /etc/idleleo/conf/xray/config.json
+PASS report configSha256 matches file f4566db7820bceb475f1c18c6b4a1f1590ac9849e15fa1e599fc86382a9a22fe vs f4566db7820bceb475f1c18c6b4a1f1590ac9849e15fa1e599fc86382a9a22fe
+$ systemctl is-active xray (rc=0 0.01s)
+  stdout: active
+PASS systemctl is-active active active
+$ systemctl is-enabled xray (rc=0 0.01s)
+  stdout: enabled
+PASS systemctl is-enabled enabled enabled
+PASS unit runs as User=xray 
+$ ps -eo user=,comm= (rc=0 0.0s)
+  stdout: root     systemd
+          root     systemd-journal
+          root     cron
+          message+ dbus-daemon
+          root     fail2ban-server
+          root     systemd-logind
+          root     nginx
+          www-data nginx
+          www-data nginx
+          www-data nginx
+          www-data nginx
+          www-data nginx
+          www-data nginx
+          www-data nginx
+          www-data nginx
+          www-data nginx
+          www-data nginx
+          root     timeout
+          root     python3
+          xray     xray
+          root     ps
+PASS xray process is owned by user xray {"xray": 1}
+$ /usr/local/bin/xray -test -config /etc/idleleo/conf/xray/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:42.425485 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+          2026/11/18 22:58:42.425633 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+          Configuration OK.
+PASS installed xray -test accepts the config rc=0 
+$ /work/bin/idleleo xray share --path /etc/idleleo/conf/xray/config.json --host 127.0.0.1 --public-port 8443 --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "6f09273c-71fd-401e-b430-c890d3b65387",
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "host": "127.0.0.1",
+            "port": 8443,
+            "shareUri": "vless://6f09273c-71fd-401e-b430-c890d3b65387@127.0.0.1:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=6iSWFVv2SISZYPBalrFLcmU-23mx1KgJOxzh1Rvodko&sid=a5d77d52&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: 127.0.0.1\n    port: 8443\n    uuid: 6f09273c-71fd-401e-b430-c890d3b65387\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: 6iSWFVv2SISZYPBalrFLcmU-23mx1KgJOxzh1Rvodko\n      short-id: a5d77d52\n",
+            "warnings": []
+          }
+PASS share exit 0 rc=0
+PASS shareUri is a vless URI vless://6f09273c-71fd-401e-b430-c890d3b65387@127.0.0.1:8443?encryption=none&flow
+PASS client SOCKS listener ready 127.0.0.1:10808
+$ curl -sS --max-time 15 --socks5-hostname 127.0.0.1:10808 -o /work/evidence/F01/origin-body.txt -w %{http_code} http://example.com/ (rc=0 6.05s)
+  stdout: 200
+PASS real handshake fetched HTTP bytes attempt=1 status=200 bytes=577
+PASS Reality data path works end to end http://example.com/
+$ systemctl stop xray (rc=0 0.01s)
+$ systemctl disable xray (rc=0 0.06s)
+  stderr: Removed "/etc/systemd/system/multi-user.target.wants/xray.service".
+$ systemctl daemon-reload (rc=0 0.03s)
+$ systemctl reset-failed xray (rc=1 0.0s)
+  stderr: Failed to reset failed state of unit xray.service: Unit xray.service not loaded.

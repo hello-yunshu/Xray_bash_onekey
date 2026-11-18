@@ -1,0 +1,98 @@
+PASS systemd is usable: running after 0.0s
+PASS worker group created for the layered model: rc=0
+PASS local CA created: ............+......+.........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+.........+....+...+.........+...+.....+......+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+..+....+...+++++++++++
+PASS local CA TLS key created: ...+...+...+.+.....+.+........+....+.....................+.........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*........+.+........+.+...........+...+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...+...+................+...............+...+.....+......+..
+PASS local CA TLS certificate signed: Certificate request self-signature ok
+subject=CN = localhost
+
+PASS dry-run on a missing pair exit 0: rc=0
+PASS dry-run reports missing=true: True
+PASS dry-run marks a missing pair as due: True
+PASS dry-run echoes the certificate path
+PASS dry-run echoes the renew window
+PASS dry-run wrote nothing
+PASS local CA issuance exit 0: rc=0 time=2026-11-18T22:58:56.335Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+time=2026-11-18T22:58:56.398Z level=INFO msg="Use solver." domain=example.com type=http-01
+time=2026-11-18T22:58:56.398Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+time=2026-11-18T22:58:56.400Z level=INFO msg="The server validated our request." domain=example.com
+time=202
+PASS report issued=true: True
+PASS report domain: example.com
+PASS report carries the local account URL: https://127.0.0.1:49107/acct/1
+PASS report carries notAfter: 2027-02-16T22:58:56Z
+PASS certificate pair written
+PASS standalone certificate is 0644: 0o644
+PASS standalone key is 0600: 0o600
+PASS issued chain verifies against the local CA: /work/evidence/F12/acme-work/standalone/xray.crt: OK
+
+PASS issued SAN contains example.com: X509v3 Subject Alternative Name: 
+    DNS:example.com
+PASS certificate and key are a pair
+PASS account key lives outside the certificate tree at 0600: /work/evidence/F12/acme-work/account/account.key 0o600
+PASS account state keeps one URL per CA directory: {"accounts": {"https://127.0.0.1:49107/directory": "https://127.0.0.1:49107/acct/1"}}
+PASS dry-run reports a valid pair as not due: {"domain": "example.com", "certificateFile": "/work/evidence/F12/acme-work/standalone/xray.crt", "keyFile": "/work/evidence/F12/acme-work/standalone/xray.key", "notAfter": "2027-02-16T22:58:56Z", "ren
+PASS dry-run prints the next renewal point: 2027-01-17T22:58:56Z
+PASS dry-run reports a due pair: {"domain": "example.com", "certificateFile": "/work/evidence/F12/acme-work/standalone/xray.crt", "keyFile": "/work/evidence/F12/acme-work/standalone/xray.key", "notAfter": "2027-02-16T22:58:56Z", "ren
+PASS renew skips a certificate outside the window: {"domain": "example.com", "directoryUrl": "https://127.0.0.1:49107/directory", "accountUrl": "", "orderUrl": "", "certificateFile": "/work/evidence/F12/acme-work/standalone/xray.crt", "keyFile": "/wor
+PASS a skipped renewal leaves the pair unchanged
+PASS issue refuses a user-managed pair with exit 1: rc=1
+PASS refusal names the user-managed marker: certificate /work/evidence/F12/acme-work/standalone/xray.crt is marked as user-managed; refusing to overwrite it (pass --takeover to adopt it)
+PASS refused issuance leaves the user pair untouched
+PASS renew skips a user-managed pair: {"domain": "example.com", "directoryUrl": "https://127.0.0.1:49107/directory", "accountUrl": "", "orderUrl": "", "certificateFile": "/work/evidence/F12/acme-work/standalone/xray.crt", "keyFile": "/wor
+PASS dry-run flags userManaged: {"domain": "example.com", "certificateFile": "/work/evidence/F12/acme-work/standalone/xray.crt", "keyFile": "/work/evidence/F12/acme-work/standalone/xray.key", "notAfter": "2027-02-16T22:58:56Z", "ren
+PASS --takeover adopts the pair: rc=0 time=2026-11-18T22:58:56.474Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+time=2026-11-18T22:58:56.535Z level=INFO msg="Use solver." domain=example.com type=http-01
+time=2026-11-18T22:58:56.535Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+time=202
+PASS takeover removes the user-managed marker
+PASS takeover records native ownership
+PASS legacy state with unexpected entries fails closed: rc=1
+PASS legacy failure explains the refusal: legacy ACME state /work/evidence/F12/acme-work/standalone/acme contains unexpected entry "stray.txt"; refusing to migrate
+PASS legacy refusal leaves the pair untouched
+PASS valid legacy account key generated
+PASS legacy account state migrates into the new directory: rc=0 time=2026-11-18T22:58:56.575Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+time=2026-11-18T22:58:56.643Z level=INFO msg="Use solver." domain=example.com type=http-01
+time=2026-11-18T22:58:56.643Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+time=202
+PASS migrated account key exists at 0600: 0o600
+PASS migrated account key is 0600: 0o600
+PASS legacy account directory is removed after migration
+PASS failed reload exits 1: rc=1
+PASS failed reload is reported: time=2026-11-18T22:58:56.672Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+time=2026-11-18T22:58:56.741Z level=INFO msg="Use solver." domain=example.com type=http-01
+time=2026-11-18T22:58:56.741Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+time=202
+PASS failed reload restores the previous pair byte for byte
+PASS failed reload restores file modes: 0o644/0o600 vs 0o644/0o600
+PASS failed reload restores file owners: (0, 0) vs (0, 0)
+PASS managed-directory issuance exit 0: rc=0 time=2026-11-18T22:58:56.776Z level=INFO msg="Obtaining bundled SAN certificate." domains=perm.example.com
+time=2026-11-18T22:58:56.839Z level=INFO msg="Use solver." domain=perm.example.com type=http-01
+time=2026-11-18T22:58:56.839Z level=INFO msg="http01: Trying to solve HTTP-01." domain=perm.examp
+PASS managed certificate directory is 0750: 0o750
+PASS managed certificate is 0640: 0o640
+PASS managed key is 0640: 0o640
+PASS managed pair is owned by root:<group>: (0, 995) gid=995
+PASS ownership marker is 0640 in the managed directory: 0o640
+PASS --production without an explicit directory does not issue: rc=1
+PASS default --production path names the staging preflight: staging preflight failed: invalid ACME domain "invalid"
+PASS --no-staging-check still rejects an invalid domain: rc=1
+PASS --no-staging-check bypasses the staging preflight: invalid ACME domain "invalid"
+PASS rejected production/preflight attempts write no pair
+PASS probe xray/nginx units active: rc=0 Synchronizing state of nginx.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable nginx
+Created symlink /etc/systemd/system/multi-user.target.wants/xray.service → /etc/systemd/system/xray.service.
+
+PASS schedule baseline run exit 0: rc=0 
+PASS schedule skips a user-managed pair: {"schemaVersion": 1, "root": "/", "startedAt": "2026-11-18T22:58:56Z", "results": [{"job": "cert-renew", "result": "ok", "detail": "xray.crt is user-managed (sha256=df4537a4e88a); renewal is external; expires in 89 days", "at": "2026-11-18T22:58:56Z"}]}
+PASS baseline does not restart services: 1
+PASS replacement pair issued: rc=0 time=2026-11-18T22:58:57.001Z level=INFO msg="Obtaining bundled SAN certificate." domains=replacement.example.com
+time=2026-11-18T22:58:57.062Z level=INFO msg="Use solver." domain=replacement.example.com type=http-01
+time=2026-11-18T22:58:57.062Z level=INFO msg="http01: Trying to solve HTTP-01." dom
+PASS schedule reload run exit 0: rc=0 
+PASS replacement stays user-managed: {"schemaVersion": 1, "root": "/", "startedAt": "2026-11-18T22:58:57Z", "results": [{"job": "cert-renew", "result": "ok", "detail": "xray.crt is user-managed (sha256=987fac0f9d0a); renewal is external; xray restarted, nginx reloaded; expires in 89 days", "at": "2026-11-18T22:58:57Z"}]}
+PASS schedule never reissues a user-managed pair
+PASS replacement restarts xray: 1 -> 2
+PASS replacement reloads nginx: 0 -> 1
+PASS baseline recorded the operator pair before replacement
+== F12: 72 passed, 0 failed, 1.68s ==

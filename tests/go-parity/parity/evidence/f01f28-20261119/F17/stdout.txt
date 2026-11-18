@@ -1,0 +1,1227 @@
+PASS dual: JSON report parsed: {
+  "domain": "dual.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "dual",
+  "hasA": true,
+  "hasAAA
+PASS dual domain rc=0: {
+  "domain": "dual.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "dual",
+  "hasA": true,
+  "hasAAA
+PASS dual mode and both families match: {"aOK": true, "aaaaOK": true, "badA": false, "badAAAA": false, "domain": "dual.f17.test", "hasA": true, "hasAAAA": true, "mode": "dual", "policy": "auto", "resolved4": ["203.0.113.10"], "resolved6": ["2001:db8::10"], "serverIPv4": "203.0.113.10", "serverIPv6": "2001:db8::10"}
+PASS resolved4 order: ['203.0.113.10']
+PASS resolved6 order: ['2001:db8::10']
+PASS stale-aaaa: JSON report parsed: {
+  "domain": "staleaaaa.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::99"
+  ],
+  "mode": "ipv4",
+  "hasA": true,
+  "h
+PASS stale AAAA exits 2: {
+  "domain": "staleaaaa.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::99"
+  ],
+  "mode": "ipv4",
+  "hasA": true,
+  "h
+PASS stale AAAA reports badAAAA: {"aOK": true, "aaaaOK": false, "badA": false, "badAAAA": true, "domain": "staleaaaa.f17.test", "hasA": true, "hasAAAA": true, "mode": "ipv4", "policy": "auto", "resolved4": ["203.0.113.10"], "resolved6": ["2001:db8::99"], "serverIPv4": "203.0.113.10", "serverIPv6": "2001:db8::10"}
+PASS explicit-ipv4: JSON report parsed: {
+  "domain": "staleaaaa.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::99"
+  ],
+  "mode": "ipv4",
+  "hasA": true,
+  "h
+PASS explicit ipv4 still rejects a foreign AAAA: {
+  "domain": "staleaaaa.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::99"
+  ],
+  "mode": "ipv4",
+  "hasA": true,
+  "h
+PASS v4-only: JSON report parsed: {
+  "domain": "v4only.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [],
+  "mode": "ipv4",
+  "hasA": true,
+  "hasAAAA": false,
+  "aOK": 
+PASS ipv4-only domain passes an explicit ipv4 policy: {
+  "domain": "v4only.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [],
+  "mode": "ipv4",
+  "hasA": true,
+  "hasAAAA": false,
+  "aOK": 
+PASS v6-only: JSON report parsed: {
+  "domain": "v6only.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "ipv6",
+  "hasA": false,
+  "hasAAAA": true,
+  "aOK": 
+PASS AAAA-only domain passes auto: {
+  "domain": "v6only.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "ipv6",
+  "hasA": false,
+  "hasAAAA": true,
+  "aOK": 
+PASS v6only-ipv4: JSON report parsed: {
+  "domain": "v6only.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "none",
+  "hasA": false,
+  "hasAAAA": true,
+  "aOK": 
+PASS no ipv4 match exits 1 with mode=none: {
+  "domain": "v6only.f17.test",
+  "policy": "ipv4",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "none",
+  "hasA": false,
+  "hasAAAA": true,
+  "aOK": 
+PASS nxdomain: JSON report parsed: {
+  "domain": "nx.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [],
+  "mode": "none",
+  "hasA": false,
+  "hasAAAA": false,
+  "aOK": false,
+  "aaaaOK": false,
+PASS NXDOMAIN exits 1 with mode=none: {
+  "domain": "nx.f17.test",
+  "policy": "auto",
+  "serverIPv4": "203.0.113.10",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [],
+  "mode": "none",
+  "hasA": false,
+  "hasAAAA": false,
+  "aOK": false,
+  "aaaaOK": false,
+PASS apply-first: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": [
+      443
+    ]
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "iptab
+PASS first apply persists: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": [
+      443
+    ]
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "iptables",
+      "args": [
+        "-C",
+        "INPUT",
+       
+PASS v4 has 4 rules after the first apply: ['INPUT -p tcp --dport 443 -j ACCEPT', 'OUTPUT -p tcp --sport 443 -j ACCEPT', 'INPUT -p udp --dport 443 -j ACCEPT', 'OUTPUT -p udp --sport 443 -j ACCEPT']
+PASS v6 has 4 rules after the first apply: ['INPUT -p tcp --dport 443 -j ACCEPT', 'OUTPUT -p tcp --sport 443 -j ACCEPT', 'INPUT -p udp --dport 443 -j ACCEPT', 'OUTPUT -p udp --sport 443 -j ACCEPT']
+PASS report new ports 443/443: {"tcp": [443], "udp": [443]}
+PASS report families dual: ['iptables', 'ip6tables']
+PASS managed_ports.json written
+PASS both persisted rulesets written
+PASS apply-diff: JSON report parsed: {
+  "old": {
+    "tcp": [
+      443
+    ],
+    "udp": [
+      443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptabl
+PASS port diff apply rc=0: {
+  "old": {
+    "tcp": [
+      443
+    ],
+    "udp": [
+      443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin":
+PASS report old ports [443]: {'tcp': [443], 'udp': [443]}
+PASS v4 holds exactly the 8443 rules: ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT']
+PASS no duplicate rules after the diff: ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT']
+PASS apply-switch-v4: JSON report parsed: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "ipta
+PASS dual -> ipv4 rc=0: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip6tables",
+ 
+PASS the ip6tables ruleset is empty after dual -> ipv4: []
+PASS state families no longer contain ip6tables
+PASS apply-switch-dual: JSON report parsed: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6ta
+PASS ipv4 -> dual rc=0: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "ip6tables",
+ 
+PASS ip6tables rules are re-created on ipv4 -> dual: ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT']
+PASS apply-switch-v6: JSON report parsed: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "ip6t
+PASS dual -> ipv6 removes the managed v4 rules: rc=0 []
+PASS the v6 rules survive dual -> ipv6: ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT']
+PASS apply-restore-dual: JSON report parsed: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "oldFamilies": [
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6t
+PASS ipv6 -> dual restores the v4 rules: ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT']
+PASS rollback: JSON report parsed: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      9443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6t
+PASS injected rule failure exits 1: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      9443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "iptables",
+ 
+PASS rollback reported: {"commands": [{"args": ["-C", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-D", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-D", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-D", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-D", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "INPUT", "-p", "tcp", "--dport", "9443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-I", "INPUT", "-p", "tcp", "--dport", "9443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "9443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-I", "OUTPUT", "-p", "tcp", "--sport", "9443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-D", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-D", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-D", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "INPUT", "-p", "udp", "--dport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-D", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "OUTPUT", "-p", "udp", "--sport", "8443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-C", "INPUT", "-p", "tcp", "--dport", "9443", "-j", "ACCEPT"], "bin": "ip6tables"}, {"args": ["-I", "INPUT", "-p", "tcp", "--dport", "9443", "-j", "ACCEPT"], "bin": "ip6tables"}], "dryRun": false, "new": {"tcp": [9443], "udp": []}, "newFamilies": ["iptables", "ip6tables"], "old": {"tcp": [8443], "udp": [8443]}, "oldFamilies": ["iptables", "ip6tables"], "persisted": false, "rolledBack": true}
+PASS v4 rules restored: ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT'] -> ['OUTPUT -p udp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p tcp --dport 8443 -j ACCEPT']
+PASS v6 rules restored: ['INPUT -p tcp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p udp --sport 8443 -j ACCEPT'] -> ['OUTPUT -p udp --sport 8443 -j ACCEPT', 'INPUT -p udp --dport 8443 -j ACCEPT', 'OUTPUT -p tcp --sport 8443 -j ACCEPT', 'INPUT -p tcp --dport 8443 -j ACCEPT']
+PASS the failed port never stuck
+PASS state still points at 8443: {
+  "tcp": [
+    8443
+  ],
+  "udp": [
+    8443
+  ]
+}
+
+PASS rollback-failed: JSON report parsed: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      10443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6
+PASS a failing undo exits 10: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      10443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "iptables",
+
+PASS the failed undo still reports rolledBack
+PASS a normal apply repairs the failed rollback: old: tcp=8443 udp=8443
+new: tcp=8443 udp=8443
+families: iptables ip6tables -> iptables ip6tables
+persisted=true rolledBack=false dryRun=false
+
+PASS dry-run: JSON report parsed: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      2053
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6t
+PASS dry-run rc=0: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [
+      2053
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6t
+PASS dry-run lists commands: {"commands": [{"args": ["-C", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-D", "INPUT", "-p", "tcp", "--dport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"args": ["-C", "OUTPUT", "-p", "tcp", "--sport", "8443", "-j", "ACCEPT"], "bin": "iptables"}, {"a
+PASS dry-run touched no rule
+PASS dry-run did not rewrite the state
+PASS gate-open: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "iptables",
+      "args": [
+        "-
+PASS the gate sandbox is usable: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin"
+PASS unknown policy exits 2: unknown --policy: bogus
+
+PASS port 0 exits 2: invalid port "0": want 1-65535
+
+PASS port 65536 exits 2: invalid port "65536": want 1-65535
+
+PASS non-numeric port exits 2: invalid port "abc": want 1-65535
+
+PASS unknown family exits 2: unknown --family: bogus
+
+PASS unknown flag exits 2: unknown flag: --bogus
+
+PASS unknown status flag exits 2: unknown flag: --bogus
+
+PASS real root without --container exits 2: container root writes require --container
+
+PASS unmarked sandbox exits 2: sandbox marker required: open /work/evidence/F17/f17-work/unmarked-root/.idleleo-phase01-sandbox: no such file or directory
+
+PASS rejected requests wrote nothing
+PASS the unmarked sandbox got no state directory
+PASS status: JSON report parsed: {
+  "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "families": [
+    "iptables",
+    "ip6tables"
+  ],
+
+PASS status sees the state: {
+  "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "families": [
+    "iptables",
+    "ip6tables"
+  ],
+  "checks": [
+    {
+      "family": "iptables",
+      "proto
+PASS status reports present rules: {('iptables', 'tcp', 8443): ('present', 'present'), ('iptables', 'udp', 8443): ('present', 'present'), ('ip6tables', 'tcp', 8443): ('present', 'present'), ('ip6tables', 'udp', 8443): ('present', 'present')}
+PASS status-missing: JSON report parsed: {
+  "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "families": [
+    "iptables",
+    "ip6tables"
+  ],
+
+PASS status reports the missing OUTPUT rules: [{'family': 'iptables', 'proto': 'tcp', 'port': 8443, 'input': 'present', 'output': 'missing'}, {'family': 'iptables', 'proto': 'udp', 'port': 8443, 'input': 'present', 'output': 'missing'}, {'family': 'ip6tables', 'proto': 'tcp', 'port': 8443, 'input': 'present', 'output': 'present'}, {'family': 'ip6tables', 'proto': 'udp', 'port': 8443, 'input': 'present', 'output': 'present'}]
+PASS revert: JSON report parsed: {
+  "old": {
+    "tcp": [
+      8443
+    ],
+    "udp": [
+      8443
+    ]
+  },
+  "new": {
+    "tcp": [],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "c
+PASS revert empties both rulesets: [] []
+PASS revert empties the state port set
+PASS revert-again: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [],
+  "persisted": tru
+PASS second revert is a no-op: {"commands": [], "dryRun": false, "new": {"tcp": [], "udp": []}, "newFamilies": ["iptables", "ip6tables"], "old": {"tcp": [], "udp": []}, "oldFamilies": ["iptables", "ip6tables"], "persisted": true, "
+PASS status-after-revert: JSON report parsed: {
+  "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [],
+    "udp": []
+  },
+  "families": [
+    "iptables",
+    "ip6tables"
+  ],
+  "checks": []
+}
+
+PASS status after revert has no rules to check: {
+  "stateFile": "/work/evidence/F17/f17-work/fw-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [],
+    "udp": []
+  },
+  "families": [
+    "iptables",
+    "ip6tables"
+  ],
+  "checks": []
+}
+
+PASS subset-apply: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "iptables",
+      "args": [
+        "-
+PASS the ipv4-only apply is accepted: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin"
+PASS status-subset: JSON report parsed: {
+  "stateFile": "/work/evidence/F17/f17-work/subset-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "families": [
+    "iptables"
+  ],
+  "checks": [
+    {
+      "fam
+PASS status reports only the managed family: {
+  "stateFile": "/work/evidence/F17/f17-work/subset-root/etc/idleleo/managed_ports.json",
+  "installed": true,
+  "ports": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "families": [
+    "iptables"
+  ],
+  "checks": [
+    {
+      "family": "iptables",
+      "proto": "tcp",
+      "port": 443,
+ 
+PASS status does not inspect an unmanaged family: [{'family': 'iptables', 'proto': 'tcp', 'port': 443, 'input': 'present', 'output': 'present'}]
+PASS an ipv4-only apply did not persist an ip6tables ruleset
+PASS no-ip6tables: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [],
+  
+PASS dual without ip6tables exits 1: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [],
+  
+PASS the error names the missing family: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      8443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [],
+  
+PASS fail-closed added no rule
+PASS fail-closed left the state untouched
+PASS classify-c1: JSON report parsed: {
+  "domain": "c1.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10"
+  ],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "ipv6",
+  "hasA": true,
+  "hasAAAA"
+PASS classify-c2: JSON report parsed: {
+  "domain": "c2.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "203.0.113.10",
+    "203.0.113.11"
+  ],
+  "resolved6": [
+    "2001:db8::99"
+  ],
+  "mode": "none",
+  "hasA
+PASS classify-c3: JSON report parsed: {
+  "domain": "c3.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [
+    "2001:db8::10"
+  ],
+  "mode": "ipv6",
+  "hasA": false,
+  "hasAAAA": true,
+  "aOK": fals
+PASS classify-c4: JSON report parsed: {
+  "domain": "c4.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [],
+  "resolved6": [],
+  "mode": "none",
+  "hasA": false,
+  "hasAAAA": false,
+  "aOK": false,
+  "aaaaOK": false,
+PASS classify-c5: JSON report parsed: {
+  "domain": "c5.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "198.51.100.7"
+  ],
+  "resolved6": [],
+  "mode": "ipv4",
+  "hasA": true,
+  "hasAAAA": false,
+  "aOK": true
+PASS classify-c6: JSON report parsed: {
+  "domain": "c6.f17.test",
+  "policy": "auto",
+  "serverIPv4": "198.51.100.7",
+  "serverIPv6": "2001:db8::10",
+  "resolved4": [
+    "198.51.100.7"
+  ],
+  "resolved6": [
+    "2001:db8::10",
+    "2001:db8::11"
+  ],
+  "mode": "dual",
+  "hasA
+PASS Bash classify_resolved_ips matches Go
+PASS families-auto: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+PASS families-ipv4: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip
+PASS families-ipv6: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "ip6tables"
+  ],
+  "commands": [
+    {
+      "bin": "i
+PASS families-dual: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [
+    {
+PASS families-manual: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip
+PASS families-auto: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip
+PASS families-ipv4: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip
+PASS families-ipv6: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "ip6tables"
+  ],
+  "commands": [],
+  "persisted": fals
+PASS families-dual: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "commands": [],
+  "
+PASS families-manual: JSON report parsed: {
+  "old": {
+    "tcp": [],
+    "udp": []
+  },
+  "new": {
+    "tcp": [
+      443
+    ],
+    "udp": []
+  },
+  "oldFamilies": [
+    "iptables",
+    "ip6tables"
+  ],
+  "newFamilies": [
+    "iptables"
+  ],
+  "commands": [
+    {
+      "bin": "ip
+PASS Bash managed_fw_families_for_mode matches Go
+== F17: 113 passed, 0 failed, 1.13s ==

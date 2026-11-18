@@ -1,0 +1,22 @@
+PASS systemd is usable: running after 0.0s
+PASS probe unit enabled and started: rc=0
+PASS service status exit 0: rc=0
+PASS status reports xray active: active
+PASS status reports xray enabled: enabled
+PASS journal contains the probe start marker: count=1
+PASS service restart exit 0: rc=0 
+PASS restart report action: restart
+PASS restart targets xray.service: xray.service
+PASS restart added exactly one start: 1 -> 2
+PASS service stop exit 0: rc=0
+PASS status reports xray inactive: inactive
+PASS service start exit 0: rc=0
+PASS start added exactly one start: 2 -> 3
+PASS service logs exit 0: rc=0
+PASS logs target xray.service: xray.service
+PASS logs include the probe marker
+PASS unmanaged unit refused with exit 2: rc=2
+PASS unmanaged unit error is explicit: unit "sshd" is not managed by idleleo
+PASS sandbox root refused with exit 2: rc=2
+PASS sandbox refusal is explicit: service commands operate on the real system only (--root must be /)
+== F11: 21 passed, 0 failed, 0.23s ==

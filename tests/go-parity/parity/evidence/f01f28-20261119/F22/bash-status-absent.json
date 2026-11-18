@@ -1,0 +1,10 @@
+{
+  "agentActive": false,
+  "boundedAutoAllowed": false,
+  "installed": true,
+  "mode": "observe-only",
+  "routeAssistEnabled": false,
+  "routeStage": "observe",
+  "runtimeActive": false,
+  "schemaVersion": 1
+}

@@ -1,0 +1,192 @@
+PASS list exits 0: rc=0 
+PASS list reports two clients: [{"index": 0, "uuid": "aaaaaaaa-1111-4111-8111-111111111111", "email": "primary@example.invalid", "level": 0, "primary": true}, {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}]
+PASS list marks index 0 as primary: {"index": 0, "uuid": "aaaaaaaa-1111-4111-8111-111111111111", "email": "primary@example.invalid", "level": 0, "primary": true}
+PASS list reports the secondary client: {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}
+PASS list without --path exits 2: rc=2
+PASS add exits 0: rc=0 
+PASS add: entry is COMMITTED: COMMITTED
+PASS add: new user index is the last client: 2
+PASS add: new user is not primary: False
+PASS add reports the explicit uuid: cccccccc-3333-4333-8333-333333333333
+PASS add reports the email: carol@example.invalid
+PASS add reports the flow: xtls-rprx-vision
+PASS add reports the level: 2
+PASS add targets the runtime config: /work/evidence/F06/user-work/node/etc/idleleo/conf/xray/config.json
+PASS add records the service command: /bin/true
+PASS add records the old digest: 6efdf173b0cf377d28901ab8681821aefd5fc00e2f0141294c3f54bd712cd865
+PASS add records the committed digest: 402b6f4a256393dc6130e25630f255db1dae06032b25aab6bd5b68d388db5259
+PASS add appends exactly one client: 3
+PASS add writes the client fields: {"email": "carol@example.invalid", "flow": "xtls-rprx-vision", "id": "cccccccc-3333-4333-8333-333333333333", "level": 2}
+PASS add appends one Reality shortId: ['1111111111111111', '2222222222222222']
+PASS add leaves the other inbound shortIds alone: ['1111111111111111']
+PASS add changes nothing outside clients/shortIds
+PASS add keeps the config 0640: 0o640
+PASS add leaves no rollback/candidate file: []
+PASS add records a COMMITTED journal entry: [{"id": "1795042732756236520-1929", "state": "COMMITTED", "target": "/work/evidence/F06/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "6efdf173b0cf377d28901ab8681821aefd5fc00e2f0141294c3f54bd712cd865", "newSha256": "402b6f4a256393dc6130e25630f255db1dae06
+PASS add without --uuid exits 0: rc=0 
+PASS generated uuid is RFC4122 v4: 33f1f45c-9b98-472d-96f2-32973665791c
+PASS generated uuid reaches the runtime config: {"email": "dave@example.invalid", "id": "33f1f45c-9b98-472d-96f2-32973665791c", "level": 0}
+PASS generated user defaults level=0 and no flow: {"email": "dave@example.invalid", "id": "33f1f45c-9b98-472d-96f2-32973665791c", "level": 0}
+PASS duplicate email: add exits 2: rc=2 email already exists at index 1
+
+PASS duplicate email: add explains the refusal: email already exists at index 1
+
+PASS duplicate email: config is byte-identical
+PASS duplicate email: no journal entry is written
+PASS duplicate uuid: add exits 2: rc=2 uuid already exists at index 1
+
+PASS duplicate uuid: add explains the refusal: uuid already exists at index 1
+
+PASS duplicate uuid: config is byte-identical
+PASS duplicate uuid: no journal entry is written
+PASS invalid uuid: add exits 2: rc=2 uuid is not a valid RFC4122 value
+
+PASS invalid uuid: add explains the refusal: uuid is not a valid RFC4122 value
+
+PASS invalid uuid: config is byte-identical
+PASS invalid uuid: no journal entry is written
+PASS invalid shortId: add exits 2: rc=2 shortId must be 1-16 hex characters with even length
+
+PASS invalid shortId: add explains the refusal: shortId must be 1-16 hex characters with even length
+
+PASS invalid shortId: config is byte-identical
+PASS invalid shortId: no journal entry is written
+PASS duplicate shortId: add exits 2: rc=2 shortId already present
+
+PASS duplicate shortId: add explains the refusal: shortId already present
+
+PASS duplicate shortId: config is byte-identical
+PASS duplicate shortId: no journal entry is written
+PASS add without --sandbox exits 2: rc=2 变更只允许有标记的一次性沙箱
+
+PASS add without --sandbox writes nothing
+PASS add in an unmarked root exits 2: rc=2 {
+  "id": "",
+  "state": "",
+  "target": "",
+  "oldSha256": "",
+  "startedAt": "",
+  "updatedAt": ""
+}
+sandbox marker required: open /work/evidence/F06/user-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked add names the write gate: {
+  "id": "",
+  "state": "",
+  "target": "",
+  "oldSha256": "",
+  "startedAt": "",
+  "updatedAt": ""
+}
+sandbox marker required: open /work/evidence/F06/user-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked add writes nothing
+PASS uuid rotation exits 0: rc=0 
+PASS uuid rotation is COMMITTED: COMMITTED
+PASS uuid rotation records the committed digest: d1787632e19b1e2976840ccd31ca869b4325dfb4cc215ff0af53f3c2e53998bc
+PASS uuid rotation matches both inbounds: 2/2
+PASS uuid rotation reports both inbound indices: [0, 1]
+PASS uuid rotation reports the old credential: [{"Inbound": 0, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}}, {"Inbound": 1, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-222222222222", "email": "alice@example.invalid", "level": 0, "primary": false}}]
+PASS uuid rotation reports the new credential: [{"Inbound": 0, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-333333333333", "email": "alice@example.invalid", "level": 0, "primary": false}}, {"Inbound": 1, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-333333333333", "email": "alice@example.invalid", "level": 0, "primary": false}}]
+PASS inbound 0 carries the new alice uuid: bbbbbbbb-2222-4222-8222-333333333333
+PASS inbound 0 keeps the primary uuid: aaaaaaaa-1111-4111-8111-111111111111
+PASS inbound 1 carries the new alice uuid: bbbbbbbb-2222-4222-8222-333333333333
+PASS inbound 1 keeps the primary uuid: aaaaaaaa-1111-4111-8111-111111111111
+PASS uuid rotation changes nothing outside clients[].id
+PASS uuid rotation keeps the config 0640: 0o640
+PASS uuid rotation leaves no temporary files: []
+PASS no-change uuid exits 0: rc=0 
+PASS no-change uuid is reported: True
+PASS no-change uuid writes nothing
+PASS no-change uuid records no journal entry
+PASS dry-run uuid exits 0: rc=0 
+PASS dry-run uuid reports dryRun: True
+PASS dry-run uuid writes nothing
+PASS narrowed uuid rotation exits 0: rc=0 
+PASS narrowed rotation only reports inbound 1: [{"Inbound": 1, "User": {"index": 1, "uuid": "bbbbbbbb-2222-4222-8222-333333333333", "email": "alice@example.invalid", "level": 0, "primary": false}}]
+PASS narrowed rotation leaves inbound 0 on the old uuid: bbbbbbbb-2222-4222-8222-333333333333 / bbbbbbbb-2222-4222-8222-444444444444
+PASS uuid rotation onto another user exits 2: rc=2 uuid already used by inbound 0 client 0 (primary@example.invalid)
+
+PASS duplicate uuid explains the refusal: uuid already used by inbound 0 client 0 (primary@example.invalid)
+
+PASS duplicate uuid leaves the config untouched
+PASS invalid --new-uuid exits 2: rc=2 --new-uuid is not a valid RFC4122 value
+
+PASS invalid --new-uuid leaves the config untouched
+PASS uuid service failure exits 9: rc=9 {
+  "id": "1795042732832042049-2049",
+  "state": "ROLLED_BACK",
+  "target": "/work/evidence/F06/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "d38ea82c5af43e1a8bcb1af20b96f360832c17ed9c5a90775b418a0b226e98d9",
+  "newSha256": "7a27f7d3974a02092218e0fc
+PASS uuid service failure is ROLLED_BACK: ROLLED_BACK
+PASS uuid service failure restores every inbound
+PASS uuid service failure removes the rollback snapshot: []
+PASS uuid scenarios actually rewrote the config
+PASS validator rejection exits 8: rc=8 {
+  "id": "1795042732844645936-2059",
+  "state": "REJECTED",
+  "target": "/work/evidence/F06/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "d38ea82c5af43e1a8bcb1af20b96f360832c17ed9c5a90775b418a0b226e98d9",
+  "newSha256": "0e252d66f80fadd1573e2325a64
+PASS validator rejection is REJECTED: REJECTED
+PASS validator rejection records exit 1: 1
+PASS validator rejection leaves the config byte-identical
+PASS validator rejection cleans candidates: []
+PASS validator rejection records REJECTED: [{"id": "1795042732844645936-2059", "state": "REJECTED", "target": "/work/evidence/F06/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "d38ea82c5af43e1a8bcb1af20b96f360832c17ed9c5a90775b418a0b226e98d9", "newSha256": "0e252d66f80fadd1573e2325a6414269c8724bd
+PASS injected write failure exits 13: rc=13 {
+  "id": "1795042732851325736-2070",
+  "state": "FAILED",
+  "target": "/work/evidence/F06/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "d38ea82c5af43e1a8bcb1af20b96f360832c17ed9c5a90775b418a0b226e98d9",
+  "newSha256": "0e252d66f80fadd1573e2325a6414
+PASS write failure is FAILED: FAILED
+PASS write failure leaves the config byte-identical
+PASS write failure records FAILED: [{"id": "1795042732851325736-2070", "state": "FAILED", "target": "/work/evidence/F06/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "d38ea82c5af43e1a8bcb1af20b96f360832c17ed9c5a90775b418a0b226e98d9", "newSha256": "0e252d66f80fadd1573e2325a6414269c8724bd67
+PASS injected service failure exits 9: rc=9 {
+  "id": "1795042732860976725-2077",
+  "state": "ROLLED_BACK",
+  "target": "/work/evidence/F06/user-work/node/etc/idleleo/conf/xray/config.json",
+  "servicePath": "/bin/true",
+  "oldSha256": "d38ea82c5af43e1a8bcb1af20b96f360832c17ed9c5a90775b418a0b226e98d9",
+  "newSha256": "0e252d66f80fadd1573e2325
+PASS service failure is ROLLED_BACK: ROLLED_BACK
+PASS service failure restores the config byte-identical
+PASS service failure removes the rollback snapshot: []
+PASS service failure records ROLLED_BACK: [{"id": "1795042732860976725-2077", "state": "ROLLED_BACK", "target": "/work/evidence/F06/user-work/node/etc/idleleo/conf/xray/config.json", "servicePath": "/bin/true", "oldSha256": "d38ea82c5af43e1a8bcb1af20b96f360832c17ed9c5a90775b418a0b226e98d9", "newSha256": "0e252d66f80fadd1573e2325a6414269c872
+PASS unknown fault injector exits 2: rc=2 {
+  "id": "",
+  "state": "",
+  "target": "",
+  "oldSha256": "",
+  "startedAt": "",
+  "updatedAt": ""
+}
+unknown fault injector
+
+PASS unknown fault injector writes nothing
+PASS remove by email exits 0: rc=0 
+PASS remove entry is COMMITTED: COMMITTED
+PASS remove reports the removed uuid: 33f1f45c-9b98-472d-96f2-32973665791c
+PASS remove deletes exactly the requested user: ['aaaaaaaa-1111-4111-8111-111111111111', 'bbbbbbbb-2222-4222-8222-333333333333', 'cccccccc-3333-4333-8333-333333333333']
+PASS remove by uuid exits 0: rc=0 
+PASS remove by uuid deletes exactly that client: [{"email": "primary@example.invalid", "id": "aaaaaaaa-1111-4111-8111-111111111111", "level": 0}, {"email": "carol@example.invalid", "flow": "xtls-rprx-vision", "id": "cccccccc-3333-4333-8333-333333333333", "level": 2}]
+PASS removing the primary user exits 2: rc=2 refusing to remove the primary user (index 0)
+
+PASS primary removal explains the refusal: refusing to remove the primary user (index 0)
+
+PASS primary removal writes nothing
+PASS removing an unknown user exits 2: rc=2 user not found: ghost@example.invalid
+
+PASS unknown removal explains the refusal: user not found: ghost@example.invalid
+
+PASS unknown removal writes nothing
+PASS Bash baseline implements UUIDv5_tranc
+PASS Bash baseline advertises --uuid-reset
+PASS Go help does not claim UUIDv5 mapping
+PASS Go help documents user list|add|remove
+PASS the final config still matches the original skeleton
+== F06: 122 passed, 0 failed, 0.16s ==

@@ -1,0 +1,15 @@
+{
+  "asset": {
+    "name": "idleleo",
+    "sha256": "e9e4f359ded4948a8b665f39d3d069e95e6237ddae54edfd2499c3312fcdae4d",
+    "size": 14874837,
+    "url": "/idleleo"
+  },
+  "detail": "no applied Go release recorded; the channel can install this version",
+  "latestVersion": "0.2.0-phase04",
+  "manifestUrl": "http://127.0.0.1:33171/manifest.json",
+  "platform": "linux-arm64",
+  "schemaVersion": 1,
+  "state": "available",
+  "verified": true
+}

@@ -34,6 +34,26 @@ from fixture_support import run_fixture  # noqa: E402
 
 MARKER = "I_ACCEPT_DISPOSABLE_SANDBOX\n"
 SBIN = Path("/usr/local/sbin")
+FIXED_PATH_DIRS = tuple(Path(p) for p in (
+    "/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"))
+
+
+def hide_ip6tables():
+    """Hide every ip6tables visible in the manager's fixed PATH."""
+    hidden = []
+    for directory in FIXED_PATH_DIRS:
+        binary = directory / "ip6tables"
+        if binary.exists():
+            moved = binary.with_name("ip6tables.f17-hidden")
+            binary.rename(moved)
+            hidden.append((binary, moved))
+    return hidden
+
+
+def restore_binaries(hidden):
+    for binary, moved in hidden:
+        if moved.exists() and not binary.exists():
+            moved.rename(binary)
 
 
 # --------------------------------------------------------------------------
@@ -510,8 +530,7 @@ def main(f):
     install_shims(state)
 
     # ---- S7: fail closed without ip6tables ------------------------------
-    moved = SBIN / "ip6tables.f17-hidden"
-    (SBIN / "ip6tables").rename(moved)
+    hidden = hide_ip6tables()
     rules_before = (read_rules(state, "v4"), read_rules(state, "v6"))
     state_before = state_file.read_bytes()
     run, report = go_json(f, fw_root, ["net", "firewall", "apply",
@@ -521,7 +540,7 @@ def main(f):
     f.check((read_rules(state, "v4"), read_rules(state, "v6")) == rules_before,
             "fail-closed added no rule")
     f.check(state_file.read_bytes() == state_before, "fail-closed left the state untouched")
-    moved.rename(SBIN / "ip6tables")
+    restore_binaries(hidden)
 
     # ---- S8: Bash baselines --------------------------------------------
     classify_inputs = {
@@ -581,8 +600,7 @@ done
     for has_v6 in (1, 0):
         bash_run = f.run(["bash", families_path], env=dict(os.environ, FW_HAS_V6=str(has_v6)))
         bash_rows = dict(line.split("=", 1) for line in bash_run.out.splitlines() if "=" in line)
-        if has_v6 == 0:
-            (SBIN / "ip6tables").rename(moved)
+        hidden = hide_ip6tables() if has_v6 == 0 else []
         for mode, want in bash_rows.items():
             run, report = go_json(f, fw_root, ["net", "firewall", "apply", "--dry-run",
                                                "--tcp", "443", "--family", mode], f"families-{mode}")
@@ -594,8 +612,7 @@ done
             if want != got or run.rc != want_rc:
                 mismatches.append(f"families {mode}/{has_v6}: bash={want} go={got} "
                                   f"rc={run.rc} want_rc={want_rc}")
-        if has_v6 == 0:
-            moved.rename(SBIN / "ip6tables")
+        restore_binaries(hidden)
     f.check(not mismatches, "Bash managed_fw_families_for_mode matches Go",
             "; ".join(mismatches[:3]))
     observed["baseline"] = {"classificationCases": len(classify_inputs), "familyRows": len(mode_table)}

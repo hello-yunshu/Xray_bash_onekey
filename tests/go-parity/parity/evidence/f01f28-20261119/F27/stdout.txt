@@ -1,0 +1,30 @@
+PASS --version exit 0: rc=0
+PASS --version prints the candidate version: expected='0.2.0-phase04' actual='idleleo 0.2.0-phase04 (go)'
+PASS version subcommand exit 0: rc=0
+PASS version subcommand prints the candidate version: expected='0.2.0-phase04' actual='idleleo 0.2.0-phase04 (go)'
+PASS --help exit 0: rc=0
+PASS xray generate --help exits before generating: rc=0
+PASS help paths wrote nothing to the working dir: found=[]
+PASS xray generate without --out exits 2: expected=2 actual=2
+PASS unknown command exits 2: expected=2 actual=2
+PASS xray user add without --sandbox exits 2: expected=2 actual=2
+PASS sandbox refusal has a message: 变更只允许有标记的一次性沙箱
+PASS usage errors wrote nothing to the working dir: found=[]
+PASS xray backup is absent (not_verified): expected=2 actual=2
+PASS xray restore is absent (not_verified): expected=2 actual=2
+PASS sandbox uninstall exit 0: rc=0 
+PASS uninstall removed the systemd unit: expected='etc/systemd/system/xray.service' removed=['etc/idleleo/v1/metadata.json', 'etc/systemd/system/xray.service', 'usr/local/bin/xray']
+PASS uninstall removed the managed binary: expected='usr/local/bin/xray' removed=['etc/idleleo/v1/metadata.json', 'etc/systemd/system/xray.service', 'usr/local/bin/xray']
+PASS uninstall removed the manager metadata: expected='etc/idleleo/v1/metadata.json' removed=['etc/idleleo/v1/metadata.json', 'etc/systemd/system/xray.service', 'usr/local/bin/xray']
+PASS uninstall preserves the config by default: expected=True actual=True
+PASS sandbox uninstall stops no host service: expected=False actual=False
+PASS config still exists after uninstall: /work/evidence/F27/uninstall-root/etc/idleleo/conf/xray/config.json
+PASS unit and binary are gone after uninstall: unit/binary
+PASS sandbox purge exit 0: rc=0 
+PASS purge reports the config as not preserved: expected=False actual=False
+PASS purge removed the runtime config: /work/evidence/F27/uninstall-root/etc/idleleo/conf/xray/config.json
+PASS purge removed the managed nginx directory: etc/idleleo/conf/nginx
+PASS purge removed the log directory: var/log/xray
+PASS second purge exit 0: rc=0 
+PASS second purge leaves no config: /work/evidence/F27/uninstall-root/etc/idleleo/conf/xray/config.json
+== F27: 29 passed, 0 failed, 0.04s ==

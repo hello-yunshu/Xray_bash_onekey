@@ -1,0 +1,382 @@
+== F16 go=/work/bin/idleleo bash=/bash host=aarch64
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/success --json schedule install --geodata-url http://127.0.0.1:46791/good --container (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "configPath": "/work/evidence/F16/geodata-work/success/etc/idleleo/schedule/jobs.json",
+            "servicePath": "/work/evidence/F16/geodata-work/success/etc/systemd/system/idleleo-schedule.service",
+            "timerPath": "/work/evidence/F16/geodata-work/success/etc/systemd/system/idleleo-schedule.timer",
+            "alertServicePath": "/work/evidence/F16/geodata-work/success/etc/systemd/system/idleleo-alert.service",
+            "intervalSeconds": 3600,
+            "jobs": [
+              "auto-update",
+              "cert-renew",
+              "geodata-refresh",
+              "stats-collect"
+            ],
+            "degradedJobs": [
+              "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+            ],
+            "systemd": "sandbox-not-queried"
+          }
+PASS install exits 0 rc=0 
+PASS install reports the config path /work/evidence/F16/geodata-work/success/etc/idleleo/schedule/jobs.json
+PASS install owns the geodata-refresh job ["auto-update", "cert-renew", "geodata-refresh", "stats-collect"]
+PASS sandbox install does not query systemd sandbox-not-queried
+PASS schedule config exists /work/evidence/F16/geodata-work/success/etc/idleleo/schedule/jobs.json
+PASS schedule config is 0640 0o640
+PASS config pins the GeoData origin http://127.0.0.1:46791/good
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/success --json schedule run --job geodata-refresh (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/F16/geodata-work/success",
+            "startedAt": "2026-11-18T22:59:19Z",
+            "results": [
+              {
+                "job": "geodata-refresh",
+                "result": "ok",
+                "detail": "geoip.dat=381 bytes geosite.dat=631 bytes; sandbox root, no service reload",
+                "at": "2026-11-18T22:59:19Z"
+              }
+            ]
+          }
+PASS geodata run exits 0 rc=0 
+PASS run reports the geodata job geodata-refresh
+PASS geodata run result is ok ok
+PASS detail reports both asset sizes geoip.dat=381 bytes geosite.dat=631 bytes; sandbox root, no service reload
+PASS geoip.dat matches the origin payload 
+PASS geoip.dat is 0644 0o644
+PASS geosite.dat matches the origin payload 
+PASS geosite.dat is 0644 0o644
+PASS geodata dir is 0755 0o755
+PASS geodata dir holds exactly the two assets ['geoip.dat', 'geosite.dat']
+PASS state.json exists /work/evidence/F16/geodata-work/success/var/lib/idleleo/schedule/state.json
+PASS state.json is 0640 0o640
+PASS state records an ok geodata run {"lastRun": "2026-11-18T22:59:19Z", "result": "ok", "detail": "geoip.dat=381 bytes geosite.dat=631 bytes; sandbox root, no service reload"}
+PASS state records the first run 1
+PASS schedule log records the geodata run 2026-11-18T22:59:19Z job=geodata-refresh result=ok detail=geoip.dat=381 bytes geosite.dat=631 bytes; sandbox root, no service reload
+
+PASS foreign /usr/local/share/xray tree is untouched 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/success --json schedule run --job geodata-refresh (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/F16/geodata-work/success",
+            "startedAt": "2026-11-18T22:59:19Z",
+            "results": [
+              {
+                "job": "geodata-refresh",
+                "result": "ok",
+                "detail": "geoip.dat=381 bytes geosite.dat=631 bytes; sandbox root, no service reload",
+                "at": "2026-11-18T22:59:19Z"
+              }
+            ]
+          }
+PASS second geodata run is ok rc=0 ok
+PASS geoip.dat is unchanged by the second run 
+PASS geosite.dat is unchanged by the second run 
+PASS state records the second run 2
+PASS second run leaves no residue ['geoip.dat', 'geosite.dat']
+PASS Go writes no geo_version.json metadata 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-badsha --json schedule install --geodata-url http://127.0.0.1:46791/badsha --container (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "configPath": "/work/evidence/F16/geodata-work/fail-badsha/etc/idleleo/schedule/jobs.json",
+            "servicePath": "/work/evidence/F16/geodata-work/fail-badsha/etc/systemd/system/idleleo-schedule.service",
+            "timerPath": "/work/evidence/F16/geodata-work/fail-badsha/etc/systemd/system/idleleo-schedule.timer",
+            "alertServicePath": "/work/evidence/F16/geodata-work/fail-badsha/etc/systemd/system/idleleo-alert.service",
+            "intervalSeconds": 3600,
+            "jobs": [
+              "auto-update",
+              "cert-renew",
+              "geodata-refresh",
+              "stats-collect"
+            ],
+            "degradedJobs": [
+              "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+            ],
+            "systemd": "sandbox-not-queried"
+          }
+PASS badsha: install exits 0 rc=0 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-badsha --json schedule run --job geodata-refresh (rc=1 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/F16/geodata-work/fail-badsha",
+            "startedAt": "2026-11-18T22:59:19Z",
+            "results": [
+              {
+                "job": "geodata-refresh",
+                "result": "failed",
+                "detail": "geoip.dat: sha256 mismatch (downloaded c24c6766abcd2aaae346cf23baf7f7cbe5834e8425244cba253ed198216ca38b, release says dda4ad00390e4f2fc5831a615d745562159ee6335c35f213d83ca0856240d544); keeping the previous file",
+                "at": "2026-11-18T22:59:19Z"
+              }
+            ]
+          }
+PASS badsha: failed refresh exits 1 rc=1 geoip.dat: sha256 mismatch (downloaded c24c6766abcd2aaae346cf23baf7f7cbe5834e8425244cba253ed198216ca38b, release says dda4ad00390e4f2fc5831a615d745562159ee6335c
+PASS badsha: result is failed failed
+PASS badsha: failure detail is recorded geoip.dat: sha256 mismatch (downloaded c24c6766abcd2aaae346cf23baf7f7cbe5834e8425244cba253ed198216ca38b, release says dda4ad00390e4f2fc5831a615d745562159ee6335c35f213d83ca0856240d544); keeping the pre
+PASS badsha: previous assets stay byte-identical c0893c788c0d != c0893c788c0d
+PASS badsha: no temp or stage residue ['geoip.dat', 'geosite.dat']
+PASS badsha: state records the failure {"lastRun": "2026-11-18T22:59:19Z", "result": "failed", "detail": "geoip.dat: sha256 mismatch (downloaded c24c6766abcd2aaae346cf23baf7f7cbe5834e8425244cba253ed198216ca38b, release says dda4ad00390e4f2
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-truncated --json schedule install --geodata-url http://127.0.0.1:46791/truncated --container (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "configPath": "/work/evidence/F16/geodata-work/fail-truncated/etc/idleleo/schedule/jobs.json",
+            "servicePath": "/work/evidence/F16/geodata-work/fail-truncated/etc/systemd/system/idleleo-schedule.service",
+            "timerPath": "/work/evidence/F16/geodata-work/fail-truncated/etc/systemd/system/idleleo-schedule.timer",
+            "alertServicePath": "/work/evidence/F16/geodata-work/fail-truncated/etc/systemd/system/idleleo-alert.service",
+            "intervalSeconds": 3600,
+            "jobs": [
+              "auto-update",
+              "cert-renew",
+              "geodata-refresh",
+              "stats-collect"
+            ],
+            "degradedJobs": [
+              "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+            ],
+            "systemd": "sandbox-not-queried"
+          }
+PASS truncated: install exits 0 rc=0 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-truncated --json schedule run --job geodata-refresh (rc=1 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/F16/geodata-work/fail-truncated",
+            "startedAt": "2026-11-18T22:59:19Z",
+            "results": [
+              {
+                "job": "geodata-refresh",
+                "result": "failed",
+                "detail": "geoip.dat: sha256 mismatch (downloaded 92181dff9b3dd59eb119d25e16a68e95f00b062c449b78c564a842b4c43d7881, release says dda4ad00390e4f2fc5831a615d745562159ee6335c35f213d83ca0856240d544); keeping the previous file",
+                "at": "2026-11-18T22:59:19Z"
+              }
+            ]
+          }
+PASS truncated: failed refresh exits 1 rc=1 geoip.dat: sha256 mismatch (downloaded 92181dff9b3dd59eb119d25e16a68e95f00b062c449b78c564a842b4c43d7881, release says dda4ad00390e4f2fc5831a615d745562159ee6335c
+PASS truncated: result is failed failed
+PASS truncated: failure detail is recorded geoip.dat: sha256 mismatch (downloaded 92181dff9b3dd59eb119d25e16a68e95f00b062c449b78c564a842b4c43d7881, release says dda4ad00390e4f2fc5831a615d745562159ee6335c35f213d83ca0856240d544); keeping the pre
+PASS truncated: previous assets stay byte-identical 9144a9f2ca59 != 9144a9f2ca59
+PASS truncated: no temp or stage residue ['geoip.dat', 'geosite.dat']
+PASS truncated: state records the failure {"lastRun": "2026-11-18T22:59:19Z", "result": "failed", "detail": "geoip.dat: sha256 mismatch (downloaded 92181dff9b3dd59eb119d25e16a68e95f00b062c449b78c564a842b4c43d7881, release says dda4ad00390e4f2
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-empty --json schedule install --geodata-url http://127.0.0.1:46791/empty --container (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "configPath": "/work/evidence/F16/geodata-work/fail-empty/etc/idleleo/schedule/jobs.json",
+            "servicePath": "/work/evidence/F16/geodata-work/fail-empty/etc/systemd/system/idleleo-schedule.service",
+            "timerPath": "/work/evidence/F16/geodata-work/fail-empty/etc/systemd/system/idleleo-schedule.timer",
+            "alertServicePath": "/work/evidence/F16/geodata-work/fail-empty/etc/systemd/system/idleleo-alert.service",
+            "intervalSeconds": 3600,
+            "jobs": [
+              "auto-update",
+              "cert-renew",
+              "geodata-refresh",
+              "stats-collect"
+            ],
+            "degradedJobs": [
+              "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+            ],
+            "systemd": "sandbox-not-queried"
+          }
+PASS empty: install exits 0 rc=0 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-empty --json schedule run --job geodata-refresh (rc=1 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/F16/geodata-work/fail-empty",
+            "startedAt": "2026-11-18T22:59:19Z",
+            "results": [
+              {
+                "job": "geodata-refresh",
+                "result": "failed",
+                "detail": "geoip.dat: origin returned an empty asset",
+                "at": "2026-11-18T22:59:19Z"
+              }
+            ]
+          }
+PASS empty: failed refresh exits 1 rc=1 geoip.dat: origin returned an empty asset
+PASS empty: result is failed failed
+PASS empty: failure detail is recorded geoip.dat: origin returned an empty asset
+PASS empty: previous assets stay byte-identical 7e802ba0808e != 7e802ba0808e
+PASS empty: no temp or stage residue ['geoip.dat', 'geosite.dat']
+PASS empty: state records the failure {"lastRun": "2026-11-18T22:59:19Z", "result": "failed", "detail": "geoip.dat: origin returned an empty asset"}
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-html --json schedule install --geodata-url http://127.0.0.1:46791/html --container (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "configPath": "/work/evidence/F16/geodata-work/fail-html/etc/idleleo/schedule/jobs.json",
+            "servicePath": "/work/evidence/F16/geodata-work/fail-html/etc/systemd/system/idleleo-schedule.service",
+            "timerPath": "/work/evidence/F16/geodata-work/fail-html/etc/systemd/system/idleleo-schedule.timer",
+            "alertServicePath": "/work/evidence/F16/geodata-work/fail-html/etc/systemd/system/idleleo-alert.service",
+            "intervalSeconds": 3600,
+            "jobs": [
+              "auto-update",
+              "cert-renew",
+              "geodata-refresh",
+              "stats-collect"
+            ],
+            "degradedJobs": [
+              "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+            ],
+            "systemd": "sandbox-not-queried"
+          }
+PASS html: install exits 0 rc=0 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-html --json schedule run --job geodata-refresh (rc=1 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/F16/geodata-work/fail-html",
+            "startedAt": "2026-11-18T22:59:19Z",
+            "results": [
+              {
+                "job": "geodata-refresh",
+                "result": "failed",
+                "detail": "geoip.dat: origin returned HTML/JSON instead of a GeoData asset",
+                "at": "2026-11-18T22:59:19Z"
+              }
+            ]
+          }
+PASS html: failed refresh exits 1 rc=1 geoip.dat: origin returned HTML/JSON instead of a GeoData asset
+PASS html: result is failed failed
+PASS html: failure detail is recorded geoip.dat: origin returned HTML/JSON instead of a GeoData asset
+PASS html: previous assets stay byte-identical 8f89d74b7a30 != 8f89d74b7a30
+PASS html: no temp or stage residue ['geoip.dat', 'geosite.dat']
+PASS html: state records the failure {"lastRun": "2026-11-18T22:59:19Z", "result": "failed", "detail": "geoip.dat: origin returned HTML/JSON instead of a GeoData asset"}
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-missing --json schedule install --geodata-url http://127.0.0.1:46791/missing --container (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "configPath": "/work/evidence/F16/geodata-work/fail-missing/etc/idleleo/schedule/jobs.json",
+            "servicePath": "/work/evidence/F16/geodata-work/fail-missing/etc/systemd/system/idleleo-schedule.service",
+            "timerPath": "/work/evidence/F16/geodata-work/fail-missing/etc/systemd/system/idleleo-schedule.timer",
+            "alertServicePath": "/work/evidence/F16/geodata-work/fail-missing/etc/systemd/system/idleleo-alert.service",
+            "intervalSeconds": 3600,
+            "jobs": [
+              "auto-update",
+              "cert-renew",
+              "geodata-refresh",
+              "stats-collect"
+            ],
+            "degradedJobs": [
+              "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+            ],
+            "systemd": "sandbox-not-queried"
+          }
+PASS missing: install exits 0 rc=0 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-missing --json schedule run --job geodata-refresh (rc=1 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/F16/geodata-work/fail-missing",
+            "startedAt": "2026-11-18T22:59:19Z",
+            "results": [
+              {
+                "job": "geodata-refresh",
+                "result": "failed",
+                "detail": "geoip.dat checksum: origin returned HTTP 404",
+                "at": "2026-11-18T22:59:19Z"
+              }
+            ]
+          }
+PASS missing: failed refresh exits 1 rc=1 geoip.dat checksum: origin returned HTTP 404
+PASS missing: result is failed failed
+PASS missing: failure detail is recorded geoip.dat checksum: origin returned HTTP 404
+PASS missing: previous assets stay byte-identical eed6096cc761 != eed6096cc761
+PASS missing: no temp or stage residue ['geoip.dat', 'geosite.dat']
+PASS missing: state records the failure {"lastRun": "2026-11-18T22:59:19Z", "result": "failed", "detail": "geoip.dat checksum: origin returned HTTP 404"}
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-mixed --json schedule install --geodata-url http://127.0.0.1:46791/mixed --container (rc=0 0.01s)
+  stdout: {
+            "schemaVersion": 1,
+            "configPath": "/work/evidence/F16/geodata-work/fail-mixed/etc/idleleo/schedule/jobs.json",
+            "servicePath": "/work/evidence/F16/geodata-work/fail-mixed/etc/systemd/system/idleleo-schedule.service",
+            "timerPath": "/work/evidence/F16/geodata-work/fail-mixed/etc/systemd/system/idleleo-schedule.timer",
+            "alertServicePath": "/work/evidence/F16/geodata-work/fail-mixed/etc/systemd/system/idleleo-alert.service",
+            "intervalSeconds": 3600,
+            "jobs": [
+              "auto-update",
+              "cert-renew",
+              "geodata-refresh",
+              "stats-collect"
+            ],
+            "degradedJobs": [
+              "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+            ],
+            "systemd": "sandbox-not-queried"
+          }
+PASS mixed: install exits 0 rc=0 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-mixed --json schedule run --job geodata-refresh (rc=1 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/F16/geodata-work/fail-mixed",
+            "startedAt": "2026-11-18T22:59:19Z",
+            "results": [
+              {
+                "job": "geodata-refresh",
+                "result": "failed",
+                "detail": "geosite.dat: sha256 mismatch (downloaded 48da7ae1d8c1b17457ac56d3d89f1158a79d4cdabb41b49103bf6afd25262585, release says 2b960e29fb549e7a676059100db701891823cf3b0c9a5d418f9473c950152765); keeping the previous file",
+                "at": "2026-11-18T22:59:19Z"
+              }
+            ]
+          }
+PASS mixed: failed refresh exits 1 rc=1 geosite.dat: sha256 mismatch (downloaded 48da7ae1d8c1b17457ac56d3d89f1158a79d4cdabb41b49103bf6afd25262585, release says 2b960e29fb549e7a676059100db701891823cf3b
+PASS mixed: result is failed failed
+PASS mixed: failure detail is recorded geosite.dat: sha256 mismatch (downloaded 48da7ae1d8c1b17457ac56d3d89f1158a79d4cdabb41b49103bf6afd25262585, release says 2b960e29fb549e7a676059100db701891823cf3b0c9a5d418f9473c950152765); keeping the p
+PASS mixed: previous assets stay byte-identical d08afc8ca914 != d08afc8ca914
+PASS mixed: no temp or stage residue ['geoip.dat', 'geosite.dat']
+PASS mixed: state records the failure {"lastRun": "2026-11-18T22:59:19Z", "result": "failed", "detail": "geosite.dat: sha256 mismatch (downloaded 48da7ae1d8c1b17457ac56d3d89f1158a79d4cdabb41b49103bf6afd25262585, release says 2b960e29fb549
+PASS mixed: verified geoip.dat is not partially written 
+PASS fresh sandbox starts without a geodata dir 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-badsha-fresh --json schedule install --geodata-url http://127.0.0.1:46791/badsha --container (rc=0 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "configPath": "/work/evidence/F16/geodata-work/fail-badsha-fresh/etc/idleleo/schedule/jobs.json",
+            "servicePath": "/work/evidence/F16/geodata-work/fail-badsha-fresh/etc/systemd/system/idleleo-schedule.service",
+            "timerPath": "/work/evidence/F16/geodata-work/fail-badsha-fresh/etc/systemd/system/idleleo-schedule.timer",
+            "alertServicePath": "/work/evidence/F16/geodata-work/fail-badsha-fresh/etc/systemd/system/idleleo-alert.service",
+            "intervalSeconds": 3600,
+            "jobs": [
+              "auto-update",
+              "cert-renew",
+              "geodata-refresh",
+              "stats-collect"
+            ],
+            "degradedJobs": [
+              "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+            ],
+            "systemd": "sandbox-not-queried"
+          }
+PASS badsha without previous assets: install exits 0 rc=0 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/fail-badsha-fresh --json schedule run --job geodata-refresh (rc=1 0.0s)
+  stdout: {
+            "schemaVersion": 1,
+            "root": "/work/evidence/F16/geodata-work/fail-badsha-fresh",
+            "startedAt": "2026-11-18T22:59:19Z",
+            "results": [
+              {
+                "job": "geodata-refresh",
+                "result": "failed",
+                "detail": "geoip.dat: sha256 mismatch (downloaded c24c6766abcd2aaae346cf23baf7f7cbe5834e8425244cba253ed198216ca38b, release says dda4ad00390e4f2fc5831a615d745562159ee6335c35f213d83ca0856240d544); keeping the previous file",
+                "at": "2026-11-18T22:59:19Z"
+              }
+            ]
+          }
+PASS badsha without previous assets fails the job rc=1 failed
+PASS failed fetch creates no geodata dir /work/evidence/F16/geodata-work/fail-badsha-fresh/etc/idleleo/share/xray
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/unmarked --json schedule run --job geodata-refresh (rc=1 0.0s)
+  stderr: sandbox marker required: open /work/evidence/F16/geodata-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+PASS unmarked root run exits 1 rc=1
+PASS unmarked refusal names the sandbox marker sandbox marker required: open /work/evidence/F16/geodata-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+PASS unmarked refusal creates no etc tree 
+$ /usr/bin/setpriv --reuid=65534 --regid=65534 --clear-groups /work/bin/idleleo --root / --json schedule run --job geodata-refresh (rc=1 0.0s)
+  stderr: root required to run scheduled jobs on the real root
+PASS non-root real-root run exits 1 rc=1
+PASS real root requires root root required to run scheduled jobs on the real root
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/escape-config --json schedule run --job geodata-refresh (rc=1 0.0s)
+  stderr: unsafe schedule config path: geodataDir "../escape"
+PASS escaping geodataDir exits 1 rc=1
+PASS escaping geodataDir is refused as an unsafe path unsafe schedule config path: geodataDir "../escape"
+PASS escape directory is never created 
+PASS refused config creates no geodata dir 
+$ /work/bin/idleleo --root /work/evidence/F16/geodata-work/unknown-job --json schedule run --job nope (rc=1 0.0s)
+  stderr: unknown scheduled job "nope"
+PASS unknown job exits 1 rc=1
+PASS unknown job is named unknown scheduled job "nope"
+PASS Bash geo_update.sh baseline is present scripts/geo_update.sh
+PASS Bash baseline keeps the checksum verification contract {"file": "scripts/geo_update.sh", "line": 95, "snippet": "verify_checksum_file() {"}
+PASS Bash baseline keeps the pinned release tag and geo_version.json metadata contract {"file": "scripts/geo_update.sh", "line": 20, "snippet": "release_latest=\"https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest\""}
+PASS Bash baseline keeps the Xray run -test pre-validation contract {"file": "scripts/geo_update.sh", "line": 193, "snippet": "if ! XRAY_LOCATION_ASSET=\"${stage_dir}\" run_bounded 60 \"${xray_binary}\" run -test -config \"${stage_dir}/validation-config.json\" >/dev/n
+PASS Bash baseline keeps the stage-and-restore rollback contract {"file": "scripts/geo_update.sh", "line": 153, "snippet": "stage_dir=$(mktemp -d \"${geo_dir}/.geo-update.XXXXXX\")"}
+PASS Bash baseline keeps the restart when Xray is active contract {"file": "scripts/geo_update.sh", "line": 217, "snippet": "if run_bounded 15 systemctl is-active --quiet xray 2>/dev/null; then was_active=true; fi"}
+PASS Bash baseline keeps the old-layout migration contract {"file": "install.sh", "line": 13800, "snippet": "# manages as a symlink into /etc/idleleo/share/xray. Back up the link as"}

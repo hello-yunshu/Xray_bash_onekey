@@ -1,0 +1,22 @@
+{
+  "binaryPath": "/usr/local/bin/xray",
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "configSha256": "f4566db7820bceb475f1c18c6b4a1f1590ac9849e15fa1e599fc86382a9a22fe",
+  "metadataPath": "/etc/idleleo/v1/metadata.json",
+  "mode": "reality",
+  "nginxManaged": false,
+  "nginxVerified": false,
+  "ownedResources": [
+    "usr/local/bin/xray",
+    "etc/idleleo/conf/xray/config.json",
+    "etc/systemd/system/xray.service"
+  ],
+  "preservedConfig": false,
+  "serviceActive": "active",
+  "serviceEnabled": "enabled",
+  "tls": "Reality",
+  "transport": "raw",
+  "unitPath": "/etc/systemd/system/xray.service",
+  "validatorExit": 0,
+  "warnings": []
+}

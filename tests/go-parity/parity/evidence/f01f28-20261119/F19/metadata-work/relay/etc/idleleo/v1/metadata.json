@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "activeEngine": "xray",
+  "provenance": "legacy",
+  "role": "relay",
+  "tls": "None",
+  "transport": "stream",
+  "runtimeConfigPath": "",
+  "runtimeSha256": "",
+  "ownedResources": [
+    "etc/idleleo/conf/nginx/relay-stream.conf",
+    "etc/idleleo/conf/nginx",
+    "etc/systemd/system/nginx.service"
+  ],
+  "updatedAt": "2026-11-18T22:59:23Z"
+}

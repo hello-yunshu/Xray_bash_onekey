@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "lastRun": "2026-11-18T22:59:19Z",
+  "runs": 1,
+  "jobs": {
+    "geodata-refresh": {
+      "lastRun": "2026-11-18T22:59:19Z",
+      "result": "failed",
+      "detail": "geoip.dat: origin returned HTML/JSON instead of a GeoData asset"
+    }
+  }
+}

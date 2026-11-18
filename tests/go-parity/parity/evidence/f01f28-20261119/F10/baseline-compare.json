@@ -1,0 +1,38 @@
+{
+  "discovery": {
+    "bash": "edits the global nginx_conf path",
+    "classification": "new-go-behavior",
+    "go": "locates ssl_protocols / $ssl_preread_protocol instead of editing a fixed path"
+  },
+  "realityTLS12": {
+    "bashSha256": "ed1d5afa3996231aeaecc0a26d324a49dc8400d98e3e61af75ef80c8fdfb20ea",
+    "classification": "aligned",
+    "goSha256": "ed1d5afa3996231aeaecc0a26d324a49dc8400d98e3e61af75ef80c8fdfb20ea"
+  },
+  "realityTLS13": {
+    "bashSha256": "10c6ad9233f730b936331296f97f18bf1f7372d61d2c2bf0161bca147d7dbb7c",
+    "classification": "aligned",
+    "goSha256": "10c6ad9233f730b936331296f97f18bf1f7372d61d2c2bf0161bca147d7dbb7c"
+  },
+  "restartScope": {
+    "bash": "restarts nginx (when managed) and always restarts xray",
+    "classification": "approved-difference",
+    "go": "reloads nginx only; a sandbox root skips and warns"
+  },
+  "rollback": {
+    "bash": "sed -i writes in place, restarts both services, no rollback",
+    "classification": "approved-difference",
+    "go": "nginx -t failure or reload failure restores the previous bytes"
+  },
+  "tls12OnTLSMode": {
+    "bash": "loops on choice 1 and only leaves the loop on choice 2",
+    "classification": "approved-difference",
+    "go": "rc=1 with an explicit h3/quic explanation"
+  },
+  "tls13Line": {
+    "bashSha256": "aa6dd713cae9144d1d7a9f444d7529c778d65c85e8e4362df0d2ea0d119509c4",
+    "bytes": 220,
+    "classification": "aligned",
+    "goSha256": "aa6dd713cae9144d1d7a9f444d7529c778d65c85e8e4362df0d2ea0d119509c4"
+  }
+}

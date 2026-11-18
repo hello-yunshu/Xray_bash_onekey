@@ -1,0 +1,115 @@
+{
+  "environment": {},
+  "generated": {
+    "default": {
+      "inbound": {
+        "listen": "127.0.0.1",
+        "port": 10086,
+        "protocol": "vless",
+        "tag": "VLESS-ws-in"
+      },
+      "payload": {
+        "listen": "127.0.0.1",
+        "mode": "none",
+        "port": 10086,
+        "publicPort": 10086,
+        "transport": "ws"
+      },
+      "share": "vless://cccccccc-3333-4333-8333-333333333333@127.0.0.1:10086?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none"
+    },
+    "invalidListen": "not-an-ip",
+    "multiNonLoopback": {
+      "grpc": {
+        "listen": "10.10.0.5",
+        "port": 12444
+      },
+      "ws": {
+        "listen": "10.10.0.5",
+        "port": 12086
+      },
+      "xhttp": {
+        "listen": "10.10.0.5",
+        "port": 12445
+      }
+    },
+    "multiPinned": {
+      "grpc": {
+        "listen": "127.0.0.1",
+        "port": 12444
+      },
+      "ws": {
+        "listen": "127.0.0.1",
+        "port": 12086
+      },
+      "wsPortFlagIgnored": true,
+      "xhttp": {
+        "listen": "127.0.0.1",
+        "port": 12445
+      }
+    },
+    "publicPort": {
+      "port": 10086,
+      "publicPort": 8443
+    }
+  },
+  "rejections": {
+    "guard": {
+      "rc": 2,
+      "stderr": "non-loopback listen \"0.0.0.0\" requires explicit confirmation\n"
+    }
+  },
+  "xrayTest": {
+    "S1 default ws": {
+      "config": "/work/evidence/F03/f03-work/default-ws/config.json",
+      "rc": 0
+    },
+    "S2 2001:db8::1": {
+      "config": "/work/evidence/F03/f03-work/ipv6-allow/config.json",
+      "rc": 0
+    },
+    "S2 ::1": {
+      "config": "/work/evidence/F03/f03-work/ipv6-loopback/config.json",
+      "rc": 0
+    },
+    "S2 allow 0.0.0.0": {
+      "config": "/work/evidence/F03/f03-work/guard-allow/config.json",
+      "rc": 0
+    },
+    "S2 invalid listen": {
+      "config": "/work/evidence/F03/f03-work/invalid-listen/config.json",
+      "rc": 23
+    },
+    "S3 grpc": {
+      "config": "/work/evidence/F03/f03-work/grpc/config.json",
+      "rc": 0
+    },
+    "S3 multi non-loopback": {
+      "config": "/work/evidence/F03/f03-work/multi-nonlocal/config.json",
+      "rc": 0
+    },
+    "S3 multi pinned": {
+      "config": "/work/evidence/F03/f03-work/multi-pinned/config.json",
+      "rc": 0
+    },
+    "S3 xhttp": {
+      "config": "/work/evidence/F03/f03-work/xhttp/config.json",
+      "rc": 0
+    },
+    "S4 public port": {
+      "config": "/work/evidence/F03/f03-work/public-port/config.json",
+      "rc": 0
+    },
+    "S6 bash multi loopback": {
+      "config": "/work/evidence/F03/f03-work/bash/multi-loopback/config.json",
+      "rc": 0
+    },
+    "S6 bash multi non-loopback": {
+      "config": "/work/evidence/F03/f03-work/bash/multi-nonloopback/config.json",
+      "rc": 0
+    },
+    "S6 bash single ws": {
+      "config": "/work/evidence/F03/f03-work/bash/single-ws/config.json",
+      "rc": 0
+    }
+  }
+}

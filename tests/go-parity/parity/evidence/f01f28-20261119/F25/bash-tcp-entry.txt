@@ -1,0 +1,4 @@
+if [[ -f "${scripts_dir}/tcp.sh" ]]; then
+cd "${scripts_dir}" && chmod +x ./tcp.sh && ./tcp.sh
+if download_script_file "https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh" "${scripts_dir}/tcp.sh"; then
+"${scripts_dir}/tcp.sh"

@@ -63,7 +63,7 @@ func TestStatusEmptyRootIsReadOnly(t *testing.T) {
 	if report.SchemaVersion != 1 || report.Root != root {
 		t.Fatalf("unexpected report: %+v", report)
 	}
-	if report.InContainer != host.InContainer() || report.Mode != DetectMode() {
+	if report.InContainer != host.InContainer() || report.Mode != DetectMode(root) {
 		t.Fatalf("mode mismatch: %+v", report)
 	}
 	if report.Xray.Alive || report.Nginx.Alive {
@@ -77,10 +77,10 @@ func TestStatusEmptyRootIsReadOnly(t *testing.T) {
 }
 
 func TestUpDownDirectAndIdempotent(t *testing.T) {
-	if DetectMode() != ModeDirect {
+	root := sandbox(t)
+	if DetectMode(root) != ModeDirect {
 		t.Skip("systemd host: direct mode cannot be exercised")
 	}
-	root := sandbox(t)
 	metadata(t, root, "TLS")
 	fakeServices(t, root)
 	ctx := context.Background()
@@ -159,10 +159,10 @@ func TestDryRunWritesNothing(t *testing.T) {
 }
 
 func TestMissingConfigIsSkipped(t *testing.T) {
-	if DetectMode() != ModeDirect {
+	root := sandbox(t)
+	if DetectMode(root) != ModeDirect {
 		t.Skip("systemd host")
 	}
-	root := sandbox(t)
 	metadata(t, root, "TLS")
 	write(t, filepath.Join(root, "usr/local/bin/xray"), "#!/bin/sh\ntrap 'exit 0' TERM\nwhile :; do sleep 1; done\n", 0o755)
 	write(t, filepath.Join(root, "etc/idleleo/conf/xray/config.json"), "{}\n", 0o644)

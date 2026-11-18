@@ -15,6 +15,7 @@ on:
   push:
     branches:
       - develop/go-native
+      - work/go-evolution-audit-20261118
 permissions:
   contents: read
 concurrency:
@@ -55,8 +56,17 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends nginx libnginx-mod-stream curl jq
+          sudo apt-get install -y --no-install-recommends \
+            nginx libnginx-mod-stream curl jq fail2ban expect qrencode gettext \
+            bc cron shellcheck iproute2 util-linux dnsutils
+          sudo rm -f /etc/fail2ban/jail.d/defaults-debian.conf
           sudo systemctl start nginx
+          # GeoData fixtures compare against real assets instead of stubbing.
+          mkdir -p "$RUNNER_TEMP/geo"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/geo/geoip.dat" \
+            https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/geo/geosite.dat" \
+            https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat
           arch=$(uname -m)
           case "$arch" in
             x86_64) asset=Xray-linux-64.zip ;;
@@ -83,6 +93,7 @@ jobs:
           # and its real service package; this is what the gate verifies.
           REQUIRED_PRODUCTION_PACKAGE: github.com/hello-yunshu/Xray_bash_onekey/internal/service
           IDLELEO_PREVIEW_EVIDENCE: ${{ runner.temp }}/release-evidence
+          IDLELEO_GEO_DIR: ${{ runner.temp }}/geo
         run: |
           set -euo pipefail
           mkdir -p "$IDLELEO_PREVIEW_EVIDENCE"
@@ -92,6 +103,7 @@ jobs:
             "GITHUB_ACTIONS=${GITHUB_ACTIONS:-}" "GITHUB_SHA=${GITHUB_SHA:-}" \
             "GOPROXY=off" "GOTOOLCHAIN=local" "GOFLAGS=${GOFLAGS:-}" \
             "IDLELEO_PREVIEW_EVIDENCE=$IDLELEO_PREVIEW_EVIDENCE" \
+            "IDLELEO_GEO_DIR=$IDLELEO_GEO_DIR" \
             python3 current/tests/go-parity/parity/scripts/check_release_gate.py \
               --bash-repo legacy \
               --native-go-dir current \

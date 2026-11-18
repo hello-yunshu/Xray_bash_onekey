@@ -1,0 +1,46 @@
+{
+  "install": {
+    "alertServicePath": "/work/evidence/F16/geodata-work/success/etc/systemd/system/idleleo-alert.service",
+    "configPath": "/work/evidence/F16/geodata-work/success/etc/idleleo/schedule/jobs.json",
+    "degradedJobs": [
+      "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+    ],
+    "intervalSeconds": 3600,
+    "jobs": [
+      "auto-update",
+      "cert-renew",
+      "geodata-refresh",
+      "stats-collect"
+    ],
+    "schemaVersion": 1,
+    "servicePath": "/work/evidence/F16/geodata-work/success/etc/systemd/system/idleleo-schedule.service",
+    "systemd": "sandbox-not-queried",
+    "timerPath": "/work/evidence/F16/geodata-work/success/etc/systemd/system/idleleo-schedule.timer"
+  },
+  "run": {
+    "results": [
+      {
+        "at": "2026-11-18T22:59:19Z",
+        "detail": "geoip.dat=381 bytes geosite.dat=631 bytes; sandbox root, no service reload",
+        "job": "geodata-refresh",
+        "result": "ok"
+      }
+    ],
+    "root": "/work/evidence/F16/geodata-work/success",
+    "schemaVersion": 1,
+    "startedAt": "2026-11-18T22:59:19Z"
+  },
+  "secondRun": {
+    "results": [
+      {
+        "at": "2026-11-18T22:59:19Z",
+        "detail": "geoip.dat=381 bytes geosite.dat=631 bytes; sandbox root, no service reload",
+        "job": "geodata-refresh",
+        "result": "ok"
+      }
+    ],
+    "root": "/work/evidence/F16/geodata-work/success",
+    "schemaVersion": 1,
+    "startedAt": "2026-11-18T22:59:19Z"
+  }
+}

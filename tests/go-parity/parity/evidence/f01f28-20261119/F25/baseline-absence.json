@@ -1,0 +1,15 @@
+{
+  "assertions": {
+    "noCurlWgetOrTcpSh": true,
+    "realKernelUnchanged": true
+  },
+  "automation": "none; the entry executes a local tcp.sh and refuses to download one (D3/R09)",
+  "baseline": "install.sh -tcp / menu item",
+  "goContract": "native bbr-fq transaction; no remote download or execution",
+  "remoteReferences": [
+    "if [[ -f \"${scripts_dir}/tcp.sh\" ]]; then",
+    "cd \"${scripts_dir}\" && chmod +x ./tcp.sh && ./tcp.sh",
+    "if download_script_file \"https://raw.githubusercontent.com/ylx2016/Linux-NetSpeed/master/tcp.sh\" \"${scripts_dir}/tcp.sh\"; then",
+    "\"${scripts_dir}/tcp.sh\""
+  ]
+}

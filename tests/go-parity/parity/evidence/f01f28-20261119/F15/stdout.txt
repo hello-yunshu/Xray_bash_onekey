@@ -1,0 +1,68 @@
+PASS Bash xray_stats.sh baseline is present: /bash/scripts/xray_stats.sh
+PASS real Xray Stats API is listening: 127.0.0.1:40109
+PASS real Xray HTTP inbound is listening: 54667
+PASS HTTP proxy request reached the origin: HTTP/1.1 200 OK
+Content-Length: 65536
+Connection: keep-alive
+Content-Type: ap
+PASS origin body came back through Xray
+PASS StatsService recorded inbound uplink: 83
+PASS StatsService recorded inbound downlink >= body size: 65769
+PASS stats --json exit 0: rc=0 
+PASS Go --json passes the raw stat array through: <class 'list'>
+PASS Go JSON uplink equals direct statsquery: 83 vs 83
+PASS Go JSON downlink equals direct statsquery: 65769 vs 65769
+PASS Go JSON is passthrough, not the Bash schema
+PASS direct statssys returns Uptime: {
+    "Alloc": 2302784,
+    "Frees": 5231,
+    "LiveObjects": 10747,
+    "Mallocs": 15978,
+    "NumGC": 4,
+    "NumGoroutine": 55,
+    "PauseTotalNs": 4727743,
+
+PASS Bash stats baseline exit 0: rc=0 
+PASS Bash uplink equals direct statsquery: 83 vs 83
+PASS Bash downlink equals direct statsquery: 65769 vs 65769
+PASS Bash total is uplink+downlink: 65852
+PASS Bash reports the same API server: 127.0.0.1:40109
+PASS Bash reports the traffic inbound tag: ['api-in', 'http-in']
+PASS Bash and Go observe the same inbound tag set: bash=['api-in', 'http-in'] go=['api-in', 'http-in']
+PASS stats text exit 0: rc=0
+PASS text uplink matches statsquery: 83
+PASS text downlink matches statsquery: 65769
+PASS stats --pattern exit 0: rc=0
+PASS pattern returns exactly the requested counter: ['inbound>>>http-in>>>traffic>>>downlink']
+PASS stats queries leave the root tree byte-identical: 9cd7382e1d2f -> 9cd7382e1d2f
+PASS stats --watch is refused with exit 2: rc=2
+PASS stats --watch refusal names the unknown flag: unknown flag: --watch
+PASS stats --reset is refused with exit 2: rc=2
+PASS stats --reset refusal names the unknown flag: unknown flag: --reset
+PASS stats --yes is refused with exit 2: rc=2
+PASS stats --yes refusal names the unknown flag: unknown flag: --yes
+PASS invalid --timeout exits 2: rc=2
+PASS path traversal exits 2: rc=2
+PASS path traversal error is explicit: stats --path must be a relative path inside --root (unsafe relative path)
+PASS missing api.listen exits 3: rc=3
+PASS missing api.listen is explained: stats unavailable: stats/api.listen is not configured
+PASS invalid config JSON exits 3: rc=3
+PASS invalid JSON is explained: runtime config is not valid JSON
+PASS missing runtime config exits 3: rc=3
+PASS non-root stats exits 5: rc=5
+PASS non-root refusal is explicit: stats query requires root
+PASS Bash non-root baseline also exits 5: rc=5
+PASS schedule stats-collect exits 0: rc=0 
+PASS schedule ran stats-collect: stats-collect
+PASS schedule stats-collect result ok: ok
+PASS schedule wrote stats.json: /work/evidence/F15/stats-work/schedule-root/var/lib/idleleo/schedule/stats.json
+PASS saved stats.json retains the inbound uplink: 83
+PASS stats.json is 0640: 0o640
+PASS schedule stats-collect leaves the runtime config untouched
+PASS Xray API is down
+PASS stats with the API down exits 8: rc=8
+PASS API-down error is explicit: stats query failed (exit 1): failed to dial 127.0.0.1:40109
+PASS Bash API-down baseline exits 2 (documented divergence): rc=2
+PASS schedule stats-collect fails when the API is down: rc=1
+PASS schedule reports the Stats failure explicitly: failed
+== F15: 56 passed, 0 failed, 18.38s ==

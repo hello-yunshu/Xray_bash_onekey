@@ -1,0 +1,18 @@
+{
+  "gates": {
+    "brokenJson": 3,
+    "missing": 2,
+    "realRoot": 2,
+    "unknown": 2,
+    "unmarked": 2
+  },
+  "nginx": {
+    "upgradedSha256": "b0eb7a22838092ea20f0629960c7880a437cee0a1cc8f5d6ba7cb912738b10e7"
+  },
+  "versionTable": {
+    "pairs": 9
+  },
+  "xray": {
+    "backup": "xray-1.8.20-1795042738305824111"
+  }
+}

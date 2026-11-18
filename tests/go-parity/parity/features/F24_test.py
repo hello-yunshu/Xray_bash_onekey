@@ -160,7 +160,10 @@ _stop_services
 
 def main(f):
     f.need(f.bash_repo is not None, "F24 requires --bash-repo for the Docker delivery assets")
-    docker_dir = f.bash_repo / "docker"
+    # Delivery assets ship with the product repository; the pinned Bash baseline
+    # predates the Go container entry, so prefer the repository under test.
+    product_docker = Path(__file__).resolve().parents[4] / "docker"
+    docker_dir = product_docker if (product_docker / "Dockerfile").is_file() else f.bash_repo / "docker"
     entrypoint_path = docker_dir / "docker-entrypoint.sh"
     dockerfile = docker_dir / "Dockerfile"
     fake_systemctl = docker_dir / "fake-systemctl"

@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "at": "2026-11-18T22:59:09Z",
+      "detail": "statsquery exit 1: failed to dial 127.0.0.1:40109",
+      "job": "stats-collect",
+      "result": "failed"
+    }
+  ],
+  "root": "/work/evidence/F15/stats-work/schedule-root",
+  "schemaVersion": 1,
+  "startedAt": "2026-11-18T22:59:09Z"
+}

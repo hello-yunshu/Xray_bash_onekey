@@ -1,0 +1,122 @@
+PASS zh version prints a plain version line: rc=0 out='idleleo 0.2.0-phase04 (go)\n' err=''
+PASS zh version stderr matches the fallback contract: ''
+PASS zh help exits 0 without ANSI escapes: rc=0 err=''
+PASS zh help stderr matches the fallback contract: ''
+PASS en version prints a plain version line: rc=0 out='idleleo 0.2.0-phase04 (go)\n' err=''
+PASS en version stderr matches the fallback contract: ''
+PASS en help exits 0 without ANSI escapes: rc=0 err=''
+PASS en help stderr matches the fallback contract: ''
+PASS fr version prints a plain version line: rc=0 out='idleleo 0.2.0-phase04 (go)\n' err='note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS fr version stderr matches the fallback contract: 'note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS fr help exits 0 without ANSI escapes: rc=0 err='note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS fr help stderr matches the fallback contract: 'note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS fa version prints a plain version line: rc=0 out='idleleo 0.2.0-phase04 (go)\n' err='note: fa messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS fa version stderr matches the fallback contract: 'note: fa messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS fa help exits 0 without ANSI escapes: rc=0 err='note: fa messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS fa help stderr matches the fallback contract: 'note: fa messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS ru version prints a plain version line: rc=0 out='idleleo 0.2.0-phase04 (go)\n' err='note: ru messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS ru version stderr matches the fallback contract: 'note: ru messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS ru help exits 0 without ANSI escapes: rc=0 err='note: ru messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS ru help stderr matches the fallback contract: 'note: ru messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS ko version prints a plain version line: rc=0 out='idleleo 0.2.0-phase04 (go)\n' err='note: ko messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS ko version stderr matches the fallback contract: 'note: ko messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS ko help exits 0 without ANSI escapes: rc=0 err='note: ko messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS ko help stderr matches the fallback contract: 'note: ko messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS fr version stdout is byte-identical to en: len=27
+PASS fr help stdout is byte-identical to en: len=7451
+PASS fa version stdout is byte-identical to en: len=27
+PASS fa help stdout is byte-identical to en: len=7451
+PASS ru version stdout is byte-identical to en: len=27
+PASS ru help stdout is byte-identical to en: len=7451
+PASS ko version stdout is byte-identical to en: len=27
+PASS ko help stdout is byte-identical to en: len=7451
+PASS zh and en help differ
+PASS zh help uses the Chinese usage label
+PASS en help uses the English usage label
+PASS zh help lists every top-level command token
+PASS en help lists every top-level command token
+PASS invalid language de is rejected with English help and no notice: rc=2 outMatches=True err=''
+PASS invalid language ZH is rejected with English help and no notice: rc=2 outMatches=True err=''
+PASS invalid language zh_CN is rejected with English help and no notice: rc=2 outMatches=True err=''
+PASS pre-validation --lang de --version exits 0 in English: rc=0 err=''
+PASS pre-validation --lang de --help exits 0 with English help: rc=0 err=''
+PASS pre-validation --lang fr --version still announces the fallback: rc=0 err='note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\n'
+PASS help succeeds under a French locale environment: rc=0
+PASS help stays Chinese under a French locale environment: len=5420
+PASS help does not announce a fallback for the environment locale: ''
+PASS explicit --lang en help succeeds under a Chinese locale: rc=0
+PASS --lang en wins over the Chinese locale environment: len=7451
+PASS --lang en help has an empty stderr under a Chinese locale: ''
+PASS language.conf root status exits 3: rc=3
+PASS language.conf does not switch status to English: '未安装：缺少 manager metadata；只读命令不会创建任何文件\n'
+PASS language.conf root status writes nothing to stdout: ''
+PASS language.conf root status leaves the tree unchanged
+PASS default language is Chinese without LANG or LC_ALL: rc=0 err=''
+PASS empty-root status exits 3 with --lang zh: rc=3 err='未安装：缺少 manager metadata；只读命令不会创建任何文件\n'
+PASS empty-root status exits 3 with --lang en: rc=3 err='not installed: manager metadata is missing; read-only commands create nothing\n'
+PASS empty-root status exits 3 with --lang fr: rc=3 err='note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\nnot installed: manager metadata is missing; read-only commands create nothing\n'
+PASS empty-root status exits 3 with --lang ko: rc=3 err='note: ko messages are not translated yet, falling back to English (use --lang en to silence this)\nnot installed: manager metadata is missing; read-only commands create nothing\n'
+PASS fr status stderr is the en message plus one fallback notice: 'note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\nnot installed: manager metadata is missing; read-only commands create nothing\n'
+PASS empty-root config inspect fails with --lang zh: rc=1
+PASS empty-root config inspect fails with --lang en: rc=1
+PASS empty-root config inspect fails with --lang fr: rc=1
+PASS empty-root config inspect fails with --lang ko: rc=1
+PASS config inspect exit code does not depend on the language: {"en": 1, "fr": 1, "ko": 1, "zh": 1}
+PASS unknown subcommand exits 2 with --lang zh: rc=2
+PASS unknown subcommand exits 2 with --lang en: rc=2
+PASS unknown subcommand exits 2 with --lang fr: rc=2
+PASS unknown subcommand exits 2 with --lang ko: rc=2
+PASS unknown subcommand stdout is identical for fr and en: len=7451
+PASS read-only status leaves the prepared root unchanged
+PASS read-only config inspect leaves the prepared root unchanged
+PASS read-only help leaves the prepared root unchanged
+PASS no-TTY zh exits 2: rc=2
+PASS no-TTY zh uses the localized no_tty message: '无 TTY：不进入交互菜单\n'
+PASS no-TTY zh prints the Chinese help on stdout: len=5420
+PASS no-TTY fr exits 2: rc=2
+PASS no-TTY fr prints the English help on stdout: len=7451
+PASS no-TTY fr stderr starts with the fallback notice: 'note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\nno TTY: interactive menu not entered\n'
+PASS no-TTY fr uses the English no_tty message: 'note: fr messages are not translated yet, falling back to English (use --lang en to silence this)\nno TTY: interactive menu not entered\n'
+PASS zh menu exits 0 in a 45-column PTY: rc=0
+PASS zh menu shows the English status entry: 0
+
+1) status  2) show  3) config inspect  4) help  0) exit
+>
+PASS zh menu shows the English exit entry: 0
+
+1) status  2) show  3) config inspect  4) help  0) exit
+>
+PASS zh PTY output contains no ANSI escapes
+PASS fr menu exits 0 in a 45-column PTY: rc=0
+PASS fr menu shows the English status entry: 0
+note: fr messages are not translated yet, falling back to English (use --lang en to silence this)
+
+1) status  2) show  3) config inspect  4) help  0) exit
+>
+PASS fr menu shows the English exit entry: 0
+note: fr messages are not translated yet, falling back to English (use --lang en to silence this)
+
+1) status  2) show  3) config inspect  4) help  0) exit
+>
+PASS fr PTY output contains no ANSI escapes
+PASS fr menu streams the fallback notice: 0
+note: fr messages are not translated yet, falling back to English (use --lang en to silence this)
+
+1) status  2) show  3) config inspect  4) help  0) exit
+>
+PASS zh help is wider than 80 columns (no narrow-screen adaptation): max=111
+PASS en help is wider than 80 columns (no narrow-screen adaptation): max=133
+PASS all six Bash locale catalogs are present
+PASS Bash zh_CN translates 总览: '总览'
+PASS Bash zh_CN translates 信息: '信息'
+PASS Bash en translates 总览: 'Overview'
+PASS Bash en translates 信息: 'information'
+PASS Bash fr translates 总览: "Vue d'ensemble"
+PASS Bash fr translates 信息: 'informations'
+PASS Bash ru translates 总览: 'Обзор'
+PASS Bash ru translates 信息: 'информация'
+PASS Bash ko translates 总览: '개요'
+PASS Bash ko translates 信息: '정보'
+PASS Bash fa translates 总览: 'نمای کلی'
+PASS Bash fa translates 信息: 'اطلاعات'
+== F23: 103 passed, 0 failed, 0.13s ==

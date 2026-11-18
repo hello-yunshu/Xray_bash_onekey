@@ -1,0 +1,34 @@
+{
+  "bashBaseline": "/bash/install.sh",
+  "bashHelpHasBackup": true,
+  "bashHelpHasRestore": true,
+  "contracts": [
+    {
+      "bashEvidence": "install.sh help: --backup bundles script-managed files, certificates and ACME account keys",
+      "contract": "bash-backup-archive",
+      "goStatus": "not-implemented",
+      "reason": "metadata export records only the metadata/runtime digests; it copies no certificates or ACME keys"
+    },
+    {
+      "bashEvidence": "install.sh help: --restore restores script-managed files; install.sh:966 refuses it because rebuilding the runtime config conflicts with the single source of truth",
+      "contract": "bash-restore-archive",
+      "goStatus": "not-implemented",
+      "reason": "Go has no archive restore; bridge deactivate only releases metadata after proving the runtime digest is unchanged"
+    },
+    {
+      "bashEvidence": "Bash writes install_config.json and never derives a Go metadata record",
+      "contract": "metadata-import",
+      "goStatus": "implemented",
+      "reason": "covered by the import scenarios in this fixture"
+    },
+    {
+      "bashEvidence": "Bash has no metadata digest export",
+      "contract": "metadata-export",
+      "goStatus": "implemented",
+      "reason": "covered by the export scenarios in this fixture"
+    }
+  ],
+  "fixture": "F19",
+  "goHelpClaimsBackup": false,
+  "goHelpHasMetadataImportExport": true
+}

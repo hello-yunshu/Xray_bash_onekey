@@ -1,0 +1,45 @@
+{
+  "base": {
+    "configSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+    "listen": "0.0.0.0",
+    "port": 18443,
+    "serverNames": [
+      "example.com"
+    ],
+    "target": "example.com:443"
+  },
+  "edits": {
+    "port": {
+      "configSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+      "from": 18443,
+      "shareUriPort": 19443,
+      "to": 19443
+    },
+    "rejectedCandidate": {
+      "configSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+      "rc": 1
+    },
+    "targetServerNames": {
+      "configSha256": "8607c48c1d839788edafbe57be3ca1bd77147fb427db22728199cf4a33bc2f8a",
+      "serverNames": [
+        "a.example.com",
+        "b.example.com"
+      ],
+      "target": "other.example.org:8443"
+    }
+  },
+  "sniGuard": {
+    "decoy": "refused: needs pre-existing decoy artifacts",
+    "isolate": {
+      "denyPort": 9403,
+      "fragments": [
+        "03-isolate.conf",
+        "127.0.0.1.realityServers",
+        "example.com.serverNames"
+      ]
+    },
+    "reject": {
+      "denyPort": 9404
+    }
+  }
+}

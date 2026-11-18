@@ -1,0 +1,92 @@
+{
+  "comparisons": [
+    {
+      "bash": "127.0.0.1",
+      "contract": "no-TLS default listen address",
+      "go": "127.0.0.1",
+      "goStatus": "aligned"
+    },
+    {
+      "bash": "interactive prompt accepts any valid address",
+      "contract": "non-loopback listen confirmation",
+      "go": "refused unless --allow-non-loopback",
+      "goStatus": "divergent-guard: Go refuses by default, Bash only warns"
+    },
+    {
+      "bash": "modify_listen_address rewrites ws/gRPC/xHTTP",
+      "contract": "added transports follow the listen address",
+      "go": "all three inbounds follow --listen",
+      "goStatus": "aligned (fixed in this fixture; see xraycfg.go)"
+    },
+    {
+      "bash": "is_valid_listen_address validates and falls back to 127.0.0.1",
+      "contract": "listen address format validation",
+      "go": "gap: only the loopback rule is checked; not-an-ip is accepted",
+      "goStatus": "gap"
+    },
+    {
+      "bash": "random 10000-10999 (xHTTP 11000-11999)",
+      "contract": "no-TLS default inbound port",
+      "go": 10086,
+      "goStatus": "divergent-default-port"
+    },
+    {
+      "bash": "VLESS",
+      "contract": "protocol spelling",
+      "go": "vless",
+      "goStatus": "divergent-naming"
+    },
+    {
+      "bash": "xport owns the ws port",
+      "contract": "ws-port flag in a no-TLS multi topology",
+      "go": "ignored: ws is the primary inbound and uses --port",
+      "goStatus": "divergent-flag-semantics"
+    },
+    {
+      "bash": "/ray/",
+      "contract": "ws default path",
+      "go": "/ray/",
+      "goStatus": "aligned"
+    },
+    {
+      "bash": "/xhttp",
+      "contract": "standalone xHTTP default path",
+      "go": "/ray/ (multi uses /xhttp/)",
+      "goStatus": "divergent-trailing-slash"
+    },
+    {
+      "bash": "no public port in the no-TLS branch",
+      "contract": "public port semantics",
+      "go": "--public-port changes only the share/Clash port",
+      "goStatus": "divergent-flag-semantics"
+    },
+    {
+      "bash": "menu 5 wsgRPCxhttp",
+      "contract": "combined transport naming",
+      "go": "ws+grpc+xhttp",
+      "goStatus": "aligned-semantics"
+    },
+    {
+      "bash": "Clash xHTTP rendering not executed",
+      "contract": "Clash for xHTTP",
+      "go": "no proxy + clash-xhttp-unsupported",
+      "goStatus": "gap"
+    },
+    {
+      "bash": "install_xray_ws_only writes the config and starts the service",
+      "contract": "real no-TLS install",
+      "go": "generate-only in this fixture",
+      "goStatus": "gap: install path not executed in the container"
+    },
+    {
+      "bash": "ws_listen_address_choose/transport_choose/apply_install_profile",
+      "contract": "interactive wizard functions",
+      "go": "not applicable",
+      "goStatus": "static: asserted by text only; TTY flow not executed",
+      "mode": "static"
+    }
+  ],
+  "date": "2026-11-17",
+  "fixture": "F03",
+  "installSha256": "a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c"
+}

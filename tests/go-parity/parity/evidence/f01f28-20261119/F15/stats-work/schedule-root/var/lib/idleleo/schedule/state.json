@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "lastRun": "2026-11-18T22:59:18Z",
+  "runs": 2,
+  "jobs": {
+    "stats-collect": {
+      "lastRun": "2026-11-18T22:59:09Z",
+      "result": "failed",
+      "detail": "statsquery exit 1: failed to dial 127.0.0.1:40109"
+    }
+  }
+}

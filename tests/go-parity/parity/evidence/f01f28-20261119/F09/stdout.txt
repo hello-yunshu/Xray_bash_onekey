@@ -1,0 +1,167 @@
+PASS generate reality-balance rc=0: {
+  "mode": "reality-balance",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary"
+PASS generated loopback fragment has weight 50: server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;
+
+PASS real nginx -t accepts the generated Reality install: nginx: the configuration file /work/evidence/F09/f09-work/reality-root/usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/F09/f09-work/reality-root/usr/local/nginx/conf/nginx.conf test is successful
+
+PASS reality balance list rc=0: 127.0.0.1	9443	50	/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/127.0.0.1.realityServers
+
+PASS reality list has exactly the loopback backend: 127.0.0.1	9443	50	/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/127.0.0.1.realityServers
+
+PASS reality list TSV host/port/weight: 127.0.0.1	9443	50	/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/127.0.0.1.realityServers
+PASS reality list TSV file: /work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/127.0.0.1.realityServers
+PASS list json upstream: reality
+PASS list json changed/probed are false
+PASS list json has no warnings: []
+PASS list json loopback entry: [{"host": "127.0.0.1", "port": 9443, "weight": 50, "file": "/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/127.0.0.1.realityServers"}]
+PASS list never mutates the config tree
+PASS balance add rc=0: {
+  "upstream": "reality",
+  "backends": [
+    {
+      "host": "10.0.0.2",
+      "port": 8443,
+      "weight": 60,
+      "file": "/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/10.0.0.2.realityServers"
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 9443,
+      "weight": 50,
+ 
+PASS go fragment bytes: server 10.0.0.2:8443 weight=60 max_fails=2 fail_timeout=10;
+
+PASS fragment mode is 0644: 0o644
+PASS add json changed=true
+PASS add json file: /work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/10.0.0.2.realityServers
+PASS add json probed=false
+PASS add json backends sorted: ['10.0.0.2', '127.0.0.1']
+PASS add warns about the skipped probe: ['no liveness probe was run; nginx removes a dead backend passively via max_fails=2 fail_timeout=10', "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]
+PASS add warns about the skipped reload: ['no liveness probe was run; nginx removes a dead backend passively via max_fails=2 fail_timeout=10', "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]
+PASS add mutates the config tree
+PASS probe add rc=0: {
+  "upstream": "reality",
+  "backends": [
+    {
+      "host": "10.0.0.2",
+      "port": 8443,
+      "weight": 60,
+      "file": "/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/10.0.0.2.realityServers"
+ 
+PASS probe add reports probed=true
+PASS probe add omits the no-probe warning: ["managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"]
+PASS probe backend cleaned up: 10.0.0.2	8443	60	/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/10.0.0.2.realityServers
+127.0.0.1	9443	50	/work/evidence/F09/f09-work/reality-r
+PASS duplicate host rc=1: a backend for host 10.0.0.2 already exists in /work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/10.0.0.2.realityServers; remove it first
+
+PASS duplicate add leaves the tree unchanged
+PASS remove deletes the fragment: {
+  "upstream": "reality",
+  "backends": [
+    {
+      "host": "127.0.0.1",
+      "port": 9443,
+      "weight": 50,
+      "file": "/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/127.0
+PASS remove json changed/file
+PASS remove json keeps only loopback
+PASS second remove rc=1: no backend file /work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/10.0.0.2.realityServers; check 'xray balance list --upstream reality'
+
+PASS remove loopback rc=1: refusing to remove the local 127.0.0.1 backend: it is the loopback front this install owns
+
+PASS reserved port rc=1: port 443 is reserved by the managed install (443/9403/9404/9443/9444)
+
+PASS invalid host rc=1: invalid backend host "bad host": expected an IPv4 address, DNS name or IPv6 address
+
+PASS port zero rc=1: backend port must be between 1 and 65535
+
+PASS port too high rc=1: backend port must be between 1 and 65535
+
+PASS weight too high rc=1: backend weight must be between 0 and 100
+
+PASS weight negative rc=1: backend weight must be between 0 and 100
+
+PASS unknown upstream rc=1: upstream "nope" is not available on a Reality install; reality-nginx is not managed by 'xray balance' — reinstall with --mode reality-balance --role primary
+
+PASS non-integer port exits 2: Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示
+PASS missing --upstream exits 2: Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示
+PASS unknown balance flag exits 2: unknown flag: --bogus
+
+PASS all rejected commands leave the config tree unchanged
+PASS prepare 10.0.0.9 backend: 10.0.0.9	8443	50	/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/10.0.0.9.realityServers
+127.0.0.1	9443	50	/work/evidence/F09/f09-work/reality-r
+PASS wrong-port remove rc=1: /work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/10.0.0.9.realityServers has no server on port 9999; refusing to remove the wrong backend
+
+PASS wrong-port remove keeps the file
+PASS missing-file remove rc=1: no backend file /work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/10.0.0.8.realityServers; check 'xray balance list --upstream reality'
+
+PASS cleanup 10.0.0.9 backend: 127.0.0.1	9443	50	/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/127.0.0.1.realityServers
+changed: upstream=reality file=/work/evidence/F09/f09
+PASS broken nginx makes add fail: nginx -t rejected the configuration (exit 1): 2026/11/18 22:58:54 [emerg] 2675#2675: unknown directive "bogus_directive" in /work/evidence/F09/f09-work/reality-root/usr/local/nginx/conf/nginx.conf:7
+nginx: configuration file /work/evidence/F09/f09-work/reality
+PASS failed nginx -t removes the new fragment
+PASS restored nginx lets the same add succeed: 10.0.0.7	8443	50	/work/evidence/F09/f09-work/reality-root/etc/idleleo/conf/nginx/10.0.0.7.realityServers
+127.0.0.1	9443	50	/work/evidence/F09/f09-work/reality-r
+PASS generate TLS ws rc=0: {
+  "mode": "tls",
+  "transport": "ws",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "eeeeeeee-4444-4444-8444-444444444444",
+      "email": "me@hey.run",
+      "level": 0,
+PASS real nginx -t accepts the TLS ws install: nginx: the configuration file /work/evidence/F09/f09-work/tls-root/usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/F09/f09-work/tls-root/usr/local/nginx/conf/nginx.conf test is successful
+
+PASS TLS install refuses the reality upstream: upstream "reality" is not available on a TLS install; use ws, grpc or xhttp
+
+PASS TLS ws add writes .wsServers: {
+  "upstream": "ws",
+  "backends": [
+    {
+      "host": "10.0.0.5",
+      "port": 8443,
+      "weight": 60,
+      "file": "/work/evidence/F09/f09-work/tls-root/etc/idleleo/conf/nginx/10.0.0.5.wsServers"
+    },
+    {
+      "host": "127.0.0
+PASS TLS add json upstream/changed
+PASS TLS backends sorted: ['10.0.0.5', '127.0.0.1']
+PASS TLS ws remove deletes the fragment: 127.0.0.1	10000	50	/work/evidence/F09/f09-work/tls-root/etc/idleleo/conf/nginx/127.0.0.1.wsServers
+changed: upstream=ws file=/work/evidence/F09/f09-work/tls-root/etc/idleleo/conf/nginx/10.0.0.5.wsServ
+PASS Bash fm_create_server_file is byte-identical to Go: bash=7326cff48f5cdcf673fd1a038ad051e2f523d286f6e2f000234822e84fd72ae3 go=7326cff48f5cdcf673fd1a038ad051e2f523d286f6e2f000234822e84fd72ae3
+PASS Bash fm_delete_file removes the loopback (no guard)
+PASS root without metadata exits 3: 未安装：缺少 manager metadata；只读命令不会创建任何文件
+
+PASS root without the upstream anchor fails: this install is not a managed Nginx front for upstream "reality": lstat /work/evidence/F09/f09-work/gate-no-anchor/etc/idleleo/conf: no such file or directory
+
+PASS root without nginx removes the new fragment: stat /work/evidence/F09/f09-work/gate-no-nginx/usr/local/nginx/sbin/nginx: no such file or directory; the new backend file was removed
+
+PASS repeated list commands never mutate the tree
+== F09: 65 passed, 0 failed, 0.3s ==

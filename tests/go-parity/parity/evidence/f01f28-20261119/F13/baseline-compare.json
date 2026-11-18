@@ -1,0 +1,33 @@
+{
+  "backupLayout": {
+    "bash": "component-specific _backup_<version> names next to the tree",
+    "classification": "new-go-behavior",
+    "go": "etc/idleleo/backup/<component>-<version>-<unixnano>"
+  },
+  "digestGate": {
+    "bash": "trusts the upstream installer's own verification",
+    "classification": "approved-difference",
+    "go": "sha256 and sizeBytes are mandatory and re-verified before any write"
+  },
+  "downgrade": {
+    "bash": "prints a warning and continues the update path with rc=0",
+    "classification": "approved-difference",
+    "go": "rc=4 and zero writes"
+  },
+  "healthRollback": {
+    "bash": "health check exists but rollback is an interactive path",
+    "classification": "approved-difference",
+    "go": "automatic rollback to the backup with rc=6"
+  },
+  "restartScope": {
+    "bash": "always stops and starts xray/nginx",
+    "classification": "approved-difference",
+    "go": "restarts only on a real systemd root; sandbox roots warn and skip"
+  },
+  "versionCompare": {
+    "bash": "version_is_numeric + version_compare from install.sh",
+    "classification": "aligned",
+    "go": "numeric per-component compare with v-prefix strip and zero padding",
+    "pairs": 9
+  }
+}

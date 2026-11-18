@@ -1,0 +1,12 @@
+{
+  "binary": "opt/rill-xray-agent/bin/rill-xray-agent",
+  "configPath": "etc/rill-xray-agent/config.json",
+  "configSha256": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097d96",
+  "enabled": true,
+  "installed": true,
+  "observationAgeSeconds": 10,
+  "observationPath": "var/lib/rill-xray-agent-xray/status/xray-observation.json",
+  "observationSha256": "2fc820a5d9b42bf9259567946a76fd8ee394fee1ea95bb1c373b93dd6b49be9e",
+  "status": "active",
+  "warning": "config.json is not valid JSON"
+}

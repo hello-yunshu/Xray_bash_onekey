@@ -90,6 +90,12 @@ def main(f):
 
     # ---------------------------------------------------------------- S1 setup
     go("xray", "uninstall", "--purge", "--container", "--json", env=write_env)
+    # The base image ships /usr/local/bin/xray as a symlink to the mounted
+    # binary. The manager refuses to replace symlinks (safety property), so a
+    # fixture that exercises a real-root install starts from a clean slot.
+    installed_bin = Path("/usr/local/bin/xray")
+    if installed_bin.is_symlink():
+        installed_bin.unlink()
     if STATE.exists():
         STATE.unlink()
     if BACKUP_ROOT.exists():

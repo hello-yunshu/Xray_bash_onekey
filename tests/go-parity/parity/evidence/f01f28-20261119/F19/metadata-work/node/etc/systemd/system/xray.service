@@ -1,0 +1,4 @@
+[Service]
+User=xray
+Group=xray
+ExecStart=/usr/local/bin/xray run -config /etc/idleleo/conf/xray/config.json

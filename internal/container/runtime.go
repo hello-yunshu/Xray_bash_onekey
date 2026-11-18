@@ -99,8 +99,10 @@ func (s service) args() []string {
 }
 
 // DetectMode prefers real systemd and otherwise reports direct process mode.
-func DetectMode() Mode {
-	if fi, err := os.Stat("/run/systemd/system"); err == nil && fi.IsDir() {
+// Detection is scoped to root so a sandbox root never delegates control to the
+// host's systemd instance.
+func DetectMode(root string) Mode {
+	if fi, err := os.Stat(rootJoin(root, "run/systemd/system")); err == nil && fi.IsDir() {
 		if _, err := host.ResolveBinary("systemctl"); err == nil {
 			return ModeSystemd
 		}
@@ -156,7 +158,7 @@ func Status(root string) (StatusReport, error) {
 		SchemaVersion: 1,
 		Root:          paths.Root,
 		InContainer:   host.InContainer(),
-		Mode:          DetectMode(),
+		Mode:          DetectMode(paths.Root),
 	}
 	meta, _, metaErr := store.LoadMetadata(paths)
 	if metaErr != nil {
@@ -207,7 +209,7 @@ func Up(ctx context.Context, spec Spec) (UpReport, error) {
 	report := UpReport{
 		SchemaVersion: 1,
 		Root:          paths.Root,
-		Mode:          DetectMode(),
+		Mode:          DetectMode(paths.Root),
 		DryRun:        spec.DryRun,
 		Started:       []string{},
 		Skipped:       []string{},
@@ -323,7 +325,7 @@ func Down(ctx context.Context, spec Spec) (DownReport, error) {
 	report := DownReport{
 		SchemaVersion: 1,
 		Root:          paths.Root,
-		Mode:          DetectMode(),
+		Mode:          DetectMode(paths.Root),
 		Stopped:       []string{},
 	}
 	if report.Mode == ModeSystemd {

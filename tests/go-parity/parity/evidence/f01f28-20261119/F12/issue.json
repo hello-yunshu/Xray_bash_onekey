@@ -1,0 +1,12 @@
+{
+  "accountUrl": "https://127.0.0.1:49107/acct/1",
+  "certificateFile": "/work/evidence/F12/acme-work/standalone/xray.crt",
+  "directoryUrl": "https://127.0.0.1:49107/directory",
+  "domain": "example.com",
+  "issued": true,
+  "keyFile": "/work/evidence/F12/acme-work/standalone/xray.key",
+  "notAfter": "2027-02-16T22:58:56Z",
+  "orderUrl": "",
+  "serial": "94c2b1b05df2ee3b",
+  "skipped": false
+}

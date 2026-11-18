@@ -1,0 +1,73 @@
+PASS Bash install.sh --rill-agent-status baseline is present: /bash/install.sh
+PASS absent status exits 0: rc=0 
+PASS absent reports installed=false: {"installed": false, "observationAgeSeconds": 0, "status": "absent", "enabled": false}
+PASS absent reports status=absent: absent
+PASS absent reports enabled=false
+PASS absent text projection is stable: installed=false status=absent enabled=false mode= observationAge=0s
+PASS absent status does not create or modify files
+PASS active status exits 0: rc=0
+PASS active reports installed=true
+PASS fresh capturedAt wins over an old mtime: active
+PASS active reports enabled=true
+PASS active reports the configured mode: normal
+PASS active observation age is fresh: 30
+PASS config hash matches the file
+PASS observation hash matches the file
+PASS projection exposes canonical relative paths: opt/rill-xray-agent/bin/rill-xray-agent etc/rill-xray-agent/config.json
+PASS active text projection includes paths: installed=true status=active enabled=true mode=normal observationAge=30s
+binary=opt/rill-xray-agent/bin/rill-xray-agent config=etc/rill-xray-agent/config.json observation=var/lib/rill-xray-agent-xray/
+PASS active status is read-only
+PASS stale status exits 0: rc=0
+PASS old capturedAt wins over a fresh mtime: stale
+PASS stale observation age is reported: 1200
+PASS stale warning is explicit: last observation is 1200 seconds old
+PASS stale text output carries the warning: installed=true status=stale enabled=true mode=observe-only observationAge=1200s
+binary=opt/rill-xray-agent/bin/rill-xray-agent config=etc/rill-xray-agent/config.json observation=var/lib/rill-xray-agen
+PASS stale status is read-only
+PASS missing observation is reported explicitly: {"installed": true, "binary": "opt/rill-xray-agent/bin/rill-xray-agent", "configPath": "etc/rill-xray-agent/config.json", "configSha256": "0b3ec16017de385eacdd679885b5b4d8c55f18e8f2882f0fa3d6b2071d40c
+PASS missing-observation warning is exact: no xray-observation.json yet
+PASS status flips to active once observed: active
+PASS status returns to installed-unobserved when the observation is removed: installed-unobserved
+PASS corrupt config exits 0: rc=0
+PASS corrupt config still projects installed state: {"installed": true, "binary": "opt/rill-xray-agent/bin/rill-xray-agent", "configPath": "etc/rill-xray-agent/config.json", "configSha256": "021fb596db81e6d02bf3d2586ee3981fe519f275c0ac9ca76bbcf2ebb4097
+PASS corrupt config warning is explicit: config.json is not valid JSON
+PASS corrupt-config status is read-only
+PASS non-root rill status exits 0: rc=0 
+PASS non-root status reads the same state: active
+PASS rill install is refused with exit 2: rc=2
+PASS rill install refusal shows the supported surface: Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示
+PASS rill diagnose is refused with exit 2: rc=2
+PASS rill diagnose refusal shows the supported surface: Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示
+PASS rill authorize is refused with exit 2: rc=2
+PASS rill authorize refusal shows the supported surface: Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示
+PASS rill uninstall is refused with exit 2: rc=2
+PASS rill uninstall refusal shows the supported surface: Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示
+PASS rill without a subcommand exits 2: rc=2
+PASS unknown status flag exits 2: unknown flag: --bogus
+PASS Bash rill status exits 0: rc=0 
+PASS Bash status keeps schemaVersion 1
+PASS Bash reports installed=true
+PASS Bash and Go agree on the configured mode: bash=normal go=normal
+PASS Bash keeps route assist and bounded auto disabled: False False
+PASS Bash status has no observation freshness surface
+PASS Bash status leaves a pre-created root unchanged: unchanged
+PASS Bash status on an empty root exits 0: rc=0
+PASS Bash status creates a default config when none exists
+PASS Bash reports installed=true on an empty root (documented divergence): True
+== F22: 54 passed, 0 failed, 0.12s ==

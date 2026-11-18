@@ -13,8 +13,12 @@
       "name": "Reality安装与真实握手",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F01/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F01/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F01/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -22,8 +26,12 @@
       "name": "TLS ws/gRPC/xHTTP+组合安装",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F02/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F02/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F02/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -31,8 +39,12 @@
       "name": "无TLS后端回环监听",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F03/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F03/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F03/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -40,8 +52,12 @@
       "name": "Reality主次级负载均衡",
       "priority": "P1",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F04/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F04/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F04/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -49,8 +65,12 @@
       "name": "独立中转与字节转发",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F05/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F05/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F05/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -58,8 +78,12 @@
       "name": "用户增删与UUIDv5",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F06/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F06/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F06/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -67,8 +91,12 @@
       "name": "Reality shortId及spiderX绑定",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F07/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F07/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F07/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -76,8 +104,12 @@
       "name": "端口/target/serverNames/SNI Guard修改",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F08/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F08/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F08/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -85,8 +117,12 @@
       "name": "Nginx upstream文件管理",
       "priority": "P1",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F09/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F09/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F09/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -94,8 +130,12 @@
       "name": "TLS版本修改",
       "priority": "P1",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F10/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F10/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F10/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -103,8 +143,12 @@
       "name": "systemd状态启停日志",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F11/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F11/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F11/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -112,8 +156,12 @@
       "name": "证书签发续期清理",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F12/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F12/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F12/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -121,8 +169,12 @@
       "name": "Shell/Go Xray Nginx更新",
       "priority": "P0",
       "owner_stage": "02+03",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F13/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F13/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F13/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -130,8 +182,12 @@
       "name": "自动更新和cron",
       "priority": "P0",
       "owner_stage": "02+03",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F14/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F14/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F14/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -139,8 +195,12 @@
       "name": "统计查询/watch/reset和退出码",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F15/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F15/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F15/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -148,8 +208,12 @@
       "name": "GeoData原生热更新与旧任务",
       "priority": "P0",
       "owner_stage": "02+03",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F16/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F16/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F16/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -157,8 +221,12 @@
       "name": "IPv4/IPv6与A/AAAA及防火墙",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F17/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F17/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F17/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -166,8 +234,12 @@
       "name": "分享链接二维码Clash",
       "priority": "P1",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F18/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F18/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F18/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -175,8 +247,12 @@
       "name": "备份恢复重配置保留",
       "priority": "P0",
       "owner_stage": "02+03",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F19/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F19/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F19/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -184,8 +260,12 @@
       "name": "Fail2ban管理与越界清理",
       "priority": "P0",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "APPROVED_SAFE_DIVERGENCE",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F20/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F20/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F20/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -193,8 +273,12 @@
       "name": "流量阻断和自定义路由",
       "priority": "P1",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F21/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F21/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F21/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -202,8 +286,12 @@
       "name": "Rill观察授权诊断卸载",
       "priority": "P0",
       "owner_stage": "02+03",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F22/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F22/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F22/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -211,8 +299,12 @@
       "name": "多语言TTY与窄屏",
       "priority": "P1",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F23/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F23/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F23/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -220,8 +312,12 @@
       "name": "Docker入口与服务",
       "priority": "P1",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F24/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F24/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F24/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -229,8 +325,12 @@
       "name": "TCP优化和测速(可选去留)",
       "priority": "P1",
       "owner_stage": "02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "APPROVED_SAFE_DIVERGENCE",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F25/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F25/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F25/run.json"
+      ],
       "minimum_contract": "需确认是否实现或批准正式废弃，不能静默跳过"
     },
     {
@@ -238,8 +338,12 @@
       "name": "废弃XTLS ONLY识别",
       "priority": "P0",
       "owner_stage": "00+03",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F26/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F26/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F26/run.json"
+      ],
       "minimum_contract": "只读识别并阻止不支持模式自动迁移"
     },
     {
@@ -247,8 +351,12 @@
       "name": "旧CLI flag兼容与退出码",
       "priority": "P0",
       "owner_stage": "01+02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F27/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F27/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F27/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     },
     {
@@ -256,8 +364,12 @@
       "name": "运行态及分享信息离线显示",
       "priority": "P0",
       "owner_stage": "01+02",
-      "status": "PENDING_GO_IMPLEMENTATION",
-      "evidence": null,
+      "status": "VERIFIED_GO_PARITY",
+      "evidence": [
+        "tests/go-parity/parity/evidence/f01f28-20261119/F28/rc.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F28/stdout.txt",
+        "tests/go-parity/parity/evidence/f01f28-20261119/F28/run.json"
+      ],
       "minimum_contract": "相同输入下比较输出、退出码、持久化副作用；业务变更故障下必须恢复或明确报告"
     }
   ]

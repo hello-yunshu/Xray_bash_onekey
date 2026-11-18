@@ -1,0 +1,842 @@
+== F02 go=/work/bin/idleleo bash=/bash host=aarch64
+$ /opt/xray/xray version (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/ws/config.json --nginx-out /work/evidence/F02/f02-work/ws/nginx.conf --fragments-out /work/evidence/F02/f02-work/ws/fragments --json (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: bbbbbbbb-2222-4222-8222-222222222222\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS S1 tls/ws generate rc=0 and wrote the config {
+  "mode": "tls",
+  "transport": "ws",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "bbbbbbbb-2222-4
+PASS S1 runtime config is 0600 0o600
+PASS S1 exactly one inbound 1
+PASS S1 payload mode/transport tls/ws
+PASS S1 public port defaults to 443 443
+PASS S1 ws tag VLESS-ws-in
+PASS S1 protocol is lowercase vless vless
+PASS S1 inbound listens on loopback 127.0.0.1
+PASS S1 ws port comes from the Bash ws pool 10000
+PASS S1 payload port matches the inbound 10000 vs 10000
+PASS S1 Nginx terminates TLS; the inbound keeps security=none none
+PASS S1 default ws path /ray/
+PASS S1 primary client email me@hey.run
+PASS S1 routing rule targets the ws inbound {"inboundTag": ["VLESS-ws-in"], "outboundTag": "direct", "type": "field"}
+PASS S1 share URI is vless on the public port vless:443
+PASS S1 share security=tls tls
+PASS S1 share type=ws ws
+PASS S1 share sni example.com
+PASS S1 share host example.com
+PASS S1 share path /ray/
+PASS S1 share path is carried verbatim in the query encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com
+PASS S1 share fragment idleleo-tls
+PASS S1 Clash proxy is vless/ws proxies:
+  - name: "idleleo-tls"
+    type: vless
+    server: example.com
+    port: 443
+    uuid: bbbbbbbb-2222-4222-8222-222222222222
+    network: ws
+    udp: true
+    tls: true
+    servername: exampl
+PASS S1 Clash enables TLS with the domain SNI proxies:
+  - name: "idleleo-tls"
+    type: vless
+    server: example.com
+    port: 443
+    uuid: bbbbbbbb-2222-4222-8222-222222222222
+    network: ws
+    udp: true
+    tls: true
+    servername: example.com
+    ws-opts:
+      path: /ray/
+      headers:
+        Host: example.com
+
+PASS S1 Clash ws path/Host proxies:
+  - name: "idleleo-tls"
+    type: vless
+    server: example.com
+    port: 443
+    uuid: bbbbbbbb-2222-4222-8222-222222222222
+    network: ws
+    udp: true
+    tls: true
+    servername: example.com
+    ws-opts:
+      path: /ray/
+      headers:
+        Host: example.com
+
+PASS S1 nginx conf written /work/evidence/F02/f02-work/ws/nginx.conf
+PASS S1 nginx TLS listener # Managed by Xray_bash_onekey (Go). Do not edit by hand.
+server {
+    listen 443 ssl reuseport;
+    listen [::]:443 ssl reuseport;
+    listen 443 quic reuseport;
+    listen [::]:443 quic reuseport;
+
+ 
+PASS S1 nginx QUIC listener 
+PASS S1 nginx http2 
+PASS S1 nginx default certificate path 
+PASS S1 nginx default key path 
+PASS S1 nginx server_name 
+PASS S1 nginx pins TLS 1.3 
+PASS S1 nginx ws location 
+PASS S1 nginx ws upstream 
+PASS S1 nginx refuses unknown paths 
+PASS S1 TLS fragment set ["01-xray-80.conf", "02-xray-server.conf", "127.0.0.1.wsServers"]
+PASS S1 ws backend fragment matches the inbound port server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;
+PASS S1 upstream includes the ws backend fragment # Managed by Xray_bash_onekey (Go). Do not edit by hand.
+upstream xray-ws-server {
+    include /etc/idleleo/conf/nginx/*.wsServers;
+}
+
+
+PASS S1 port-80 fragment serves ACME # Managed by Xray_bash_onekey (Go). Do not edit by hand.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name example.com;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /etc/idleleo/conf;
+        default_type "text/plain";
+        allow all;
+    }
+    location = /.well-known/ac
+PASS S1 port-80 fragment redirects to https # Managed by Xray_bash_onekey (Go). Do not edit by hand.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name example.com;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /etc/idleleo/conf;
+        default_type "text/plain";
+        allow all;
+    }
+    location = /.well-known/acme-challenge/ {
+        return 404;
+    }
+
+    location / {
+        return 301 https://example.com$request_uri;
+    }
+}
+
+$ /opt/xray/xray -test -config /work/evidence/F02/f02-work/ws/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:49.237795 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F02/f02-work/ws/config.json Format:json}
+          2026/11/18 22:58:49.240869 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          Configuration OK.
+PASS tls-ws: real xray -test accepts the generated config m for anti-censorship.
+2026/11/18 22:58:49.237795 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F02/f02-work/ws/config.json Format:json}
+2026/11/18 22:58:49.240869 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/grpc/config.json --nginx-out /work/evidence/F02/f02-work/grpc/nginx.conf --fragments-out /work/evidence/F02/f02-work/grpc/fragments --json --transport grpc --service-name idleleo-grpc (rc=0 0.01s)
+  stdout: {
+            "mode": "tls",
+            "transport": "grpc",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=grpc&serviceName=idleleo-grpc#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: bbbbbbbb-2222-4222-8222-222222222222\n    network: grpc\n    udp: true\n    tls: true\n    servername: example.com\n    grpc-opts:\n      grpc-service-name: idleleo-grpc\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /idleleo-grpc {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Host $http_host;\n        grpc_pass grpc://xray-grpc-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-grpc-server {\n    include /etc/idleleo/conf/nginx/*.grpcServers;\n}\n\n",
+              "127.0.0.1.grpcServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS S2 tls/grpc generate rc=0 {
+  "mode": "tls",
+  "transport": "grpc",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "bbbbbbbb-2222
+PASS S2 gRPC tag VLESS-gRPC-in
+PASS S2 gRPC listens on loopback 127.0.0.1
+PASS S2 service name idleleo-grpc
+PASS S2 multiMode 
+PASS S2 idle_timeout matches Bash 20
+PASS S2 gRPC email parity with Bash me@hey.run
+PASS S2 share type=grpc grpc
+PASS S2 share serviceName idleleo-grpc
+PASS S2 share security=tls 
+PASS S2 gRPC share has no ws host parameter 
+PASS S2 Clash gRPC options proxies:
+  - name: "idleleo-tls"
+    type: vless
+    server: example.com
+    port: 443
+    uuid: bbbbbbbb-2222-4222-8222-222222222222
+    network: grpc
+    udp: true
+    tls: true
+    servername: example.com
+    grpc-opts:
+      grpc-service-name: idleleo-grpc
+
+PASS S2 nginx gRPC location 
+PASS S2 nginx gRPC upstream 
+PASS S2 gRPC backend fragment server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;
+PASS S2 gRPC upstream block 
+$ /opt/xray/xray -test -config /work/evidence/F02/f02-work/grpc/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:49.264966 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F02/f02-work/grpc/config.json Format:json}
+          2026/11/18 22:58:49.264978 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS tls-grpc: real xray -test accepts the generated config anti-censorship.
+2026/11/18 22:58:49.264966 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F02/f02-work/grpc/config.json Format:json}
+2026/11/18 22:58:49.264978 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/xhttp/config.json --nginx-out /work/evidence/F02/f02-work/xhttp/nginx.conf --fragments-out /work/evidence/F02/f02-work/xhttp/fragments --json --transport xhttp --path /xhttp/ (rc=0 0.01s)
+  stdout: {
+            "mode": "tls",
+            "transport": "xhttp",
+            "port": 11000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=xhttp&path=/xhttp/&host=example.com#idleleo-tls",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /xhttp/ {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        grpc_set_header Host $host;\n        client_max_body_size 0;\n        grpc_pass grpc://xray-xhttp-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-xhttp-server {\n    include /etc/idleleo/conf/nginx/*.xhttpServers;\n}\n\n",
+              "127.0.0.1.xhttpServers": "server 127.0.0.1:11000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": [
+              "clash-xhttp-unsupported"
+            ]
+          }
+PASS S3 tls/xhttp generate rc=0 {
+  "mode": "tls",
+  "transport": "xhttp",
+  "port": 11000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "bbbbbbbb-222
+PASS S3 xHTTP tag VLESS-xhttp-in
+PASS S3 xHTTP listens on loopback 127.0.0.1
+PASS S3 xHTTP path /xhttp/
+PASS S3 xHTTP mode=auto 
+PASS S3 share type=xhttp xhttp
+PASS S3 share path /xhttp/
+PASS S3 share host example.com
+PASS S3 xHTTP has no Clash proxy 
+PASS S3 Clash warning is explicit ["clash-xhttp-unsupported"]
+PASS S3 nginx xHTTP location 
+PASS S3 nginx xHTTP upstream 
+PASS S3 xHTTP backend fragment server 127.0.0.1:11000 weight=50 max_fails=2 fail_timeout=10;
+PASS S3 xHTTP upstream block 
+$ /opt/xray/xray -test -config /work/evidence/F02/f02-work/xhttp/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:49.286864 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F02/f02-work/xhttp/config.json Format:json}
+          Configuration OK.
+PASS tls-xhttp: real xray -test accepts the generated config Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/18 22:58:49.286864 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F02/f02-work/xhttp/config.json Format:json}
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/xhttp-default/config.json --nginx-out /work/evidence/F02/f02-work/xhttp-default/nginx.conf --fragments-out /work/evidence/F02/f02-work/xhttp-default/fragments --json --transport xhttp (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "xhttp",
+            "port": 11000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=xhttp&path=/ray/&host=example.com#idleleo-tls",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        grpc_set_header Host $host;\n        client_max_body_size 0;\n        grpc_pass grpc://xray-xhttp-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-xhttp-server {\n    include /etc/idleleo/conf/nginx/*.xhttpServers;\n}\n\n",
+              "127.0.0.1.xhttpServers": "server 127.0.0.1:11000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": [
+              "clash-xhttp-unsupported"
+            ]
+          }
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/multi-pinned/config.json --nginx-out /work/evidence/F02/f02-work/multi-pinned/nginx.conf --fragments-out /work/evidence/F02/f02-work/multi-pinned/fragments --json --transport ws+grpc+xhttp --ws-port 12443 --grpc-port 12444 --xhttp-port 12445 (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws+grpc+xhttp",
+            "port": 12443,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: bbbbbbbb-2222-4222-8222-222222222222\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n    location /idleleo-grpc {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Host $http_host;\n        grpc_pass grpc://xray-grpc-server;\n    }\n    location /xhttp/ {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        grpc_set_header Host $host;\n        client_max_body_size 0;\n        grpc_pass grpc://xray-xhttp-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\nupstream xray-grpc-server {\n    include /etc/idleleo/conf/nginx/*.grpcServers;\n}\n\nupstream xray-xhttp-server {\n    include /etc/idleleo/conf/nginx/*.xhttpServers;\n}\n\n",
+              "127.0.0.1.grpcServers": "server 127.0.0.1:12444 weight=50 max_fails=2 fail_timeout=10;\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:12443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "127.0.0.1.xhttpServers": "server 127.0.0.1:12445 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": [
+              "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"
+            ]
+          }
+PASS S4 combined generate rc=0 {
+  "mode": "tls",
+  "transport": "ws+grpc+xhttp",
+  "port": 12443,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "bbbb
+PASS S4 three transports ["grpc", "ws", "xhttp"]
+PASS S4 pinned ws port 12443
+PASS S4 pinned gRPC port 12444
+PASS S4 pinned xHTTP port 12445
+PASS S4 all backends stay on loopback 
+PASS S4 ws path 
+PASS S4 xHTTP path 
+PASS S4 routing covers all three inbounds ["VLESS-ws-in", "VLESS-gRPC-in", "VLESS-xhttp-in"]
+PASS S4 share URI is the ws primary on the public port vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls
+PASS S4 combined transport warning ["multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"]
+PASS S4 nginx contains 'location /ray/ {' 
+PASS S4 nginx contains 'location /idleleo-grpc {' 
+PASS S4 nginx contains 'location /xhttp/ {' 
+PASS S4 nginx contains 'proxy_pass http://xray-ws-server;' 
+PASS S4 nginx contains 'grpc_pass grpc://xray-grpc-server;' 
+PASS S4 nginx contains 'grpc_pass grpc://xray-xhttp-server;' 
+PASS S4 combined fragment set ["01-xray-80.conf", "02-xray-server.conf", "127.0.0.1.grpcServers", "127.0.0.1.wsServers", "127.0.0.1.xhttpServers"]
+PASS S4 upstream xray-ws-server exists 
+PASS S4 upstream xray-grpc-server exists 
+PASS S4 upstream xray-xhttp-server exists 
+$ /opt/xray/xray -test -config /work/evidence/F02/f02-work/multi-pinned/config.json (rc=0 0.01s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:49.307148 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F02/f02-work/multi-pinned/config.json Format:json}
+          2026/11/18 22:58:49.307759 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          2026/11/18 22:58:49.307846 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS tls-multi: real xray -test accepts the generated config ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/18 22:58:49.307846 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/multi-auto/config.json --nginx-out /work/evidence/F02/f02-work/multi-auto/nginx.conf --fragments-out /work/evidence/F02/f02-work/multi-auto/fragments --json --transport ws+grpc+xhttp (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws+grpc+xhttp",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: bbbbbbbb-2222-4222-8222-222222222222\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n    location /idleleo-grpc {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Host $http_host;\n        grpc_pass grpc://xray-grpc-server;\n    }\n    location /xhttp/ {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        grpc_set_header Host $host;\n        client_max_body_size 0;\n        grpc_pass grpc://xray-xhttp-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\nupstream xray-grpc-server {\n    include /etc/idleleo/conf/nginx/*.grpcServers;\n}\n\nupstream xray-xhttp-server {\n    include /etc/idleleo/conf/nginx/*.xhttpServers;\n}\n\n",
+              "127.0.0.1.grpcServers": "server 127.0.0.1:10001 weight=50 max_fails=2 fail_timeout=10;\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n",
+              "127.0.0.1.xhttpServers": "server 127.0.0.1:11000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": [
+              "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"
+            ]
+          }
+PASS S4 auto-picked combined generate rc=0 {
+  "mode": "tls",
+  "transport": "ws+grpc+xhttp",
+  "port": 10000,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+      "email": "me@hey.run",
+      "level": 0,
+      "primary": true
+    }
+  ],
+  "uuid": "bbbb
+PASS S4 auto ports are distinct {"ws": 10000, "grpc": 10001, "xhttp": 11000}
+PASS S4 auto ws/gRPC ports come from the 10000-10999 pool {"ws": 10000, "grpc": 10001, "xhttp": 11000}
+PASS S4 auto xHTTP port comes from the 11000-11999 pool {"ws": 10000, "grpc": 10001, "xhttp": 11000}
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/reject-duplicate-ws-grpc-port/config.json --nginx-out /work/evidence/F02/f02-work/reject-duplicate-ws-grpc-port/nginx.conf --fragments-out /work/evidence/F02/f02-work/reject-duplicate-ws-grpc-port/fragments --json --transport ws+grpc+xhttp --ws-port 12443 --grpc-port 12443 (rc=2 0.01s)
+  stderr: grpc port 12443 is already used by another inbound
+PASS S4 duplicate ws/grpc port is refused with exit 2 rc=2
+PASS S4 duplicate ws/grpc port writes nothing 
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/reject-grpc-port-equals-the-public-port/config.json --nginx-out /work/evidence/F02/f02-work/reject-grpc-port-equals-the-public-port/nginx.conf --fragments-out /work/evidence/F02/f02-work/reject-grpc-port-equals-the-public-port/fragments --json --transport ws+grpc+xhttp --grpc-port 443 (rc=2 0.0s)
+  stderr: grpc port 443 is already used by another inbound
+PASS S4 grpc port equals the public port is refused with exit 2 rc=2
+PASS S4 grpc port equals the public port writes nothing 
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/reject-ws-port-out-of-range/config.json --nginx-out /work/evidence/F02/f02-work/reject-ws-port-out-of-range/nginx.conf --fragments-out /work/evidence/F02/f02-work/reject-ws-port-out-of-range/fragments --json --transport ws+grpc+xhttp --ws-port 70000 (rc=2 0.01s)
+  stderr: ws port must be between 1 and 65535
+PASS S4 ws port out of range is refused with exit 2 rc=2
+PASS S4 ws port out of range writes nothing 
+$ /work/bin/idleleo xray generate --mode tls --transport ws --out /work/evidence/F02/f02-work/s5-missing-domain/config.json --json (rc=2 0.0s)
+  stderr: tls mode requires --domain
+PASS S5 tls without --domain is refused rc=2
+PASS S5 missing domain writes nothing 
+PASS S5 missing domain error names the flag tls mode requires --domain
+
+$ /work/bin/idleleo xray generate --mode tls --out /work/evidence/F02/f02-work/s5-malformed-domain/config.json --json --domain bad domain --transport ws (rc=2 0.0s)
+  stderr: invalid domain "bad domain"
+PASS S5 malformed domain is refused with exit 2 rc=2
+PASS S5 malformed domain writes nothing 
+$ /work/bin/idleleo xray generate --mode tls --out /work/evidence/F02/f02-work/s5-reality-transport-in-tls-mode/config.json --json --domain example.com --transport reality (rc=2 0.0s)
+  stderr: unsupported transport "reality" for mode tls
+PASS S5 reality transport in tls mode is refused with exit 2 rc=2
+PASS S5 reality transport in tls mode writes nothing 
+$ /work/bin/idleleo xray generate --mode tls --out /work/evidence/F02/f02-work/s5-unknown-transport/config.json --json --domain example.com --transport quic (rc=2 0.0s)
+  stderr: unsupported transport "quic" for mode tls
+PASS S5 unknown transport is refused with exit 2 rc=2
+PASS S5 unknown transport writes nothing 
+$ /work/bin/idleleo xray generate --mode tls --transport ws --domain example.com --out /work/evidence/F02/f02-work/s5-overwrite/config.json --json (rc=0 0.01s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "4b522a43-18fb-47ca-af1c-d0651d2e5b4a",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "4b522a43-18fb-47ca-af1c-d0651d2e5b4a",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://4b522a43-18fb-47ca-af1c-d0651d2e5b4a@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: 4b522a43-18fb-47ca-af1c-d0651d2e5b4a\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS S5 first generate for overwrite test rc=0
+$ /work/bin/idleleo xray generate --mode tls --transport grpc --domain example.com --out /work/evidence/F02/f02-work/s5-overwrite/config.json --json (rc=2 0.0s)
+  stderr: refusing to overwrite existing file (use --force)
+PASS S5 existing --out without --force is refused rc=2
+PASS S5 refused overwrite keeps the original bytes 
+$ /work/bin/idleleo xray generate --mode tls --transport grpc --domain example.com --out /work/evidence/F02/f02-work/s5-overwrite/config.json --force --json (rc=0 0.01s)
+  stdout: {
+            "mode": "tls",
+            "transport": "grpc",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "93e25bca-accc-4cd5-87b5-2b14c30b959a",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "93e25bca-accc-4cd5-87b5-2b14c30b959a",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://93e25bca-accc-4cd5-87b5-2b14c30b959a@example.com:443?encryption=none&security=tls&sni=example.com&type=grpc&serviceName=idleleo-grpc#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: 93e25bca-accc-4cd5-87b5-2b14c30b959a\n    network: grpc\n    udp: true\n    tls: true\n    servername: example.com\n    grpc-opts:\n      grpc-service-name: idleleo-grpc\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /idleleo-grpc {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Host $http_host;\n        grpc_pass grpc://xray-grpc-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-grpc-server {\n    include /etc/idleleo/conf/nginx/*.grpcServers;\n}\n\n",
+              "127.0.0.1.grpcServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS S5 --force overwrites rc=0
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/public-port/config.json --nginx-out /work/evidence/F02/f02-work/public-port/nginx.conf --fragments-out /work/evidence/F02/f02-work/public-port/fragments --json --public-port 8443 (rc=0 0.01s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 8443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:8443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: bbbbbbbb-2222-4222-8222-222222222222\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 8443 ssl reuseport;\n    listen [::]:8443 ssl reuseport;\n    listen 8443 quic reuseport;\n    listen [::]:8443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com:8443$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS S5 --public-port moves the nginx listener 
+PASS S5 --public-port moves the QUIC listener 
+PASS S5 redirect keeps the non-standard public port 
+PASS S5 the backend port never equals the public port 10000
+PASS S5 share URI advertises the public port 8443
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/cert-pair/config.json --nginx-out /work/evidence/F02/f02-work/cert-pair/nginx.conf --fragments-out /work/evidence/F02/f02-work/cert-pair/fragments --json --cert /srv/tls/a.crt --cert-key /srv/tls/a.key (rc=0 0.01s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: bbbbbbbb-2222-4222-8222-222222222222\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /srv/tls/a.crt;\n    ssl_certificate_key   /srv/tls/a.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS S5 explicit --cert reaches nginx 
+PASS S5 explicit --cert-key reaches nginx 
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/cert-only/config.json --nginx-out /work/evidence/F02/f02-work/cert-only/nginx.conf --fragments-out /work/evidence/F02/f02-work/cert-only/fragments --json --cert /srv/tls/a.crt (rc=0 0.0s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: bbbbbbbb-2222-4222-8222-222222222222\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /srv/tls/a.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS S5 cert-only generation falls back to the default key 
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/listen-any/config.json --nginx-out /work/evidence/F02/f02-work/listen-any/nginx.conf --fragments-out /work/evidence/F02/f02-work/listen-any/fragments --json --listen 0.0.0.0 (rc=0 0.01s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: bbbbbbbb-2222-4222-8222-222222222222\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS S5 explicit --listen is honoured for TLS 0.0.0.0
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/listen-any-multi/config.json --nginx-out /work/evidence/F02/f02-work/listen-any-multi/nginx.conf --fragments-out /work/evidence/F02/f02-work/listen-any-multi/fragments --json --listen 0.0.0.0 --transport ws+grpc+xhttp (rc=0 0.01s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws+grpc+xhttp",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: bbbbbbbb-2222-4222-8222-222222222222\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n    location /idleleo-grpc {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Host $http_host;\n        grpc_pass grpc://xray-grpc-server;\n    }\n    location /xhttp/ {\n        grpc_connect_timeout 60s;\n        grpc_read_timeout 720m;\n        grpc_send_timeout 720m;\n        grpc_set_header X-Real-IP $remote_addr;\n        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        grpc_set_header Early-Data $ssl_early_data;\n        grpc_set_header Host $host;\n        client_max_body_size 0;\n        grpc_pass grpc://xray-xhttp-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\nupstream xray-grpc-server {\n    include /etc/idleleo/conf/nginx/*.grpcServers;\n}\n\nupstream xray-xhttp-server {\n    include /etc/idleleo/conf/nginx/*.xhttpServers;\n}\n\n",
+              "127.0.0.1.grpcServers": "server 127.0.0.1:10001 weight=50 max_fails=2 fail_timeout=10;\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n",
+              "127.0.0.1.xhttpServers": "server 127.0.0.1:11000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": [
+              "multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others"
+            ]
+          }
+PASS S5 combined mode only applies --listen to the primary {"ws": "0.0.0.0", "grpc": "127.0.0.1", "xhttp": "127.0.0.1"}
+$ /work/bin/idleleo xray generate --mode tls --domain example.com --uuid bbbbbbbb-2222-4222-8222-222222222222 --out /work/evidence/F02/f02-work/port-ignored/config.json --nginx-out /work/evidence/F02/f02-work/port-ignored/nginx.conf --fragments-out /work/evidence/F02/f02-work/port-ignored/fragments --json --port 19999 (rc=0 0.01s)
+  stdout: {
+            "mode": "tls",
+            "transport": "ws",
+            "port": 10000,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "bbbbbbbb-2222-4222-8222-222222222222",
+            "privateKey": "",
+            "publicKey": "",
+            "serverName": "example.com",
+            "shareUri": "vless://bbbbbbbb-2222-4222-8222-222222222222@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+            "clashYaml": "proxies:\n  - name: \"idleleo-tls\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: bbbbbbbb-2222-4222-8222-222222222222\n    network: ws\n    udp: true\n    tls: true\n    servername: example.com\n    ws-opts:\n      path: /ray/\n      headers:\n        Host: example.com\n",
+            "nginxConf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 443 ssl reuseport;\n    listen [::]:443 ssl reuseport;\n    listen 443 quic reuseport;\n    listen [::]:443 quic reuseport;\n\n    http2 on;\n    set_real_ip_from      127.0.0.1;\n    real_ip_header        X-Forwarded-For;\n    real_ip_recursive     on;\n    ssl_certificate       /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key   /etc/idleleo/cert/xray.key;\n    ssl_protocols         TLSv1.3;\n    ssl_ciphers           ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305;\n    ssl_ecdh_curve        X25519:prime256v1:secp384r1;\n    server_name           example.com;\n    root /var/www/html;\n    error_page 403 https://hey.run/helloworld;\n    ssl_session_cache shared:SSL:10m;\n    ssl_session_timeout 1d;\n    ssl_session_tickets off;\n    ssl_early_data on;\n    ssl_prefer_server_ciphers on;\n    add_header Strict-Transport-Security \"max-age=31536000\";\n\n    location /ray/ {\n        proxy_redirect off;\n        proxy_http_version 1.1;\n        proxy_connect_timeout 60s;\n        proxy_send_timeout 720m;\n        proxy_read_timeout 720m;\n        proxy_buffering off;\n        client_max_body_size 0;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header Upgrade $http_upgrade;\n        proxy_set_header Connection \"upgrade\";\n        proxy_set_header Host $http_host;\n        proxy_pass http://xray-ws-server;\n    }\n\n    location / {\n        return 403;\n    }\n}\n",
+            "nginxFragments": {
+              "01-xray-80.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nserver {\n    listen 80;\n    listen [::]:80;\n    server_name example.com;\n\n    location ^~ /.well-known/acme-challenge/ {\n        root /etc/idleleo/conf;\n        default_type \"text/plain\";\n        allow all;\n    }\n    location = /.well-known/acme-challenge/ {\n        return 404;\n    }\n\n    location / {\n        return 301 https://example.com$request_uri;\n    }\n}\n",
+              "02-xray-server.conf": "# Managed by Xray_bash_onekey (Go). Do not edit by hand.\nupstream xray-ws-server {\n    include /etc/idleleo/conf/nginx/*.wsServers;\n}\n\n",
+              "127.0.0.1.wsServers": "server 127.0.0.1:10000 weight=50 max_fails=2 fail_timeout=10;\n"
+            },
+            "warnings": []
+          }
+PASS S5 --port is not the TLS backend port 10000
+PASS S6 Bash TLS template exists /bash/config/vless_tls.json
+PASS S6 template tag VLESS-ws-in
+PASS S6 template pins 127.0.0.1:10086 127.0.0.1:10086
+PASS S6 template spells the protocol uppercase VLESS
+PASS S6 template ws stream settings 
+PASS S6 template routing targets the ws inbound 
+PASS S6 Bash function update_json_config extracted 
+PASS S6 Bash function modify_listen_address extracted 
+PASS S6 Bash function modify_inbound_port extracted 
+PASS S6 Bash function add_ws_inbound extracted 
+PASS S6 Bash function add_grpc_inbound extracted 
+PASS S6 Bash function add_xhttp_inbound extracted 
+PASS S6 Bash function modify_path extracted 
+PASS S6 Bash function modify_email_address extracted 
+PASS S6 Bash function apply_install_profile extracted 
+PASS S6 Bash function transport_choose extracted 
+PASS S6 Bash function nginx_servers_add extracted 
+PASS S6 Bash function modify_nginx_other extracted 
+PASS S6 Bash function modify_nginx_ssl_other extracted 
+PASS S6 Bash forces loopback for TLS 
+PASS S6 Bash TLS ports come from xport/gport/xhttpport 
+PASS S6 Bash gRPC template matches the Go stream settings 
+PASS S6 Bash xHTTP template matches the Go stream settings 
+PASS S6 Bash backend fragment 127.0.0.1.wsServers 
+PASS S6 Bash backend fragment 127.0.0.1.grpcServers 
+PASS S6 Bash backend fragment 127.0.0.1.xhttpServers 
+PASS S6 Bash backend weights match the Go fragments 
+PASS S6 Bash nginx locations follow the configured paths 
+PASS S6 Bash enables the ws/gRPC upstreams 
+PASS S6 Bash port-80 site redirects to https 
+PASS S6 Bash profile maps transport_nginx_tls to TLS 
+PASS S6 Bash menu 5 is ws+gRPC+xHTTP 
+PASS S6 Bash menu 4 offers ws+xHTTP (a combination Go does not implement) 
+$ bash /work/evidence/F02/f02-work/bash/run-baseline.sh (rc=0 0.06s)
+PASS S6 extracted Bash functions run for real 
+PASS S6 Bash baseline config was produced 
+PASS S6 Bash baseline has three transports ["grpc", "ws", "xhttp"]
+PASS S6 Bash rewrote every listen back to 127.0.0.1 {"ws": "127.0.0.1", "grpc": "127.0.0.1", "xhttp": "127.0.0.1"}
+PASS S6 Bash applied xport/gport/xhttpport {"ws": 12443, "grpc": 12444, "xhttp": 12445}
+PASS S6 Bash ws path /ray/
+$ /opt/xray/xray -test -config /work/evidence/F02/f02-work/bash/config.json (rc=0 0.02s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+          2026/11/18 22:58:49.493723 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/F02/f02-work/bash/config.json Format:json}
+          2026/11/18 22:58:49.493730 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+          2026/11/18 22:58:49.493732 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+          Configuration OK.
+PASS S6 real xray -test accepts the Bash baseline config ansport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/18 22:58:49.493732 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+Configuration OK.
+
+PASS S6 baseline-compare.json written 

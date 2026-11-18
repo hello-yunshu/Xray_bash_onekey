@@ -1,0 +1,194 @@
+PASS S7 sandbox without marker is refused: rc=1 sandbox marker required: open /work/evidence/F20/f20-work/sandbox-nomarker/.idleleo-phase01-sandbox: no such file or directory
+
+PASS S7 missing marker writes nothing: [PosixPath('/work/evidence/F20/f20-work/sandbox-nomarker/etc/fail2ban/jail.d')]
+PASS S7 writing the real root requires --container: rc=1 container root writes require --container
+
+PASS S7 write grant needs the explicit environment token: rc=1 container root writes require IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY
+
+PASS S7 missing fail2ban-client is refused: rc=1
+PASS S7 hint mentions apt-get
+PASS S7 hint mentions dnf
+PASS S7 hint mentions apk
+PASS S7 missing binary writes nothing: []
+PASS S2 Bash baseline exits 0: rc=0
+PASS S2 Bash baseline skips the SSH jail without systemd journal
+PASS S2 Bash writes the same five jail files: ['nginx-badbots.local', 'nginx-botsearch.local', 'nginx-no-host.local', 'nginx-tls-error.local', 'zzz-idleleo-incremental.local']
+PASS S2 Bash nginx-badbots.local content: [nginx-badbots]
+enabled  = true
+port     = http,https,8080
+filter   = apache-badbots
+logpath  = /usr/local/nginx/logs/access.log
+bantime  = 604800
+maxretry = 5
+
+PASS S2 Bash nginx-botsearch.local content: [nginx-botsearch]
+enabled  = true
+filter   = nginx-botsearch
+logpath  = /usr/local/nginx/logs/access.log
+           /usr/local/nginx/logs/error.log
+bantime  = 604800
+
+PASS S2 Bash nginx-no-host.local content: [nginx-no-host]
+enabled  = true
+filter   = nginx-no-host
+logpath  = /usr/local/nginx/logs/sni_error.log
+bantime  = 604800
+maxretry = 5
+findtime = 120
+
+PASS S2 Bash nginx-tls-error.local content: [nginx-tls-error]
+enabled  = true
+filter   = nginx-tls-error
+logpath  = /usr/local/nginx/logs/tls_error.log
+bantime  = 43200
+maxretry = 8
+findtime = 300
+
+PASS S2 Bash nginx-no-host filter content
+PASS S2 Bash nginx-tls-error filter content
+PASS S2 Bash jail.local is a byte copy of jail.conf
+PASS S1 install exits 0: rc=0
+PASS S1 reports five jails: ['sshd', 'nginx-badbots', 'nginx-botsearch', 'nginx-no-host', 'nginx-tls-error']
+PASS S1 sshd is skipped with a reason: {"name": "sshd", "written": false, "reason": "no active ssh/sshd unit: systemd cannot read SSH logs"}
+PASS S1 nginx-badbots is written: {"name": "nginx-badbots", "written": true, "logPath": "/usr/local/nginx/logs/access.log"}
+PASS S1 nginx-badbots logPath: /usr/local/nginx/logs/access.log
+PASS S1 nginx-botsearch is written: {"name": "nginx-botsearch", "written": true, "logPath": "/usr/local/nginx/logs/access.log"}
+PASS S1 nginx-botsearch logPath: /usr/local/nginx/logs/access.log
+PASS S1 nginx-no-host is written: {"name": "nginx-no-host", "written": true, "logPath": "/usr/local/nginx/logs/sni_error.log"}
+PASS S1 nginx-no-host logPath: /usr/local/nginx/logs/sni_error.log
+PASS S1 nginx-tls-error is written: {"name": "nginx-tls-error", "written": true, "logPath": "/usr/local/nginx/logs/tls_error.log"}
+PASS S1 nginx-tls-error logPath: /usr/local/nginx/logs/tls_error.log
+PASS S1 install lists eight jail files plus the drop-in: ['/etc/fail2ban/filter.d/nginx-no-host.conf', '/etc/fail2ban/filter.d/nginx-tls-error.conf', '/etc/fail2ban/jail.d/nginx-badbots.local', '/etc/fail2ban/jail.d/nginx-botsearch.local', '/etc/fail2ban/jail.d/nginx-no-host.local', '/etc/fail2ban/jail.d/nginx-tls-error.local', '/etc/fail2ban/jail.d/zzz-idleleo-incremental.local', '/etc/fail2ban/jail.local', '/etc/systemd/system/fail2ban.service.d/restart-policy.conf']
+PASS S1 restart outcome is reported honestly: {"serviceRestarted": true, "warnings": []}
+PASS S1 nginx-badbots.local content: [nginx-badbots]
+enabled  = true
+port     = http,https,8080
+filter   = apache-badbots
+logpath  = /usr/local/nginx/logs/access.log
+bantime  = 604800
+maxretry = 5
+
+PASS S1 nginx-botsearch.local content: [nginx-botsearch]
+enabled  = true
+filter   = nginx-botsearch
+logpath  = /usr/local/nginx/logs/access.log
+           /usr/local/nginx/logs/error.log
+bantime  = 604800
+
+PASS S1 nginx-no-host.local content: [nginx-no-host]
+enabled  = true
+filter   = nginx-no-host
+logpath  = /usr/local/nginx/logs/sni_error.log
+bantime  = 604800
+maxretry = 5
+findtime = 120
+
+PASS S1 nginx-tls-error.local content: [nginx-tls-error]
+enabled  = true
+filter   = nginx-tls-error
+logpath  = /usr/local/nginx/logs/tls_error.log
+bantime  = 43200
+maxretry = 8
+findtime = 300
+
+PASS S1 incremental ban policy content
+PASS S1 jail.local is a byte copy of jail.conf
+PASS S1 nginx-no-host filter content
+PASS S1 nginx-tls-error filter content
+PASS S1 no sshd.local without an SSH unit
+PASS S1 manifest records version 1 and nine files: {"version": 1, "files": ["etc/fail2ban/filter.d/nginx-no-host.conf", "etc/fail2ban/filter.d/nginx-tls-error.conf", "etc/fail2ban/jail.d/nginx-badbots.local", "etc/fail2ban/jail.d/nginx-botsearch.local", "etc/fail2ban/jail.d/nginx-no-host.local", "etc/fail2ban/jail.d/nginx-tls-error.local", "etc/fail2ban/jail.d/zzz-idleleo-incremental.local", "etc/fail2ban/jail.local", "etc/systemd/system/fail2ban.service.d/restart-policy.conf"]}
+PASS S1 manifest lists the systemd drop-in: ['etc/fail2ban/filter.d/nginx-no-host.conf', 'etc/fail2ban/filter.d/nginx-tls-error.conf', 'etc/fail2ban/jail.d/nginx-badbots.local', 'etc/fail2ban/jail.d/nginx-botsearch.local', 'etc/fail2ban/jail.d/nginx-no-host.local', 'etc/fail2ban/jail.d/nginx-tls-error.local', 'etc/fail2ban/jail.d/zzz-idleleo-incremental.local', 'etc/fail2ban/jail.local', 'etc/systemd/system/fail2ban.service.d/restart-policy.conf']
+PASS S1 systemd drop-in is written
+PASS S1 second install exits 0: rc=0
+PASS S1 second install is idempotent (tree sha unchanged)
+PASS S2 Bash and Go agree on jail.d/nginx-badbots.local: bash=True go=True
+PASS S2 Bash and Go agree on jail.d/nginx-botsearch.local: bash=True go=True
+PASS S2 Bash and Go agree on jail.d/nginx-no-host.local: bash=True go=True
+PASS S2 Bash and Go agree on jail.d/nginx-tls-error.local: bash=True go=True
+PASS S2 Bash and Go agree on jail.d/zzz-idleleo-incremental.local: bash=True go=True
+PASS S2 Bash and Go agree on jail.local: bash=True go=True
+PASS S2 Bash and Go agree on filter.d/nginx-no-host.conf: bash=True go=True
+PASS S2 Bash and Go agree on filter.d/nginx-tls-error.conf: bash=True go=True
+PASS S2 Bash writes no sshd.local either
+PASS S3 fail2ban daemon starts: rc=255 2026-11-18 22:59:24,352 fail2ban                [6904]: ERROR   Server already running
+
+PASS S3 fail2ban daemon answers ping: Server replied: pong
+
+PASS S3 status exits 0: rc=0
+PASS S3 status lists the four Nginx jails: ['nginx-badbots', 'nginx-botsearch', 'nginx-no-host', 'nginx-tls-error']
+PASS S3 status reports installed=true
+PASS S3 no jail has bans yet
+PASS S3 banned exits 0: rc=0
+PASS S3 banned lists the real ban: {"name": "nginx-no-host", "currentlyBanned": 1, "totalBanned": 1, "bannedIPs": ["192.0.2.10"]}
+PASS S3 ban counter is one: 1
+PASS S3 unban exits 0: rc=0
+PASS S3 unban removes an active ban: {"jail": "nginx-no-host", "ip": "192.0.2.10", "wasBanned": true, "unbanned": true, "remainingIPs": [], "alreadyAbsent": false}
+PASS S3 no ban remains: []
+PASS S3 second unban exits 0
+PASS S3 second unban reports already-absent: {"jail": "nginx-no-host", "ip": "192.0.2.10", "wasBanned": false, "unbanned": false, "remainingIPs": [], "alreadyAbsent": true}
+PASS S3 invalid IP is refused with rc=1: rc=1 invalid IP address: nope
+
+PASS S3 unknown jail is refused with rc=1: rc=1 jail "no-such" is not active; run `idleleo fail2ban banned` to list jails
+
+PASS S3 banned with an unknown jail exits 1: rc=1
+PASS S4 trust add exits 0: rc=0
+PASS S4 trust add applies and persists: {"jail": "nginx-no-host", "value": "192.0.2.55", "applied": true, "persisted": true, "file": "/etc/fail2ban/jail.d/zzz-idleleo-trust.local", "warnings": []}
+PASS S4 trust file path: /etc/fail2ban/jail.d/zzz-idleleo-trust.local
+PASS S4 trust file content: # Managed by Idleleo. Trusted IPs/CIDRs survive a fail2ban restart.
+[nginx-no-host]
+ignoreip = 192.0.2.55
+
+PASS S4 running jail ignores the trusted IP: These IP addresses/networks are ignored:
+`- 192.0.2.55
+
+PASS S4 trust del exits 0
+PASS S4 trust del leaves only the managed header: # Managed by Idleleo. Trusted IPs/CIDRs survive a fail2ban restart.
+
+PASS S4 IPv6 trust add exits 0
+PASS S4 IPv6 is persisted: # Managed by Idleleo. Trusted IPs/CIDRs survive a fail2ban restart.
+[nginx-no-host]
+ignoreip = 2001:db8::1
+
+PASS S4 IPv6 trust del exits 0: rc=0
+PASS S4 invalid CIDR is refused: rc=1 invalid IP or CIDR: 192.0.2.5/33
+
+PASS S4 unknown jail trust add is refused: rc=1
+PASS S5 jail disable exits 0
+PASS S5 disable reports enabled=false
+PASS S5 restart outcome is reported honestly: {"serviceRestarted": true, "warnings": []}
+PASS S5 disable flips exactly enabled: [nginx-no-host]
+enabled  = false
+filter   = nginx-no-host
+logpath  = /usr/local/nginx/logs/sni_error.log
+bantime  = 604800
+maxretry = 5
+findtime = 120
+
+PASS S5 jail enable exits 0
+PASS S5 enable reports enabled=true
+PASS S5 enable restores the managed content: [nginx-no-host]
+enabled  = true
+filter   = nginx-no-host
+logpath  = /usr/local/nginx/logs/sni_error.log
+bantime  = 604800
+maxretry = 5
+findtime = 120
+
+PASS S5 foreign jail is refused: rc=1
+PASS S5 foreign jail file is untouched
+PASS S6 manifest owns nine install files plus the trust file: ['/etc/fail2ban/filter.d/nginx-no-host.conf', '/etc/fail2ban/filter.d/nginx-tls-error.conf', '/etc/fail2ban/jail.d/nginx-badbots.local', '/etc/fail2ban/jail.d/nginx-botsearch.local', '/etc/fail2ban/jail.d/nginx-no-host.local', '/etc/fail2ban/jail.d/nginx-tls-error.local', '/etc/fail2ban/jail.d/zzz-idleleo-incremental.local', '/etc/fail2ban/jail.d/zzz-idleleo-trust.local', '/etc/fail2ban/jail.local', '/etc/systemd/system/fail2ban.service.d/restart-policy.conf']
+PASS S6 uninstall exits 0: rc=0
+PASS S6 uninstall removes every owned file: missing=[] extra=[]
+PASS S6 uninstall preserves the operator file: ['/etc/fail2ban/jail.d/user-custom.local']
+PASS S6 manifest path needs no --force
+PASS S6 package removal is out of scope: ['the fail2ban package is still installed; only the Idleleo jails were removed']
+PASS S6 operator file survives
+PASS S6 owned files are gone from disk: []
+PASS S6 uninstall without a manifest needs --force: rc=2
+PASS S6 missing manifest deletes nothing: {"removed": [], "preserved": [], "candidates": ["/etc/fail2ban/jail.d/user-custom.local"], "needForce": true, "warnings": [], "serviceRestarted": false}
+PASS S6 missing manifest lists the operator file as a candidate: ['/etc/fail2ban/jail.d/user-custom.local']
+PASS S6 missing-manifest refusal leaves the operator file alone
+PASS S6 --force exits 0: rc=0
+PASS S6 --force removes only known leftovers: {"removed": [], "preserved": [], "candidates": ["/etc/fail2ban/jail.d/user-custom.local"], "needForce": false, "warnings": [], "serviceRestarted": false}
+PASS S6 --force keeps the operator file
+== F20: 108 passed, 0 failed, 2.54s ==

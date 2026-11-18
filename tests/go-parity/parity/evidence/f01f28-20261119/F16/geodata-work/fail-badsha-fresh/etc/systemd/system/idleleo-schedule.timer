@@ -1,0 +1,11 @@
+[Unit]
+Description=idleleo scheduled maintenance timer
+
+[Timer]
+OnActiveSec=3600s
+OnUnitActiveSec=3600s
+AccuracySec=1s
+Persistent=true
+
+[Install]
+WantedBy=timers.target

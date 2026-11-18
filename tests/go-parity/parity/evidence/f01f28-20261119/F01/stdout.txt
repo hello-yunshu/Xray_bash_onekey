@@ -1,0 +1,22 @@
+PASS systemd is usable: running after 0.0s
+PASS invalid serverName refused with exit 2: rc=2
+PASS invalid request wrote nothing: config=False unit=False bin=False
+PASS reality install exit 0: rc=0 
+PASS report mode=reality: reality
+PASS report tls=Reality: Reality
+PASS report validatorExit=0: 0
+PASS report serviceActive=active: active
+PASS report serviceEnabled=enabled: enabled
+PASS runtime config exists: /etc/idleleo/conf/xray/config.json
+PASS report configSha256 matches file: f4566db7820bceb475f1c18c6b4a1f1590ac9849e15fa1e599fc86382a9a22fe vs f4566db7820bceb475f1c18c6b4a1f1590ac9849e15fa1e599fc86382a9a22fe
+PASS systemctl is-active active: active
+PASS systemctl is-enabled enabled: enabled
+PASS unit runs as User=xray
+PASS xray process is owned by user xray: {"xray": 1}
+PASS installed xray -test accepts the config: rc=0 
+PASS share exit 0: rc=0
+PASS shareUri is a vless URI: vless://6f09273c-71fd-401e-b430-c890d3b65387@127.0.0.1:8443?encryption=none&flow
+PASS client SOCKS listener ready: 127.0.0.1:10808
+PASS real handshake fetched HTTP bytes: attempt=1 status=200 bytes=577
+PASS Reality data path works end to end: http://example.com/
+== F01: 21 passed, 0 failed, 7.06s ==

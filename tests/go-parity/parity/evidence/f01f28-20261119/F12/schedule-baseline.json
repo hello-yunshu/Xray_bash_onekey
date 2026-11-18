@@ -1,0 +1,13 @@
+{
+  "results": [
+    {
+      "at": "2026-11-18T22:58:56Z",
+      "detail": "xray.crt is user-managed (sha256=df4537a4e88a); renewal is external; expires in 89 days",
+      "job": "cert-renew",
+      "result": "ok"
+    }
+  ],
+  "root": "/",
+  "schemaVersion": 1,
+  "startedAt": "2026-11-18T22:58:56Z"
+}

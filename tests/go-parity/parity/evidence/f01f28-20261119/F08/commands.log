@@ -1,0 +1,798 @@
+== F08 go=/work/bin/idleleo bash=/bash host=aarch64
+$ /work/bin/idleleo xray generate --out /work/evidence/F08/f08-work/reality-base.json --json --mode reality --domain example.com --port 18443 (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "port": 18443,
+            "publicPort": 18443,
+            "listen": "0.0.0.0",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "9b250b8a-651d-43a5-9c77-527f996f78a1",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "9b250b8a-651d-43a5-9c77-527f996f78a1",
+            "shortId": "f504a0c7",
+            "shortIds": [
+              "f504a0c7"
+            ],
+            "privateKey": "N1Do9GB570GvfAJGEexc1pwRXTGnFkNCJCwW0qLEW6c",
+            "publicKey": "3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:18443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 18443\n    uuid: 9b250b8a-651d-43a5-9c77-527f996f78a1\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: 3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs\n      short-id: f504a0c7\n",
+            "warnings": []
+          }
+PASS generate reality base rc=0 and wrote config {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 18443,
+  "publicPort": 18443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "9b250b8a-651d-43a5-9c77-527f996f78a1",
+ 
+PASS base mode/transport reality/raw
+PASS base port 18443
+PASS base inbound port 18443
+PASS base listen 0.0.0.0
+PASS base serverNames ["example.com"]
+PASS base target example.com:443
+PASS base config mode is 0600 0o600
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --port 18443 --dry-run (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "changed": [
+              "port"
+            ],
+            "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+            "noChanges": true,
+            "noRestart": false,
+            "noProbe": true,
+            "dryRun": true,
+            "nginxUpdated": false,
+            "nginxVerified": false,
+            "shareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:18443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "tlsSystemTrusted": false,
+            "disconnect": true,
+            "warnings": null,
+            "shortIds": [
+              "f504a0c7"
+            ],
+            "oldShareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:18443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "upstreamUnchanged": false
+          }
+PASS identical port dry run rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "4801b2791e502c
+PASS identical port reports noChanges ["port"]
+PASS identical port has an empty diff null
+PASS no-op dry run leaves the config untouched 
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --port 19443 --dry-run (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "changed": [
+              "port"
+            ],
+            "diff": [
+              "inbounds[0].port"
+            ],
+            "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+            "newSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+            "noChanges": false,
+            "noRestart": false,
+            "noProbe": true,
+            "dryRun": true,
+            "nginxUpdated": false,
+            "nginxVerified": false,
+            "shareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "tlsSystemTrusted": false,
+            "disconnect": true,
+            "warnings": null,
+            "shortIds": [
+              "f504a0c7"
+            ],
+            "oldShareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:18443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "upstreamUnchanged": false,
+            "plan": {
+              "operation": "edit-runtime-config",
+              "resource": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+              "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+              "newSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+              "changed": [
+                "port"
+              ],
+              "affectedServices": [
+                "xray"
+              ],
+              "disconnectRisk": "drops live client sessions until clients reconnect",
+              "validationSteps": [
+                "xray -test"
+              ],
+              "rollbackScope": "runtime config",
+              "ownership": "idleleo-managed",
+              "fingerprint": "0e71e6c298f9c744"
+            }
+          }
+PASS port dry run rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "diff": [
+    "inbounds[0].port"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/conf
+PASS port dry run is marked dryRun 
+PASS port dry run changed=[port] ["port"]
+PASS port dry run diff scope ["inbounds[0].port"]
+PASS port dry run reports a pending change 
+PASS port dry run creates no backup 
+PASS port dry run predicts a new hash 
+PASS port dry run link uses the new port 19443
+PASS port dry run leaves the config untouched 
+PASS port dry run leaves the config mode alone 0o640
+PASS port dry run never executes xray -test 
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --port 19443 (rc=2 0.0s)
+  stderr: this edit changes port and will drop live connections; re-run with --yes to confirm
+PASS port edit without --yes is refused (rc=2) rc=2
+PASS refusal names --yes this edit changes port and will drop live connections; re-run with --yes to confirm
+PASS refused edit leaves the config untouched 
+PASS refused edit creates no backup 
+PASS refused edit never executes xray -test 
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --port 19443 --yes --no-restart (rc=0 0.01s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "changed": [
+              "port"
+            ],
+            "diff": [
+              "inbounds[0].port"
+            ],
+            "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+            "newSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+            "backupDir": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/backup/edit-20261118T225853",
+            "noChanges": false,
+            "noRestart": true,
+            "noProbe": true,
+            "dryRun": false,
+            "nginxUpdated": false,
+            "nginxVerified": false,
+            "shareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "tlsSystemTrusted": false,
+            "disconnect": true,
+            "warnings": null,
+            "shortIds": [
+              "f504a0c7"
+            ],
+            "oldShareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:18443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "upstreamUnchanged": true,
+            "plan": {
+              "operation": "edit-runtime-config",
+              "resource": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+              "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+              "newSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+              "changed": [
+                "port"
+              ],
+              "affectedServices": [
+                "xray"
+              ],
+              "disconnectRisk": "drops live client sessions until clients reconnect",
+              "validationSteps": [
+                "xray -test"
+              ],
+              "rollbackScope": "runtime config",
+              "ownership": "idleleo-managed",
+              "fingerprint": "0e71e6c298f9c744"
+            }
+          }
+PASS port edit rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "diff": [
+    "inbounds[0].port"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+  "newSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+  "backupDir": "/work/ev
+PASS port edit rewrites the inbound port 19443
+PASS port edit keeps the listen address 0.0.0.0
+PASS port edit preserves config mode 0640 0o640
+PASS port edit changes the config hash 8291c1f0e1e98002
+PASS port edit updates metadata runtimeSha256 
+PASS port edit leaves exactly one backup 1
+PASS backup holds the pre-edit bytes 
+PASS backup config mode is 0600 0o600
+PASS report names the backup directory /work/evidence/F08/f08-work/root-reality/etc/idleleo/backup/edit-20261118T225853
+PASS report records --no-restart 
+PASS report hashes match the file transition 
+PASS edit report advertises the new port 19443
+PASS report keeps the pre-edit link for rollback 
+PASS committed edit executed the candidate validator 
+PASS validator was called once with -test -config ["-test -config /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-1472939166.json"]
+PASS validator ran against the candidate, not the live config -test -config /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-1472939166.json
+$ /work/bin/idleleo xray share --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json (rc=0 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "uuid": "9b250b8a-651d-43a5-9c77-527f996f78a1",
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "host": "example.com",
+            "port": 19443,
+            "shareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 19443\n    uuid: 9b250b8a-651d-43a5-9c77-527f996f78a1\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: 3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs\n      short-id: f504a0c7\n",
+            "warnings": []
+          }
+PASS share after port edit rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "9b250b8a-651d-43a5-9c77-527f996f78a1",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 19443,
+  "share
+PASS share after port edit uses the new port 19443
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-rejected xray config edit --path /work/evidence/F08/f08-work/root-rejected/etc/idleleo/conf/xray/config.json --json --no-probe --port 19443 --yes --no-restart (rc=1 0.0s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "changed": [
+              "port"
+            ],
+            "diff": [
+              "inbounds[0].port"
+            ],
+            "configPath": "/work/evidence/F08/f08-work/root-rejected/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+            "newSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+            "noChanges": false,
+            "noRestart": true,
+            "noProbe": true,
+            "dryRun": false,
+            "nginxUpdated": false,
+            "nginxVerified": false,
+            "shareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "tlsSystemTrusted": false,
+            "disconnect": true,
+            "warnings": null,
+            "shortIds": [
+              "f504a0c7"
+            ],
+            "oldShareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:18443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "upstreamUnchanged": false,
+            "plan": {
+              "operation": "edit-runtime-config",
+              "resource": "/work/evidence/F08/f08-work/root-rejected/etc/idleleo/conf/xray/config.json",
+              "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+              "newSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+              "changed": [
+                "port"
+              ],
+              "affectedServices": [
+                "xray"
+              ],
+              "disconnectRisk": "drops live client sessions until clients reconnect",
+              "validationSteps": [
+                "xray -test"
+              ],
+              "rollbackScope": "runtime config",
+              "ownership": "idleleo-managed",
+              "fingerprint": "8166903b80220b39"
+            }
+          }
+  stderr: xray -test rejected the candidate (exit 1): fixture: xray -test rejected the candidate; configuration was not changed
+PASS xray -test rejection fails the edit (rc=1) rc=1
+PASS rejection surfaces the validator verdict {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "diff": [
+    "inbounds[0].port"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-rejected/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+  "new
+PASS rejection states the config was not changed {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "diff": [
+    "inbounds[0].port"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-rejected/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+  "new
+PASS rejected candidate leaves the config untouched 
+PASS rejected candidate leaves metadata untouched 
+PASS rejected candidate creates no backup 
+PASS the rejecting validator was executed 
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --listen 127.0.0.1 --yes --no-restart (rc=0 0.01s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "changed": [
+              "listen"
+            ],
+            "diff": [
+              "inbounds[0].listen"
+            ],
+            "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+            "newSha256": "386ea616a67d554d0d9aafc7f08c27a33e58cc63d54cef385a41d0fd73a1066f",
+            "backupDir": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/backup/edit-20261118T225853",
+            "noChanges": false,
+            "noRestart": true,
+            "noProbe": true,
+            "dryRun": false,
+            "nginxUpdated": false,
+            "nginxVerified": false,
+            "shareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "tlsSystemTrusted": false,
+            "disconnect": true,
+            "warnings": null,
+            "shortIds": [
+              "f504a0c7"
+            ],
+            "oldShareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "upstreamUnchanged": true,
+            "plan": {
+              "operation": "edit-runtime-config",
+              "resource": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+              "oldSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+              "newSha256": "386ea616a67d554d0d9aafc7f08c27a33e58cc63d54cef385a41d0fd73a1066f",
+              "changed": [
+                "listen"
+              ],
+              "affectedServices": [
+                "xray"
+              ],
+              "disconnectRisk": "drops live client sessions until clients reconnect",
+              "validationSteps": [
+                "xray -test"
+              ],
+              "rollbackScope": "runtime config",
+              "ownership": "idleleo-managed",
+              "fingerprint": "d5ad175fc622086e"
+            }
+          }
+PASS listen edit rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "listen"
+  ],
+  "diff": [
+    "inbounds[0].listen"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+  "
+PASS listen edit rewrites the address 127.0.0.1
+PASS listen edit keeps the port 19443
+PASS listen edit changed=[listen] ["listen"]
+PASS listen edit diff scope ["inbounds[0].listen"]
+PASS listen edit keeps the public endpoint example.com:19443
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --server-names a.example.com, b.example.com --no-restart (rc=0 0.01s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "changed": [
+              "server-names"
+            ],
+            "diff": [
+              "inbounds[0].streamSettings.realitySettings.serverNames"
+            ],
+            "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "386ea616a67d554d0d9aafc7f08c27a33e58cc63d54cef385a41d0fd73a1066f",
+            "newSha256": "832ff5d2d4f0ab07caa51f7d2d49dd33d4d8086b01707e6549b1556df4abefc9",
+            "backupDir": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/backup/edit-20261118T225853",
+            "noChanges": false,
+            "noRestart": true,
+            "noProbe": true,
+            "dryRun": false,
+            "nginxUpdated": false,
+            "nginxVerified": false,
+            "shareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@a.example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=a.example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "originProbe": "skipped: --no-probe",
+            "tlsSystemTrusted": false,
+            "disconnect": false,
+            "warnings": null,
+            "shortIds": [
+              "f504a0c7"
+            ],
+            "oldShareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "upstreamUnchanged": true,
+            "plan": {
+              "operation": "edit-runtime-config",
+              "resource": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+              "oldSha256": "386ea616a67d554d0d9aafc7f08c27a33e58cc63d54cef385a41d0fd73a1066f",
+              "newSha256": "832ff5d2d4f0ab07caa51f7d2d49dd33d4d8086b01707e6549b1556df4abefc9",
+              "changed": [
+                "server-names"
+              ],
+              "affectedServices": [
+                "xray"
+              ],
+              "disconnectRisk": "none: no live session is dropped",
+              "validationSteps": [
+                "xray -test"
+              ],
+              "rollbackScope": "runtime config",
+              "ownership": "idleleo-managed",
+              "fingerprint": "0d580f69908cfc80"
+            }
+          }
+PASS server-names edit rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "server-names"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.serverNames"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "386ea616a67d554d0d9aafc7f08c
+PASS server-names accepts a comma-separated list ["a.example.com", "b.example.com"]
+PASS server-names keeps the target example.com:443
+PASS server-names changed=[server-names] ["server-names"]
+PASS server-names diff stays inside realitySettings ["inbounds[0].streamSettings.realitySettings.serverNames"]
+PASS server-names makes the first name the link SNI ['a.example.com']
+PASS --no-probe skips the origin handshake skipped: --no-probe
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --server-names bad/name --no-restart (rc=1 0.01s)
+  stderr: invalid server name "bad/name"
+PASS invalid server name is refused (rc=1) rc=1
+PASS invalid server name is named invalid server name "bad/name"
+PASS invalid server name writes nothing 
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --target other.example.org --no-restart (rc=0 0.01s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "changed": [
+              "target"
+            ],
+            "diff": [
+              "inbounds[0].streamSettings.realitySettings.target"
+            ],
+            "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "832ff5d2d4f0ab07caa51f7d2d49dd33d4d8086b01707e6549b1556df4abefc9",
+            "newSha256": "357e2846a60e46512c1d9603936b5a21075a80f93f559c99adf149d78a31d69a",
+            "backupDir": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/backup/edit-20261118T225853",
+            "noChanges": false,
+            "noRestart": true,
+            "noProbe": true,
+            "dryRun": false,
+            "nginxUpdated": false,
+            "nginxVerified": false,
+            "shareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@a.example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=a.example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "originProbe": "skipped: --no-probe",
+            "tlsSystemTrusted": false,
+            "disconnect": false,
+            "warnings": null,
+            "shortIds": [
+              "f504a0c7"
+            ],
+            "oldShareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@a.example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=a.example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "upstreamUnchanged": true,
+            "plan": {
+              "operation": "edit-runtime-config",
+              "resource": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+              "oldSha256": "832ff5d2d4f0ab07caa51f7d2d49dd33d4d8086b01707e6549b1556df4abefc9",
+              "newSha256": "357e2846a60e46512c1d9603936b5a21075a80f93f559c99adf149d78a31d69a",
+              "changed": [
+                "target"
+              ],
+              "affectedServices": [
+                "xray"
+              ],
+              "disconnectRisk": "none: no live session is dropped",
+              "validationSteps": [
+                "xray -test"
+              ],
+              "rollbackScope": "runtime config",
+              "ownership": "idleleo-managed",
+              "fingerprint": "1b878367862eff55"
+            }
+          }
+PASS bare target edit rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "target"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.target"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "832ff5d2d4f0ab07caa51f7d2d49dd33d4d8086
+PASS bare target gains the default :443 other.example.org:443
+PASS target edit keeps the serverNames list ["a.example.com", "b.example.com"]
+PASS target edit keeps the link SNI on the serverName ['a.example.com']
+PASS --no-probe skips the origin handshake for --target skipped: --no-probe
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --target other.example.org:8443 --no-restart (rc=0 0.01s)
+  stdout: {
+            "mode": "reality",
+            "transport": "raw",
+            "changed": [
+              "target"
+            ],
+            "diff": [
+              "inbounds[0].streamSettings.realitySettings.target"
+            ],
+            "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+            "oldSha256": "357e2846a60e46512c1d9603936b5a21075a80f93f559c99adf149d78a31d69a",
+            "newSha256": "8607c48c1d839788edafbe57be3ca1bd77147fb427db22728199cf4a33bc2f8a",
+            "backupDir": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/backup/edit-20261118T225853",
+            "noChanges": false,
+            "noRestart": true,
+            "noProbe": true,
+            "dryRun": false,
+            "nginxUpdated": false,
+            "nginxVerified": false,
+            "shareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@a.example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=a.example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "originProbe": "skipped: --no-probe",
+            "tlsSystemTrusted": false,
+            "disconnect": false,
+            "warnings": null,
+            "shortIds": [
+              "f504a0c7"
+            ],
+            "oldShareUri": "vless://9b250b8a-651d-43a5-9c77-527f996f78a1@a.example.com:19443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=a.example.com&fp=chrome&pbk=3QZSa5W4fi1dQyt0jEa3zKmogSjwzX_TqrBytFLHFBs&sid=f504a0c7&type=raw#idleleo-reality",
+            "upstreamUnchanged": true,
+            "plan": {
+              "operation": "edit-runtime-config",
+              "resource": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+              "oldSha256": "357e2846a60e46512c1d9603936b5a21075a80f93f559c99adf149d78a31d69a",
+              "newSha256": "8607c48c1d839788edafbe57be3ca1bd77147fb427db22728199cf4a33bc2f8a",
+              "changed": [
+                "target"
+              ],
+              "affectedServices": [
+                "xray"
+              ],
+              "disconnectRisk": "none: no live session is dropped",
+              "validationSteps": [
+                "xray -test"
+              ],
+              "rollbackScope": "runtime config",
+              "ownership": "idleleo-managed",
+              "fingerprint": "c29d48e463968639"
+            }
+          }
+PASS explicit target port edit rc=0 {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "target"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.target"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "357e2846a60e46512c1d9603936b5a21075a80f
+PASS explicit target port is honoured other.example.org:8443
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --target bad target! --no-restart (rc=1 0.0s)
+  stderr: invalid reality target host "bad target!"
+PASS malformed target is refused (rc=1) rc=1
+PASS malformed target is named invalid reality target host "bad target!"
+PASS malformed target writes nothing 
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --port 9443 --yes --no-restart (rc=1 0.0s)
+  stderr: port 9443 is reserved for Reality internals (9403, 9404, 9443, 9444)
+PASS reserved Reality port is refused (rc=1) rc=1
+PASS reserved port refusal is explicit port 9443 is reserved for Reality internals (9403, 9404, 9443, 9444)
+PASS reserved port writes nothing 
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --sni-guard isolate (rc=2 0.0s)
+  stderr: unknown flag: --sni-guard
+PASS there is no --sni-guard runtime switch (rc=2) rc=2
+PASS --sni-guard is reported as an unknown flag unknown flag: --sni-guard
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-reality xray config edit --path /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json --json --no-probe --unknown-sni-policy reject (rc=2 0.0s)
+  stderr: unknown flag: --unknown-sni-policy
+PASS config edit does not accept --unknown-sni-policy (rc=2) rc=2
+PASS unknown policy flags write nothing 
+$ /work/bin/idleleo xray generate --out /work/evidence/F08/f08-work/none-base.json --json --mode none --transport ws --port 8080 (rc=0 0.0s)
+  stdout: {
+            "mode": "none",
+            "transport": "ws",
+            "port": 8080,
+            "publicPort": 8080,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "af4c7acd-ff79-4ef5-8bd9-c03f564e8108",
+                "email": "me@hey.run",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "af4c7acd-ff79-4ef5-8bd9-c03f564e8108",
+            "privateKey": "",
+            "publicKey": "",
+            "shareUri": "vless://af4c7acd-ff79-4ef5-8bd9-c03f564e8108@127.0.0.1:8080?encryption=none&security=none&type=ws&path=/ray/&host=127.0.0.1#idleleo-none",
+            "clashYaml": "proxies:\n  - name: \"idleleo-none\"\n    type: vless\n    server: 127.0.0.1\n    port: 8080\n    uuid: af4c7acd-ff79-4ef5-8bd9-c03f564e8108\n    network: ws\n    udp: true\n    ws-opts:\n      path: /ray/\n",
+            "warnings": []
+          }
+PASS generate none/ws base rc=0 {
+  "mode": "none",
+  "transport": "ws",
+  "port": 8080,
+  "publicPort": 8080,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "af4c7acd-ff79-4ef5-8bd9-c03f564e8108",
+     
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-none xray config edit --path /work/evidence/F08/f08-work/root-none/etc/idleleo/conf/xray/config.json --json --no-probe --target example.org --no-restart (rc=1 0.0s)
+  stderr: --target only applies to Reality modes
+PASS target edit on none/ws is refused (rc=1) rc=1
+PASS target refusal explains the mode restriction --target only applies to Reality modes
+$ /work/bin/idleleo --root /work/evidence/F08/f08-work/root-none xray config edit --path /work/evidence/F08/f08-work/root-none/etc/idleleo/conf/xray/config.json --json --no-probe --server-names a.example.com --no-restart (rc=1 0.0s)
+  stderr: --server-names only applies to Reality modes
+PASS server-names edit on none/ws is refused (rc=1) rc=1
+PASS server-names refusal explains the mode restriction --server-names only applies to Reality modes
+PASS mode-restricted edits write nothing 
+$ /work/bin/idleleo xray generate --json --mode reality-nginx --domain example.com --port 443 --out /work/evidence/F08/f08-work/sni-isolate/config.json --nginx-out /work/evidence/F08/f08-work/sni-isolate/00-xray.conf --fragments-out /work/evidence/F08/f08-work/sni-isolate/fragments --unknown-sni-policy isolate (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-nginx",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "8f99cb65-5308-4f87-9a88-06ca6ccc911c",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "8f99cb65-5308-4f87-9a88-06ca6ccc911c",
+            "shortId": "016d82a5",
+            "shortIds": [
+              "016d82a5"
+            ],
+            "privateKey": "2QM7CirKPQ5qe8cz0ddEzg9TjvQbVL1MJTPVXgcUgrc",
+            "publicKey": "G-WnF4wXAaUyEreXU_XOLzW7nbBY9YYtUjWgiODl3BE",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://8f99cb65-5308-4f87-9a88-06ca6ccc911c@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=G-WnF4wXAaUyEreXU_XOLzW7nbBY9YYtUjWgiODl3BE&sid=016d82a5&type=raw#idleleo-reality-nginx",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-nginx\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: 8f99cb65-5308-4f87-9a88-06ca6ccc911c\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: G-WnF4wXAaUyEreXU_XOLzW7nbBY9YYtUjWgiODl3BE\n      short-id: 016d82a5\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9403;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "03-isolate.conf": "# isolate 策略 - 由 SNI Guard 自动生成，未知 SNI 流量回落到此 server 触发 TLS alert\nserver {\n    listen 127.0.0.1:9403 ssl;\n    ssl_reject_handshake on;\n    access_log off;\n    error_log /dev/null;\n}\n",
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "warnings": []
+          }
+PASS isolate generation rc=0 and wrote config+nginx {
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "8f99cb65-5308-4f87-9a88-06ca6ccc911c",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary"
+PASS nginx stream block maps the SNI 
+PASS unknown SNI defaults to the deny upstream 
+PASS isolate deny upstream listens on 9403 
+PASS nginx listens on the operator port 
+PASS stream server enables ssl_preread 
+PASS SNI map fragment is named after the serverName ["03-isolate.conf", "127.0.0.1.realityServers", "example.com.serverNames"]
+PASS SNI map fragment routes the name to Reality 'example.com reality;\n'
+PASS isolate adds the handshake-reject site ["03-isolate.conf", "127.0.0.1.realityServers", "example.com.serverNames"]
+PASS isolate site rejects unknown handshakes 
+PASS isolate site owns 9403 
+$ /work/bin/idleleo xray generate --json --mode reality-nginx --domain example.com --port 443 --out /work/evidence/F08/f08-work/sni-reject/config.json --nginx-out /work/evidence/F08/f08-work/sni-reject/00-xray.conf --fragments-out /work/evidence/F08/f08-work/sni-reject/fragments --unknown-sni-policy reject (rc=0 0.0s)
+  stdout: {
+            "mode": "reality-nginx",
+            "transport": "raw",
+            "port": 9443,
+            "publicPort": 443,
+            "listen": "127.0.0.1",
+            "users": [
+              {
+                "index": 0,
+                "uuid": "a409b155-ee0a-43c9-9041-e7e3869a80fe",
+                "email": "me@hey.run",
+                "flow": "xtls-rprx-vision",
+                "level": 0,
+                "primary": true
+              }
+            ],
+            "uuid": "a409b155-ee0a-43c9-9041-e7e3869a80fe",
+            "shortId": "c9064059",
+            "shortIds": [
+              "c9064059"
+            ],
+            "privateKey": "nVJirSMfblLSUwu-24UStfgOepkT9vZ_qCR7P5LnoyU",
+            "publicKey": "GSGUMGm4ubgq8qylcFn1hqZb_QnvHzOW-o9wyel1qic",
+            "serverName": "example.com",
+            "target": "example.com:443",
+            "shareUri": "vless://a409b155-ee0a-43c9-9041-e7e3869a80fe@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=GSGUMGm4ubgq8qylcFn1hqZb_QnvHzOW-o9wyel1qic&sid=c9064059&type=raw#idleleo-reality-nginx",
+            "clashYaml": "proxies:\n  - name: \"idleleo-reality-nginx\"\n    type: vless\n    server: example.com\n    port: 443\n    uuid: a409b155-ee0a-43c9-9041-e7e3869a80fe\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: GSGUMGm4ubgq8qylcFn1hqZb_QnvHzOW-o9wyel1qic\n      short-id: c9064059\n",
+            "nginxConf": "\nstream {\n    map $ssl_preread_protocol $is_valid_protocol {\n        #TLSv1.2    1;\n        TLSv1.3    1;\n        default    0;\n    }\n\n    map $ssl_preread_server_name $sni_upstream {\n        include /etc/idleleo/conf/nginx/*.serverNames;\n        default deny;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $final_upstream {\n        # 格式：上游名称:协议标记 => 最终上游\n        ~^reality:1$     reality;\n        default          deny;\n    }\n\n    map $final_upstream $is_abnormal {\n        deny    1;\n        default 0;\n    }\n\n    map \"$sni_upstream:$is_valid_protocol\" $error_type {\n        ~^reality:0$     \"tls_error\";\n        ~^deny:1$        \"sni_error\";\n        ~^deny:0$        \"tls_sni_error\";\n        default          \"other_error\";\n    }\n\n    map $error_type $is_tls_error {\n        \"tls_error\"      1;\n        #\"tls_sni_error\"  1;\n        default          0;\n    }\n\n    map $error_type $is_sni_error {\n        \"sni_error\"      1;\n        \"tls_sni_error\"  1;\n        default          0;\n    }\n\n    upstream reality {\n        include /etc/idleleo/conf/nginx/*.realityServers;\n    }\n\n    upstream deny {\n        server 127.0.0.1:9404;\n    }\n\n    log_format tls_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    log_format sni_error_log '$remote_addr [$time_local] \"$ssl_preread_server_name\" '\n                             '$ssl_preread_protocol $status';\n\n    server {\n        listen 443 reuseport so_keepalive=on backlog=65535;\n        proxy_pass $final_upstream;\n        ssl_preread on;\n        proxy_connect_timeout 5s;\n        proxy_timeout 300s;\n        access_log /usr/local/nginx/logs/tls_error.log tls_error_log buffer=8k flush=3s if=$is_tls_error;\n        access_log /usr/local/nginx/logs/sni_error.log sni_error_log buffer=8k flush=3s if=$is_sni_error;\n    }\n}\n",
+            "nginxFragments": {
+              "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;\n",
+              "example.com.serverNames": "example.com reality;\n"
+            },
+            "warnings": []
+          }
+PASS reject generation rc=0 {
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "a409b155-ee0a-43c9-9041-e7e3869a80f
+PASS reject generation wrote its config 
+PASS reject switches the deny upstream to 9404 
+PASS reject does not also claim the isolate port 
+$ /work/bin/idleleo xray generate --json --mode reality-nginx --domain example.com --port 443 --unknown-sni-policy decoy (rc=2 0.0s)
+  stderr: unknown-sni-policy decoy needs pre-existing decoy cert/site artifacts and is not generated by the Go CLI
+PASS decoy generation is refused (rc=2) rc=2
+PASS decoy refusal explains the missing artifacts unknown-sni-policy decoy needs pre-existing decoy cert/site artifacts and is not generated by the Go CLI
+$ /work/bin/idleleo xray generate --json --mode reality-nginx --domain example.com --port 443 --unknown-sni-policy bogus (rc=2 0.0s)
+  stderr: unsupported unknown-sni-policy "bogus"
+PASS unsupported SNI policy is refused (rc=2) rc=2
+PASS Bash baseline function serverNames_set exists 
+PASS Bash baseline function modify_target_serverNames exists 
+PASS Bash baseline function nginx_reality_serverNames_add exists 
+PASS Bash baseline function sni_guard_policy_choose exists 
+PASS Bash baseline function sni_guard_port_conflicts exists 
+PASS Bash baseline function ensure_reality_sni_guard_defaults exists 
+PASS Bash baseline function reset_sni_guard_policy exists 
+PASS Bash pins the Reality target to :443 when editing serverNames 
+PASS Bash rewrites serverNames to exactly one element 
+PASS Bash serverNames_set documents a single domain 
+PASS Bash validates the serverNames hostname 
+PASS Bash offers a decoy SNI fallback at runtime 
+PASS Bash offers a direct-reject SNI fallback at runtime 
+PASS Bash checks the SNI deny port against configured ports 
+PASS Bash flags a deny port that collides with a configured port 
+PASS Bash consults the collision check before every guard port 4
+PASS Bash backfills SNI-guard defaults for upgraded installs 
+PASS Bash has a runtime SNI-guard reset entry point 

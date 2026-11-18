@@ -1,0 +1,49 @@
+{
+  "rc": 0,
+  "rules": [
+    {
+      "domain": [
+        "geosite:cn"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "ip": [
+        "geoip:cn"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "outboundTag": "blocked",
+      "protocol": [
+        "bittorrent"
+      ],
+      "type": "field"
+    },
+    {
+      "domain": [
+        "geosite:category-ads-all"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "ip": [
+        "geoip:private"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    }
+  ],
+  "state": {
+    "ads": true,
+    "bittorrent": true,
+    "country_block": [
+      "cn"
+    ],
+    "private_ip": true
+  },
+  "stderr": ""
+}

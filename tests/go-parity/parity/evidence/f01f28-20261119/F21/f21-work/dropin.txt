@@ -1,0 +1,2 @@
+[Service]
+Environment=XRAY_LOCATION_ASSET=/etc/idleleo/share/xray

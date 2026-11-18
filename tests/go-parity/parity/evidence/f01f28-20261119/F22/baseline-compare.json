@@ -1,0 +1,27 @@
+{
+  "bash": {
+    "absentRoot": {
+      "createsConfig": true,
+      "installed": true
+    },
+    "freshnessSeconds": 3700,
+    "installed": true,
+    "mode": "normal",
+    "observationStatus": "not exposed"
+  },
+  "go": {
+    "absentRoot": {
+      "installed": false,
+      "status": "absent"
+    },
+    "freshnessSeconds": 600,
+    "installed": true,
+    "mode": "normal",
+    "observationStatus": "active/stale/installed-unobserved"
+  },
+  "notes": [
+    "Bash rxa_status_json reports installed=true after creating a default config; Go projects actual files.",
+    "Bash status JSON has no observation age/status; Go adds active/stale/installed-unobserved with a 600s freshness limit (Bash verify uses 3700s).",
+    "Install/diagnose/authorize/uninstall stay on the Bash side; Go refuses them with usage/exit 2."
+  ]
+}

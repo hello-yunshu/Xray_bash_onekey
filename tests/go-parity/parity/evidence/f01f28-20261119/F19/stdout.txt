@@ -1,0 +1,162 @@
+PASS node import exits 0: rc=0 
+PASS report schemaVersion is 1: 1
+PASS report state is IMPORTED: IMPORTED
+PASS provenance is legacy: legacy
+PASS role is node: node
+PASS tls is Reality: Reality
+PASS transport is raw: raw
+PASS sourcePath points at install_config.json: /work/evidence/F19/metadata-work/node/etc/idleleo/conf/install_config.json
+PASS sourceSha256 matches the real source: fef2986df3740fb054bbd06d41878723d440cae704c64d6fb84f841860073cbe
+PASS metadataPath points at v1/metadata.json: /work/evidence/F19/metadata-work/node/etc/idleleo/v1/metadata.json
+PASS runtimeSha256 matches the runtime config: 4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506
+PASS metadata file exists: /work/evidence/F19/metadata-work/node/etc/idleleo/v1/metadata.json
+PASS metadataSha256 matches the written file: 5d1728277823b57a76126c98562cb26f351537525274d2a33e62c05fbd94a53e
+PASS metadata is 0640: 0o640
+PASS metadata schemaVersion is 1: 1
+PASS activeEngine is xray: xray
+PASS metadata provenance is legacy: legacy
+PASS metadata role is node: node
+PASS metadata tls is Reality: Reality
+PASS metadata transport is raw: raw
+PASS metadata pins the runtime path: etc/idleleo/conf/xray/config.json
+PASS metadata pins the runtime digest: 4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506
+PASS ownedResources cover runtime, unit and certs: ['etc/idleleo/conf/xray/config.json', 'etc/systemd/system/xray.service', 'etc/idleleo/cert']
+PASS updatedAt is an RFC3339 timestamp: 2026-11-18T22:59:23Z
+PASS metadata stores no secret keys: []
+PASS metadata contains no UUID/privateKey/shortId values
+PASS import: config is byte-identical: before=fef2986df3740fb054bbd06d41878723d440cae704c64d6fb84f841860073cbe after=fef2986df3740fb054bbd06d41878723d440cae704c64d6fb84f841860073cbe
+PASS import: runtime is byte-identical: before=4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506 after=4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506
+PASS import: cert is byte-identical: before=96eb369299f1a8e92fdb643d1c4defc1f8aeb4acd17712a0249ea611445b9bf3 after=96eb369299f1a8e92fdb643d1c4defc1f8aeb4acd17712a0249ea611445b9bf3
+PASS import: key is byte-identical: before=dd38df4cc726333779129b5965b356a9b3b1004b5a4f7cba35c7c9b48489e561 after=dd38df4cc726333779129b5965b356a9b3b1004b5a4f7cba35c7c9b48489e561
+PASS import: service is byte-identical: before=a319417ec339d311a33cc57d38a2c3fbbafdcd06c4c38b4e69515fb070df40db after=a319417ec339d311a33cc57d38a2c3fbbafdcd06c4c38b4e69515fb070df40db
+PASS import: script is byte-identical: before=9a686bada70383c02d77ee1889206503ca7267f583d0bcf0ea55122a14d5b38a after=9a686bada70383c02d77ee1889206503ca7267f583d0bcf0ea55122a14d5b38a
+PASS import: cron is byte-identical: before=d0b9809a46cc410158376d3cea1c7798d5a5106be91ec8f484158923e1769c7b after=d0b9809a46cc410158376d3cea1c7798d5a5106be91ec8f484158923e1769c7b
+PASS import: entry is byte-identical: before=/work/evidence/F19/metadata-work/node/etc/idleleo/install.sh after=/work/evidence/F19/metadata-work/node/etc/idleleo/install.sh
+PASS second import exits 3: rc=3 manager metadata already exists; import never overwrites the single source of truth
+
+PASS second import explains the refusal: manager metadata already exists; import never overwrites the single source of truth
+
+PASS second import keeps metadata intact
+PASS second import keeps install_config.json intact
+PASS arbitrary --from exits 2: rc=2 metadata import only reads /work/evidence/F19/metadata-work/from-root/etc/idleleo/conf/install_config.json; it never imports an arbitrary file
+
+PASS arbitrary --from explains the allowed path: metadata import only reads /work/evidence/F19/metadata-work/from-root/etc/idleleo/conf/install_config.json; it never imports an arbitrary file
+
+PASS arbitrary --from writes no metadata
+PASS documented --from alias exits 0: rc=0 
+PASS documented --from alias writes metadata
+PASS unmarked root import exits 2: rc=2 write access refused: sandbox marker required: open /work/evidence/F19/metadata-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked root reports the write gate: write access refused: sandbox marker required: open /work/evidence/F19/metadata-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked root gets no metadata
+PASS missing install_config.json: import exits 2: rc=2 install_config.json is required for import: open /work/evidence/F19/metadata-work/missing-config/etc/idleleo/conf/install_config.json: no such file or directory
+
+PASS missing install_config.json: no metadata is written
+PASS missing install_config.json: the install-owned tree is byte-identical
+PASS missing install_config.json: only the update lock was created
+PASS corrupt install_config.json: import exits 2: rc=2 install_config.json is not valid JSON: invalid character 't' looking for beginning of object key string
+
+PASS corrupt install_config.json: no metadata is written
+PASS corrupt install_config.json: the install-owned tree is byte-identical
+PASS corrupt install_config.json: only the update lock was created
+PASS missing runtime config: import exits 3: rc=3 import blocked by audit
+
+PASS missing runtime config: no metadata is written
+PASS missing runtime config: the install-owned tree is byte-identical
+PASS missing runtime config: only the update lock was created
+PASS relay import exits 0: rc=0 
+PASS relay role is reported: relay
+PASS relay tls is None: None
+PASS relay transport is stream: stream
+PASS relay has no runtime digest: None
+PASS relay metadata file exists: /work/evidence/F19/metadata-work/relay/etc/idleleo/v1/metadata.json
+PASS metadata relay role: relay
+PASS metadata relay runtime digest is empty
+PASS metadata owns the relay config: ['etc/idleleo/conf/nginx/relay-stream.conf', 'etc/idleleo/conf/nginx', 'etc/systemd/system/nginx.service']
+PASS export without --out exits 0: rc=0 
+PASS export schemaVersion is 1: 1
+PASS fresh export matches the metadata: True
+PASS export records the metadata digest: 5d1728277823b57a76126c98562cb26f351537525274d2a33e62c05fbd94a53e
+PASS export records the runtime digest: 4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506
+PASS export sees metadata and runtime agree: 4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506
+PASS export reports the runtime path: etc/idleleo/conf/xray/config.json
+PASS export records exportedAt: 2026-11-18T22:59:23Z
+PASS export without --out reports no out path: None
+PASS plain export does not write metadata
+PASS plain export does not write the runtime config
+PASS export --out exits 0: rc=0 
+PASS export --out writes the document: /work/evidence/F19/metadata-work/exports/export.json
+PASS export document is 0600: 0o600
+PASS export file carries the metadata digest: 5d1728277823b57a76126c98562cb26f351537525274d2a33e62c05fbd94a53e
+PASS export file agrees with the command report: 4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506 != 4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506
+PASS export file records matchesMetadata=true: True
+PASS export file records its own path: /work/evidence/F19/metadata-work/exports/export.json
+PASS export --out does not write metadata
+PASS export --out does not write the runtime config
+PASS export into the managed config dir exits 2: rc=2 refusing to export into managed path etc/idleleo/conf
+
+PASS managed export target explains the refusal: refusing to export into managed path etc/idleleo/conf
+
+PASS managed export target is not created
+PASS export over metadata exits 2: rc=2 refusing to export over manager metadata
+
+PASS metadata overwrite explains the refusal: refusing to export over manager metadata
+
+PASS refused export keeps metadata intact
+PASS deactivate without an export exits 2: rc=2 --export is required; run 'idleleo metadata export --out FILE' first
+
+PASS deactivate asks for the export document: --export is required; run 'idleleo metadata export --out FILE' first
+
+PASS deactivate without export keeps metadata
+PASS drift export still exits 0: rc=0 
+PASS drift export reports matchesMetadata=false: False
+PASS drift export fingerprints the changed runtime: 949ac1fcd9d25d77e58da5ef9e859c986b71a0838660cad07ebf61c2ad74870d
+PASS drift export exposes the mismatch: 949ac1fcd9d25d77e58da5ef9e859c986b71a0838660cad07ebf61c2ad74870d == 4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506
+PASS deactivate with a stale export exits 6: rc=6 the runtime config changed since the export; export again before deactivating
+
+PASS stale deactivate names the drift: the runtime config changed since the export; export again before deactivating
+
+PASS stale deactivate keeps metadata
+PASS stale deactivate writes no archive
+PASS stale deactivate keeps the entry link
+PASS stale deactivate keeps cron
+PASS stale deactivate keeps the certificate
+PASS drift export --out exits 0: rc=0 
+PASS deactivate with a drifted export exits 6: rc=6 the export was taken while metadata and the runtime config disagreed; export again after resolving the drift
+
+PASS drifted export explains why deactivate refuses: the export was taken while metadata and the runtime config disagreed; export again after resolving the drift
+
+PASS drifted deactivate keeps metadata
+PASS restored export exits 0: rc=0 
+PASS restored export matches again: True
+PASS deactivate exits 0 after restoring the runtime: rc=0 
+PASS deactivate state is RELEASED: RELEASED
+PASS deactivate reports the export document: /work/evidence/F19/metadata-work/exports/fresh.json
+PASS deactivate reports the original runtime digest: 4a7700847a9737298bd5165bab8affb4b25b8424069cf48a1e672a4ed6603506
+PASS deactivate reports the metadata archive: /work/evidence/F19/metadata-work/node/var/lib/idleleo/bridge/snapshot/metadata.deactivated.json
+PASS deactivate leaves Rill unchanged: True
+PASS deactivate records the archive action: ['no bridge transaction found; released manager metadata without touching the entry or cron', 'archived manager metadata to /work/evidence/F19/metadata-work/node/var/lib/idleleo/bridge/snapshot/metadata.deactivated.json']
+PASS deactivate removes the live metadata path
+PASS deactivate keeps an archived copy: /work/evidence/F19/metadata-work/node/var/lib/idleleo/bridge/snapshot/metadata.deactivated.json
+PASS archive is byte-identical to the metadata
+PASS archive keeps the 0640 mode: 0o640
+PASS deactivate keeps the entry link
+PASS deactivate keeps cron
+PASS deactivate keeps the certificate
+PASS deactivate keeps the private key
+PASS deactivate keeps the legacy script
+PASS deactivate keeps the runtime config byte-identical
+PASS deactivate keeps install_config.json byte-identical
+PASS Bash baseline advertises --backup
+PASS Bash baseline advertises --restore
+PASS Go help exits 0: rc=0 Idleleo Xray 管理器（0.2.0-phase04）
+用法: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <命令>
+
+命令:
+  version              显示版本
+  status               只读状态
+  ops summary          只读运维摘要：端口、证书到期、最近变更与失败、重启次
+PASS Go help documents metadata import|export
+PASS Go help does not claim a backup/restore archive
+== F19: 136 passed, 0 failed, 0.1s ==

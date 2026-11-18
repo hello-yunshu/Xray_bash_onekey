@@ -1,0 +1,6 @@
+#!/bin/sh
+case "$1" in
+  version) echo "Xray 1.8.26 (Xray, Penetrates Everything.) Custom (go1.24 linux/amd64)"; exit 0 ;;
+  run) echo "xray test: 1.8.26 config ok" >&2; exit 1 ;;
+  *) echo "xray shim: unsupported $*" >&2; exit 1 ;;
+esac

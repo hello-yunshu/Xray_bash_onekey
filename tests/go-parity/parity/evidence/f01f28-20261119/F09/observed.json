@@ -1,0 +1,22 @@
+{
+  "baseline": {
+    "deleteLoopbackRc": 0,
+    "fragmentBytes": 60,
+    "fragmentSha256": "7326cff48f5cdcf673fd1a038ad051e2f523d286f6e2f000234822e84fd72ae3"
+  },
+  "reality": {
+    "addBytes": 60,
+    "addFileSha256": "7326cff48f5cdcf673fd1a038ad051e2f523d286f6e2f000234822e84fd72ae3",
+    "loopbackPort": 9443,
+    "nginxTest": 0,
+    "root": "/work/evidence/F09/f09-work/reality-root",
+    "warnings": [
+      "no liveness probe was run; nginx removes a dead backend passively via max_fails=2 fail_timeout=10",
+      "managed nginx service is not managed on this root; reload skipped, run 'systemctl reload nginx' manually"
+    ]
+  },
+  "tls": {
+    "nginxTest": 0,
+    "realityRefusal": 1
+  }
+}

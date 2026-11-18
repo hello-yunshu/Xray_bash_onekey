@@ -1,0 +1,88 @@
+{
+  "entries": [
+    {
+      "detail": "{\"domain\": [\"geosite:cn\"], \"outboundTag\": \"blocked\", \"type\": \"field\"}",
+      "item": "builtin-rule-1",
+      "status": "aligned"
+    },
+    {
+      "detail": "{\"ip\": [\"geoip:cn\"], \"outboundTag\": \"blocked\", \"type\": \"field\"}",
+      "item": "builtin-rule-2",
+      "status": "aligned"
+    },
+    {
+      "detail": "{\"outboundTag\": \"blocked\", \"protocol\": [\"bittorrent\"], \"type\": \"field\"}",
+      "item": "builtin-rule-3",
+      "status": "aligned"
+    },
+    {
+      "detail": "{\"domain\": [\"geosite:category-ads-all\"], \"outboundTag\": \"blocked\", \"type\": \"field\"}",
+      "item": "builtin-rule-4",
+      "status": "aligned"
+    },
+    {
+      "detail": "{\"ip\": [\"geoip:private\"], \"outboundTag\": \"blocked\", \"type\": \"field\"}",
+      "item": "builtin-rule-5",
+      "status": "aligned"
+    },
+    {
+      "detail": "Bash has no custom domain list; Go aggregates them into one rule",
+      "item": "custom-domain-rule",
+      "status": "approved-difference"
+    },
+    {
+      "detail": "Bash has no custom IP list; Go aggregates them into one rule",
+      "item": "custom-ip-rule",
+      "status": "approved-difference"
+    },
+    {
+      "detail": "Go apply sets IPIfNonMatch and sniffing routeOnly; not part of tb_build_block_rules",
+      "item": "domain-strategy-and-sniffing",
+      "status": "approved-difference"
+    },
+    {
+      "detail": "Go records owned_rules/previous_*; Bash keeps unknown keys",
+      "item": "state-owned-rules",
+      "status": "approved-difference"
+    },
+    {
+      "detail": "Go adds --json/--yes/--dry-run reports",
+      "item": "json-cli",
+      "status": "approved-difference"
+    },
+    {
+      "detail": "PublicPort=0 probes 127.0.0.1:443; a non-443 mode-none install fails apply",
+      "item": "mode-none-non443-probe",
+      "status": "gap"
+    },
+    {
+      "detail": "pinned geosite only carries cn; ru/ir/kp/gb/au/tr are rejected by xray -test",
+      "item": "preset-countries",
+      "status": "gap"
+    },
+    {
+      "detail": "only the pure rule builder ran; menus, downloader and tb_apply_rules were not compared",
+      "item": "bash-interactive-apply",
+      "status": "gap"
+    },
+    {
+      "detail": "xray uninstall --purge keeps traffic_blocker.json and block backups",
+      "item": "uninstall-residue",
+      "status": "gap"
+    },
+    {
+      "detail": "probe is a local TCP connect; blocked requests were not replayed",
+      "item": "client-data-plane",
+      "status": "gap"
+    },
+    {
+      "detail": "with nothing applied Go exits 1 ('no traffic-block rules are installed') and keeps the config; Bash has no equivalent command",
+      "item": "second-off",
+      "status": "approved-difference"
+    }
+  ],
+  "notes": [
+    "The fixture runs `systemctl reset-failed xray` before scenarios that restart the unit: in this disposable container the default StartLimitBurst=5/10s rejects the sixth restart with start-limit-hit, which is a systemd rate limit rather than a traffic-block behaviour.",
+    "Each scenario is an independent operator action in production, so the rate-limit counter is cleared instead of stretching the fixture past the gate budget."
+  ]
+}

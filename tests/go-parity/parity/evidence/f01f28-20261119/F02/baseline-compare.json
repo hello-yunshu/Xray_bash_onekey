@@ -1,0 +1,91 @@
+{
+  "comparisons": [
+    {
+      "bash": 443,
+      "contract": "TLS public port default",
+      "go": 443,
+      "goStatus": "aligned"
+    },
+    {
+      "bash": "random port in 10000-10999",
+      "contract": "ws backend default port",
+      "go": "ascending free port in 10000-10999",
+      "goStatus": "divergent-selection: same pool, different strategy"
+    },
+    {
+      "bash": "VLESS",
+      "contract": "protocol spelling",
+      "go": "vless",
+      "goStatus": "divergent-naming"
+    },
+    {
+      "bash": "random hex path when not customised",
+      "contract": "ws default path",
+      "go": "/ray/",
+      "goStatus": "divergent-default-path"
+    },
+    {
+      "bash": "/xhttp",
+      "contract": "xHTTP path shape",
+      "go": "/xhttp/",
+      "goStatus": "divergent-trailing-slash"
+    },
+    {
+      "bash": "always forced to 127.0.0.1",
+      "contract": "TLS inbound listen",
+      "go": "127.0.0.1 by default; --listen 0.0.0.0 honoured",
+      "goStatus": "divergent-guard: Bash forces 127.0.0.1 in TLS mode, Go honours an explicit --listen 0.0.0.0"
+    },
+    {
+      "bash": "port is the Nginx public port",
+      "contract": "--port semantics in TLS mode",
+      "go": "--port is ignored; --public-port owns the Nginx port",
+      "goStatus": "divergent-flag-semantics"
+    },
+    {
+      "bash": "install checks the pair on disk",
+      "contract": "certificate pair validation at generate time",
+      "go": "gap: --cert without --cert-key is accepted at generate time",
+      "goStatus": "gap"
+    },
+    {
+      "bash": "menu 4 = wsxhttp",
+      "contract": "ws+xHTTP combination",
+      "go": "not offered",
+      "goStatus": "not-implemented"
+    },
+    {
+      "bash": "weight=50 max_fails=2 fail_timeout=10",
+      "contract": "backend upstream weights",
+      "go": "weight=50 max_fails=2 fail_timeout=10",
+      "goStatus": "aligned"
+    },
+    {
+      "bash": "01-xray-80.conf",
+      "contract": "port-80 ACME + redirect",
+      "go": "01-xray-80.conf",
+      "goStatus": "aligned"
+    },
+    {
+      "bash": "prints every transport link",
+      "contract": "share URI for combined transports",
+      "go": "primary ws only, with a warning",
+      "goStatus": "divergent-output: Go requires 'xray share --inbound'"
+    },
+    {
+      "bash": "not asserted by this fixture",
+      "contract": "Clash for xHTTP",
+      "go": "no proxy + clash-xhttp-unsupported",
+      "goStatus": "gap: Bash Clash xHTTP rendering not executed"
+    },
+    {
+      "bash": "downloads the pair and installs Nginx",
+      "contract": "TLS install with a real certificate and host Nginx",
+      "go": "generate-only in this fixture",
+      "goStatus": "gap: needs host Nginx and a trusted pair; not faked"
+    }
+  ],
+  "date": "2026-11-17",
+  "fixture": "F02",
+  "installSha256": "a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c"
+}

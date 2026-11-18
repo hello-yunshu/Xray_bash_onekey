@@ -93,8 +93,21 @@ def main(f):
     f.check(bool(lines), "Bash -tcp entry references the legacy tcp.sh",
             lines[0][:120] if lines else "")
     joined = "\n".join(lines)
-    f.check("已不再自动下载" in joined or "no longer download" in joined,
-            "Bash -tcp entry no longer downloads the script")
+    # The pinned parity baseline predates the D3 fix, so it still downloads the
+    # remote script. The product tree under test must refuse the download; the
+    # baseline's old behaviour is recorded as the reference point it replaces.
+    product_script = Path(__file__).resolve().parents[4] / "install.sh"
+    product_lines = []
+    if product_script.is_file():
+        product_lines = [line.strip() for line in
+                         product_script.read_text(encoding="utf-8").splitlines()
+                         if "tcp.sh" in line]
+        (f.evidence / "product-tcp-entry.txt").write_text(
+            "\n".join(product_lines) + "\n", encoding="utf-8")
+    refuses = any("已不再自动下载" in line or "no longer download" in line
+                  for line in product_lines)
+    f.check(refuses, "product -tcp entry no longer downloads the script",
+            product_lines[:2])
     f.check("./tcp.sh" in joined, "Bash -tcp entry still executes a local tcp.sh")
 
     real_cc_before = read(REAL_CC, "unavailable")

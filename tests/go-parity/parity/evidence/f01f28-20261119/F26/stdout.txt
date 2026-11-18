@@ -1,0 +1,23 @@
+PASS bridge audit exit 0: rc=0 
+PASS audit verdict is blocked: expected='blocked' actual='blocked'
+PASS audit role is node: expected='node' actual='node'
+PASS audit preserves the legacy TLS mode: expected='XTLS' actual='XTLS'
+PASS audit reads the legacy version: expected='3.3.4' actual='3.3.4'
+PASS audit counts the runtime users: expected=1 actual=1
+PASS audit fingerprints the real runtime config: expected='f445a56caad2000c384b9ce7d32a244f357ce5753656da46239b7aac8c65571e' actual='f445a56caad2000c384b9ce7d32a244f357ce5753656da46239b7aac8c65571e'
+PASS audit reports legacy-xtls-removed: codes=['entry-missing', 'legacy-xtls-removed', 'permissions-etc-idleleo-conf-xray-config.json']
+PASS legacy-xtls-removed is a block: expected='block' actual='block'
+PASS audit changed no byte under the root: before=277e40c7791f7d7e after=277e40c7791f7d7e
+PASS bridge prepare refused with exit 3: expected=3 actual=3 migration blocked by audit
+
+PASS prepare names the audit block: migration blocked by audit
+PASS prepare created no bridge directory: /work/evidence/F26/legacy-xtls-root/var/lib/idleleo/bridge
+PASS prepare left no journal file anywhere: found=[]
+PASS prepare staged no candidate: opt/idleleo/bin/idleleo.candidate
+PASS prepare wrote no manager metadata: etc/idleleo/v1/metadata.json
+PASS prepare wrote no plan: var/lib/idleleo/bridge/plan.json
+PASS prepare changed no byte under the root: before=277e40c7791f7d7e after=277e40c7791f7d7e
+PASS second prepare is still refused with exit 3: expected=3 actual=3
+PASS second prepare still left no journal: found=[]
+PASS second prepare still created no bridge directory: /work/evidence/F26/legacy-xtls-root/var/lib/idleleo/bridge
+== F26: 21 passed, 0 failed, 0.02s ==

@@ -1,0 +1,9 @@
+scripts/geo_update.sh:95: verify_checksum_file() {
+scripts/geo_update.sh:20: release_latest="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest"
+scripts/geo_update.sh:18: geo_version_file="${xray_conf_dir}/geo_version.json"
+scripts/geo_update.sh:193: if ! XRAY_LOCATION_ASSET="${stage_dir}" run_bounded 60 "${xray_binary}" run -test -config "${stage_dir}/validation-config.json" >/dev/null 2>&1; then
+scripts/geo_update.sh:153: stage_dir=$(mktemp -d "${geo_dir}/.geo-update.XXXXXX")
+scripts/geo_update.sh:123: restore_previous() {
+scripts/geo_update.sh:217: if run_bounded 15 systemctl is-active --quiet xray 2>/dev/null; then was_active=true; fi
+scripts/geo_update.sh:141: run_bounded 60 systemctl restart xray || return 1
+install.sh:13800: # manages as a symlink into /etc/idleleo/share/xray. Back up the link as

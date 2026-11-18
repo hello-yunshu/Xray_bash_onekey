@@ -1,0 +1,125 @@
+PASS xray upgrade rc=0: {
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "1.8.20",
+  "newVersion": "1.8.24",
+  "action": "update",
+  "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f",
+  "sizeBytes": 238,
+  "backupPath": "/work/evidence/F13/f13-work/xray-root/etc/idleleo/backup/
+PASS report update 1.8.20 -> 1.8.24: {"action": "update", "backupPath": "/work/evidence/F13/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1795042738305824111", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.20", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS report verified and health true: {"action": "update", "backupPath": "/work/evidence/F13/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1795042738305824111", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.20", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS sandbox root does not restart: {"action": "update", "backupPath": "/work/evidence/F13/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1795042738305824111", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.20", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS sandbox restart warning recorded: ['service reload skipped for a sandbox root; restart xray/nginx on the target host']
+PASS backup lives under etc/idleleo/backup: /work/evidence/F13/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1795042738305824111
+PASS backup keeps the previous bytes: /work/evidence/F13/f13-work/xray-root/etc/idleleo/backup/xray-1.8.20-1795042738305824111
+PASS backup keeps mode 0755: 0o755
+PASS binary equals the candidate artifact
+PASS installed binary is 0755
+PASS no .xray.new staging file
+PASS exactly one backup after the upgrade: ['xray-1.8.20-1795042738305824111']
+PASS equal version reinstall rc=0: {
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "1.8.24",
+  "newVersion": "1.8.24",
+  "action": "reinstall",
+  "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f",
+  "sizeBytes": 238,
+  "backupPath": "/work/evidence/F13/f13-work/xray-root/etc/idleleo/back
+PASS equal version reports reinstall: {"action": "reinstall", "backupPath": "/work/evidence/F13/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1795042738314795554", "component": "xray", "health": true, "newVersion": "1.8.24", "previousVersion": "1.8.24", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "03338c9d296696ca3dc5deb06bf0b79ef8fac081bea92a8bdd76b0f6387dd76f", "sizeBytes": 238, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS reinstall refreshes the backup with the current bytes: /work/evidence/F13/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1795042738314795554
+PASS reinstall adds a second backup: ['xray-1.8.20-1795042738305824111', 'xray-1.8.24-1795042738314795554']
+PASS downgrade exits 4: refusing to downgrade: installed 1.8.24, manifest 1.8.10
+
+PASS downgrade leaves the tree unchanged
+PASS downgrade creates no backup: ['xray-1.8.20-1795042738305824111', 'xray-1.8.24-1795042738314795554']
+PASS sha256 mismatch exits 5: downloaded artifact does not match the manifest: sha256 4f8b870c923123408deea106edd7cf5c9a7465801a2ba610fbf46d929d86b056 != aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+PASS size mismatch exits 5: downloaded artifact does not match the manifest: size 238 != 239
+
+PASS digest failures leave the tree unchanged
+PASS digest failures create no backup: ['xray-1.8.20-1795042738305824111', 'xray-1.8.24-1795042738314795554']
+PASS failed run -test exits 6: {
+  "schemaVersion": 1,
+  "component": "xray",
+  "previousVersion": "1.8.24",
+  "newVersion": "1.8.26",
+  "action": "update",
+  "sha256": "7dfb254f4b34a5a1844cf66ca83a71f131ef77a42e502ded1fdc906ce6f0dff6",
+  "sizeBytes": 238,
+  "backupPath": "/work/evidence/F13/f13-work/xray-root/etc/idleleo/backup/
+PASS health failure reports rolledBack: {"action": "update", "backupPath": "/work/evidence/F13/f13-work/xray-root/etc/idleleo/backup/xray-1.8.24-1795042738331185219", "component": "xray", "health": false, "newVersion": "1.8.26", "previousVersion": "1.8.24", "restarted": false, "rolledBack": true, "schemaVersion": 1, "sha256": "7dfb254f4b34a5a1844cf66ca83a71f131ef77a42e502ded1fdc906ce6f0dff6", "sizeBytes": 238, "verified": true}
+PASS rollback restores the previous bytes
+PASS rollback removes the staging file
+PASS failed health keeps exactly one new backup: ['xray-1.8.20-1795042738305824111', 'xray-1.8.24-1795042738314795554', 'xray-1.8.24-1795042738331185219']
+PASS seeded nginx tree passes a real nginx -t: nginx: the configuration file /work/evidence/F13/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/F13/f13-work/nginx-root/usr/local/nginx/conf/nginx.conf test is successful
+
+PASS nginx upgrade rc=0: {
+  "schemaVersion": 1,
+  "component": "nginx",
+  "previousVersion": "1.24.0",
+  "newVersion": "1.24.1",
+  "action": "update",
+  "sha256": "35908726ae270cc501ba6dd992363981f3d52a944898a9828497e724fd1ec97a",
+  "sizeBytes": 402,
+  "backupPath": "/work/evidence/F13/f13-work/nginx-root/etc/idleleo/backu
+PASS nginx report 1.24.0 -> 1.24.1: {"action": "update", "backupPath": "/work/evidence/F13/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1795042738339000320", "component": "nginx", "health": true, "newVersion": "1.24.1", "previousVersion": "1.24.0", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "35908726ae270cc501ba6dd992363981f3d52a944898a9828497e724fd1ec97a", "sizeBytes": 402, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS nginx health true and sandbox restart skipped: {"action": "update", "backupPath": "/work/evidence/F13/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1795042738339000320", "component": "nginx", "health": true, "newVersion": "1.24.1", "previousVersion": "1.24.0", "restarted": false, "rolledBack": false, "schemaVersion": 1, "sha256": "35908726ae270cc501ba6dd992363981f3d52a944898a9828497e724fd1ec97a", "sizeBytes": 402, "verified": true, "warnings": ["service reload skipped for a sandbox root; restart xray/nginx on the target host"]}
+PASS nginx tree was replaced by the artifact tree
+PASS the previous tree is gone from usr/local/nginx
+PASS extraction staging directory removed
+PASS the previous nginx tree is kept in the backup: /work/evidence/F13/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.0-1795042738339000320/conf/legacy-marker.txt
+PASS broken nginx artifact exits 6: {
+  "schemaVersion": 1,
+  "component": "nginx",
+  "previousVersion": "1.24.1",
+  "newVersion": "1.24.2",
+  "action": "update",
+  "sha256": "70813aa36a7d736d17fbe6b440f89fafed5a6fd5b0c13e8b25d44647220a970c",
+  "sizeBytes": 419,
+  "backupPath": "/work/evidence/F13/f13-work/nginx-root/etc/idleleo/backu
+PASS nginx failure reports rolledBack: {"action": "update", "backupPath": "/work/evidence/F13/f13-work/nginx-root/etc/idleleo/backup/nginx-1.24.1-1795042738344775405", "component": "nginx", "health": false, "newVersion": "1.24.2", "previousVersion": "1.24.1", "restarted": false, "rolledBack": true, "schemaVersion": 1, "sha256": "70813aa36a7d736d17fbe6b440f89fafed5a6fd5b0c13e8b25d44647220a970c", "sizeBytes": 419, "verified": true}
+PASS nginx health failure restores the whole tree digest
+PASS failed nginx upgrade leaves no staging directory
+PASS missing --manifest exits 2: --manifest <path|http(s) URL> is required
+
+PASS --manifest without a value exits 2: --manifest <path|http(s) URL> is required
+
+PASS unknown flag exits 2: unknown flag: --bogus
+
+PASS broken JSON exits 3: invalid component manifest: invalid JSON: invalid character 'n' looking for beginning of object key string
+
+PASS wrong component exits 3: manifest component mismatch: manifest is for nginx, command is xray
+
+PASS non-dotted version exits 3: invalid component manifest: version "1.8.25-beta" is not a dotted version
+
+PASS unsupported schemaVersion exits 3: invalid component manifest: unsupported schemaVersion 2
+
+PASS non-positive sizeBytes exits 3: invalid component manifest: sizeBytes must be positive
+
+PASS HTTP 404 manifest exits 3: invalid component manifest: http://127.0.0.1:43827/missing.json: HTTP 404
+
+PASS missing manifest file exits 3: invalid component manifest: open /nonexistent/m.json: no such file or directory
+
+PASS rejected manifests leave the tree unchanged
+PASS rejected manifests create no backup
+PASS real root without --container exits 2: container root writes require --container
+
+PASS unmarked sandbox exits 2: sandbox marker required: open /work/evidence/F13/f13-work/unmarked-root/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unmarked sandbox gets no backup directory
+PASS Bash version_compare baseline rc=0: 1.8.24|1.8.20|1
+1.8.20|1.8.24|-1
+1.8.20|1.8.20|0
+1.8|1.8.0|0
+26.9.30|26.10.31|-1
+2026.10.15.7679|2026.10.15.2|1
+1.10|1.9|1
+2.0|1.99.99|1
+1.0.0.1|1.0.0|1
+
+PASS Bash baseline covers the whole table: 9
+PASS Go CompareVersions matches Bash version_compare
+== F13: 58 passed, 0 failed, 0.57s ==

@@ -1,0 +1,20 @@
+{
+  "changed": [
+    "target"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "createdAt": "2026-11-18T22:58:53Z",
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.target"
+  ],
+  "oldShareUri": "",
+  "scheduleFile": "",
+  "scheduleSaved": false,
+  "tlsCertFile": "",
+  "tlsCertSaved": false,
+  "tlsDomain": "",
+  "tlsKeyFile": "",
+  "tlsKeySaved": false,
+  "tlsNewCertFile": "",
+  "tlsNewKeyFile": ""
+}

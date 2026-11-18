@@ -1,0 +1,271 @@
+PASS generate reality base rc=0 and wrote config: {
+  "mode": "reality",
+  "transport": "raw",
+  "port": 18443,
+  "publicPort": 18443,
+  "listen": "0.0.0.0",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "9b250b8a-651d-43a5-9c77-527f996f78a1",
+ 
+PASS base mode/transport: reality/raw
+PASS base port: 18443
+PASS base inbound port: 18443
+PASS base listen: 0.0.0.0
+PASS base serverNames: ["example.com"]
+PASS base target: example.com:443
+PASS base config mode is 0600: 0o600
+PASS identical port dry run rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "4801b2791e502c
+PASS identical port reports noChanges: ["port"]
+PASS identical port has an empty diff: null
+PASS no-op dry run leaves the config untouched
+PASS port dry run rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "diff": [
+    "inbounds[0].port"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/conf
+PASS port dry run is marked dryRun
+PASS port dry run changed=[port]: ["port"]
+PASS port dry run diff scope: ["inbounds[0].port"]
+PASS port dry run reports a pending change
+PASS port dry run creates no backup
+PASS port dry run predicts a new hash
+PASS port dry run link uses the new port: 19443
+PASS port dry run leaves the config untouched
+PASS port dry run leaves the config mode alone: 0o640
+PASS port dry run never executes xray -test
+PASS port edit without --yes is refused (rc=2): rc=2
+PASS refusal names --yes: this edit changes port and will drop live connections; re-run with --yes to confirm
+PASS refused edit leaves the config untouched
+PASS refused edit creates no backup
+PASS refused edit never executes xray -test
+PASS port edit rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "diff": [
+    "inbounds[0].port"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+  "newSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+  "backupDir": "/work/ev
+PASS port edit rewrites the inbound port: 19443
+PASS port edit keeps the listen address: 0.0.0.0
+PASS port edit preserves config mode 0640: 0o640
+PASS port edit changes the config hash: 8291c1f0e1e98002
+PASS port edit updates metadata runtimeSha256
+PASS port edit leaves exactly one backup: 1
+PASS backup holds the pre-edit bytes
+PASS backup config mode is 0600: 0o600
+PASS report names the backup directory: /work/evidence/F08/f08-work/root-reality/etc/idleleo/backup/edit-20261118T225853
+PASS report records --no-restart
+PASS report hashes match the file transition
+PASS edit report advertises the new port: 19443
+PASS report keeps the pre-edit link for rollback
+PASS committed edit executed the candidate validator
+PASS validator was called once with -test -config: ["-test -config /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-1472939166.json"]
+PASS validator ran against the candidate, not the live config: -test -config /work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-1472939166.json
+PASS share after port edit rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "9b250b8a-651d-43a5-9c77-527f996f78a1",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 19443,
+  "share
+PASS share after port edit uses the new port: 19443
+PASS xray -test rejection fails the edit (rc=1): rc=1
+PASS rejection surfaces the validator verdict: {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "diff": [
+    "inbounds[0].port"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-rejected/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+  "new
+PASS rejection states the config was not changed: {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "diff": [
+    "inbounds[0].port"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-rejected/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "4801b2791e502c352ee8a0595a4026367e7189b71d75da5322b68e85869e463e",
+  "new
+PASS rejected candidate leaves the config untouched
+PASS rejected candidate leaves metadata untouched
+PASS rejected candidate creates no backup
+PASS the rejecting validator was executed
+PASS listen edit rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "listen"
+  ],
+  "diff": [
+    "inbounds[0].listen"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "8291c1f0e1e98002b8399d6fe64d3f14a24852011034e9563e0b9a170d39bad9",
+  "
+PASS listen edit rewrites the address: 127.0.0.1
+PASS listen edit keeps the port: 19443
+PASS listen edit changed=[listen]: ["listen"]
+PASS listen edit diff scope: ["inbounds[0].listen"]
+PASS listen edit keeps the public endpoint: example.com:19443
+PASS server-names edit rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "server-names"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.serverNames"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "386ea616a67d554d0d9aafc7f08c
+PASS server-names accepts a comma-separated list: ["a.example.com", "b.example.com"]
+PASS server-names keeps the target: example.com:443
+PASS server-names changed=[server-names]: ["server-names"]
+PASS server-names diff stays inside realitySettings: ["inbounds[0].streamSettings.realitySettings.serverNames"]
+PASS server-names makes the first name the link SNI: ['a.example.com']
+PASS --no-probe skips the origin handshake: skipped: --no-probe
+PASS invalid server name is refused (rc=1): rc=1
+PASS invalid server name is named: invalid server name "bad/name"
+PASS invalid server name writes nothing
+PASS bare target edit rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "target"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.target"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "832ff5d2d4f0ab07caa51f7d2d49dd33d4d8086
+PASS bare target gains the default :443: other.example.org:443
+PASS target edit keeps the serverNames list: ["a.example.com", "b.example.com"]
+PASS target edit keeps the link SNI on the serverName: ['a.example.com']
+PASS --no-probe skips the origin handshake for --target: skipped: --no-probe
+PASS explicit target port edit rc=0: {
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "target"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.target"
+  ],
+  "configPath": "/work/evidence/F08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "357e2846a60e46512c1d9603936b5a21075a80f
+PASS explicit target port is honoured: other.example.org:8443
+PASS malformed target is refused (rc=1): rc=1
+PASS malformed target is named: invalid reality target host "bad target!"
+PASS malformed target writes nothing
+PASS reserved Reality port is refused (rc=1): rc=1
+PASS reserved port refusal is explicit: port 9443 is reserved for Reality internals (9403, 9404, 9443, 9444)
+PASS reserved port writes nothing
+PASS there is no --sni-guard runtime switch (rc=2): rc=2
+PASS --sni-guard is reported as an unknown flag: unknown flag: --sni-guard
+PASS config edit does not accept --unknown-sni-policy (rc=2): rc=2
+PASS unknown policy flags write nothing
+PASS generate none/ws base rc=0: {
+  "mode": "none",
+  "transport": "ws",
+  "port": 8080,
+  "publicPort": 8080,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "af4c7acd-ff79-4ef5-8bd9-c03f564e8108",
+     
+PASS target edit on none/ws is refused (rc=1): rc=1
+PASS target refusal explains the mode restriction: --target only applies to Reality modes
+PASS server-names edit on none/ws is refused (rc=1): rc=1
+PASS server-names refusal explains the mode restriction: --server-names only applies to Reality modes
+PASS mode-restricted edits write nothing
+PASS isolate generation rc=0 and wrote config+nginx: {
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "8f99cb65-5308-4f87-9a88-06ca6ccc911c",
+      "email": "me@hey.run",
+      "flow": "xtls-rprx-vision",
+      "level": 0,
+      "primary"
+PASS nginx stream block maps the SNI
+PASS unknown SNI defaults to the deny upstream
+PASS isolate deny upstream listens on 9403
+PASS nginx listens on the operator port
+PASS stream server enables ssl_preread
+PASS SNI map fragment is named after the serverName: ["03-isolate.conf", "127.0.0.1.realityServers", "example.com.serverNames"]
+PASS SNI map fragment routes the name to Reality: 'example.com reality;\n'
+PASS isolate adds the handshake-reject site: ["03-isolate.conf", "127.0.0.1.realityServers", "example.com.serverNames"]
+PASS isolate site rejects unknown handshakes
+PASS isolate site owns 9403
+PASS reject generation rc=0: {
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "port": 9443,
+  "publicPort": 443,
+  "listen": "127.0.0.1",
+  "users": [
+    {
+      "index": 0,
+      "uuid": "a409b155-ee0a-43c9-9041-e7e3869a80f
+PASS reject generation wrote its config
+PASS reject switches the deny upstream to 9404
+PASS reject does not also claim the isolate port
+PASS decoy generation is refused (rc=2): rc=2
+PASS decoy refusal explains the missing artifacts: unknown-sni-policy decoy needs pre-existing decoy cert/site artifacts and is not generated by the Go CLI
+PASS unsupported SNI policy is refused (rc=2): rc=2
+PASS Bash baseline function serverNames_set exists
+PASS Bash baseline function modify_target_serverNames exists
+PASS Bash baseline function nginx_reality_serverNames_add exists
+PASS Bash baseline function sni_guard_policy_choose exists
+PASS Bash baseline function sni_guard_port_conflicts exists
+PASS Bash baseline function ensure_reality_sni_guard_defaults exists
+PASS Bash baseline function reset_sni_guard_policy exists
+PASS Bash pins the Reality target to :443 when editing serverNames
+PASS Bash rewrites serverNames to exactly one element
+PASS Bash serverNames_set documents a single domain
+PASS Bash validates the serverNames hostname
+PASS Bash offers a decoy SNI fallback at runtime
+PASS Bash offers a direct-reject SNI fallback at runtime
+PASS Bash checks the SNI deny port against configured ports
+PASS Bash flags a deny port that collides with a configured port
+PASS Bash consults the collision check before every guard port: 4
+PASS Bash backfills SNI-guard defaults for upgraded installs
+PASS Bash has a runtime SNI-guard reset entry point
+== F08: 129 passed, 0 failed, 0.11s ==

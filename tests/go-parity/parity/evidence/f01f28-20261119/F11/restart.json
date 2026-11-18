@@ -1,0 +1,7 @@
+{
+  "action": "restart",
+  "exitCode": 0,
+  "schemaVersion": 1,
+  "systemctl": "systemctl restart xray.service",
+  "unit": "xray.service"
+}

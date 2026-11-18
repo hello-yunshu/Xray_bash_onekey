@@ -1,0 +1,160 @@
+PASS status on an empty root rc=0: {
+  "schemaVersion": 1,
+  "root": "/work/evidence/F24/f24-work/empty-root",
+  "inContainer": true,
+  "mode": "direct",
+  "xray": {
+    "required": true,
+    "config": false,
+    "pidFile": "/work/evidence/F24/f24-work/empty-root/run/idleleo/container-xray.pid",
+    "pid": 0,
+    "alive": false,
+    
+PASS status writes nothing
+PASS status schemaVersion=1
+PASS status root is the sandbox
+PASS status mode is explicit
+PASS empty xray is not alive
+PASS empty nginx is not alive
+PASS empty root warns about missing metadata: ['manager metadata read: open /work/evidence/F24/f24-work/empty-root/etc/idleleo/v1/metadata.json: no such file or directory', 'metadata unreadable: manager metadata read: open /work/evidence/F24/f24-work/empty-root/etc/idleleo/v1/metadata.json: no such file or directory']
+PASS seeded nginx configuration passes -t: nginx: the configuration file /work/evidence/F24/f24-work/container-root/usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /work/evidence/F24/f24-work/container-root/usr/local/nginx/conf/nginx.conf test is successful
+
+PASS container up --dry-run rc=0: {
+  "schemaVersion": 1,
+  "root": "/work/evidence/F24/f24-work/container-root",
+  "mode": "direct",
+  "dryRun": true,
+  "started": [
+    "xray",
+    "nginx"
+  ],
+  "skipped": []
+}
+
+PASS dry-run performs no writes or starts
+PASS dry-run plans both services: {"schemaVersion": 1, "root": "/work/evidence/F24/f24-work/container-root", "mode": "direct", "dryRun": true, "started": ["xray", "nginx"], "skipped": []}
+PASS dry-run report marks dryRun
+PASS container up rc=0: {
+  "schemaVersion": 1,
+  "root": "/work/evidence/F24/f24-work/container-root",
+  "mode": "direct",
+  "dryRun": false,
+  "started": [
+    "xray",
+    "nginx"
+  ],
+  "skipped": [],
+  "pids": {
+    "nginx": 7716,
+    "xray": 7714
+  }
+}
+
+PASS up starts both services: {"schemaVersion": 1, "root": "/work/evidence/F24/f24-work/container-root", "mode": "direct", "dryRun": false, "started": ["xray", "nginx"], "skipped": [], "pids": {"nginx": 7716, "xray": 7714}}
+PASS up stays in direct mode without systemd: {"schemaVersion": 1, "root": "/work/evidence/F24/f24-work/container-root", "mode": "direct", "dryRun": false, "started": ["xray", "nginx"], "skipped": [], "pids": {"nginx": 7716, "xray": 7714}}
+PASS xray process is alive: 7714
+PASS nginx process is alive: 7716
+PASS xray pid file matches the report
+PASS nginx pid file matches the report
+PASS container log file exists
+PASS status reports both services alive
+PASS status xray pid matches up
+PASS status nginx pid matches up
+PASS second up rc=0: {
+  "schemaVersion": 1,
+  "root": "/work/evidence/F24/f24-work/container-root",
+  "mode": "direct",
+  "dryRun": false,
+  "started": [],
+  "skipped": [
+    "xray",
+    "nginx"
+  ],
+  "pids": {
+    "nginx": 7716,
+    "xray": 7714
+  }
+}
+
+PASS second up starts nothing: {"schemaVersion": 1, "root": "/work/evidence/F24/f24-work/container-root", "mode": "direct", "dryRun": false, "started": [], "skipped": ["xray", "nginx"], "pids": {"nginx": 7716, "xray": 7714}}
+PASS second up skips both services
+PASS second up keeps the same xray pid
+PASS second up keeps the same nginx pid
+PASS container down rc=0: {
+  "schemaVersion": 1,
+  "root": "/work/evidence/F24/f24-work/container-root",
+  "mode": "direct",
+  "stopped": [
+    "xray",
+    "nginx"
+  ]
+}
+
+PASS down stops both services: {"schemaVersion": 1, "root": "/work/evidence/F24/f24-work/container-root", "mode": "direct", "stopped": ["xray", "nginx"]}
+PASS xray has exited
+PASS xray pid file removed
+PASS nginx has exited
+PASS nginx pid file removed
+PASS second down rc=0: {
+  "schemaVersion": 1,
+  "root": "/work/evidence/F24/f24-work/container-root",
+  "mode": "direct",
+  "stopped": []
+}
+
+PASS second down is a no-op: {"schemaVersion": 1, "root": "/work/evidence/F24/f24-work/container-root", "mode": "direct", "stopped": []}
+PASS status reports both services stopped
+PASS real root without confirmation exits 2: {
+  "schemaVersion": 0,
+  "root": "",
+  "mode": "",
+  "dryRun": false,
+  "started": null,
+  "skipped": null
+}
+container root writes require --container
+
+PASS unmarked sandbox exits 2: {
+  "schemaVersion": 0,
+  "root": "",
+  "mode": "",
+  "dryRun": false,
+  "started": null,
+  "skipped": null
+}
+sandbox marker required: open /work/evidence/F24/f24-work/unmarked/.idleleo-phase01-sandbox: no such file or directory
+
+PASS unknown flag exits 2: unknown flag: --bogus
+
+PASS down rejects --dry-run: unknown flag: --dry-run
+
+PASS status still works after the refusals: {
+  "schemaVersion": 1,
+  "root": "/work/evidence/F24/f24-work/container-root",
+  "inContainer": true,
+  "mode": "direct",
+  "xray": {
+    "required": true,
+    "config": true,
+    "pidFile": "/work/e
+PASS Dockerfile builds the Go manager
+PASS Dockerfile installs the Go container entry
+PASS image carries product labels
+PASS entrypoint references _go_container
+PASS entrypoint references container up
+PASS entrypoint references container down
+PASS entrypoint references container status --json
+PASS the Go container branch never calls systemctl
+PASS fake-systemctl remains available for the Bash menu
+PASS DOCKER.md documents container status
+PASS entrypoint keeps valid Bash syntax
+PASS Bash entrypoint functions rc=0: [entrypoint] Starting Xray...
+[entrypoint] Starting Nginx...
+[entrypoint] Stopping services...
+[entrypoint] Services stopped.
+
+PASS Bash baseline starts xray and nginx: ['start xray', 'start nginx', 'stop nginx', 'stop xray']
+PASS Bash baseline stops xray and nginx: ['start xray', 'start nginx', 'stop nginx', 'stop xray']
+PASS Go and Bash activate the same service set: go=['nginx', 'xray'] bash=['nginx', 'xray']
+== F24: 58 passed, 0 failed, 1.17s ==

@@ -1,0 +1,9 @@
+{
+  "action": "up-to-date",
+  "installPath": "/work/evidence/F14/release-work/root/tmp/release/idleleo",
+  "manifestUrl": "http://127.0.0.1:33171/manifest.json",
+  "newVersion": "0.2.0-phase04",
+  "platform": "linux-arm64",
+  "previousVersion": "0.2.0-phase04",
+  "schemaVersion": 1
+}

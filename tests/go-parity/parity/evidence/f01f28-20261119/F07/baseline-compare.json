@@ -1,0 +1,81 @@
+{
+  "bashBaseline": {
+    "bashFunctionsExecuted": {
+      "generate_reality_short_id": [
+        "0eabf0241ec81bbc",
+        "481fcec22a8e7861",
+        "6179a5e3125bb266"
+      ],
+      "generate_spiderx": [
+        "/assets/vboee04j.css",
+        "/assets/d5v5okny.css",
+        "/static/dw9olf82.js"
+      ]
+    },
+    "installShSha256": "a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c"
+  },
+  "contracts": [
+    {
+      "bash": "16 hex from openssl rand -hex 8",
+      "go": "8 lowercase hex",
+      "id": "generate.auto.shortId.shape",
+      "note": "both are legal Xray sIDs; Go is narrower but valid",
+      "status": "divergent-shape"
+    },
+    {
+      "bash": "custom value must match ^[0-9a-fA-F]{16}$",
+      "go": "any 1-16 hex characters with even length",
+      "id": "generate.shortId.validation",
+      "note": "Go accepts 4-hex and shorter even-length sIDs",
+      "status": "divergent-validation"
+    },
+    {
+      "bash": "every new Reality user gets a fresh shortId",
+      "go": "no sID is minted unless --short-id is passed",
+      "id": "user.add.shortId.auto",
+      "status": "not-implemented"
+    },
+    {
+      "bash": "spiderx_set generates /assets|/static|/docs|/api paths",
+      "go": "no spiderX is generated at generate/install time",
+      "id": "install.spiderX.auto",
+      "status": "not-implemented"
+    },
+    {
+      "bash": "install_config.reality_clients[uuid]={shortIds,spiderx_path}",
+      "go": "no per-user shortId/spiderX map",
+      "id": "install.reality_clients.mapping",
+      "status": "not-implemented"
+    },
+    {
+      "bash": "starts at security=reality and includes target=",
+      "go": "encryption=none...type=raw, no target parameter",
+      "id": "share.reality.link.template",
+      "status": "divergent-link-template"
+    },
+    {
+      "bash": "spx=%2Fassets%2Fabc.css via vless_urlquote",
+      "go": "spx=/assets/abc.css (literal slash)",
+      "id": "share.spiderX.encoding",
+      "status": "divergent-encoding"
+    }
+  ],
+  "fixture": "F07",
+  "observations": {
+    "goAutoShortIds": [
+      "1bfbc5c6",
+      "dc9d1284"
+    ],
+    "goCustomShortIdsRejected": [
+      "abc",
+      "0123456789abcdef0",
+      "zzzz",
+      "ab cd"
+    ],
+    "goExplicitShortIds": [
+      "1111111111111111",
+      "abcd"
+    ],
+    "goSpiderX": "/assets/abc.css"
+  }
+}

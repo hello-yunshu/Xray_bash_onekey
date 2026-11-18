@@ -1,0 +1,79 @@
+{
+  "ads": true,
+  "applied": true,
+  "bittorrent": true,
+  "country_block": [
+    "cn"
+  ],
+  "custom_domains": {
+    "enabled": true,
+    "items": [
+      "example.org"
+    ]
+  },
+  "custom_ips": {
+    "enabled": true,
+    "items": [
+      "192.0.2.0/24"
+    ]
+  },
+  "owned_rules": [
+    {
+      "domain": [
+        "geosite:cn"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "ip": [
+        "geoip:cn"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "outboundTag": "blocked",
+      "protocol": [
+        "bittorrent"
+      ],
+      "type": "field"
+    },
+    {
+      "domain": [
+        "geosite:category-ads-all"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "ip": [
+        "geoip:private"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "domain": [
+        "domain:example.org"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    },
+    {
+      "ip": [
+        "192.0.2.0/24"
+      ],
+      "outboundTag": "blocked",
+      "type": "field"
+    }
+  ],
+  "previous_domain_strategy": "AsIs",
+  "previous_sniffing": [
+    {
+      "sniffing": null,
+      "tag": "VLESS-ws-in"
+    }
+  ],
+  "private_ip": true
+}

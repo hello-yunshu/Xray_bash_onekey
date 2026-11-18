@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "jobs": [
+    "geodata-refresh"
+  ],
+  "geodataUrl": "http://127.0.0.1:46791/good",
+  "geodataDir": "../escape"
+}

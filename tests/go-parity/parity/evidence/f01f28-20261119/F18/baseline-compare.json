@@ -1,0 +1,143 @@
+{
+  "bashBaseline": {
+    "functions": [
+      "generate_vless_link",
+      "generate_clash_config"
+    ],
+    "installShSha256": "a8e4d850da40295303785d17bc3ee629574932b56aef9ae3905baf4e6797358c",
+    "qrencodeCallSites": 10
+  },
+  "contracts": [
+    {
+      "bash": "security=reality&flow=...&fp=chrome&pbk=...&sni=...&target=...&sid=...[&spx=...]",
+      "go": "encryption=none&flow=...&security=reality&sni=...&fp=...&pbk=...&sid=...&type=raw",
+      "id": "share.uri.reality.template",
+      "note": "Go omits target= (runtime target may be internal) and starts from encryption=none",
+      "status": "divergent-link-template"
+    },
+    {
+      "bash": "<host>+<Chinese transport name>",
+      "go": "idleleo-<mode>",
+      "id": "share.uri.fragment",
+      "status": "divergent-fragment"
+    },
+    {
+      "bash": "fp=chrome on every template incl. ws_tls/grpc_tls/xhttp_tls",
+      "go": "no fp on tls/none links",
+      "id": "share.uri.tls.fp",
+      "status": "divergent-parameter"
+    },
+    {
+      "bash": "path=%2f<path>%3Fed%3D2048",
+      "go": "path=<wsSettings.path> (e.g. /ray/)",
+      "id": "share.uri.ws.path",
+      "status": "divergent-path-encoding"
+    },
+    {
+      "bash": "mode=auto",
+      "go": "no mode parameter",
+      "id": "share.uri.xhttp.mode",
+      "status": "divergent-parameter"
+    },
+    {
+      "bash": "none ws/grpc/xhttp links carry no sni",
+      "go": "sni=<caller host> even when security=none",
+      "id": "share.uri.none.sni",
+      "status": "divergent-parameter"
+    },
+    {
+      "bash": "renders network: xhttp with xhttp-opts {path, mode}",
+      "go": "no Clash proxy, warning clash-xhttp-unsupported",
+      "id": "share.clash.xhttp",
+      "note": "Go refuses to fabricate a proxy the client may not support",
+      "status": "intentional-refusal"
+    },
+    {
+      "bash": "client-fingerprint: chrome and skip-cert-verify: false on every proxy",
+      "go": "client-fingerprint only on reality; no skip-cert-verify",
+      "id": "share.clash.keys",
+      "status": "divergent-keys"
+    },
+    {
+      "bash": "xray_info.inf stores the operator-facing port",
+      "go": "caller passes --public-port; otherwise the loopback backend port leaks",
+      "id": "share.public-port",
+      "note": "Go keeps a single runtime config and requires the public port explicitly",
+      "status": "divergent-input"
+    },
+    {
+      "bash": "uses the wizard tls_mode variable",
+      "go": "refuses loopback security=none without --public-security",
+      "id": "share.public-security",
+      "note": "Go refuses to guess instead of emitting a security=none link",
+      "status": "divergent-input"
+    },
+    {
+      "bash": "prints qrencode UTF-8 QR for every link",
+      "go": "share --qr renders the URI with qrencode -o - -t utf8; --json --qr is rejected",
+      "id": "share.qr",
+      "note": "same binary and arguments; Go makes rendering opt-in",
+      "status": "approved-difference"
+    }
+  ],
+  "fixture": "F18",
+  "observations": {
+    "generate": {
+      "none-ws": {
+        "inboundPorts": [
+          8080
+        ],
+        "mode": "none",
+        "port": 8080,
+        "transport": "ws"
+      },
+      "reality": {
+        "inboundPorts": [
+          8443
+        ],
+        "mode": "reality",
+        "port": 8443,
+        "transport": "raw"
+      },
+      "reality-ws": {
+        "inboundPorts": [
+          8443,
+          10000
+        ],
+        "mode": "reality",
+        "port": 8443,
+        "transport": "ws"
+      },
+      "tls-grpc": {
+        "inboundPorts": [
+          10000
+        ],
+        "mode": "tls",
+        "port": 10000,
+        "transport": "grpc"
+      },
+      "tls-ws": {
+        "inboundPorts": [
+          10000
+        ],
+        "mode": "tls",
+        "port": 10000,
+        "transport": "ws"
+      },
+      "tls-xhttp": {
+        "inboundPorts": [
+          11000
+        ],
+        "mode": "tls",
+        "port": 11000,
+        "transport": "xhttp"
+      }
+    },
+    "share": {
+      "reality": {
+        "port": 8443,
+        "uri": "vless://a79d7f96-2914-436d-b5c1-e5edc203a1d2@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=aUNceirFDpN1C6a3cz1MJbYNdkhqh6PySujVTjJvUDA&sid=d90a843f&type=raw#idleleo-reality"
+      }
+    }
+  }
+}
