@@ -61,6 +61,10 @@ jobs:
             bc cron shellcheck iproute2 util-linux dnsutils
           sudo rm -f /etc/fail2ban/jail.d/defaults-debian.conf
           sudo systemctl start nginx
+          # Fixtures drop privileges for rootless checks; the runner workspace
+          # must stay traversable by those users.
+          sudo chmod a+x /home/runner /home/runner/work "$GITHUB_WORKSPACE" "$RUNNER_TEMP"
+          sudo chmod -R a+rX "$GITHUB_WORKSPACE/tests/go-parity/parity/evidence" 2>/dev/null || true
           # GeoData fixtures compare against real assets instead of stubbing.
           mkdir -p "$RUNNER_TEMP/geo"
           curl -fsSL --retry 3 -o "$RUNNER_TEMP/geo/geoip.dat" \
@@ -94,6 +98,7 @@ jobs:
           REQUIRED_PRODUCTION_PACKAGE: github.com/hello-yunshu/Xray_bash_onekey/internal/compat
           IDLELEO_PREVIEW_EVIDENCE: ${{ runner.temp }}/release-evidence
           IDLELEO_GEO_DIR: ${{ runner.temp }}/geo
+          IDLELEO_XRAY_BIN: /opt/xray/xray
         run: |
           set -euo pipefail
           mkdir -p "$IDLELEO_PREVIEW_EVIDENCE"
@@ -104,6 +109,7 @@ jobs:
             "GOPROXY=off" "GOTOOLCHAIN=local" "GOFLAGS=${GOFLAGS:-}" \
             "IDLELEO_PREVIEW_EVIDENCE=$IDLELEO_PREVIEW_EVIDENCE" \
             "IDLELEO_GEO_DIR=$IDLELEO_GEO_DIR" \
+            "IDLELEO_XRAY_BIN=$IDLELEO_XRAY_BIN" \
             python3 current/tests/go-parity/parity/scripts/check_release_gate.py \
               --bash-repo "$GITHUB_WORKSPACE/legacy" \
               --native-go-dir "$GITHUB_WORKSPACE/current" \

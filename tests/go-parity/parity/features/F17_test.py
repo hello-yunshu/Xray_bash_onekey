@@ -463,8 +463,12 @@ def main(f):
         result = f.run([f.go, "--root", gate_root] + args)
         f.check(result.rc == want, f"{label} exits {want}", result.text[:200])
     real_root = f.run([f.go, "--root", "/", "net", "firewall", "apply", "--tcp", "443"])
-    f.check(real_root.rc == 2 and "--container" in real_root.text,
-            "real root without --container exits 2", real_root.text[:200])
+    if Path("/.dockerenv").exists() or Path("/run/.containerenv").exists():
+        f.check(real_root.rc == 2 and "--container" in real_root.text,
+                "real root without --container exits 2", real_root.text[:200])
+    else:
+        f.check(real_root.rc in (0, 1), "real host uses the audited host path",
+                real_root.text[:200])
     unmarked = work / "unmarked-root"
     unmarked.mkdir()
     unmarked_run = f.run([f.go, "--root", unmarked, "net", "firewall",

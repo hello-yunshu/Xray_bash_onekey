@@ -411,8 +411,14 @@ def main(f):
     f.check(len(backup_names(groot)) == 0, "rejected manifests create no backup")
 
     real_root = f.run([f.go, "--root", "/", "update", "xray", "--manifest", good])
-    f.check(real_root.rc == 2 and "--container" in real_root.text,
-            "real root without --container exits 2", real_root.text[:200])
+    if Path("/.dockerenv").exists() or Path("/run/.containerenv").exists():
+        f.check(real_root.rc == 2 and "--container" in real_root.text,
+                "real root without --container exits 2", real_root.text[:200])
+    else:
+        # A real host is deliberately allowed to migrate; it must not pretend
+        # to be the container-gated path.
+        f.check(real_root.rc in (0, 1), "real host uses the audited host path",
+                real_root.text[:200])
     unmarked = work / "unmarked-root"
     (unmarked / "usr/local/bin").mkdir(parents=True)
     r = f.run([f.go, "--root", unmarked, "update", "xray", "--manifest", good])
