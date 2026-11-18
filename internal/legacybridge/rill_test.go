@@ -98,8 +98,8 @@ func TestRillStatusInstalledWithoutObservation(t *testing.T) {
 func TestRillStatusInvalidConfigDegrades(t *testing.T) {
 	root := t.TempDir()
 	writeRillFile(t, root, rillConfigRel, "{")
-	writeRillFile(t, root, rillObservationRel, `{"capturedAtEpochSeconds":` +
-		fmt.Sprint(time.Now().Unix()) + `}`)
+	writeRillFile(t, root, rillObservationRel, `{"capturedAtEpochSeconds":`+
+		fmt.Sprint(time.Now().Unix())+`}`)
 	info := RillStatus(root)
 	if !info.Installed || info.Status != "active" {
 		t.Fatalf("unexpected projection: %+v", info)

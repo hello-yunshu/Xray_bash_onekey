@@ -35,3 +35,4 @@
 185.199.109.133  # GitHub Pages CDN address recorded by release-check logs
 185.199.110.133  # GitHub Pages CDN address recorded by release-check logs
 185.199.111.133  # GitHub Pages CDN address recorded by release-check logs
+140.82.113.3  # GitHub API address recorded by an environment connectivity probe; not a host

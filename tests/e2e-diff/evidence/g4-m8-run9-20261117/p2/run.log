@@ -9,4 +9,4 @@
 20:49:34 [M8] pebble ready
 20:53:41 [M8] done
 20:53:41 scope: installs=[M8] edits=[] ops=[]
-20:53:41 P2 finished: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/g4-m8-run9-20261117/p2
+20:53:41 P2 finished: <repo>/tests/e2e-diff/evidence/g4-m8-run9-20261117/p2

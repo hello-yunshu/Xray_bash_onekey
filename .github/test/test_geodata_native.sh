@@ -422,8 +422,13 @@ check "native enable is wired into the reality chain" \
     bash -c "awk '/^install_xray_reality\(\)/,/^}/' '${INSTALL_SH}' | grep -qF 'geodata_native_enable'"
 check "native enable is wired into the ws-only chain" \
     bash -c "awk '/^install_xray_ws_only\(\)/,/^}/' '${INSTALL_SH}' | grep -qF 'geodata_native_enable'"
+_ws_tls_restart_line=$(awk '/^install_xray_ws_tls\(\)/,/^}/' "${INSTALL_SH}" |
+    grep -n 'service_restart || return 1' | head -1 | cut -d: -f1)
+_ws_tls_cleanup_line=$(awk '/^install_xray_ws_tls\(\)/,/^}/' "${INSTALL_SH}" |
+    grep -n 'geodata_legacy_cron_disable' | head -1 | cut -d: -f1)
 check "cron cleanup runs only after a successful restart" \
-    bash -c "awk '/^install_xray_ws_tls\(\)/,/^}/' '${INSTALL_SH}' | sed -n '/service_restart || return 1/,+5p' | grep -qF 'geodata_legacy_cron_disable'"
+    test -n "${_ws_tls_restart_line}" -a -n "${_ws_tls_cleanup_line}" -a \
+    "${_ws_tls_cleanup_line}" -gt "${_ws_tls_restart_line}"
 check "the official installer's 644 reset is answered by a re-apply" \
     fn_has xray_privilege_escalation geodata_apply_permissions
 check "the re-apply is guarded by the managed state" \

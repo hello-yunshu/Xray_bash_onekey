@@ -553,7 +553,7 @@ func editBase(paths host.Paths, raw []byte) (xraycfg.EditDefaults, string, error
 			Listen         string `json:"listen"`
 			Port           int    `json:"port"`
 			StreamSettings struct {
-				Security   string `json:"security"`
+				Security    string `json:"security"`
 				TLSSettings struct {
 					ServerName   string `json:"serverName"`
 					Certificates []struct {

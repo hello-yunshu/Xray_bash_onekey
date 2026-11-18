@@ -59,15 +59,15 @@ func TestValidateTable(t *testing.T) {
 	}{
 		{"dual", "auto", []string{p4, p6}, "dual", false, false, nil},
 		{"a-ok-aaaa-foreign", "auto", []string{p4, "2001:db8::99"}, "ipv4", false, true, ErrBadRecords},
-		{"aaaa-ok-a-foreign", "auto", []string{"1.2.3.99", p6}, "ipv6", true, false, ErrBadRecords},
+		{"aaaa-ok-a-foreign", "auto", []string{"192.0.2.99", p6}, "ipv6", true, false, ErrBadRecords},
 		{"only-a", "auto", []string{p4}, "ipv4", false, false, nil},
 		{"only-aaaa", "auto", []string{p6}, "ipv6", false, false, nil},
 		{"no-match", "auto", []string{"9.9.9.9"}, "none", false, false, ErrNoMatch},
 		{"explicit-ipv4-foreign-aaaa", "ipv4", []string{p4, "2001:db8::99"}, "ipv4", false, true, ErrBadRecords},
 		{"explicit-ipv4-no-aaaa", "ipv4", []string{p4}, "ipv4", false, false, nil},
-		{"explicit-ipv6-foreign-a", "ipv6", []string{"1.2.3.99", p6}, "ipv6", true, false, ErrBadRecords},
+		{"explicit-ipv6-foreign-a", "ipv6", []string{"192.0.2.99", p6}, "ipv6", true, false, ErrBadRecords},
 		{"explicit-ipv6-no-a", "ipv6", []string{p6}, "ipv6", false, false, nil},
-		{"explicit-ipv4-no-a", "ipv4", []string{"1.2.3.99"}, "none", false, false, ErrNoMatch},
+		{"explicit-ipv4-no-a", "ipv4", []string{"192.0.2.99"}, "none", false, false, ErrNoMatch},
 		{"empty", "auto", nil, "none", false, false, ErrNoMatch},
 		{"canonical-equal", "auto", []string{"2001:0db8:0:0:0:0:0:1", p4}, "dual", false, false, nil},
 	}
