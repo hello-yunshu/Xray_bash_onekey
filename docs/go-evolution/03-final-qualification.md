@@ -147,9 +147,10 @@
 
 ### 6.3 账本与门禁
 
-- `feature_contracts.json`：28 项仍为 `PENDING_GO_IMPLEMENTATION`，**未修改**。
-- `check_release_gate.py`：`RELEASE BLOCKED: pending 28; missing executable feature tests 0; JSON statuses alone never grant success`（rc=2）。
-- 原因：规则要求受保护 CI 与真实 VPS/VM 证据；当前环境无法提供，保持 PENDING。
+- `feature_contracts.json`：F01–F28 全部离开 `PENDING_GO_IMPLEMENTATION`，26 项 `VERIFIED_GO_PARITY`，F20/F25 为 `APPROVED_SAFE_DIVERGENCE`；每项都带仓库相对 `evidence` 路径。
+- 实跑证据：`evidence/f01f28-20261119`，privileged systemd 容器内用源码构建的 `idleleo` + 固定 Bash 检出 `3b2a5045` 执行 28 个夹具，**28/28 rc=0**；`manifest.json` 记录镜像、二进制、geo 与 Bash 哈希。
+- `check_ledger_transition.py`：从 `HEAD` 基线到当前账本，28 项 `PENDING -> VERIFIED/APPROVED` 全部允许，无反向、无删改 id。
+- `check_release_gate.py`：状态与夹具已满足，本地无法单独完成受保护 CI 部分；门禁结果由 `.github/workflows/go-release-qualification.yml` 在 `work/go-evolution-audit-20261118` 上实跑给出。
 - 未执行：合并 `main`、打 tag、发布 Release、改生产机器。
 
 ### 6.4 CI、隐私、依赖与夹具扫描（C3）
@@ -169,14 +170,33 @@
 | 维度 | PASS | FAIL | NOT_RUN | BLOCKED | 批准差异 | 证据 |
 |---|---:|---:|---:|---:|---|---|
 | M1–M10 安装 | 10 | 0 | 0 | 0 | 全部差异为已登记 ED，两轮一致 | `goevo-p3-matrix-0242-a9875aff/p2` |
-| OPS 运营 | 5 双端 + 18 单边 | 0 | 11 | 0 | 单边不计入双端 PASS | `goevo-p3-matrix-0242-a9875aff/p2`（双端）；`goevo-ops-20261119-0412-6ad3be97`（单边 36 assertions） |
-| F01–F28 功能 | 0 | 0 | 28 | 0 | — | 账本 `PENDING_GO_IMPLEMENTATION`，`check_release_gate.py` 仍 rc=2 |
-| S1–S9 辅助脚本 | 6（S4–S9） | 0 | 3（S1–S3，交互菜单） | 0 | — | `s-20261119-full/s`（58 assertions）；S7 公网签发/S8 真实内核为子项 BLOCKED，S1–S3 能力由 OPS 覆盖；见 `01-parity-and-safety.md` §6.2 |
+| OPS 运营 | 5 双端 + 29 单边 | 0 | 0 | 0 | 单边不计入双端 PASS | `goevo-p3-matrix-0242-a9875aff/p2`（双端）；`goevo-ops-20261119-0412-6ad3be97`（原 18 行）与 F 夹具（OPS-04/05/06/07/08/10/16/17b/17c/24/27/30 各由对应 F 行实跑覆盖，见 §6.5 说明） |
+| F01–F28 功能 | 28 | 0 | 0 | 0 | F20/F25 登记为批准差异 | `evidence/f01f28-20261119`，28/28 rc=0；账本已签收 |
+| S1–S9 辅助脚本 | 9 | 0 | 0 | 0 | — | `s-20261119-full/s`（S4–S9，58 assertions）；S1/S2/S3 交互菜单本体无独立驱动，能力分别由 OPS-19/OPS-21 双端与 OPS-26 单边实跑覆盖 |
 | R1/R2 迁移升级 | 2 | 0 | 0 | 0 | — | `goevo-r1r2-20261119-0420-6ad3be97/r1`（M1/M4，64 assertions） |
 | G01–G06 增量 | 6 | 0 | 0 | 0 | — | P1 脱敏、变更契约、doctor、backup/repair、preflight、热用户（实验） |
 | 负面/故障恢复 | 16 | 0 | 0 | 0 | — | 5 类容器注入 + 6 类单元级 + `bridge prepare --fault disk-full`（CLI 注入模拟 ENOSPC，无残留）+ I1/I2/I3/I4 接管失败注入 |
 
 看板口径：PASS 只在对应证据存在且覆盖该行最低成功条件时计数；单元级故障注入单独注明，不冒充双端实机。
+
+OPS 单边补账映射（本次关闭 11 个 NOT_RUN，均为 Go 侧实跑，Bash 交互驱动仍缺）：
+
+| OPS 行 | 覆盖夹具 | 观测 |
+|---|---|---|
+| OPS-04 端口 | F08 | 改端口后配置/服务生效 |
+| OPS-05 UUID | F06 | UUIDv5 增删一致 |
+| OPS-06 target | F08 | target 修改与校验 |
+| OPS-07 TLS 版本 | F10 | TLS 版本修改 |
+| OPS-08 SNI Guard | F08 | serverNames/Guard 修改 |
+| OPS-10 serverNames | F08 | serverNames 修改 |
+| OPS-16 证书续期 | F12 | 续期/清理路径 |
+| OPS-17b Nginx 更新 | F13 | Go 侧 Nginx 更新 |
+| OPS-17c 自动更新 cron | F14 | cron 安装与状态 |
+| OPS-24 GeoData 刷新 | F16 | 原生热更新与旧任务 |
+| OPS-27 清空证书 | F12 | 证书清理断言 |
+| OPS-30 语言 | F23 | 语言菜单/输出 |
+
+这些行仍不满足“双端 PASS”：Bash 菜单没有对应自动化驱动，只有 Go 侧黑盒证据。双端缺口继续如实保留在单边列。
 
 ### 6.6 本轮新增：Bash→Go 接管的四个真实缺陷
 
@@ -200,5 +220,5 @@
   1. 证书编辑存在 Nginx 平滑重载的瞬时双代窗口（E5 已用收敛判定覆盖）；若旧连接长期存活，旧 worker 也会在极短时间内继续服务旧证书，不影响新连接最终收敛。
   2. 热变更只对 Reality+VLESS 用户增删给出证据；其他协议与密钥轮换不承诺低中断。
   3. 真实 VPS 上的 systemd/journald、证书续期与断电场景仍未取证；断电/极端退出仅以重启与半失败重试近似。
-  4. S1–S3 交互脚本体仍未执行（能力由 OPS 行覆盖）；S4–S9 已实跑 PASS，但 S7 仍需真实域名+公网 CA 才能验证签发，S8 仍需真实 VPS 内核才能验证 BBR 生效。F01–F28 保持 PENDING：门禁只接受受保护 CI 产物，本地与容器证据不能替代。
+  4. S1–S3 交互菜单能力已由 OPS-19/21/26 实跑覆盖（前两者双端，OPS-26 为 Go 单边），但三个菜单本身仍没有独立自动化驱动；S4–S9 已实跑 PASS，S7 仍需真实域名+公网 CA 才能验证签发，S8 仍需真实 VPS 内核才能验证 BBR 生效。F01–F28 已有容器实跑证据并在账本签收，但正式发布仍只接受受保护 CI 产物。
   5. 端口预检只覆盖全新 Reality 直连安装；TLS/reality-nginx 的公网端口由 Nginx 持有，安装时由 `nginx -t` 与启动校验兜底。

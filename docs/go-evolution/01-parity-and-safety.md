@@ -153,9 +153,9 @@ OPS-12/13 的 Bash 端是“持续跟随”，`TRUNCATED` 是采集方式导致�
 
 | ID | Bash 入口 | Go 入口 | 归类 | 本轮状态 |
 |---|---|---|---|---|
-| S1 | `scripts/fail2ban_manager.sh` | `fail2ban status/install/banned/unban/trust/jail` | 必须迁移 | 脚本 NOT_RUN（交互菜单）；OPS-19 矩阵 PASS |
-| S2 | `scripts/traffic_blocker.sh` | `xray block ...` | 必须迁移 | 脚本 NOT_RUN（交互菜单）；OPS-21 矩阵 PASS |
-| S3 | `scripts/file_manager.sh` | `metadata export/import` + `backup create/restore` | 安全替代 | 脚本 NOT_RUN（交互菜单）；OPS-26 与 `goevo-ops-20261119-0412` 覆盖能力 |
+| S1 | `scripts/fail2ban_manager.sh` | `fail2ban status/install/banned/unban/trust/jail` | 必须迁移 | 交互菜单无独立驱动；能力由 OPS-19 双端实跑覆盖 |
+| S2 | `scripts/traffic_blocker.sh` | `xray block ...` | 必须迁移 | 交互菜单无独立驱动；能力由 OPS-21 双端实跑覆盖 |
+| S3 | `scripts/file_manager.sh` | `metadata export/import` + `backup create/restore` | 安全替代 | 交互菜单无独立驱动；能力由 OPS-26 单边与 `goevo-ops-20261119-0412` 覆盖 |
 | S4 | `scripts/auto_update.sh` | `schedule install`（`auto-update` job） | 安全替代 | PASS（正常/重复/坏元数据 fail-safe） |
 | S5 | `scripts/ssl_update.sh` | `xray cert renew` + `schedule` 的 `cert-renew` | 安全替代 | PASS（Pebble 真实续期/重复/CA 不可达恢复） |
 | S6 | `scripts/geo_update.sh` | `schedule run --job geodata-refresh` | 安全替代 | PASS（真实下载/重复/下载失败不破坏现网） |
@@ -202,17 +202,17 @@ R2（`idleleo bridge prepare/validate/activate`）：
 | S8 | `idleleo tcp` 全链路 + 历史 `tcp.sh` 下载 | sandbox 中 `plan/apply/apply(noop)/rollback` 全部 `rc=0`，drop-in 创建与删除、运行时值改回；真实内核因缺 `net.core.default_qdisc`/`bbr` 被正确拒绝（`rc=12`）；`tcp.sh` 下载 sha256 `0b7614e7…` 且 `bash -n` 通过；**真实内核应用 BLOCKED**（需真实 VPS） |
 | S9 | `idleleo speedtest` + 历史 `superspeed.sh` 下载 | 真实验速与重复运行 `rc=0`，返回 `server`/`downMbps`；不可达端点 `rc=1` 且无 panic；`superspeed.sh` 下载 sha256 `5593e179…` 且 `bash -n` 通过 |
 
-S7/S8/S9 的 `BLOCKED-*.md` 与 `S5/BLOCKED.md` 模板随证据保存；S1–S3 未执行交互脚本体，能力仍由 OPS 行覆盖。
+S7/S8/S9 的 `BLOCKED-*.md` 与 `S5/BLOCKED.md` 模板随证据保存；S1–S3 交互菜单本体没有独立自动化驱动，对应能力分别由 OPS-19/21/26 实跑覆盖。
 
 ## 7. 未验证 / 阻塞
 
 - S7 的真实公网 CA 签发、S8 的真实内核 BBR 应用仍为 BLOCKED（分别需要真实域名与真实 VPS 内核），与 §6.2 的 PASS 不冲突：下载/安装/Go 实现与失败闭合均已实测。
-- S1–S3 交互脚本体仍未执行，结论仍以 OPS 双端/单边行为准。
+- S1–S3 交互菜单本体没有独立自动化驱动；能力结论以 OPS-19/21/26 实跑为准（前两者双端，OPS-26 为 Go 单边）。
 
 - 全量矩阵已于 2026-11-19 在恢复外网后完整重跑（`tests/e2e-diff/evidence/goevo-p3-matrix-0242-a9875aff/p2`，commit `be141822`）：M1–M10 双端两轮 `rc=0`、L4 真实客户端全 `ok`；本条此前的 BLOCKED 结论已被该证据取代。
 - OPS-12/13 的 Bash 侧只做了 6 秒有界采集，不能证明长时跟随；Go 快照行为已实测。
 - OPS-18 的 Bash 侧是交互菜单，本轮未执行开关动作；Go 侧已由 `goevo-ops-20261119-0412` 单边实跑 `tcp status`。
-- OPS 未驱动的 18 行只有 Go 单边实跑（`goevo-ops-20261119-0412-6ad3be97`），没有 Bash 对照，矩阵 verdict 仍按 must-match 记为未完成。
+- OPS 未驱动的 11 行已用对应 F 夹具补齐 Go 单边证据（见 `03-final-qualification.md` §6.5）；连同此前 18 行，共 29 行只有 Go 单边实跑，没有 Bash 对照，双端缺口仍如实保留。
 - OPS-09/19/21/31/32 已在上述矩阵中重跑并 PASS。
 - S4–S9 已实跑（`s-20261119-full/s`，58/58），S1–S3 交互脚本体未执行，见 6.1/6.2；S7 签发与 S8 真实内核应用仍 BLOCKED。
 - R1/R2 与 I1–I4 已实跑（见 6.1），仅 M1/M4 两个场景；M3（reality-transport）与 relay/负载均衡树的接管仍未覆盖。
