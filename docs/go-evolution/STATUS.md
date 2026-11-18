@@ -12,7 +12,7 @@
 | S0 基线审计 | 完成 | `docs/go-evolution/00-baseline.md` | `tests/e2e-diff/evidence/20261118-0605-full`（M1–M10/E1–E8/OPS-32） |
 | P1 迁移差异与安全收口 | 完成 | `docs/go-evolution/01-parity-and-safety.md` | 对照矩阵、OPS-01..34 分类、键/密文脱敏、统一变更事务 |
 | P2 Go 原生能力升级 | 完成 | `docs/go-evolution/02-native-value.md` | `tests/e2e-diff/evidence/goevo-p2-*`（doctor/backup/repair/preflight 实机） |
-| P3 低中断试点与资格收口 | 完成（含如实 PENDING） | `docs/go-evolution/03-final-qualification.md` | `goevo-p3-p3-final-015931`（55/55）、`p3-edits/p2`（E1–E4 PASS） |
+| P3 低中断试点与资格收口 | 编码/测试/提交完成；最终全量重跑 BLOCKED（环境无外网） | `docs/go-evolution/03-final-qualification.md` | `goevo-p3-p3-final-015931`（55/55）、`p3-edits/p2`（E1–E4 PASS） |
 
 ## 已完成
 
@@ -28,7 +28,7 @@
    - 影响：M1–M10、E5–E8、ACME/relay 场景本次无法复跑；记为 `BLOCKED`，不冒充 PASS。
    - 复现：`docker run --rm idleleo-e2e:24.04 sh -c 'curl -4 -fsS https://ip.me'` → `Could not resolve host`；`curl -k https://1.1.1.1` → `Couldn't connect`。
    - 恢复后动作：重跑 `run_p2_matrix.sh`（完整 M1–M10 + E1–E8 + OPS）与 `run_p3_hot.sh`。
-2. **受保护 CI 不可得**：分支未推送，无远程 workflow 运行；F01–F28 依规则保持 `PENDING_GO_IMPLEMENTATION`。
+2. **受保护 CI 不可得**：分支未推送，无远程 workflow 运行；F01–F28 依规则保持 `PENDING_GO_IMPLEMENTATION`。本地等价门禁已跑：隐私扫描 0 findings、账本迁移策略 17 tests OK、A2 自检 PASS、go 全库测试通过。
 
 ## 下一步
 

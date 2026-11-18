@@ -141,7 +141,7 @@
 
 | 项 | 结果 | 证据与说明 |
 |---|---|---|
-| CI 回归 | NOT_RUN（受保护 CI 不可得） | 分支仅本地存在、未推送，因此没有远程 workflow 运行；`.github/workflows` 下 14 个 workflow 未被本阶段改动。本地等价检查：`gofmt`/`go vet`/全库 `go test` 通过 |
+| CI 回归 | PASS（本地等价）/ NOT_RUN（远程与 stage gate） | 本地等价全绿：`check_evidence_hygiene.py --mask .` 0 findings/14360 文件；`test_ledger_transition.py` 17 tests OK；A2 比较器 `SELFTEST_PASS mutations=14 baseline=MATCH`；`gofmt`/`go vet`/全库 `go test`/`go build` 通过。分支未推送，远程受保护 CI 无运行；需要 `legacy` 检出的 stage gate 未跑 |
 | 隐私 | PASS（本阶段） | 证据卫生扫描 0 findings；驱动对 UUID 脱敏；未提交私钥或证书（Reality target 证书运行时生成、随容器销毁）；未写入宿主公网 IP 或个人路径 |
 | 依赖许可 | PASS | `go.mod`/`go.sum` 相对基线未变，未新增 vendor 代码 |
 | 夹具可重复性 | PASS（离线场景）/ BLOCKED（外网场景） | `run_p3_hot.sh` 每次从源码构建、生成新 UUID/密钥与自签 origin，不依赖外部 target；依赖外网的 M1–M10/E5–E8 标 BLOCKED |
