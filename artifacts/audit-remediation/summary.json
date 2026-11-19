@@ -3,6 +3,7 @@
   "generatedAt": "2026-11-19T23:59:00+08:00",
   "branch": "work/go-hardening-parity-20261119",
   "commit": "4527b721fda1dee39545f63ae35f27f9f5078e4f",
+  "latestCommit": "241cc99f",
   "base": "origin/develop/go-native = 9b965843",
   "environment": {
     "goImage": "golang:1.27.4",
@@ -186,7 +187,15 @@
       "redacted": true
     },
     "priorDualSide": { "commit": "be141822", "ids": ["OPS-09","OPS-19","OPS-21","OPS-31","OPS-32"], "evidence": "tests/e2e-diff/evidence/goevo-p3-matrix-0242-a9875aff/p2/", "supersededBy": "audit-ops-dual-20261120" },
-    "goMissingIds": ["OPS-08","OPS-27"],
+    "goMissingIds": [],
+    "implementedInRound": {
+      "commit": "241cc99f",
+      "ids": ["OPS-08","OPS-27"],
+      "commands": ["xray guard show/set --policy isolate|reject|decoy","xray cert clear --yes"],
+      "verification": "Go unit tests (9 new) + sandbox CLI smoke",
+      "notRun": "real nginx -t and Bash dual-side interaction",
+      "evidence": ["artifacts/audit-remediation/logs/ops08-27-smoke.log","tests/e2e-diff/smoke_guard_cert.sh"]
+    },
     "intentionalDelta": ["OPS-30 (language switch allowed-diff)"],
     "editEquivalentsWithoutOpsRow": ["OPS-05 (xray edit --uuid)","OPS-06 (xray edit --target)","OPS-07 (xray edit)","OPS-10 (xray edit --server-names)","OPS-17b (xray tls)","OPS-24 (update nginx / schedule run)"],
     "evidence": "tests/e2e-diff/evidence/audit-ops-20261120/assertions.txt"
@@ -197,7 +206,7 @@
     { "item": "external IPv6 data plane", "status": "NOT_RUN", "reason": "default Docker bridge has no IPv6" },
     { "item": "multi-version Xray/Bash config matrix", "status": "NOT_RUN", "reason": "requires pinned historical releases" },
     { "item": "OPS dual-side rerun for the other 18 IDs", "status": "NOT_RUN", "reason": "OPS-09/19/21/31/32 rerun on both sides at 1cd8b98c; the remaining 18 IDs only have the Go-side sweep in this round" },
-    { "item": "OPS-08 / OPS-27", "status": "GAP", "reason": "no Go equivalent yet: OPS-08 (online SNI Guard edit), OPS-27 (clear certificate)" },
+    { "item": "OPS-08 / OPS-27 dual-side integration", "status": "NOT_RUN", "reason": "Go commands implemented at 241cc99f and covered by unit tests plus sandbox CLI smoke; real nginx -t and Bash interactive answers are not wired into run_p2_matrix.sh yet" },
     { "item": "OPS-30", "status": "INTENTIONAL_DELTA_APPROVED", "reason": "language switch is allowed-diff" },
     { "item": "merge to main / formal release", "status": "INTENTIONAL_DELTA_APPROVED", "reason": "forbidden by the task" }
   ],

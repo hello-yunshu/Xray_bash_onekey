@@ -246,12 +246,51 @@ Bash 侧满足；两侧 `baselineControl` 和阻断/恢复检查均为 true。
 提交前已对双端证据做脱敏（UUID、邮箱、私钥、shortId、公网 DNS 替换为
 `REDACTED`/`user@example.com`/`127.0.0.1`），PASS/FAIL 计数不变。
 
-剩余 OPS 仍未双端复跑，在 `PARITY_MATRIX.csv` 记为 `NOT_RUN`。另外，
-`matrix.json` 的 `go: null` 已过期：OPS-05/06/07/10/17b/24 分别有
+其余 18 个 OPS 仍未双端复跑，在 `PARITY_MATRIX.csv` 记为 `NOT_RUN`。
+`matrix.json` 的 `go: null` 曾把多项标成缺失：OPS-05/06/07/10/17b/24 分别有
 `xray edit --uuid`、`--target`、`xray tls --version`、`--server-names`、
-`update nginx`、`schedule run --job geodata-refresh`；真正缺 Go 等价命令的是
-OPS-08（在线 SNI Guard 修改）与 OPS-27（清空证书），OPS-30（语言切换）是
+`update nginx`、`schedule run --job geodata-refresh`；OPS-30（语言切换）是
 有意差异。
+
+### 9.3 OPS-08 / OPS-27 Go 命令补齐
+
+原先 `matrix.json` 中 OPS-08（在线修改 SNI Guard）与 OPS-27（清空证书）的
+`go` 字段为 `null`。本轮在 `241cc99f` 新增：
+
+```text
+idleleo xray guard show
+idleleo xray guard set --policy isolate|reject|decoy [--decoy-domain D]
+                       [--decoy-cert C --decoy-key K] [--decoy-ip IP]
+                       [--dry-run] [--json]
+idleleo xray cert clear [--yes] [--dry-run] [--json]
+```
+
+`xray guard set` 复用 Bash 的三个保留回环端口（9403/9404/9444），只改
+`upstream deny` 的服务端口和 `03-isolate.conf`/`03-decoy.conf` 的 include，
+不重写整个 mesh；写前捕获文件、`nginx -t` 失败自动还原；decoy 会校验域名解析
+到本机（可用 `--decoy-ip` 补充 NAT 公网地址），未提供证书时生成 1 年自签
+RSA-2048 对。`xray cert clear` 只删 `/etc/idleleo/cert` 下的普通文件/目录，
+跳过符号链接，仅在真实 root 下清 `~/.acme.sh/*_ecc`。
+
+验证命令与结果：
+
+```bash
+docker run --rm -v "$PWD":/src -w /src \
+  -e GOFLAGS=-mod=vendor -e GOPROXY=off -e GOTOOLCHAIN=local \
+  golang:1.27.4 sh -c '
+    go build -o /tmp/idleleo ./cmd/idleleo &&
+    go test ./internal/deploy -run "SNIGuard|ClearCertificates" -v &&
+    bash tests/e2e-diff/smoke_guard_cert.sh /tmp/idleleo /tmp/ops-guard-cert'
+```
+
+结果：`go test ./...` 全绿（deploy 8.0s）；新增 9 个测试覆盖 isolate/reject/
+decoy、端口冲突、`nginx -t` 回滚、证书删除与 dry-run；CLI smoke 输出
+`OPS-08/OPS-27 smoke: PASS`。证据：
+`artifacts/audit-remediation/logs/ops08-27-smoke.log`、`tests/e2e-diff/smoke_guard_cert.sh`。
+
+**验证边界**：smoke 中的 `xray guard set` 只跑 `--dry-run`，真实 `nginx -t`
+在单测中通过桩函数验证；OPS-08/27 的 Bash 交互答案（策略选择、确认）尚未接入
+`run_p2_matrix.sh`，因此双端结论仍为 `NOT_RUN`，不记为 MATCH。
 
 ## 10. 复现入口
 
@@ -262,4 +301,6 @@ E2E_RUN_ID=<id> E2E_ONLY=M1,M4,M9 E2E_CONCURRENCY=3 bash tests/e2e-diff/run_p2_m
 MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh "$PWD" "$PWD/tests/go-parity/evidence/matrix-20261120-final"
 E2E_RUN_ID=<id> bash tests/e2e-diff/run_ops_sweep.sh
 E2E_RUN_ID=<id> E2E_ONLY=OPS-19,OPS-21,OPS-09,OPS-31,OPS-32 bash tests/e2e-diff/run_p2_matrix.sh
+docker run --rm -v "$PWD":/src -w /src golang:1.27.4 \
+  sh -c 'go build -o /tmp/idleleo ./cmd/idleleo && bash tests/e2e-diff/smoke_guard_cert.sh /tmp/idleleo'
 ```

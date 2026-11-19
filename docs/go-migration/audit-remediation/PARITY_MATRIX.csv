@@ -9,11 +9,13 @@ M7,tls-ws-grpc-xhttp,0,"grpc:ok,ws:ok,xhttp:ok",0,"grpc:ok,ws:ok,xhttp:ok",L1-L4
 M8,tls-acme,—,—,—,—,—,NOT_RUN,需要公网域名与 CA；见 TEST_EVIDENCE.md
 M9,none-ws,0,ws:ok,0,ws:ok,L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-20261119/p2/M9
 M10,relay-stream,0,relay:ok,0,relay:ok,L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-20261119/p2/M10
-A98,historical-98-case-matrix,0,"54 MATCH / 40 core / 0 GAP / 4 REFUSED",0,"98 Bash install cases executed",L0-L2,MATCH,tests/go-parity/evidence/matrix-20261120-final/summary.json
+A98,historical-98-case-matrix,0,54 MATCH / 40 core / 0 GAP / 4 REFUSED,0,98 Bash install cases executed,L0-L2,MATCH,tests/go-parity/evidence/matrix-20261120-final/summary.json
 OPS-09,nginx-load-balance,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/audit-ops-dual-20261120/p2/OPS-09
 OPS-19,fail2ban,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/audit-ops-dual-20261120/p2/OPS-19
 OPS-21,traffic-block,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/audit-ops-dual-20261120/p2/OPS-21
 OPS-31,reality-load-balance,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/audit-ops-dual-20261120/p2/OPS-31
-OPS-32,backend-health-eviction,0,"reality PASS / ws PASS",0,"reality PASS / ws PASS",L0-L5,MATCH,tests/e2e-diff/evidence/audit-ops-dual-20261120/p2/OPS-32
-OPS-SWEEP,remaining-ops-go-side,0,"36 PASS / 0 FAIL (18 IDs)",—,—,L0-L5,NOT_RUN,tests/e2e-diff/evidence/audit-ops-20261120
-OPS-BACKLOG,ops-without-go-equivalent, —,—,—,—,—,GAP,"OPS-08 (online SNI policy edit) and OPS-27 (clear certs); OPS-30 language is allowed-diff; OPS-05/06/07/10/17b/24 have Go commands"
+OPS-32,backend-health-eviction,0,reality PASS / ws PASS,0,reality PASS / ws PASS,L0-L5,MATCH,tests/e2e-diff/evidence/audit-ops-dual-20261120/p2/OPS-32
+OPS-SWEEP,remaining-ops-go-side,0,36 PASS / 0 FAIL (18 IDs),—,—,L0-L5,NOT_RUN,tests/e2e-diff/evidence/audit-ops-20261120
+OPS-08,sni-guard-online,0,unit + CLI smoke PASS,—,—,L0-L2,NOT_RUN,artifacts/audit-remediation/logs/ops08-27-smoke.log
+OPS-27,clear-certificates,0,unit + CLI smoke PASS,—,—,L0-L2,NOT_RUN,artifacts/audit-remediation/logs/ops08-27-smoke.log
+OPS-BACKLOG,ops-without-go-equivalent,—,none,—,—,—,—,OPS-30 language is allowed-diff; all other OPS rows have Go commands
