@@ -115,6 +115,11 @@ var commandFlags = map[string]flagSpec{
 	"xray balance add":    specOf([]string{"upstream", "host", "port", "weight"}, "probe", "container"),
 	"xray balance remove": specOf([]string{"upstream", "host", "port"}, "container"),
 	"xray tls":            specOf([]string{"version"}, "container"),
+	"xray guard show":     specOf(nil),
+	"xray guard set": specOf(
+		[]string{"policy", "decoy-domain", "decoy-cert", "decoy-key", "decoy-ip"},
+		"dry-run", "container"),
+	"xray cert clear": specOf(nil, "yes", "dry-run", "container"),
 	"xray config edit": specOf(
 		[]string{"path", "listen", "port", "public-port", "transport", "ws-path", "xhttp-path",
 			"grpc-service-name", "target", "server-names", "uuid", "ws-port", "grpc-port", "xhttp-port",

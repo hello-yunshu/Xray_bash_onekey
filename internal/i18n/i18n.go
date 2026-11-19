@@ -68,6 +68,12 @@ var zh = map[string]string{
   xray tls --version 1.3|1.2+
                        切换托管 Nginx 的 TLS 版本；nginx -t 失败自动还原
                        TLS 站只允许 1.3（h3/quic 要求）
+  xray guard show      只读查看 Reality+Nginx 的未知 SNI 策略
+  xray guard set --policy isolate|reject|decoy [--decoy-domain D] [--dry-run]
+                       在线切换未知 SNI 策略；decoy 需域名解析到本机；
+                       nginx -t 失败自动还原
+  xray cert clear [--yes] [--dry-run]
+                       清空 /etc/idleleo/cert 与管理托管的 ACME 状态
   xray block status    只读查看阻断开关、已写规则数与 drift
   xray block apply|off [--yes] [--dry-run]
                        按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
@@ -200,6 +206,12 @@ Commands:
   xray tls --version 1.3|1.2+
                        switch the managed Nginx TLS version; modular installs
                        accept both, TLS installs only 1.3 (h3/quic)
+  xray guard show      read the Reality+Nginx unknown-SNI policy
+  xray guard set --policy isolate|reject|decoy [--decoy-domain D] [--dry-run]
+                       switch the online unknown-SNI policy; decoy needs DNS
+                       pointing at this host; roll back if nginx -t fails
+  xray cert clear [--yes] [--dry-run]
+                       remove /etc/idleleo/cert and managed ACME state
   xray block status    read-only view of switches, owned rule count and drift
   xray block apply|off [--yes] [--dry-run]
                        rebuild/remove Xray routing-layer block rules; apply

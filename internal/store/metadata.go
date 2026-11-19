@@ -43,6 +43,16 @@ type Metadata struct {
 	// same. The JSON name states the scope, and nothing here is written to the
 	// runtime config or requires a restart/reload.
 	ShareLinkOnly *ShareLinkPrefs `json:"shareLinkOnly,omitempty"`
+	// SNIGuard records the online unknown-SNI policy. It is omitted on installs
+	// that never changed it, so older metadata stays readable.
+	SNIGuard *SNIGuardState `json:"sniGuard,omitempty"`
+}
+
+// SNIGuardState is the non-secret description of the Reality+Nginx guard.
+type SNIGuardState struct {
+	Enabled     bool   `json:"enabled"`
+	Policy      string `json:"policy"`
+	DecoyDomain string `json:"decoyDomain,omitempty"`
 }
 
 // ShareLinkPrefs carries the share-link-only Reality decorations.
