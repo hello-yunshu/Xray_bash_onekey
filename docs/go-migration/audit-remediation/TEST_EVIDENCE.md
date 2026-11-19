@@ -144,10 +144,56 @@ Round 1 为主、Round 2 验幂等；L1→L4 分层对照，L4 为真实数据�
 全部通过。M8（ACME）与真实 VPS/多版本 Xray 不在本轮可执行范围，按
 `BLOCKED`/`NOT_RUN` 记录。
 
+### 9.1 历史 98 项矩阵复跑与断言修正
+
+任务书要求复用历史 98 项矩阵并核查它是否已合并、运行和更新。该矩阵原始证据在
+`docs/go/BASH_GO_REAL_RUNTIME_PARITY_REPORT.md`（提交 `ace4a16`，2026-11-08），
+本轮在修复后的工作树上重跑：
+
+```bash
+MATRIX_BASE_IMAGE=audit-matrix-base:local \
+  bash tests/go-parity/matrix/run_matrix_container.sh "$PWD" \
+  "$PWD/tests/go-parity/evidence/matrix-20261120-final"
+```
+
+结果：98 个 Bash 用例 + 6 个 A1 覆盖组，`54 MATCH / 40 MATCH_CORE_FIELDS /
+0 GAP / 4 REFUSED / 6 A1_PASS`，退出码 0。证据见
+`tests/go-parity/evidence/matrix-20261120-final/summary.json` 与 `environment.txt`。
+
+首轮复跑出现 20 个 GAP，全部是 TLS / Reality+Nginx 的 `port` 断言。原因是旧断言
+拿 Xray 回环后端端口去比 Bash 的公网端口，等于把“两个进程抢同一端口”的旧缺陷
+当成预期；P2 M2/M4 的 L4 数据面已证明正确形态是 Nginx 独占公网端口、Xray 走
+回环。修正只改测试意图：前置端口模式改为传 `--public-port` 并校验生成的 Nginx
+`listen <port>`，不改产品代码，也不跳过任何用例。修正后 GAP 归零，与历史报告
+预期的 `54 / 40 / 0 / 4` 一致。
+
+### 9.2 OPS 运营路径
+
+任务书要求覆盖用户、端口、配置、日志、服务、更新、卸载等管理路径。本轮在
+当前 HEAD 执行 Go 侧 sweep：
+
+```bash
+E2E_RUN_ID=audit-ops-20261120 bash tests/e2e-diff/run_ops_sweep.sh
+```
+
+结果 36 PASS / 0 FAIL，覆盖 OPS-01/02/03/11/12/13/14/14a/15/17a/18/20/22/25/
+26/28/29 与 OPSS-01。证据：
+`tests/e2e-diff/evidence/audit-ops-20261120/assertions.txt`、`ops/`、`run.log`。
+
+证据级别必须如实标注：这是 **Go 单侧**证据，Bash 侧本轮未重跑，因此不能据此
+宣称双端 MATCH。提交前已对证据做脱敏（UUID、邮箱、私钥、公网 DNS 替换为
+`REDACTED`/`user@example.com`/`127.0.0.1`），PASS/FAIL 计数不变。历史双端证据（`goevo-p3-matrix-0242-a9875aff`，提交
+`be141822`）只覆盖 OPS-09/19/21/31/32 五行；其余 OPS 行在
+`PARITY_MATRIX.csv` 记为 `NOT_RUN`，不计入通过。`matrix.json` 中
+`go: null` 的 OPS 行是尚未迁移到 Go 菜单/CLI 的存量项，列为残余缺口而非
+“已验证等价”。
+
 ## 10. 复现入口
 
 ```bash
 bash artifacts/audit-remediation/p0a_relay_exposure.sh
 bash artifacts/audit-remediation/p0c_migration_restore.sh
 E2E_RUN_ID=<id> E2E_ONLY=M1,M4,M9 E2E_CONCURRENCY=3 bash tests/e2e-diff/run_p2_matrix.sh
+MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh "$PWD" "$PWD/tests/go-parity/evidence/matrix-20261120-final"
+E2E_RUN_ID=<id> bash tests/e2e-diff/run_ops_sweep.sh
 ```

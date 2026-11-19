@@ -70,15 +70,19 @@
       "status": "FIXED_VERIFIED",
       "commands": [
         { "cmd": "E2E_RUN_ID=audit-final-20261119 bash tests/e2e-diff/run_p2_matrix.sh", "exitCode": 0 },
-        { "cmd": "E2E_RUN_ID=audit-final-m7-20261119 E2E_ONLY=M7 bash tests/e2e-diff/run_p2_matrix.sh", "exitCode": 0 }
+        { "cmd": "E2E_RUN_ID=audit-final-m7-20261119 E2E_ONLY=M7 bash tests/e2e-diff/run_p2_matrix.sh", "exitCode": 0 },
+        { "cmd": "MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh \"$PWD\" \"$PWD/tests/go-parity/evidence/matrix-20261120-final\"", "exitCode": 0 },
+        { "cmd": "E2E_RUN_ID=audit-ops-20261120 bash tests/e2e-diff/run_ops_sweep.sh", "exitCode": 0 }
       ],
       "evidence": [
         "tests/e2e-diff/evidence/audit-final-20261119/p2/",
         "tests/e2e-diff/evidence/audit-final-m7-20261119/p2/",
+        "tests/go-parity/evidence/matrix-20261120-final/summary.json",
+        "tests/e2e-diff/evidence/audit-ops-20261120/assertions.txt",
         "docs/go-migration/audit-remediation/PARITY_MATRIX.csv"
       ],
-      "notes": "9 executable scenarios MATCH across Go/Bash/L4. M8 ACME NOT_RUN. Original M7 transient network BLOCKER preserved; rerun recorded separately.",
-      "commit": "4527b721"
+      "notes": "9 executable scenarios MATCH across Go/Bash/L4. Historical 98-case matrix rerun at this HEAD: 54 MATCH / 40 core / 0 GAP / 4 REFUSED, after correcting a stale assertion that compared the Xray loopback backend port against Bash's public port. OPS Go-side sweep: 36 PASS / 0 FAIL, single-sided only; dual-side evidence for OPS-09/19/21/31/32 remains at be141822 and is not counted as a current rerun. M8 ACME NOT_RUN.",
+      "commit": "4527b721 (code) + 86d810e5 (evidence)"
     },
     {
       "id": "P1-B",
@@ -142,11 +146,32 @@
     { "id": "M9", "scenario": "none-ws", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M9" },
     { "id": "M10", "scenario": "relay-stream", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M10" }
   ],
+  "historicalMatrix": {
+    "source": "docs/go/BASH_GO_REAL_RUNTIME_PARITY_REPORT.md (commit ace4a16, 2026-11-08)",
+    "rerunCommand": "MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh \"$PWD\" \"$PWD/tests/go-parity/evidence/matrix-20261120-final\"",
+    "exitCode": 0,
+    "counts": { "match": 54, "matchCoreFields": 40, "gap": 0, "refused": 4, "a1Pass": 6, "bashCases": 98 },
+    "assertionCorrected": "Fronted modes now pass --public-port and check the generated Nginx listen port; the previous check compared the loopback backend port and encoded the pre-fix port collision.",
+    "evidence": "tests/go-parity/evidence/matrix-20261120-final/summary.json"
+  },
+  "ops": {
+    "command": "E2E_RUN_ID=audit-ops-20261120 bash tests/e2e-diff/run_ops_sweep.sh",
+    "exitCode": 0,
+    "pass": 36,
+    "fail": 0,
+    "scope": "Go side only; Bash side not rerun in this round, so not counted as dual-side MATCH",
+    "coveredIds": ["OPS-01","OPS-02","OPS-03","OPS-11","OPS-12","OPS-13","OPS-14","OPS-14a","OPS-15","OPS-17a","OPS-18","OPS-20","OPS-22","OPS-25","OPS-26","OPS-28","OPS-29","OPSS-01"],
+    "priorDualSide": { "commit": "be141822", "ids": ["OPS-09","OPS-19","OPS-21","OPS-31","OPS-32"], "evidence": "tests/e2e-diff/evidence/goevo-p3-matrix-0242-a9875aff/p2/" },
+    "goMissingIds": ["OPS-05","OPS-06","OPS-07","OPS-08","OPS-10","OPS-17b","OPS-24","OPS-27","OPS-30"],
+    "evidence": "tests/e2e-diff/evidence/audit-ops-20261120/assertions.txt"
+  },
   "notRunOrBlocked": [
     { "item": "standalone VPS (systemd restart, real cron)", "status": "BLOCKED", "reason": "task forbids operating production VPS; no dedicated test host" },
     { "item": "public CA / DNS-01 / EAB pure-Bash ACME", "status": "BLOCKED", "reason": "requires public domain and CA" },
     { "item": "external IPv6 data plane", "status": "NOT_RUN", "reason": "default Docker bridge has no IPv6" },
     { "item": "multi-version Xray/Bash config matrix", "status": "NOT_RUN", "reason": "requires pinned historical releases" },
+    { "item": "OPS dual-side rerun at current HEAD", "status": "NOT_RUN", "reason": "only the Go-side sweep was rerun; Bash side not executed, so it is not a MATCH" },
+    { "item": "OPS rows without a Go menu/CLI", "status": "GAP", "reason": "OPS-05/06/07/08/10/17b/24/27/30 are recorded as migration backlog, not parity" },
     { "item": "merge to main / formal release", "status": "INTENTIONAL_DELTA_APPROVED", "reason": "forbidden by the task" }
   ],
   "decisions": {

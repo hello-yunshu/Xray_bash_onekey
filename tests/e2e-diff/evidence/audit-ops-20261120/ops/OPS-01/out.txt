@@ -1,0 +1,10 @@
+[
+  {
+    "index": 0,
+    "uuid": "REDACTED",
+    "email": "user@example.com",
+    "flow": "xtls-rprx-vision",
+    "level": 0,
+    "primary": true
+  }
+]

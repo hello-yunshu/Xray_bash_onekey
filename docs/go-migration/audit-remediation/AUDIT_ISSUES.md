@@ -35,7 +35,7 @@
 
 | ID | 原问题 | 当前事实 | 状态 | 证据 |
 | --- | --- | --- | --- | --- |
-| P1-A | 只覆盖常见模式，传输/元数据对照不完整 | P2 矩阵在当前 HEAD 复跑 Reality/TLS/None × raw/ws/gRPC/xHTTP/组合，外加 Reality+Nginx 与 relay；元数据、Xray 配置、分享链接分层对照 | `FIXED_VERIFIED` | `tests/e2e-diff/evidence/audit-final-20261119/p2/`；见 `PARITY_MATRIX.csv` |
+| P1-A | 只覆盖常见模式，传输/元数据对照不完整 | P2 矩阵在当前 HEAD 复跑 Reality/TLS/None × raw/ws/gRPC/xHTTP/组合，外加 Reality+Nginx 与 relay；元数据、Xray 配置、分享链接分层对照。历史 98 项矩阵同 HEAD 复跑为 `54 MATCH / 40 core / 0 GAP / 4 REFUSED`；OPS Go 侧 sweep 36 PASS / 0 FAIL | `FIXED_VERIFIED` | `tests/e2e-diff/evidence/audit-final-20261119/p2/`；`tests/go-parity/evidence/matrix-20261120-final/summary.json`；`tests/e2e-diff/evidence/audit-ops-20261120/`；见 `PARITY_MATRIX.csv` |
 | P1-B | 多文件部署可能半更新 | 部署在首字节写入前 fsync journal；任何失败执行 `restoreTransaction` 并恢复服务 enable/active；Nginx 作为独立组件显式报告残留 | `ALREADY_FIXED_VERIFIED` | `logs/p1b-deploy-rollback.log`（5 个回滚用例 PASS，0 FAIL） |
 | P1-C | 测试隐式依赖公网 DNS/DoH，结果不可复现 | 全量 `go test ./...` 在 `--network none` 容器内通过；e2e 使用容器内 origin 与真实 Nginx/Xray 数据面 | `ALREADY_FIXED_VERIFIED` | `logs/go-test-offline.log`；P2 L4 |
 | P1-D | 长期运行/资源所有权/退出码未验证 | 备份/恢复/修复/计划/存储在 `-race` 下通过；fail2ban 只改自有文件、日志清理只截断普通文件、计划任务测试通过 | `ALREADY_FIXED_VERIFIED` | `logs/p1d-race.log`、`logs/p1d-ownership.log` |
@@ -48,4 +48,7 @@
 | 公网 CA / DNS-01 / EAB 的纯 Bash ACME | `BLOCKED` | 需要公网域名与 CA；只能在受控域名下执行 |
 | 外部 IPv6 数据面 | `NOT_RUN` | Docker 默认 bridge 无 IPv6；已证明 `::` 监听与 `::1` 数据面，外网 IPv6 需双栈宿主 |
 | 多版本 Xray/Bash 配置矩阵 | `NOT_RUN` | 需要固定历史发行物；当前只使用仓库 fixture 与固定 Xray `26.10.31` |
+| OPS 运营场景双端复跑 | `NOT_RUN` | 当前 HEAD 只有 Go 单侧 36 PASS；Bash 侧未重跑，不计为双端 MATCH。历史双端 5 行（OPS-09/19/21/31/32）在 `be141822` |
+| OPS 尚未迁移到 Go 菜单/CLI 的行 | `GAP` | `matrix.json` 中 `go: null`：OPS-05/06/07/08/10/17b/24/27/30；不宣称等价，列为后续迁移项 |
+| 98 项矩阵的前置端口断言 | `FIXED_VERIFIED` | 旧断言把 Xray 回环后端端口当公网端口，等于固化旧缺陷；已改为校验 Nginx `listen <port>`，不跳用例 |
 | 正式发布与 `main` 合并 | `INTENTIONAL_DELTA_APPROVED` | 任务书明确禁止；仅提交工作分支 |
