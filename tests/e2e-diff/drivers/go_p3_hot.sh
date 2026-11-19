@@ -349,6 +349,19 @@ assert $(jq -e '.lastChange != null and .restartCount >= 0' "$OUT/E12-ops/stdout
 run E12-ops-text "$GO" ops summary
 assert $([ "$(cat "$OUT/E12-ops-text/rc.txt")" -eq 0 ] && echo 0 || echo 1) "ops summary renders as text"
 
+# --- E13b doctor --client-probe proves a real user session ----------------
+# This is the strongest evidence the manager can produce without a remote
+# client: the installed xray binary is started as a client, the managed
+# Reality listener is dialled and the origin body is checked.
+run E13b-doctor-probe "$GO" doctor --deep --client-probe --probe-url "$ORIGIN/fast" \
+    --probe-expect hot-ok-fast --json
+rc13b=$?
+assert $([ "$rc13b" -eq 0 ] && echo 0 || echo 1) "doctor --client-probe exits 0 (rc=$rc13b)"
+assert $(jq -e '.evidenceLevel=="REAL_CLIENT_PASS" and
+    (.checks[] | select(.id=="client-probe") | .status=="ok" and .evidence=="REAL_CLIENT_PASS")' \
+    "$OUT/E13b-doctor-probe/stdout.txt" >/dev/null 2>&1 && echo 0 || echo 1) \
+    "the real-client probe reports REAL_CLIENT_PASS"
+
 # --- E13 final health ----------------------------------------------------
 run E13-doctor-final "$GO" doctor --json
 rc13=$?

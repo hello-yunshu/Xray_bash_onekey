@@ -140,6 +140,35 @@ func TestPreflightRejectsScriptForRealRoot(t *testing.T) {
 	}
 }
 
+// A missing installed config means compatibility was never exercised. The
+// report must say so instead of serializing compatible=true, which a consumer
+// would read as "verified against the live configuration".
+func TestPreflightWithoutInstalledConfigIsUnverifiedNotCompatible(t *testing.T) {
+	root := sandbox(t)
+	writeFile(t, filepath.Join(root, "usr/local/bin/xray"), xrayScript("1.8.20", true), 0o755)
+	dir := t.TempDir()
+	candidate := []byte(xrayPreflightScript("1.8.24", true))
+	asset := filepath.Join(dir, "xray")
+	writeFile(t, asset, string(candidate), 0o644)
+	manifest := manifestFor(t, dir, KindXray, "1.8.24", asset, candidate)
+
+	report, err := Preflight(context.Background(), Spec{
+		Root: root, Component: KindXray, ManifestSource: manifest,
+	})
+	if err != nil {
+		t.Fatalf("Preflight: %v", err)
+	}
+	if report.Compatible {
+		t.Fatal("a not-run config check must not report compatible")
+	}
+	if report.Readiness != ReadinessUnverified {
+		t.Fatalf("readiness=%q, want %q", report.Readiness, ReadinessUnverified)
+	}
+	if got := levelByName(t, report, "config-parses"); got.Status != EvidenceNotRun {
+		t.Fatalf("config-parses=%q detail=%q", got.Status, got.Detail)
+	}
+}
+
 func TestPreflightNginxTestsCandidateAgainstInstalledConfig(t *testing.T) {
 	root := sandbox(t)
 	seedNginx(t, root, "1.24.0")

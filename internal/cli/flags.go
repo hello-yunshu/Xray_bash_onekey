@@ -212,7 +212,7 @@ var commandFlags = map[string]flagSpec{
 	"speedtest":   specOf([]string{"server", "bytes", "samples", "timeout"}),
 	"rill status": specOf(nil),
 
-	"doctor":         specOf(nil, "deep"),
+	"doctor":         specOf([]string{"probe-url", "probe-expect"}, "deep", "client-probe"),
 	"repair":         specOf(nil, "dry-run", "fix-lock", "container"),
 	"backup create":  specOf([]string{"out"}, "include-geodata", "container"),
 	"backup verify":  specOf([]string{"archive"}),

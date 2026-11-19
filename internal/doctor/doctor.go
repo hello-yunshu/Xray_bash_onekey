@@ -21,13 +21,25 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/clientprobe"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/runtime"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/service"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg"
 )
 
 const SchemaVersion = 1
+
+// Connectivity evidence levels. They are ordered from weakest to strongest so
+// an operator never reads a TCP connect as a working user session.
+const (
+	EvidenceFileAndService = "FILE_AND_SERVICE"
+	EvidenceTCP            = "TCP_REACHABLE"
+	EvidenceTLS            = "TLS_HANDSHAKE"
+	EvidenceRealClient     = "REAL_CLIENT_PASS"
+	EvidenceNotRun         = "NOT_RUN"
+)
 
 // Status is the severity of one check.
 type Status string
@@ -70,6 +82,10 @@ type Report struct {
 	Checks        []Check `json:"checks"`
 	Summary       Summary `json:"summary"`
 	Healthy       bool    `json:"healthy"`
+	// EvidenceLevel is the strongest thing this run actually proved. Healthy
+	// only means "no check failed"; it is not an end-to-end claim.
+	EvidenceLevel string   `json:"evidenceLevel"`
+	Limitations   []string `json:"limitations"`
 }
 
 // Options injects the seams a test needs. A zero Options still performs every
@@ -79,6 +95,13 @@ type Options struct {
 	Deep     bool
 	Services func(ctx context.Context, root string) (service.StatusReport, error)
 	Validate func(ctx context.Context, configPath string) error
+	// ClientProbe runs a real Xray client through one user-bearing inbound.
+	// It is opt-in because it needs a reachable HTTP origin and an installed
+	// xray binary.
+	ClientProbe bool
+	ProbeURL    string
+	ProbeExpect string
+	Probe       func(ctx context.Context, xrayBin string, link clientprobe.Link, addr, origin, marker string) (clientprobe.Result, error)
 }
 
 // Run is RunWith with production defaults.
@@ -115,6 +138,9 @@ func RunWith(ctx context.Context, root string, opts Options) Report {
 	if opts.Deep {
 		rep.add(checkConnectivity(ctx, paths))
 	}
+	if opts.ClientProbe {
+		rep.add(checkClientProbe(ctx, paths, opts))
+	}
 	return rep.finish()
 }
 
@@ -146,6 +172,33 @@ func (r *Report) finish() Report {
 		}
 	}
 	r.Healthy = r.Summary.Fail == 0
+	r.EvidenceLevel = EvidenceFileAndService
+	for _, c := range r.Checks {
+		if c.ID == "client-probe" && c.Status == StatusOK {
+			r.EvidenceLevel = EvidenceRealClient
+		}
+	}
+	if r.EvidenceLevel == EvidenceFileAndService {
+		for _, c := range r.Checks {
+			if c.ID != "connectivity" {
+				continue
+			}
+			switch c.Evidence {
+			case EvidenceTLS:
+				r.EvidenceLevel = EvidenceTLS
+			case EvidenceTCP:
+				r.EvidenceLevel = EvidenceTCP
+			case EvidenceNotRun:
+				r.EvidenceLevel = EvidenceNotRun
+			}
+		}
+	}
+	r.Limitations = []string{
+		"certificate chain, SAN matching and expiry are read from the managed PEM; no public CA trust store is consulted",
+		"an external origin, DNS and cloud security groups are outside this process; only what this host can reach is tested",
+		"a TCP connect or TLS handshake through a Reality inbound is not a user session; only --client-probe proves one",
+		"a TLS listener probe proves the tunnel, not the public certificate chain",
+	}
 	return *r
 }
 
@@ -429,10 +482,10 @@ func checkConnectivity(ctx context.Context, paths host.Paths) Check {
 		return Check{ID: "connectivity", Status: StatusSkip, Message: "runtime config is not valid JSON, connectivity not probed"}
 	}
 	if len(cfg.Inbounds) == 0 {
-		return Check{ID: "connectivity", Status: StatusUnknown, Message: "no inbound to probe", Evidence: "not-run"}
+		return Check{ID: "connectivity", Status: StatusUnknown, Message: "no inbound to probe", Evidence: EvidenceNotRun}
 	}
 	probed := 0
-	evidence := "tcp-connect"
+	evidence := EvidenceTCP
 	for _, in := range cfg.Inbounds {
 		if probed == 3 {
 			break
@@ -453,7 +506,7 @@ func checkConnectivity(ctx context.Context, paths host.Paths) Check {
 			return Check{ID: "connectivity", Status: StatusFail,
 				Message:  fmt.Sprintf("inbound %s is not reachable", in.Tag),
 				Detail:   addr + ": " + err.Error(),
-				Evidence: "tcp-connect",
+				Evidence: EvidenceTCP,
 				Cause:    "the process is not listening or a firewall drops the probe",
 			}
 		}
@@ -470,17 +523,17 @@ func checkConnectivity(ctx context.Context, paths host.Paths) Check {
 				return Check{ID: "connectivity", Status: StatusFail,
 					Message:  fmt.Sprintf("inbound %s accepted TCP but not TLS", in.Tag),
 					Detail:   err.Error(),
-					Evidence: "tls-handshake",
+					Evidence: EvidenceTLS,
 					Cause:    "the listener is not the expected TLS inbound",
 				}
 			}
 			_ = tlsConn.Close()
-			evidence = "tls-handshake"
+			evidence = EvidenceTLS
 		case "reality":
 			_ = conn.Close()
 			return Check{ID: "connectivity", Status: StatusUnknown,
 				Message:  fmt.Sprintf("inbound %s is TCP-reachable; Reality handshake needs a client", in.Tag),
-				Evidence: "tcp-connect",
+				Evidence: EvidenceTCP,
 				Cause:    "doctor has no Xray client and must not fake a user-level success",
 			}
 		default:
@@ -576,6 +629,147 @@ func checkLock(paths host.Paths, now time.Time) Check {
 		return Check{ID: "lock", Status: StatusWarn, Message: "a stale update lock exists", Detail: fi.ModTime().UTC().Format(time.RFC3339)}
 	}
 	return Check{ID: "lock", Status: StatusWarn, Message: "an update lock is currently held"}
+}
+
+// checkClientProbe is the strongest read-only layer: it starts the real Xray
+// client from this installation, dials the managed listener and proves an HTTP
+// response arrives from the origin. A missing binary, no user-bearing inbound
+// or no probe URL is reported as NOT_RUN instead of a pass.
+func checkClientProbe(ctx context.Context, paths host.Paths, opts Options) Check {
+	const id = "client-probe"
+	if strings.TrimSpace(opts.ProbeURL) == "" {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "no probe URL supplied; the real-client layer was not exercised"}
+	}
+	configPath, err := paths.Join(paths.RuntimeConfig(), false)
+	if err != nil {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "runtime config missing, client probe not run"}
+	}
+	body, err := os.ReadFile(configPath)
+	if err != nil {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "runtime config unreadable, client probe not run"}
+	}
+	link, addr, ok, err := probeLink(body)
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceRealClient,
+			Message: "cannot build a client from the runtime config", Detail: err.Error()}
+	}
+	if !ok {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "no user-bearing vless inbound to probe"}
+	}
+	bin := xrayBinary(paths.Root)
+	if bin == "" {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "xray binary is not installed, client probe not run"}
+	}
+	probe := opts.Probe
+	if probe == nil {
+		probe = clientprobe.Probe
+	}
+	res, err := probe(ctx, bin, link, addr, opts.ProbeURL, opts.ProbeExpect)
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceRealClient,
+			Message: "a real client could not complete the request",
+			Detail:  err.Error(), Cause: "the tunnel, the credential or the origin is not usable"}
+	}
+	return Check{ID: id, Status: StatusOK, Evidence: EvidenceRealClient,
+		Message: fmt.Sprintf("a real client reached the origin through %s", addr),
+		Detail:  fmt.Sprintf("%s, %d body bytes", res.StatusLine, res.BodyBytes)}
+}
+
+// probeLink projects the first user-bearing vless inbound onto a client link.
+// It never mutates the config and never persists the derived key.
+func probeLink(body []byte) (clientprobe.Link, string, bool, error) {
+	var doc struct {
+		Inbounds []struct {
+			Listen   string `json:"listen"`
+			Port     int    `json:"port"`
+			Protocol string `json:"protocol"`
+			Settings struct {
+				Clients []struct {
+					ID   string `json:"id"`
+					Flow string `json:"flow"`
+				} `json:"clients"`
+			} `json:"settings"`
+			Stream struct {
+				Network  string `json:"network"`
+				Security string `json:"security"`
+				Reality  struct {
+					PrivateKey  string   `json:"privateKey"`
+					ShortIDs    []string `json:"shortIds"`
+					ServerNames []string `json:"serverNames"`
+				} `json:"realitySettings"`
+				TLS struct {
+					ServerName string `json:"serverName"`
+				} `json:"tlsSettings"`
+				WS struct {
+					Path string `json:"path"`
+				} `json:"wsSettings"`
+				GRPC struct {
+					ServiceName string `json:"serviceName"`
+				} `json:"grpcSettings"`
+				XHTTP struct {
+					Path string `json:"path"`
+				} `json:"xhttpSettings"`
+			} `json:"streamSettings"`
+		} `json:"inbounds"`
+	}
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return clientprobe.Link{}, "", false, err
+	}
+	for _, in := range doc.Inbounds {
+		if in.Protocol != "vless" || len(in.Settings.Clients) == 0 || in.Port < 1 {
+			continue
+		}
+		link := clientprobe.Link{
+			UUID:        in.Settings.Clients[0].ID,
+			Flow:        in.Settings.Clients[0].Flow,
+			Network:     in.Stream.Network,
+			Security:    in.Stream.Security,
+			Path:        in.Stream.WS.Path,
+			ShortID:     firstString(in.Stream.Reality.ShortIDs),
+			SNI:         firstString(in.Stream.Reality.ServerNames),
+			Fingerprint: "chrome",
+		}
+		if link.Network == "" || link.Network == "tcp" {
+			link.Network = "raw"
+		}
+		switch link.Network {
+		case "grpc":
+			link.ServiceName = in.Stream.GRPC.ServiceName
+		case "xhttp":
+			link.Path = in.Stream.XHTTP.Path
+		}
+		if link.Security == "reality" {
+			pub, err := xraycfg.DerivePublicKey(in.Stream.Reality.PrivateKey)
+			if err != nil {
+				return clientprobe.Link{}, "", false, fmt.Errorf("derive the reality public key: %w", err)
+			}
+			link.PublicKey = pub
+		} else if link.Security == "tls" {
+			if in.Stream.TLS.ServerName != "" {
+				link.SNI = in.Stream.TLS.ServerName
+			}
+		}
+		listen := in.Listen
+		if listen == "" || listen == "0.0.0.0" || listen == "::" || listen == "[::]" {
+			listen = "127.0.0.1"
+		}
+		return link, net.JoinHostPort(listen, strconv.Itoa(in.Port)), true, nil
+	}
+	return clientprobe.Link{}, "", false, nil
+}
+
+func firstString(values []string) string {
+	for _, v := range values {
+		if strings.TrimSpace(v) != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 func checkGeodata(paths host.Paths) Check {
