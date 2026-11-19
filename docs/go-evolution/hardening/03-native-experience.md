@@ -162,5 +162,5 @@ E2E_RUN_ID=20261119-p3xhttp2 E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.
 
 - 代码层：P3-01/P3-02 已实现并有单元测试；P3-03 在本 SHA 上 raw/ws/grpc/xhttp 四条传输各 62/62 真实通过。
 - 探针层：Reality 四条 Xray 传输的 `--client-probe` 均为 `REAL_CLIENT_PASS`；relay 以真实 HTTP 穿过 Nginx Stream 达到 `REAL_CLIENT_PASS`，并在 limitation 中明确它不是 VLESS 会话。
-- 证据层：`LOCAL_RUN`（容器内真实 systemd/Xray/nginx/TLS origin）已具备；独立 VM、真实 CI、生产 VPS 仍为 `BLOCKED`/`NOT_RUN`。
-- 发布结论：P3 不改变 `NO-GO` 的最终发布判断；仍需完成 P3-04 的真实 VM 验收与 P2 的真实 CI 复跑。
+- 证据层：`LOCAL_RUN`（容器内真实 systemd/Xray/nginx/TLS origin）已具备；真实 CI 为 `CI_RUN` PASS（PR #182 @ `4f12543e`）；独立 VM 与生产 VPS 仍为 `BLOCKED`。
+- 发布结论：P3 不改变 `NO-GO` 的最终发布判断；真实 CI 已复跑通过，仍需完成 P3-04 的真实 VM 验收与 P2 的 OPS 全量双端证据。

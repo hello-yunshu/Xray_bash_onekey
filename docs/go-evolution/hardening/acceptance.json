@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-19T00:00:00Z",
+  "branch": "work/go-hardening-parity-20261119",
+  "baselineSha": "9b965843dccc955eee8b91903749500f082271f7",
+  "codeSha": "4ab08050",
+  "ciSha": "4f12543e",
+  "pr": {
+    "number": 182,
+    "url": "https://github.com/hello-yunshu/Xray_bash_onekey/pull/182",
+    "base": "develop/go-native",
+    "draft": true,
+    "merged": false
+  },
+  "environment": {
+    "go": "1.27.4",
+    "goImage": "golang:1.27.4",
+    "e2eImage": "idleleo-e2e:24.04",
+    "vendored": true,
+    "offline": true
+  },
+  "ci": {
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239779": "Go parity stage gate: success",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239752": "Go preview qualification (NOT FOR RELEASE): success",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239918": "Go production parity release qualification: success",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527240183": "Go real-root change acceptance (container): success",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527240075": "Test Install: success",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239956": "Privacy Guard: success"
+  },
+  "items": [
+    {
+      "id": "T01",
+      "title": "backup verify/create boundaries",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "4c9705a9",
+      "testCommand": "go test -count=1 ./internal/backup",
+      "evidencePath": "internal/backup/hardening_test.go",
+      "reason": "entry forgery, traversal, compression bounds, mode tamper, absent optional geodata, symlinked geodata parent"
+    },
+    {
+      "id": "T02",
+      "title": "restore success, rollback and pre-restore backup",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "43ceb680",
+      "testCommand": "go test -count=1 ./internal/backup",
+      "evidencePath": "internal/backup/hardening_test.go",
+      "reason": "pre-restore snapshot, failed apply rollback, interrupted journal refusal, third-party files untouched"
+    },
+    {
+      "id": "T03",
+      "title": "mid-apply SIGKILL and recover convergence",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "43ceb680",
+      "testCommand": "go test -count=1 -run TestRestoreHardKillAtEveryDurablePointConverges ./internal/backup",
+      "evidencePath": "internal/backup/hardening_test.go",
+      "reason": "six durable points, real syscall.Kill, ENOSPC/EROFS/EACCES injection"
+    },
+    {
+      "id": "T04",
+      "title": "cold restore on a clean machine",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "4ab08050",
+      "testCommand": "E2E_RUN_ID=20261119-cold4 bash tests/e2e-diff/run_coldrestore.sh",
+      "evidencePath": "tests/e2e-diff/evidence/goevo-coldrestore-20261119-cold4/run.json",
+      "reason": "source container destroyed; fresh target restores; source 8/8, target 19/19; byte-identical config; xray -test; service active; real client before and after restart"
+    },
+    {
+      "id": "T05",
+      "title": "repair symlink boundary, dry-run and shared lock",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "8ac1385f",
+      "testCommand": "go test -count=1 ./internal/repair",
+      "evidencePath": "internal/repair/hardening_test.go",
+      "reason": "symlink escape refused; dry-run writes nothing and takes no lock; concurrent update lock respected"
+    },
+    {
+      "id": "T06",
+      "title": "privilege and secret leakage",
+      "status": "PARTIAL",
+      "codeSha": "43ceb680",
+      "testCommand": "go test -count=1 ./internal/change ./internal/backup",
+      "evidencePath": "internal/change/plan_test.go",
+      "reason": "known argv/plan redaction paths covered; full manual penetration audit not performed"
+    },
+    {
+      "id": "T07",
+      "title": "CI fail-closed negatives",
+      "status": "CI_RUN_PASS",
+      "codeSha": "04d06cf4",
+      "testCommand": "python3 -m unittest discover -s tests -v",
+      "evidencePath": "tests/go-parity/parity/tests/test_fail_closed.py",
+      "ciUrl": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239779",
+      "reason": "pending ledger returns 2 and signed ledger returns 3 without pinned evidence"
+    },
+    {
+      "id": "T08",
+      "title": "pending/signed stage switch and signed smoke",
+      "status": "CI_RUN_PASS",
+      "codeSha": "04d06cf4",
+      "testCommand": "gh pr checks 182",
+      "evidencePath": "docs/go-evolution/hardening/02-ci-and-bash-go-parity.md",
+      "ciUrl": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239752",
+      "reason": "six workflows green on SHA 4f12543e; signed stage claims no release authority"
+    },
+    {
+      "id": "T09",
+      "title": "M1-M10 dual-side install/edit matrix",
+      "status": "DUAL_SIDE_PASS",
+      "codeSha": "a56a448d",
+      "testCommand": "E2E_RUN_ID=20261119-p2full E2E_CONCURRENCY=4 bash tests/e2e-diff/run_p2_matrix.sh",
+      "evidencePath": "tests/e2e-diff/evidence/20261119-p2full/p2/install-matrix.md",
+      "reason": "both sides rc=0; reality/ws/grpc/xhttp/relay data plane ok; E1-E8 allPassed"
+    },
+    {
+      "id": "T10",
+      "title": "OPS full table",
+      "status": "PARTIAL",
+      "codeSha": "1b519028",
+      "testCommand": "E2E_RUN_ID=20261119-p2full bash tests/e2e-diff/run_p2_matrix.sh",
+      "evidencePath": "tests/e2e-diff/matrix.json",
+      "reason": "34 rows classified; 5 dual-side verified (OPS-09/19/21/31/32); the other 29 are GO_ONLY_PASS or NOT_RUN, not claimed as dual-side"
+    },
+    {
+      "id": "T11",
+      "title": "pure Bash ACME",
+      "status": "BLOCKED",
+      "codeSha": "4c986c26",
+      "testCommand": "E2E_ACME=1 E2E_ACME_MODE=bash bash tests/e2e-diff/run_p2_matrix.sh",
+      "evidencePath": "tests/e2e-diff/matrix.json",
+      "reason": "image has no acme.sh and no reachable ACME endpoint; driver writes status=BLOCKED and exits 3"
+    },
+    {
+      "id": "T12",
+      "title": "takeover and migration parity",
+      "status": "PARTIAL",
+      "codeSha": "43ceb680",
+      "testCommand": "E2E_RUN_ID=20261119-inj E2E_PATHS=inj E2E_ONLY=M4 bash tests/e2e-diff/run_r1_upgrade.sh",
+      "evidencePath": "tests/e2e-diff/evidence/20261119-inj/r1/assertions.txt",
+      "reason": "container R1/R2/INJ 85+26 assertions; independent VM old-install migration not run"
+    },
+    {
+      "id": "T13",
+      "title": "doctor evidence levels and real client probe",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "911f91d2",
+      "testCommand": "E2E_RUN_ID=20261119-p3raw2 bash tests/e2e-diff/run_p3_hot.sh",
+      "evidencePath": "tests/e2e-diff/evidence/goevo-p3-20261119-p3raw2/container/driver/E13b-doctor-probe/stdout.txt",
+      "reason": "raw/ws/grpc/xhttp each 62/62; relay real HTTP through Nginx Stream; REAL_CLIENT_PASS is not a VLESS user session"
+    },
+    {
+      "id": "T14",
+      "title": "update preflight readiness",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "04d06cf4",
+      "testCommand": "go test -count=1 ./internal/componentupdate",
+      "evidencePath": "internal/componentupdate/preflight_test.go",
+      "reason": "not-run config parse yields compatible=false and readiness=unverified; real multi-version binary matrix NOT_RUN"
+    },
+    {
+      "id": "T15",
+      "title": "hot user persistence, crash and removal",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "de43a36b",
+      "testCommand": "E2E_RUN_ID=20261119-p3raw2 bash tests/e2e-diff/run_p3_hot.sh",
+      "evidencePath": "tests/e2e-diff/evidence/goevo-p3-20261119-p3raw2/run.json",
+      "reason": "62/62 on raw/ws/grpc/xhttp; persistence precedes runtime; removal does not resurrect"
+    },
+    {
+      "id": "T16",
+      "title": "full regression",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "4ab08050",
+      "testCommand": "gofmt -l cmd internal tests; go vet ./...; go build ./...; go test -count=1 ./...",
+      "evidencePath": "docs/go-evolution/hardening/01-security-recovery.md",
+      "reason": "25 packages ok, 0 FAIL; rc=0 in golang:1.27.4 with vendored offline modules"
+    }
+  ],
+  "ops": {
+    "total": 34,
+    "dualSideVerified": ["OPS-09", "OPS-19", "OPS-21", "OPS-31", "OPS-32"],
+    "goOnly": 29,
+    "fail": 0,
+    "notRun": 0,
+    "blocked": []
+  },
+  "summary": {
+    "pass": 12,
+    "partial": 3,
+    "blocked": 1,
+    "fail": 0,
+    "notRun": 0
+  },
+  "boundaries": [
+    "independent VM cold restore and power-loss recovery: BLOCKED",
+    "pure Bash ACME (M8): BLOCKED",
+    "29 OPS rows without dual-side data plane: GO_ONLY_PASS or NOT_RUN",
+    "real multi-version Xray binary matrix: NOT_RUN",
+    "production VPS: forbidden by the task"
+  ]
+}

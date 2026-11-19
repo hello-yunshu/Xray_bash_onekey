@@ -27,8 +27,8 @@
 |---|---|---|
 | 2026-11-19 | `go test -count=1 ./...`（`golang:1.27.4`，SHA `4ab08050`） | rc=0，25 个包 `ok`，0 FAIL |
 | 2026-11-19 | `E2E_RUN_ID=20261119-cold4 bash tests/e2e-diff/run_coldrestore.sh` | source 8/8、target 19/19，双侧 rc=0 |
-| 2026-11-19 | PR #182：preview / realroot / native-core-release-qualification / Test Install | 首轮通过 |
-| 2026-11-19 | PR #182：stage-parity / Privacy Guard | 首轮因文档 `::` 被 IPv6 卫生规则命中；已改文档并复跑 |
+| 2026-11-19 | PR #182 @ `4f12543e`：stage / preview / release / realroot / Test Install / Privacy | 六条工作流全部 success（run id 见 `02` §2.4） |
+| 2026-11-19 | PR #182 @ `4ab08050` 首轮 | stage/Privacy 因文档 `::` 被 IPv6 卫生规则命中；修文档后复跑通过 |
 | 2026-11-19 | `gofmt -l cmd internal tests` / `go vet ./...` / `go build ./...` | 全部 rc=0 |
 | 2026-11-19 | `python3 -m unittest discover -s tests -v`（`tests/go-parity/parity`） | `Ran 10 tests ... OK` |
 | 2026-11-19 | `python3 .github/test/test_color_output.py` | `73 passed, 0 failed` |
@@ -45,7 +45,7 @@
 
 | 项 | 状态 | 原因 |
 |---|---|---|
-| 真实 GitHub Actions 复跑 | `CI_RUN` | PR #182（draft，base `develop/go-native`）；首轮结果见上 |
+| 真实 GitHub Actions 复跑 | `CI_RUN` PASS | PR #182（draft，base `develop/go-native`）@ `4f12543e`：六条工作流 success |
 | 独立 VM 冷恢复/掉电 | `BLOCKED` | 无 VM |
 | 纯 Bash ACME（M8） | `BLOCKED` | 镜像无 `acme.sh`，无外部 ACME 端点 |
 | 接管/迁移独立 VM | `PARTIAL` | 容器 R1/R2/INJ 已跑；独立 VM 未做 |

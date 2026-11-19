@@ -129,11 +129,32 @@ E2E_RUN_ID=20261119-m10relay2 E2E_ONLY=M10 bash tests/e2e-diff/run_p2_matrix.sh
 | `20261119-r1` | `a56a448d` | 85 PASS / 1 FAIL | 唯一失败是 M4 INJ bash 安装 `rc=124`；日志显示 Nginx 下载 `curl: (18) partial file`，属外网中断 |
 | `20261119-inj` | `43ceb680` | 26 PASS / 0 FAIL | 重跑同一 M4 注入场景通过 |
 
+### 2.4 真实 CI 复跑（`CI_RUN`）
+
+工作分支已推送并创建 draft PR #182（base `develop/go-native`，**不合并**）：
+`https://github.com/hello-yunshu/Xray_bash_onekey/pull/182`。
+同一 SHA `4f12543e` 上六条工作流全部 `success`：
+
+| 工作流 | run id | 结论 | 链接 |
+|---|---|---|---|
+| Go parity stage gate | `44527239779` | success | `https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239779` |
+| Go preview qualification (NOT FOR RELEASE) | `44527239752` | success | `https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239752` |
+| Go production parity release qualification | `44527239918` | success | `https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239918` |
+| Go real-root change acceptance (container) | `44527240183` | success | `https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527240183` |
+| Test Install | `44527240075` | success | `https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527240075` |
+| Privacy Guard | `44527239956` | success | `https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239956` |
+
+首轮在 `4ab08050` 上暴露了一个真实的文档卫生问题：hardening 文档里的
+`path · symbol` 写法（原先使用 Rust 风格分隔符）被 `check_evidence_hygiene.py`
+按公网 IPv6 字面量命中，导致 stage gate 与 Privacy Guard 失败。
+修复只改文档写法，未降低卫生规则；`4f12543e` 复跑后两条工作流均为 success。
+这正是 P2-01 要证明的“CI 真正运行”，而不是用 `actionlint` 或本地结果冒充。
+
 ## 3. 未完成 / 未运行
 
 | 项 | 等级 | 原因 |
 |---|---|---|
-| 三条工作流在 GitHub 上的新一轮真实运行 | `NOT_RUN` | 本轮不执行 `git push`；需推送修复分支后由 CI 触发 |
+| 三条工作流在 GitHub 上的新一轮真实运行 | `CI_RUN` PASS | 见 2.4；六条工作流在同一 SHA `4f12543e` 全部 success |
 | 34 行 OPS 全量 | `PARTIAL` | 本轮实跑 5 行双端数据面（09/19/21/31/32），其余 29 行仍是 `GO_ONLY_PASS`/`NOT-RUN` |
 | 纯 Bash ACME | `BLOCKED` | 缺少 acme.sh 与外部 Pebble 可达性 |
 | 独立 VM 接管/迁移 | `BLOCKED` | 容器结果不能替代真实旧安装 |

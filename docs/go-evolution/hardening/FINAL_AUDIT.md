@@ -4,12 +4,13 @@
 
 | 范围 | 结论 | 理由 |
 | --- | --- | --- |
-| 合并到 `main` | **NO-GO** | 真实 CI 未复跑、独立 VM 未验收、OPS 29 行无双端证据 |
+| 合并到 `main` | **NO-GO** | 独立 VM 未验收、OPS 29 行无双端证据、真实多版本 Xray 矩阵未跑 |
 | 发布正式版本 / tag | **NO-GO** | 同上；且任务书禁止本轮发布 |
 | 合并到 `develop/go-native` | **GO（作为候选）** | 当前 SHA 全量 Go 门禁与 P3 真实场景通过；P1/P2 代码有定向负例 |
 | 生产 VPS 操作 | **禁止** | 任务书约束 |
 
-本轮未执行 `git push`、未合并 `main`、未创建 tag/release、未连接生产 VPS。
+本轮已把工作分支推送到 origin 并创建 draft PR #182（base `develop/go-native`），仅用于触发真实 CI；
+未合并 `main`/`develop/go-native`、未创建 tag/release、未连接生产 VPS。
 
 ## 2. 交付物
 
@@ -22,6 +23,7 @@
 | 验收矩阵 | 完成 | `docs/go-evolution/hardening/ACCEPTANCE_MATRIX.md` |
 | 最终审计 | 完成 | `docs/go-evolution/hardening/FINAL_AUDIT.md` |
 | 执行轨迹 | 完成 | `docs/go-evolution/hardening/TRAE_PROGRESS.md` |
+| 机器可读验收看板 | 完成 | `docs/go-evolution/hardening/acceptance.json` |
 
 代码提交：
 
@@ -59,7 +61,10 @@ P3 新增客户端探针与 readiness 测试。当前 SHA 全量 `go test -count
 | `check_preview_gate.py` 在签收后必红 | 强制账本 28 PENDING | 新增 signed 阶段检测；signed 时运行 `check_signed_stage.py`，无发布权限 | 同上；`actionlint` rc=0 |
 | `Test Install` ANSI 扫描 | 历史日志与 fixture 混为一类 | 按 `production-output-risk/docs/test-fixture/canonical-payload/historical-evidence` 分类 | `73 passed, 0 failed`，`production-risk=0` |
 
-真实 GitHub Actions：`NOT_RUN`（未 push）。workflow 变更已通过本地 actionlint，不能据此声称 CI 已绿。
+真实 GitHub Actions：`CI_RUN` PASS。draft PR #182 在 SHA `4f12543e` 上六条工作流全部 success：
+stage gate `44527239779`、preview `44527239752`、release qualification `44527239918`、
+real-root `44527240183`、Test Install `44527240075`、Privacy Guard `44527239956`。
+首轮 `4ab08050` 的 stage/Privacy 失败是文档写法被 IPv6 卫生规则命中，修正后复跑通过。
 
 ## 5. 仍未闭合的风险
 
@@ -67,7 +72,7 @@ P3 新增客户端探针与 readiness 测试。当前 SHA 全量 `go test -count
 | --- | --- | --- | --- |
 | 冷恢复（容器） | P1 | 已闭合 | `20261119-cold4`：源容器销毁后目标容器恢复，8/8 + 19/19，真实客户端通过 |
 | 独立 VM 冷恢复/掉电恢复 | P1 | `BLOCKED` | 至少一次真实 VM 全流程（P3-04） |
-| 真实 CI 复跑 | P1 | `NOT_RUN` | push 到受保护分支并保存 run id |
+| 真实 CI 复跑 | P1 | 已闭合 | PR #182 @ `4f12543e`：六条工作流 success，run id 见 §4 |
 | OPS 29 行无双端证据 | P1 | `GO_ONLY_PASS` | 逐项补双端或正式批准安全差异 |
 | 纯 Bash ACME（M8） | P1 | `BLOCKED` | 提供 `acme.sh` 与可达 ACME 端点后重跑 |
 | 接管/迁移独立 VM | P1 | `PARTIAL` | 容器 R1/R2/INJ 已过（85+26 断言），仍需旧版真实安装 + 独立 VM |
