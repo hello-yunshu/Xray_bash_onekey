@@ -230,6 +230,40 @@ func TestCreateRefusesSymlinkedManagedDir(t *testing.T) {
 	}
 }
 
+func TestCreateSkipsAbsentGeodataTree(t *testing.T) {
+	root := seedRoot(t) // an install that never downloaded the optional geo assets
+	archive := filepath.Join(t.TempDir(), "state.tar.gz")
+	if _, err := Create(context.Background(), root, archive, CreateOptions{IncludeGeodata: true}); err != nil {
+		t.Fatalf("an absent opt-in geodata tree must not fail the backup: %v", err)
+	}
+	manifest, err := Verify(archive)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !manifest.IncludeGeo {
+		t.Fatal("the manifest must still record that geo assets were requested")
+	}
+	for _, e := range manifest.Entries {
+		if strings.HasPrefix(e.Path, "etc/idleleo/share/") {
+			t.Fatalf("absent geodata produced an entry: %s", e.Path)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(root, "etc/idleleo/share")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatal("the backup must not create the optional geodata tree")
+	}
+}
+
+func TestCreateStillRefusesSymlinkedGeodataParent(t *testing.T) {
+	root := seedRoot(t)
+	outside := t.TempDir()
+	if err := os.Symlink(outside, filepath.Join(root, "etc/idleleo/share")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Create(context.Background(), root, filepath.Join(t.TempDir(), "state.tar.gz"), CreateOptions{IncludeGeodata: true}); err == nil {
+		t.Fatal("a symlinked geodata parent must still be refused")
+	}
+}
+
 func TestRestoreRefusesSymlinkComponent(t *testing.T) {
 	src := seedRoot(t)
 	archive := filepath.Join(t.TempDir(), "state.tar.gz")

@@ -152,9 +152,18 @@ func Create(ctx context.Context, root, archive string, opts CreateOptions) (Repo
 	for _, rel := range append(append([]string{}, managedDirs...), maybeGeo(opts.IncludeGeodata)...) {
 		dir, err := securePath(absRoot, rel, false)
 		if err != nil {
+			// An optional tree (notably the opt-in GeoData directory) may be
+			// absent while one of its parents exists. That is not a failure:
+			// there is simply nothing to archive. Symlinks and unsafe parents
+			// still return a non-ENOENT error and abort the backup.
+			if errors.Is(err, os.ErrNotExist) {
+				skipped = append(skipped, rel+" (absent)")
+				continue
+			}
 			return Report{}, err
 		}
 		if _, err := os.Lstat(dir); errors.Is(err, os.ErrNotExist) {
+			skipped = append(skipped, rel+" (absent)")
 			continue
 		}
 		err = filepath.WalkDir(dir, func(path string, d os.DirEntry, walkErr error) error {
