@@ -85,7 +85,7 @@
         "docs/go-migration/audit-remediation/PARITY_MATRIX.csv"
       ],
       "notes": "9 executable scenarios MATCH across Go/Bash/L4. Historical 98-case matrix rerun at this HEAD: 54 MATCH / 40 core / 0 GAP / 4 REFUSED, after correcting a stale assertion that compared the Xray loopback backend port against Bash's public port. OPS Go-side sweep: 36 PASS / 0 FAIL, single-sided only; dual-side evidence for OPS-09/19/21/31/32 remains at be141822 and is not counted as a current rerun. M8 ACME NOT_RUN.",
-      "commit": "4527b721 (code) + 86d810e5 (evidence)"
+      "commit": "4527b721 (code) + 288c9e91/3cbcfc08 (evidence)"
     },
     {
       "id": "P1-B",

@@ -2,7 +2,8 @@
 
 > 所有结果来自当前分支 `work/go-hardening-parity-20261119`。代码提交
 > `4527b721fda1dee39545f63ae35f27f9f5078e4f`；P2 矩阵运行的代码 SHA 见各
-> `run.json` 的 `commit` 字段。`NOT_RUN` 不计通过。
+> `run.json` 的 `commit` 字段；98 项矩阵与 OPS sweep 在 `86d810e5` 上运行。
+> `NOT_RUN` 不计通过。
 
 ## 1. 环境
 

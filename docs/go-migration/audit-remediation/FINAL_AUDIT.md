@@ -31,7 +31,7 @@
 | P0 优先修复 | P0-B 修复；P0-A/P0-C 以真实执行复核 | 满足 |
 | 实际修改代码 | `internal/cli/xray.go`、`internal/cli/share_metadata_test.go` | 满足 |
 | 实际编译 | `go build ./...` 退出码 0 | 满足 |
-| Docker 内 Bash/Go 对照 | 9 场景 × 双端 × 双轮 × L4；98 项矩阵同 HEAD 复跑；运行 SHA `4527b721` | 满足 |
+| Docker 内 Bash/Go 对照 | 9 场景 × 双端 × 双轮 × L4（P2 SHA `4527b721`）；98 项矩阵与 OPS sweep 在 `86d810e5` 重跑 | 满足 |
 | 真实 `nginx -t` / 数据面 | P0-A managed Nginx；P2 L4 真实转发 | 满足 |
 | 故障注入 | 31 PASS / 0 FAIL：无 root、只读、ENOSPC/EROFS/EACCES、断网、过期证书、损坏配置、端口占用、重复执行、并发、SIGKILL、陈旧锁、回滚失败、迁移接管/回滚 | 满足 |
 | 不降低测试标准 | 网络瞬时失败保留为 `BLOCKER` 并单独重跑；`NOT_RUN` 未计 PASS；98 项矩阵只修正固化了旧缺陷的端口断言，未跳用例 | 满足 |
