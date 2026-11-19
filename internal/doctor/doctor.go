@@ -142,7 +142,7 @@ func RunWith(ctx context.Context, root string, opts Options) Report {
 		rep.add(checkCertificate(paths, meta))
 	}
 	rep.add(checkNginx(paths))
-	rep.add(checkServices(ctx, root, opts))
+	rep.add(checkServices(ctx, root, opts, relay))
 	rep.add(checkBackup(paths, opts.Now))
 	rep.add(checkDisk(paths))
 	rep.add(checkLock(paths, opts.Now))
@@ -566,7 +566,7 @@ func checkConnectivity(ctx context.Context, paths host.Paths) Check {
 		Evidence: evidence}
 }
 
-func checkServices(ctx context.Context, root string, opts Options) Check {
+func checkServices(ctx context.Context, root string, opts Options, relay bool) Check {
 	if root != "/" {
 		return Check{ID: "services", Status: StatusSkip, Message: "sandbox root: host units are not queried"}
 	}
@@ -580,9 +580,15 @@ func checkServices(ctx context.Context, root string, opts Options) Check {
 	if err != nil {
 		return Check{ID: "services", Status: StatusWarn, Message: "unit state is unavailable", Detail: err.Error()}
 	}
+	// A relay owns only the Nginx stream unit; requiring xray would report a
+	// healthy reverse proxy as broken.
+	required := "xray"
+	if relay {
+		required = "nginx"
+	}
 	for _, u := range st.Units {
-		if u.Name == "xray" && u.Active != "active" {
-			return Check{ID: "services", Status: StatusFail, Message: "xray unit is not active", Detail: u.Active}
+		if u.Name == required && u.Active != "active" {
+			return Check{ID: "services", Status: StatusFail, Message: required + " unit is not active", Detail: u.Active}
 		}
 	}
 	return Check{ID: "services", Status: StatusOK, Message: "owned units are active"}
