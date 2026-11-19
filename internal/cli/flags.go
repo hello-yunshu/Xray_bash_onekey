@@ -217,6 +217,7 @@ var commandFlags = map[string]flagSpec{
 	"backup create":  specOf([]string{"out"}, "include-geodata", "container"),
 	"backup verify":  specOf([]string{"archive"}),
 	"backup restore": specOf([]string{"archive"}, "no-pre-backup", "dry-run", "container"),
+	"backup recover": specOf(nil, "json", "container", "dry-run"),
 }
 
 // checkFlags validates args against the command whitelist. ok is false when the

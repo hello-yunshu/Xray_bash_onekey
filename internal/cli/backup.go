@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/backup"
@@ -36,6 +37,11 @@ func backupCommand(ctx context.Context, opts Options, cfg config, paths host.Pat
 			return rc
 		}
 		return backupRestore(ctx, opts, cfg, paths, args[1:])
+	case "recover":
+		if rc, ok := checkFlags(opts, cfg, args[1:], "backup recover"); ok && rc != 0 {
+			return rc
+		}
+		return backupRecover(ctx, opts, cfg, paths, args[1:])
 	default:
 		return usage(opts, cfg.lang, "help")
 	}
@@ -100,6 +106,7 @@ func backupRestore(ctx context.Context, opts Options, cfg config, paths host.Pat
 		NoPreBackup: hasFlag(args, "--no-pre-backup"),
 		DryRun:      dryRun,
 		Validate:    managedValidator(paths),
+		Apply:       restoreServiceApply(paths),
 	})
 	if err != nil {
 		if cfg.json {
@@ -117,9 +124,87 @@ func backupRestore(ctx context.Context, opts Options, cfg config, paths host.Pat
 		fmt.Fprintf(opts.Out, "dry-run: files=%d archive=%s\n", rep.Files, rep.Archive)
 		return 0
 	}
+	if paths.Root != "/" {
+		rep.Warnings = append(rep.Warnings, "service restart and unit rebuild are skipped for a sandbox root")
+	}
 	fmt.Fprintf(opts.Out, "restored=%d archive=%s preBackup=%s\n",
 		len(rep.Restored), rep.Archive, rep.PreBackup)
+	for _, w := range rep.Warnings {
+		fmt.Fprintf(opts.Err, "warning: %s\n", w)
+	}
 	return 0
+}
+
+// backupRecover converges an interrupted restore. It is deliberately explicit:
+// a second destructive restore is refused until the journal is terminal.
+func backupRecover(ctx context.Context, opts Options, cfg config, paths host.Paths, args []string) int {
+	if !hasFlag(args, "--dry-run") {
+		if err := host.RequireSystemWrite(paths.Root, hasFlag(args, "--container")); err != nil {
+			return fail(opts, cfg, &change.UsageError{Msg: err.Error()})
+		}
+	}
+	cfg.json = cfg.json || hasFlag(args, "--json")
+	rep, err := backup.Recover(ctx, paths.Root, backup.RecoverOptions{
+		DryRun: hasFlag(args, "--dry-run"),
+		Apply:  restoreServiceApply(paths),
+	})
+	if err != nil {
+		if cfg.json {
+			_ = writeJSONNoExit(opts.Out, rep)
+		}
+		return fail(opts, cfg, err)
+	}
+	if cfg.json {
+		return writeJSON(opts, rep)
+	}
+	fmt.Fprintf(opts.Out, "recover action=%s state=%s converged=%t\n", rep.Action, rep.State, rep.Converged)
+	for _, w := range rep.Warnings {
+		fmt.Fprintf(opts.Err, "warning: %s\n", w)
+	}
+	return 0
+}
+
+// restoreServiceApply rebuilds and verifies the live service only on a real
+// root. It runs inside the restore transaction, so a failing restart rolls the
+// files back instead of leaving a half-applied host.
+func restoreServiceApply(paths host.Paths) func(context.Context) error {
+	if paths.Root != "/" {
+		return nil
+	}
+	return func(ctx context.Context) error {
+		if _, err := os.Stat("/usr/sbin/nginx"); err == nil {
+			res, err := host.Run(ctx, host.ExecSpec{Path: "/usr/sbin/nginx", Args: []string{"-t"}, Timeout: 30 * time.Second})
+			if err != nil {
+				return err
+			}
+			if res.ExitCode != 0 {
+				return fmt.Errorf("nginx -t exited %d: %s", res.ExitCode, firstLine(res.Stderr))
+			}
+		}
+		res, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{"restart", "xray"}, Timeout: 90 * time.Second})
+		if err != nil {
+			return err
+		}
+		if res.ExitCode != 0 {
+			return fmt.Errorf("systemctl restart xray exited %d: %s", res.ExitCode, firstLine(res.Stderr))
+		}
+		active, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{"is-active", "--quiet", "xray"}, Timeout: 15 * time.Second})
+		if err != nil {
+			return err
+		}
+		if active.ExitCode != 0 {
+			return fmt.Errorf("xray service is not active after restore (exit %d)", active.ExitCode)
+		}
+		return nil
+	}
+}
+
+func firstLine(s string) string {
+	s = strings.TrimSpace(s)
+	if i := strings.IndexByte(s, '\n'); i >= 0 {
+		return s[:i]
+	}
+	return s
 }
 
 // managedValidator returns the real Xray validator when the managed binary is
