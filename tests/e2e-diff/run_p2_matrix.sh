@@ -358,6 +358,20 @@ relay_l4() {
     echo "{\"transport\":\"relay\",\"rc\":$rc}" >"$out/L4-relay.json"
 }
 
+# A relay has no Xray inbound and no user credential, so the Go client probe
+# proves its strongest honest layer: a real HTTP request through the managed
+# Nginx stream listener. The evidence level must be REAL_CLIENT_PASS.
+relay_doctor_probe() {
+    local sid=$1 server=$2 out=$3
+    docker exec "$server" idleleo doctor --client-probe \
+        --probe-url "http://$RELAY_HOST:$RELAY_PORT/" --probe-expect relay-ok --json \
+        >"$out/doctor-relay.json" 2>"$out/doctor-relay.err"
+    local rc=$?
+    echo "{\"rc\":$rc,\"probeUrl\":\"http://$RELAY_HOST:$RELAY_PORT/\"}" \
+        >"$out/doctor-relay.rc.json"
+    return "$rc"
+}
+
 run_bash_round() {
     local sid=$1 net=$2 server=$3 out=$4 round=$5 prev=$6 profile=$7 arg=$8 menu=$9 transport=${10}
     local target_out="/out"
@@ -509,7 +523,10 @@ scenario_job() {
             run_l4 "$sid" go "$gserver" "$gout" "$net" "$profile" 1
         fi
         run_go_round "$sid" "$gserver" "$gout" 2 "$gout" "$profile" "${GO_ARGV[@]}"
-        if [[ "$profile" == "relay" ]]; then relay_l4 "$sid" go "$gserver" "$gout" "$net" 2; else
+        if [[ "$profile" == "relay" ]]; then
+            relay_l4 "$sid" go "$gserver" "$gout" "$net" 2
+            relay_doctor_probe "$sid" "$gserver" "$gout" || true
+        else
             run_l4 "$sid" go "$gserver" "$gout" "$net" "$profile" 2
         fi
     else
