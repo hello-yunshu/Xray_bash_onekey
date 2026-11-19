@@ -212,8 +212,8 @@ MATRIX_BASE_IMAGE=audit-matrix-base:local \
 
 ### 9.2 OPS 运营路径
 
-任务书要求覆盖用户、端口、配置、日志、服务、更新、卸载等管理路径。本轮在
-当前 HEAD 执行 Go 侧 sweep：
+任务书要求覆盖用户、端口、配置、日志、服务、更新、卸载等管理路径。本轮先执行
+Go 侧 sweep：
 
 ```bash
 E2E_RUN_ID=audit-ops-20261120 bash tests/e2e-diff/run_ops_sweep.sh
@@ -222,14 +222,36 @@ E2E_RUN_ID=audit-ops-20261120 bash tests/e2e-diff/run_ops_sweep.sh
 结果 36 PASS / 0 FAIL，覆盖 OPS-01/02/03/11/12/13/14/14a/15/17a/18/20/22/25/
 26/28/29 与 OPSS-01。证据：
 `tests/e2e-diff/evidence/audit-ops-20261120/assertions.txt`、`ops/`、`run.log`。
+这一项仍是 **Go 单侧**，不据此宣称双端 MATCH。
 
-证据级别必须如实标注：这是 **Go 单侧**证据，Bash 侧本轮未重跑，因此不能据此
-宣称双端 MATCH。提交前已对证据做脱敏（UUID、邮箱、私钥、公网 DNS 替换为
-`REDACTED`/`user@example.com`/`127.0.0.1`），PASS/FAIL 计数不变。历史双端证据（`goevo-p3-matrix-0242-a9875aff`，提交
-`be141822`）只覆盖 OPS-09/19/21/31/32 五行；其余 OPS 行在
-`PARITY_MATRIX.csv` 记为 `NOT_RUN`，不计入通过。`matrix.json` 中
-`go: null` 的 OPS 行是尚未迁移到 Go 菜单/CLI 的存量项，列为残余缺口而非
-“已验证等价”。
+随后用同一双端驱动补跑已在 `run_p2_matrix.sh` 中实现的 5 个 OPS：
+
+```bash
+E2E_RUN_ID=audit-ops-dual-20261120 \
+  E2E_ONLY=OPS-19,OPS-21,OPS-09,OPS-31,OPS-32 \
+  bash tests/e2e-diff/run_p2_matrix.sh
+```
+
+结果 5/5 PASS（Bash 与 Go 各执行真实安装、真实 Nginx/Xray 和真实数据面），
+运行代码 SHA `1cd8b98c`。证据：
+`tests/e2e-diff/evidence/audit-ops-dual-20261120/p2/`。OPS-21 的判定按“本侧必需
+检查”计算：Bash 14 项、Go 26 项，`customRuleApplied` 是 Go-only 检查，不要求
+Bash 侧满足；两侧 `baselineControl` 和阻断/恢复检查均为 true。
+
+这次 OPS-only 运行暴露了一个测试夹具缺陷：`matrix_get` 用
+`next(x for x in matrix['install'] if x['id']==sid)` 读取 OPS 行时会抛
+`StopIteration`，虽然 install 仍成功、判定仍 PASS，但日志有噪声。已改为带默认值
+的 `next(..., {})`，不影响任何产品行为或既有判定。
+
+提交前已对双端证据做脱敏（UUID、邮箱、私钥、shortId、公网 DNS 替换为
+`REDACTED`/`user@example.com`/`127.0.0.1`），PASS/FAIL 计数不变。
+
+剩余 OPS 仍未双端复跑，在 `PARITY_MATRIX.csv` 记为 `NOT_RUN`。另外，
+`matrix.json` 的 `go: null` 已过期：OPS-05/06/07/10/17b/24 分别有
+`xray edit --uuid`、`--target`、`xray tls --version`、`--server-names`、
+`update nginx`、`schedule run --job geodata-refresh`；真正缺 Go 等价命令的是
+OPS-08（在线 SNI Guard 修改）与 OPS-27（清空证书），OPS-30（语言切换）是
+有意差异。
 
 ## 10. 复现入口
 
@@ -239,4 +261,5 @@ bash artifacts/audit-remediation/p0c_migration_restore.sh
 E2E_RUN_ID=<id> E2E_ONLY=M1,M4,M9 E2E_CONCURRENCY=3 bash tests/e2e-diff/run_p2_matrix.sh
 MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh "$PWD" "$PWD/tests/go-parity/evidence/matrix-20261120-final"
 E2E_RUN_ID=<id> bash tests/e2e-diff/run_ops_sweep.sh
+E2E_RUN_ID=<id> E2E_ONLY=OPS-19,OPS-21,OPS-09,OPS-31,OPS-32 bash tests/e2e-diff/run_p2_matrix.sh
 ```

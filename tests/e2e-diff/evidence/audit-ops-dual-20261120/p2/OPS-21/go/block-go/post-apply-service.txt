@@ -1,0 +1,21 @@
+active
+-rw-r----- 1 root xray 2793 Nov 19 16:45 /etc/idleleo/conf/xray/config.json
+df18581787daa7df86ac630e68f93116f1eb7d60bd687dc01529beee123597ba  /etc/idleleo/conf/xray/config.json
+Nov 19 16:45:35 e2e-audit-ops-dual-20261120-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 19 16:45:35 e2e-audit-ops-dual-20261120-OPS-21-go xray[220]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 19 16:45:35 e2e-audit-ops-dual-20261120-OPS-21-go xray[220]: A unified platform for anti-censorship.
+Nov 19 16:45:35 e2e-audit-ops-dual-20261120-OPS-21-go xray[220]: 2026/11/19 16:45:35.144840 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 19 16:45:38 e2e-audit-ops-dual-20261120-OPS-21-go systemd[1]: Stopping xray.service - Xray Service...
+Nov 19 16:45:38 e2e-audit-ops-dual-20261120-OPS-21-go systemd[1]: xray.service: Deactivated successfully.
+Nov 19 16:45:38 e2e-audit-ops-dual-20261120-OPS-21-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 19 16:45:38 e2e-audit-ops-dual-20261120-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 19 16:45:38 e2e-audit-ops-dual-20261120-OPS-21-go xray[1252]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 19 16:45:38 e2e-audit-ops-dual-20261120-OPS-21-go xray[1252]: A unified platform for anti-censorship.
+Nov 19 16:45:38 e2e-audit-ops-dual-20261120-OPS-21-go xray[1252]: 2026/11/19 16:45:38.962694 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 19 16:45:46 e2e-audit-ops-dual-20261120-OPS-21-go systemd[1]: Stopping xray.service - Xray Service...
+Nov 19 16:45:46 e2e-audit-ops-dual-20261120-OPS-21-go systemd[1]: xray.service: Deactivated successfully.
+Nov 19 16:45:46 e2e-audit-ops-dual-20261120-OPS-21-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 19 16:45:46 e2e-audit-ops-dual-20261120-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 19 16:45:46 e2e-audit-ops-dual-20261120-OPS-21-go xray[1414]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 19 16:45:46 e2e-audit-ops-dual-20261120-OPS-21-go xray[1414]: A unified platform for anti-censorship.
+Nov 19 16:45:46 e2e-audit-ops-dual-20261120-OPS-21-go xray[1414]: 2026/11/19 16:45:46.797987 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

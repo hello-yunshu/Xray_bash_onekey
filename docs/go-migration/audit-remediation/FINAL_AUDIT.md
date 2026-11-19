@@ -11,7 +11,7 @@
 | P0-A 中转绑定/公网暴露 | `ALREADY_FIXED_VERIFIED`：真实 managed Nginx `nginx -t` 4/4，回环绑定跨容器拒绝、通配可达 |
 | P0-B TLS 分享拓扑 | `FIXED_VERIFIED`：CLI 从管理元数据消歧，6 个回归用例；红测证明缺陷可被击中 |
 | P0-C 迁移/恢复资源安全 | `ALREADY_FIXED_VERIFIED`：6 个 Bash 样本扫描零写入，prepare/recover 不碰运行时 5 项，故障注入全绿 |
-| P1-A 传输/元数据覆盖 | `FIXED_VERIFIED`：9 个矩阵场景 Go/Bash/L4 全 `MATCH`；历史 98 项矩阵复跑 `0 GAP`；OPS Go 侧 sweep 36 PASS |
+| P1-A 传输/元数据覆盖 | `FIXED_VERIFIED`：9 个矩阵场景 Go/Bash/L4 全 `MATCH`；历史 98 项矩阵复跑 `0 GAP`；OPS Go sweep 36 PASS；5 个 OPS 双端复跑 PASS |
 | P1-B 事务性部署 | `ALREADY_FIXED_VERIFIED`：5 个回滚用例通过，失败不隐瞒 Nginx 残留 |
 | P1-C DNS/网络可复现 | `ALREADY_FIXED_VERIFIED`：全量测试在 `--network none` 下通过 |
 | P1-D 长期运行/所有权 | `ALREADY_FIXED_VERIFIED`：`-race` 与 fail2ban/日志/任务用例全绿 |
@@ -31,7 +31,7 @@
 | P0 优先修复 | P0-B 修复；P0-A/P0-C 以真实执行复核 | 满足 |
 | 实际修改代码 | `internal/cli/xray.go`、`internal/cli/share_metadata_test.go` | 满足 |
 | 实际编译 | `go build ./...` 退出码 0 | 满足 |
-| Docker 内 Bash/Go 对照 | 9 场景 × 双端 × 双轮 × L4（P2 SHA `4527b721`）；98 项矩阵与 OPS sweep 在 `86d810e5` 重跑 | 满足 |
+| Docker 内 Bash/Go 对照 | 9 场景 × 双端 × 双轮 × L4（P2 SHA `4527b721`）；98 项矩阵在 `86d810e5`、5 个 OPS 双端在 `1cd8b98c` 重跑 | 满足 |
 | 真实 `nginx -t` / 数据面 | P0-A managed Nginx；P2 L4 真实转发 | 满足 |
 | 故障注入 | 31 PASS / 0 FAIL：无 root、只读、ENOSPC/EROFS/EACCES、断网、过期证书、损坏配置、端口占用、重复执行、并发、SIGKILL、陈旧锁、回滚失败、迁移接管/回滚 | 满足 |
 | 不降低测试标准 | 网络瞬时失败保留为 `BLOCKER` 并单独重跑；`NOT_RUN` 未计 PASS；98 项矩阵只修正固化了旧缺陷的端口断言，未跳用例 | 满足 |
@@ -58,8 +58,9 @@
    端口当公网端口）。修正为校验 Nginx `listen <port>` 后复跑为 `54 MATCH /
    40 core / 0 GAP / 4 REFUSED`。这是测试意图修正，产品代码未改，P2 M2/M4 的
    L4 数据面独立证明端口拆分正确。
-7. **运营路径**：OPS Go 侧 36 PASS / 0 FAIL，证据为单侧；历史双端仅 5 行
-   （`be141822`）。报告明确不把单侧 sweep 计为双端 MATCH。
+7. **运营路径**：OPS Go sweep 36 PASS / 0 FAIL；OPS-09/19/21/31/32 已用同一
+   P2 驱动在 `1cd8b98c` 双端复跑并 PASS。其余 OPS 仍为单侧，报告不把单侧
+   sweep 计为双端 MATCH。
 
 ## 4. 残余风险与未执行项
 
@@ -69,8 +70,8 @@
 | 公网 CA / 纯 Bash ACME | `BLOCKED` | 证书签发/续期未在公网验证 | 用受控域名与 staging CA 执行 |
 | 外部 IPv6 数据面 | `NOT_RUN` | 只验证监听与本地数据面 | 双栈宿主 + 外部客户端复测 |
 | 多版本 Xray/Bash 配置矩阵 | `NOT_RUN` | fixture 之外的旧配置可能不同 | 固定历史 Release 建矩阵 |
-| OPS 双端复跑 | `NOT_RUN` | 当前 HEAD 只有 Go 单侧 36 PASS；Bash 侧未重跑 | 用同一 OPS 驱动补跑 Bash 侧，或明确降级为非门禁 |
-| OPS 未迁移到 Go 的行 | `GAP` | OPS-07/08/17b/24/27/30 仍无 Go 等价 CLI；OPS-05/06/10 有 `xray edit` 标志但无同名 OPS 行 | 逐项迁移或在发布说明中标注不支持 |
+| OPS 双端复跑 | `NOT_RUN` | 5 行已双端 PASS；其余 18 个 ID 仍只有 Go 单侧 sweep | 继续把剩余 OPS 接入双端驱动，或明确降级为非门禁 |
+| OPS 未迁移到 Go 的行 | `GAP` | OPS-08（在线 SNI Guard 修改）、OPS-27（清空证书）无等价命令；OPS-30 为 `allowed-diff`；OPS-05/06/07/10/17b/24 已有 Go 命令 | 补 `xray edit`/`xray cert clear`，或在发布说明中标注不支持 |
 | 旧 Stats Ubuntu CI 红灯根因 | 未在本轮重查 | 发布门禁仍可能被阻断 | 下载失败日志后单独修复 |
 
 以上任何一项都不能被“容器内通过”替代；因此本轮不宣称可发布。
@@ -86,6 +87,7 @@
 - `artifacts/audit-remediation/p0a_relay_exposure.sh`、`p0c_migration_restore.sh`
 - `tests/e2e-diff/evidence/audit-final-20261119/`、`audit-final-m7-20261119/`
 - `tests/e2e-diff/evidence/audit-ops-20261120/`
+- `tests/e2e-diff/evidence/audit-ops-dual-20261120/`
 - `tests/go-parity/evidence/matrix-20261120-final/`
 - `tests/go-parity/matrix/run_matrix.py`（前置端口断言修正）
 - `artifacts/audit-remediation/fixtures/`（脱敏配置样本）

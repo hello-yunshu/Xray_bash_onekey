@@ -35,7 +35,7 @@
 
 | ID | 优先级 | 原审计依据 | 当前 HEAD 复现 | 影响范围 | 修复策略 | 自动化用例 | 结果 | 证据路径 | commit |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| P1-A | P1 | `AUDIT_V4.md` P1-A；`TRACEABILITY_MATRIX.md` 传输/元数据 | 部分：旧矩阵有 20 个前置端口 GAP 与 OPS 覆盖缺口 | 传输、元数据、管理路径 | P2 双端矩阵 + 98 项矩阵 + OPS sweep；修正固化旧缺陷的端口断言 | `run_p2_matrix.sh`、`run_matrix_container.sh`、`run_ops_sweep.sh` | `FIXED_VERIFIED` | `tests/e2e-diff/evidence/audit-final-20261119/p2/`；`tests/go-parity/evidence/matrix-20261120-final/summary.json`；`tests/e2e-diff/evidence/audit-ops-20261120/` | `4527b721`、`288c9e91` |
+| P1-A | P1 | `AUDIT_V4.md` P1-A；`TRACEABILITY_MATRIX.md` 传输/元数据 | 部分：旧矩阵有 20 个前置端口 GAP 与 OPS 覆盖缺口 | 传输、元数据、管理路径 | P2 双端矩阵 + 98 项矩阵 + OPS Go sweep + 5 个 OPS 双端复跑；修正固化旧缺陷的端口断言 | `run_p2_matrix.sh`、`run_matrix_container.sh`、`run_ops_sweep.sh` | `FIXED_VERIFIED` | `tests/e2e-diff/evidence/audit-final-20261119/p2/`；`tests/go-parity/evidence/matrix-20261120-final/summary.json`；`tests/e2e-diff/evidence/audit-ops-20261120/`；`tests/e2e-diff/evidence/audit-ops-dual-20261120/` | `4527b721`、`288c9e91`、`1cd8b98c` |
 | P1-B | P1 | `AUDIT_V4.md` P1-B；`RELEASE_MIGRATION_CONTRACT.md` 原子性 | 否：journal、回滚、服务状态恢复均实测 | 多文件半更新/服务状态错乱 | 首字节前 fsync journal；失败 `restoreTransaction`；Nginx 残留显式报告 | `go test ./internal/deploy`（5 个回滚用例） | `ALREADY_FIXED_VERIFIED` | `artifacts/audit-remediation/logs/p1b-deploy-rollback.log` | `c3313638` |
 | P1-C | P1 | `AUDIT_V4.md` P1-C | 否：离线全量通过 | DNS/DoH 依赖导致结果漂移 | 容器内 origin；`--network none` 全量回归 | `go test -count=1 ./...`（离线） | `ALREADY_FIXED_VERIFIED` | `logs/go-test-offline.log`；P2 L4 | `96bc4edd` |
 | P1-D | P1 | `AUDIT_V4.md` P1-D | 否：race/所有权测试全绿 | 长期运行、日志/服务账户所有权 | `-race`；fail2ban 只改自有文件；日志只截断普通文件 | `logs/p1d-race.log`、`logs/p1d-ownership.log` | `ALREADY_FIXED_VERIFIED` | `logs/p1d-race.log`、`logs/p1d-ownership.log` | `2d9a27af`、`2a930874` |
@@ -48,7 +48,7 @@
 | 公网 CA / DNS-01 / EAB 的纯 Bash ACME | `BLOCKED` | 需要公网域名与 CA；只能在受控域名下执行 |
 | 外部 IPv6 数据面 | `NOT_RUN` | Docker 默认 bridge 无 IPv6；已证明 `::` 监听与 `::1` 数据面，外网 IPv6 需双栈宿主 |
 | 多版本 Xray/Bash 配置矩阵 | `NOT_RUN` | 需要固定历史发行物；当前只使用仓库 fixture 与固定 Xray `26.10.31` |
-| OPS 运营场景双端复跑 | `NOT_RUN` | 当前 HEAD 只有 Go 单侧 36 PASS；Bash 侧未重跑，不计为双端 MATCH。历史双端 5 行（OPS-09/19/21/31/32）在 `be141822` |
-| OPS 尚未迁移到 Go 菜单/CLI 的行 | `GAP` | `matrix.json` 中 `go: null`：OPS-07/08/17b/24/27/30 仍无等价 CLI；OPS-05/06/10 已有 `xray edit --uuid/--target/--server-names`，但未建立同名 OPS 行，不宣称逐行等价 |
+| OPS 运营场景双端复跑 | `NOT_RUN` | OPS-09/19/21/31/32 已在 `1cd8b98c` 双端复跑并 PASS；其余 18 个 ID 在当前 HEAD 仍只有 Go 单侧 sweep，不宣称双端 MATCH |
+| OPS 尚未迁移到 Go 菜单/CLI 的行 | `GAP` | 真正缺等价命令的是 OPS-08（在线修改 SNI Guard）与 OPS-27（清空证书）；OPS-30 语言切换为 `allowed-diff`；OPS-05/06/07/10/17b/24 已有 `xray edit`、`xray tls`、`update nginx`、`schedule run` 等价路径 |
 | 98 项矩阵的前置端口断言 | `FIXED_VERIFIED` | 旧断言把 Xray 回环后端端口当公网端口，等于固化旧缺陷；已改为校验 Nginx `listen <port>`，不跳用例 |
 | 正式发布与 `main` 合并 | `INTENTIONAL_DELTA_APPROVED` | 任务书明确禁止；仅提交工作分支 |

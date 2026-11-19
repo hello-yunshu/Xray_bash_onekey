@@ -1,0 +1,74 @@
+{
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "port": 10719,
+      "listen": "127.0.0.1",
+      "tag": "VLESS-ws-in",
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "id": "REDACTED",
+            "level": 0,
+            "email": "72142@example.com"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "path": "/c8409"
+        },
+        "realitySettings": {
+          "privateKey": "REDACTED"
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIPv4v6"
+        }
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blocked"
+    }
+  ],
+  "dns": {
+    "servers": [
+      "localhost",
+      "localhost",
+      "localhost",
+      "127.0.0.1",
+      "127.0.0.1",
+      "127.0.0.1",
+      "localhost"
+    ],
+    "disableCache": false
+  },
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "VLESS-ws-in"
+        ],
+        "outboundTag": "direct"
+      }
+    ]
+  }
+}

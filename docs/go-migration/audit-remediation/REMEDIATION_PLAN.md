@@ -9,7 +9,7 @@
 | --- | --- | --- | --- |
 | A 复核 | 对齐审计材料、HEAD、工具链、测试入口 | 每条 P0/P1 都有代码锚点与复现路径 | 完成；见 `AUDIT_ISSUES.md` |
 | B 修复 | P0-B 元数据派生；P0-A/P0-C 仅补证据 | 红测能击中缺陷，修复后绿；真实 Nginx/容器证据 | 完成 |
-| C 对照 | Reality/TLS/None × raw/ws/gRPC/xHTTP/组合；relay；Nginx 拓扑；历史 98 项矩阵；OPS Go sweep | 每行有 Go/Bash/数据面/结论 | 完成（`audit-final-20261119`、`matrix-20261120-final`、`audit-ops-20261120`） |
+| C 对照 | Reality/TLS/None × raw/ws/gRPC/xHTTP/组合；relay；Nginx 拓扑；历史 98 项矩阵；OPS Go sweep；OPS 双端 5 行 | 每行有 Go/Bash/数据面/结论 | 完成（`audit-final-20261119`、`matrix-20261120-final`、`audit-ops-20261120`、`audit-ops-dual-20261120`） |
 | D 回归 | gofmt/vet/build/test/offline/race；`bash -n`；故障注入 | 全绿；离线全量测试可复现 | 完成（31 个故障/迁移用例 PASS） |
 | E 交付 | 5 份文档 + 证据脚本 + `summary.json` | 状态、命令、退出码、SHA 完整 | 完成 |
 
@@ -58,8 +58,10 @@
 | 公网 CA / DNS-01 / EAB 纯 Bash ACME | `BLOCKED` | 需要受控公网域名与 CA |
 | 外部 IPv6 数据面 | `NOT_RUN` | 默认 Docker bridge 无 IPv6；需双栈宿主 |
 | 多版本 Xray/Bash 配置矩阵 | `NOT_RUN` | 需固定历史 Release |
-| OPS Bash 侧在当前 HEAD 复跑 | `NOT_RUN` | 本轮只跑 Go sweep；双端历史证据在 `be141822` |
-| OPS-07/08/17b/24/27/30 | `GAP` | 尚无 Go 等价 CLI；OPS-05/06/10 可用 `xray edit` 但无同名 OPS 行 |
+| OPS 双端复跑 | 部分完成 | OPS-09/19/21/31/32 已在 `1cd8b98c` 双端 PASS（`audit-ops-dual-20261120`）；其余 18 个 ID 只有 Go 单侧 sweep |
+| OPS-08 / OPS-27 | `GAP` | 真正缺 Go 等价命令：OPS-08 在线修改 SNI Guard、OPS-27 清空证书 |
+| OPS-30 | `INTENTIONAL_DELTA` | 语言切换为 `allowed-diff`，不要求逐字节一致 |
+| OPS-05/06/07/10/17b/24 | 已有等价路径 | 分别由 `xray edit --uuid/--target/--server-names`、`xray tls`、`update nginx`、`schedule run` 覆盖，只是没有同名 OPS 行 |
 | 旧 Stats Ubuntu CI 红灯 | 未重查 | 需下载失败日志后单独修复 |
 | M8 公网 ACME | `NOT_RUN` | 与公网 CA 项同因 |
 

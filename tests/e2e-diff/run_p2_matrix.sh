@@ -60,7 +60,7 @@ matrix_get() {
 import json, sys
 matrix = json.load(open(sys.argv[1]))
 sid, path = sys.argv[2], sys.argv[3]
-scenario = next(x for x in matrix['install'] if x['id'] == sid)
+scenario = next((x for x in matrix['install'] if x['id'] == sid), {})
 cur = scenario
 for part in path.split('.'):
     if not isinstance(cur, dict):

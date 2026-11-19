@@ -1,0 +1,22 @@
+00:42:06 run_id=audit-ops-dual-20261120
+00:42:08 image_id=sha256:8b83c8382607f0e9e89007a520e9aa51360d19efbf3cf194190820e5763db1f8
+00:42:08 building idleleo
+00:42:12 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=df100b2c97050f30796d96bc3c1c9318abf45021981801b3873826680aefd088
+00:42:13 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+00:42:13 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+00:42:15 argv-verify written
+00:42:15 [OPS-19] start
+00:44:07 [OPS-19] verdict=PASS
+00:44:07 [OPS-21] start
+00:46:13 [OPS-21] verdict=PASS
+00:46:13 [OPS-09] start upstream=ws
+00:47:35 [OPS-09] verdict=PASS
+00:47:35 [OPS-31] start upstream=reality
+00:49:28 [OPS-31] verdict=PASS
+00:49:28 [OPS-32] start upstream=ws
+00:53:38 [OPS-32/ws] verdict=PASS
+00:53:38 [OPS-32] start upstream=reality
+00:57:40 [OPS-32/reality] verdict=PASS
+00:57:40 [OPS-32] verdict=PASS
+00:57:40 scope: installs=[] edits=[] ops=[OPS-19,OPS-21,OPS-09,OPS-31,OPS-32]
+00:57:40 P2 finished: tests/e2e-diff/evidence/audit-ops-dual-20261120/p2
