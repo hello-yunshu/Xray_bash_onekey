@@ -16,11 +16,11 @@
 
 ## 2. P0 问题
 
-| ID | 原问题 | 当前事实（HEAD） | 状态 | 证据 | 提交 |
-| --- | --- | --- | --- | --- | --- |
-| P0-A | 中转配置丢失 listen 绑定，或把 `proxy_timeout` 改成易断流的值，导致公网暴露/绕行 | `xraycfg.RelayConf` 保留 `listen <addr>`、`proxy_timeout 720m`、`proxy_socket_keepalive on`；`xray install --role relay --listen` 全链路可传；非法地址 exit 1 且不改 fragment | `ALREADY_FIXED_VERIFIED` | `artifacts/audit-remediation/p0a/summary.json`：4 个地址 `nginx -t` 全 0；`127.0.0.1`/`::1` 本机可达、跨容器不可达；`0.0.0.0` 跨容器可达；3 个非法值全部拒绝且配置哈希不变 | `b8b31f7e`（语义） + 本轮证据脚本 |
-| P0-B | Bash TLS 节点的 Xray 在回环以 `security=none` 运行，分享入口把公网链接写成 `security=none` | `xraycfg.ShareConfig` 已 fail-closed，但 `xray share` 从未读取管理元数据，错误提示要求“使用 metadata tls”却无实现 | `FIXED_VERIFIED` | `internal/cli/share_metadata_test.go` 6 例；红测（注释回填调用）`TestXrayShareUsesMetadataForPublicTLS` 必 FAIL；修复后 6/6 PASS | `4527b721` |
-| P0-C | 迁移/恢复覆盖真实资源（入口、配置、证书、cron） | 备份/恢复已事务化：互斥锁、持久 journal、原子写、SIGKILL/ENOSPC/EROFS/EACCES、入口漂移与第三方入口保护；`bridge audit` 只读 | `ALREADY_FIXED_VERIFIED` | `p0c/summary.json`：6 个 Bash fixture 扫描前后全树哈希一致；`prepare` 后 runtime 5 项哈希不变；`recover` 回到 `ROLLED_BACK`；`go-safety-tests.log` 全绿 | `8ac1385f`、`43ceb680` + 本轮证据 |
+| ID | 优先级 | 原审计依据 | 当前 HEAD 复现 | 影响范围 | 修复策略 | 自动化用例 | 结果 | 证据路径 | commit |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| P0-A | P0 | `AUDIT_V4.md` P0-A；`RELEASE_MIGRATION_CONTRACT.md` 中转边界 | 否：4 个地址实测，`listen`/`proxy_timeout 720m`/`keepalive` 均在 | relay 公网暴露/绕行 | 保留显式 `listen`；非法地址 fail-closed 且不改 fragment | `artifacts/audit-remediation/p0a_relay_exposure.sh` + `nginx -t` | `ALREADY_FIXED_VERIFIED` | `artifacts/audit-remediation/p0a/summary.json` | `b8b31f7e` |
+| P0-B | P0 | `AUDIT_V4.md` P0-B；`TRACEABILITY_MATRIX.md` 分享链路 | 是（修复前）：`xray share` 不读元数据，TLS 回环节点分享为 `security=none` | 分享链接泄露真实拓扑/协议 | 元数据回填 `TLS/host/port`；显式标志优先；未知/缺失保持 fail-closed | `internal/cli/share_metadata_test.go` 6 例 + 红测 | `FIXED_VERIFIED` | `internal/cli/share_metadata_test.go`；`TEST_EVIDENCE.md` §3 | `4527b721` |
+| P0-C | P0 | `AUDIT_V4.md` P0-C；`TRACEABILITY_MATRIX.md` 迁移/恢复 | 否：锁、journal、原子写、入口漂移保护均在 | 迁移覆盖入口/配置/证书/cron | `audit` 只读；`prepare` 不碰运行时；`activate` 仅切入口/cron；`recover` 回滚 | `p0c_migration_restore.sh`；`legacybridge/backup/repair` 测试 | `ALREADY_FIXED_VERIFIED` | `artifacts/audit-remediation/p0c/summary.json`；`logs/p1e-fault-injection.log` | `8ac1385f`、`43ceb680` |
 
 ### P0-B 变更细节
 
@@ -33,12 +33,12 @@
 
 ## 3. P1 问题
 
-| ID | 原问题 | 当前事实 | 状态 | 证据 |
-| --- | --- | --- | --- | --- |
-| P1-A | 只覆盖常见模式，传输/元数据对照不完整 | P2 矩阵在当前 HEAD 复跑 Reality/TLS/None × raw/ws/gRPC/xHTTP/组合，外加 Reality+Nginx 与 relay；元数据、Xray 配置、分享链接分层对照。历史 98 项矩阵同 HEAD 复跑为 `54 MATCH / 40 core / 0 GAP / 4 REFUSED`；OPS Go 侧 sweep 36 PASS / 0 FAIL | `FIXED_VERIFIED` | `tests/e2e-diff/evidence/audit-final-20261119/p2/`；`tests/go-parity/evidence/matrix-20261120-final/summary.json`；`tests/e2e-diff/evidence/audit-ops-20261120/`；见 `PARITY_MATRIX.csv` |
-| P1-B | 多文件部署可能半更新 | 部署在首字节写入前 fsync journal；任何失败执行 `restoreTransaction` 并恢复服务 enable/active；Nginx 作为独立组件显式报告残留 | `ALREADY_FIXED_VERIFIED` | `logs/p1b-deploy-rollback.log`（5 个回滚用例 PASS，0 FAIL） |
-| P1-C | 测试隐式依赖公网 DNS/DoH，结果不可复现 | 全量 `go test ./...` 在 `--network none` 容器内通过；e2e 使用容器内 origin 与真实 Nginx/Xray 数据面 | `ALREADY_FIXED_VERIFIED` | `logs/go-test-offline.log`；P2 L4 |
-| P1-D | 长期运行/资源所有权/退出码未验证 | 备份/恢复/修复/计划/存储在 `-race` 下通过；fail2ban 只改自有文件、日志清理只截断普通文件、计划任务测试通过 | `ALREADY_FIXED_VERIFIED` | `logs/p1d-race.log`、`logs/p1d-ownership.log` |
+| ID | 优先级 | 原审计依据 | 当前 HEAD 复现 | 影响范围 | 修复策略 | 自动化用例 | 结果 | 证据路径 | commit |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| P1-A | P1 | `AUDIT_V4.md` P1-A；`TRACEABILITY_MATRIX.md` 传输/元数据 | 部分：旧矩阵有 20 个前置端口 GAP 与 OPS 覆盖缺口 | 传输、元数据、管理路径 | P2 双端矩阵 + 98 项矩阵 + OPS sweep；修正固化旧缺陷的端口断言 | `run_p2_matrix.sh`、`run_matrix_container.sh`、`run_ops_sweep.sh` | `FIXED_VERIFIED` | `tests/e2e-diff/evidence/audit-final-20261119/p2/`；`tests/go-parity/evidence/matrix-20261120-final/summary.json`；`tests/e2e-diff/evidence/audit-ops-20261120/` | `4527b721`、`288c9e91` |
+| P1-B | P1 | `AUDIT_V4.md` P1-B；`RELEASE_MIGRATION_CONTRACT.md` 原子性 | 否：journal、回滚、服务状态恢复均实测 | 多文件半更新/服务状态错乱 | 首字节前 fsync journal；失败 `restoreTransaction`；Nginx 残留显式报告 | `go test ./internal/deploy`（5 个回滚用例） | `ALREADY_FIXED_VERIFIED` | `artifacts/audit-remediation/logs/p1b-deploy-rollback.log` | `c3313638` |
+| P1-C | P1 | `AUDIT_V4.md` P1-C | 否：离线全量通过 | DNS/DoH 依赖导致结果漂移 | 容器内 origin；`--network none` 全量回归 | `go test -count=1 ./...`（离线） | `ALREADY_FIXED_VERIFIED` | `logs/go-test-offline.log`；P2 L4 | `96bc4edd` |
+| P1-D | P1 | `AUDIT_V4.md` P1-D | 否：race/所有权测试全绿 | 长期运行、日志/服务账户所有权 | `-race`；fail2ban 只改自有文件；日志只截断普通文件 | `logs/p1d-race.log`、`logs/p1d-ownership.log` | `ALREADY_FIXED_VERIFIED` | `logs/p1d-race.log`、`logs/p1d-ownership.log` | `2d9a27af`、`2a930874` |
 
 ## 4. 仍未闭环（不得当作已修复）
 
@@ -49,6 +49,6 @@
 | 外部 IPv6 数据面 | `NOT_RUN` | Docker 默认 bridge 无 IPv6；已证明 `::` 监听与 `::1` 数据面，外网 IPv6 需双栈宿主 |
 | 多版本 Xray/Bash 配置矩阵 | `NOT_RUN` | 需要固定历史发行物；当前只使用仓库 fixture 与固定 Xray `26.10.31` |
 | OPS 运营场景双端复跑 | `NOT_RUN` | 当前 HEAD 只有 Go 单侧 36 PASS；Bash 侧未重跑，不计为双端 MATCH。历史双端 5 行（OPS-09/19/21/31/32）在 `be141822` |
-| OPS 尚未迁移到 Go 菜单/CLI 的行 | `GAP` | `matrix.json` 中 `go: null`：OPS-05/06/07/08/10/17b/24/27/30；不宣称等价，列为后续迁移项 |
+| OPS 尚未迁移到 Go 菜单/CLI 的行 | `GAP` | `matrix.json` 中 `go: null`：OPS-07/08/17b/24/27/30 仍无等价 CLI；OPS-05/06/10 已有 `xray edit --uuid/--target/--server-names`，但未建立同名 OPS 行，不宣称逐行等价 |
 | 98 项矩阵的前置端口断言 | `FIXED_VERIFIED` | 旧断言把 Xray 回环后端端口当公网端口，等于固化旧缺陷；已改为校验 Nginx `listen <port>`，不跳用例 |
 | 正式发布与 `main` 合并 | `INTENTIONAL_DELTA_APPROVED` | 任务书明确禁止；仅提交工作分支 |
