@@ -37,6 +37,7 @@
     "L5": "logs: ANSI/timestamp/PID-normalized error-warning extraction",
     "L6": "idempotency: second identical run"
   },
+  "acceptance": {"opsTotal": 34, "dualSideVerifiedOps": ["OPS-09", "OPS-19", "OPS-21", "OPS-31", "OPS-32"], "goOnlyOps": ["OPS-01", "OPS-02", "OPS-03", "OPS-04", "OPS-05", "OPS-06", "OPS-07", "OPS-08", "OPS-10", "OPS-11", "OPS-12", "OPS-13", "OPS-14", "OPS-15", "OPS-16", "OPS-17a", "OPS-17b", "OPS-17c", "OPS-18", "OPS-20", "OPS-22", "OPS-23", "OPS-24", "OPS-25", "OPS-26", "OPS-27", "OPS-28", "OPS-29", "OPS-30"], "counts": {"dualSide": 5, "goOnly": 29}, "note": "Go-only rows are at most GO_ONLY_PASS; only dualSideVerifiedOps have both-side data-plane evidence."},
   "install": [
     {
       "id": "M1",
@@ -145,7 +146,8 @@
       "layers": ["L0", "L1", "L2", "L3", "L4", "L5"],
       "repeat": 2,
       "eligible": true,
-      "notes": "Pebble sidecar（PEBBLE_VA_ALWAYS_VALID=1）在场景网络内提供 ACME v2；Bash 由 install.sh 的 IDLELEO_ACME_DIRECTORY 注入，Go 由 go_acme.sh 先 cert issue 再 install。两侧安装后统一执行 idleleo schedule install（install.sh 断言必须有活跃续期调度）。2026-11-17 两次独立 run（run7/run9）双侧 rc=0、L4 两轮 ok、ED-C14 抑制 26 条既有类差异；run8 因 nginx 下载 curl(18) 网络抖动记 HARNESS-ERROR 并重跑。"
+      "notes": "Pebble sidecar（PEBBLE_VA_ALWAYS_VALID=1）在场景网络内提供 ACME v2；Bash 由 install.sh 的 IDLELEO_ACME_DIRECTORY 注入，Go 由 go_acme.sh 先 cert issue 再 install。两侧安装后统一执行 idleleo schedule install（install.sh 断言必须有活跃续期调度）。2026-11-17 两次独立 run（run7/run9）双侧 rc=0、L4 两轮 ok、ED-C14 抑制 26 条既有类差异；run8 因 nginx 下载 curl(18) 网络抖动记 HARNESS-ERROR 并重跑。",
+      "bashVariants": {"goAssisted": {"env": {"E2E_ACME": "1", "E2E_ACME_MODE": "go"}, "acceptance": "HYBRID_BASH_GO", "note": "Bash installer drives issuance; the Pebble call itself shells out to idleleo."}, "pureBashAcme": {"env": {"E2E_ACME": "1", "E2E_ACME_MODE": "bash"}, "acceptance": "BLOCKED", "reason": "The disposable image ships no acme.sh and the runner has no network to fetch it, so a pure Bash ACME baseline cannot be claimed."}}
     },
     {
       "id": "M9",

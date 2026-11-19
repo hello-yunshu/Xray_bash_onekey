@@ -29,6 +29,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The preview fixtures may only run while the ledger is still PENDING.
+      # A signed ledger moves the job to the signed-stage smoke below; neither
+      # branch pretends the other one ran.
+      - name: Detect feature-ledger stage
+        id: stage
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          data = json.loads(Path('tests/go-parity/parity/cases/feature_contracts.json').read_text())
+          feats = data.get('features') or []
+          ids = [f.get('id') for f in feats]
+          expected = {f'F{i:02d}' for i in range(1, 29)}
+          if len(ids) != 28 or set(ids) != expected:
+              raise SystemExit('feature ledger is not exactly F01-F28')
+          signed = {'VERIFIED_GO_PARITY', 'APPROVED_SAFE_DIVERGENCE'}
+          pending = [f['id'] for f in feats if f.get('status') not in signed]
+          mode = 'pending' if pending else 'signed'
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              fh.write(f'mode={mode}\n')
+          print(f'feature ledger stage: {mode} ({len(pending)} pending of 28)')
+          PY
+
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.4'
@@ -41,6 +65,7 @@ jobs:
           fi
 
       - name: Install preview runtime prerequisites
+        if: steps.stage.outputs.mode == 'pending'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends nginx libnginx-mod-stream curl jq
@@ -64,6 +89,7 @@ jobs:
           chmod 0755 "$RUNNER_TEMP/idleleo"
 
       - name: Preview qualification (no release authority)
+        if: steps.stage.outputs.mode == 'pending'
         env:
           IDLELEO_PREVIEW_EVIDENCE: ${{ runner.temp }}/preview-evidence
         run: |
@@ -77,6 +103,23 @@ jobs:
             --go-bin "$RUNNER_TEMP/idleleo" \
             --bash-repo "$GITHUB_WORKSPACE" \
             --evidence "$IDLELEO_PREVIEW_EVIDENCE"
+
+      - name: Signed-stage smoke (preview not applicable)
+        if: steps.stage.outputs.mode == 'signed'
+        env:
+          IDLELEO_PREVIEW_EVIDENCE: ${{ runner.temp }}/preview-evidence
+        run: |
+          set -euo pipefail
+          expected="$RELEASE_GATE_SHA256"
+          actual=$(sha256sum tests/go-parity/parity/scripts/check_release_gate.py | cut -d' ' -f1)
+          if [ "$actual" != "$expected" ]; then
+            echo "release gate digest mismatch: $actual != $expected" >&2
+            exit 2
+          fi
+          mkdir -p "$IDLELEO_PREVIEW_EVIDENCE"
+          python3 tests/go-parity/parity/scripts/check_signed_stage.py \
+            --go-bin "$RUNNER_TEMP/idleleo" \
+            --out "$IDLELEO_PREVIEW_EVIDENCE/signed-stage.json"
 
       - name: Upload preview evidence
         if: always()

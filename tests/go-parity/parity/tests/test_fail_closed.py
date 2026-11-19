@@ -16,10 +16,30 @@ class FailClosedTests(unittest.TestCase):
  def invoke(self,*args,env=None):
   return subprocess.run([sys.executable,*map(str,args)],text=True,capture_output=True,timeout=60,env=env)
 
+ def isolated_gate(self,t,status):
+  (t/'scripts').mkdir();(t/'cases').mkdir();(t/'features').mkdir()
+  shutil.copy2(GATE,t/'scripts/check_release_gate.py')
+  shutil.copy2(PARITY,t/'scripts/run_parity.py')
+  ledger=json.loads((ROOT/'cases/feature_contracts.json').read_text())
+  for f in ledger['features']:
+   f['status']=status;f['evidence']=[]
+  (t/'cases/feature_contracts.json').write_text(json.dumps(ledger))
+  return t/'scripts/check_release_gate.py'
+
  def test_unverified_release_must_fail(self):
-  res=self.invoke(GATE)
+  # The real ledger is signed at this commit, so the pending-stage contract is
+  # exercised on an isolated copy instead of pretending the repository is
+  # still unverified.
+  with tempfile.TemporaryDirectory() as tmp:
+   gate=self.isolated_gate(Path(tmp),'PENDING_GO_IMPLEMENTATION')
+   res=self.invoke(gate)
   self.assertEqual(res.returncode,2,res.stdout+res.stderr)
   self.assertIn('pending 28',res.stdout)
+
+ def test_signed_ledger_still_needs_pinned_evidence_and_ci(self):
+  res=self.invoke(GATE)
+  self.assertEqual(res.returncode,3,res.stdout+res.stderr)
+  self.assertIn('full pinned Bash checkout',res.stderr)
 
  def test_forged_all_pass_manifest_with_fake_evidence_is_rejected(self):
   # Isolated copy: intentionally mock 28 statuses and fake evidence files.
@@ -72,5 +92,24 @@ class FailClosedTests(unittest.TestCase):
   self.assertIn('run_bridge_contract.py',(ROOT/'scripts/run_bridge_fixture_suite.sh').read_text())
   self.assertIn('check_release_gate.py',release)
   self.assertIn('workflow_call:',release)
+
+ def test_preview_refuses_signed_ledger(self):
+  import hashlib
+  gate=ROOT/'scripts/check_release_gate.py'
+  env=dict(os.environ);env['RELEASE_GATE_SHA256']=hashlib.sha256(gate.read_bytes()).hexdigest()
+  res=self.invoke(ROOT/'scripts/check_preview_gate.py','--go-bin',sys.executable,
+                  '--bash-repo',ROOT.parents[2],env=env)
+  self.assertEqual(res.returncode,2,res.stdout+res.stderr)
+  self.assertIn('no longer all PENDING',res.stderr)
+
+ def test_signed_stage_smoke_runs_without_claiming_preview(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   fake=Path(tmp)/'idleleo'
+   fake.write_text('#!/bin/sh\necho "idleleo 0.0.0-test"\n')
+   fake.chmod(0o755)
+   res=self.invoke(ROOT/'scripts/check_signed_stage.py','--go-bin',fake)
+  self.assertEqual(res.returncode,0,res.stdout+res.stderr)
+  self.assertIn('preview not run',res.stdout.lower())
+  self.assertIn('release authority: NONE',res.stdout)
 
 if __name__=='__main__':unittest.main()

@@ -107,7 +107,19 @@ fi
 # never contacts an ACME directory. M8 (E2E_ACME=1) is the exception: it must
 # reach Pebble, so the self-signed pair stays out of the way and the Bash acme()
 # helper gets the idleleo binary it shells out to.
-if [[ "${E2E_ACME:-0}" == "1" ]]; then
+if [[ "${E2E_ACME:-0}" == "1" && "${E2E_ACME_MODE:-go}" == "bash" ]]; then
+    # PURE_BASH_ACME: no Go binary may participate in issuance or renewal.
+    # The disposable image does not ship acme.sh and the runner has no network
+    # to fetch it, so the only honest result is BLOCKED, never PASS.
+    if [[ ! -x "${HOME}/.acme.sh/acme.sh" ]]; then
+        log "acme_mode=pure_bash status=BLOCKED reason=acme.sh-not-installed"
+        printf '%s\n' '{"status":"BLOCKED","acmeMode":"pure_bash","reason":"acme.sh is absent from the disposable image; pure Bash ACME cannot be claimed"}' \
+            >"$OUT/acme-pure-bash.json"
+        exit 3
+    fi
+    log "acme_mode=pure_bash acme.sh=$("${HOME}/.acme.sh/acme.sh" --version 2>/dev/null | head -1)"
+    log "acme_mode=pure_bash status=READY (no idleleo binary will be installed)"
+elif [[ "${E2E_ACME:-0}" == "1" ]]; then
     install -m 0755 /seed/idleleo /usr/local/bin/idleleo
     log "acme_mode=pebble idleleo=$(/usr/local/bin/idleleo --version 2>/dev/null | head -1)"
     # install.sh issues through `idleleo xray cert issue` but its Bash path never
