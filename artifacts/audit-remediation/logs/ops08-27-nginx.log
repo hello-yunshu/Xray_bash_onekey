@@ -1,0 +1,74 @@
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+{
+  "mode": "Reality",
+  "policy": "reject",
+  "denyPort": 9404,
+  "changed": true,
+  "dryRun": false,
+  "files": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/usr/local/nginx/conf/nginx.conf",
+    "/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": true,
+  "warnings": []
+}
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+{
+  "mode": "Reality",
+  "policy": "decoy",
+  "decoyDomain": "decoy.local",
+  "denyPort": 9444,
+  "changed": true,
+  "dryRun": false,
+  "files": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/etc/idleleo/cert/decoy.crt",
+    "/etc/idleleo/cert/decoy.key",
+    "/etc/idleleo/decoy/index.html",
+    "/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/usr/local/nginx/conf/nginx.conf",
+    "/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": true,
+  "selfSigned": true,
+  "warnings": []
+}
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+{
+  "mode": "Reality",
+  "policy": "isolate",
+  "denyPort": 9403,
+  "changed": true,
+  "dryRun": false,
+  "files": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/usr/local/nginx/conf/nginx.conf",
+    "/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": true,
+  "warnings": []
+}
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+{
+  "dir": "/etc/idleleo/cert",
+  "removed": [
+    "/etc/idleleo/cert/acme.crt",
+    "/etc/idleleo/cert/acme.key",
+    "/etc/idleleo/cert/decoy.crt",
+    "/etc/idleleo/cert/decoy.key"
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": []
+}
+OPS-08/OPS-27 real nginx: PASS

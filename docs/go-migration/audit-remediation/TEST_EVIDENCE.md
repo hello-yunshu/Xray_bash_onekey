@@ -288,9 +288,28 @@ decoy、端口冲突、`nginx -t` 回滚、证书删除与 dry-run；CLI smoke �
 `OPS-08/OPS-27 smoke: PASS`。证据：
 `artifacts/audit-remediation/logs/ops08-27-smoke.log`、`tests/e2e-diff/smoke_guard_cert.sh`。
 
-**验证边界**：smoke 中的 `xray guard set` 只跑 `--dry-run`，真实 `nginx -t`
-在单测中通过桩函数验证；OPS-08/27 的 Bash 交互答案（策略选择、确认）尚未接入
-`run_p2_matrix.sh`，因此双端结论仍为 `NOT_RUN`，不记为 MATCH。
+真实 Nginx 验证（`nginx:1.27-alpine`，容器内真实 root）：
+
+```bash
+docker run --rm -v "$PWD":/src -w /src -v /tmp:/out \
+  -e GOFLAGS=-mod=vendor -e GOPROXY=off -e GOTOOLCHAIN=local -e CGO_ENABLED=0 \
+  golang:1.27.4 go build -o /out/idleleo-linux ./cmd/idleleo
+docker run --rm -v /tmp/idleleo-linux:/usr/local/bin/idleleo:ro \
+  -v "$PWD/tests/e2e-diff/smoke_guard_nginx.sh":/smoke.sh:ro \
+  nginx:1.27-alpine sh /smoke.sh /usr/local/bin/idleleo
+```
+
+结果：isolate → reject（deny 9404、删除 03-isolate）、reject → decoy（自签
+decoy.local、deny 9444、私钥 0600）、decoy → isolate（deny 9403、只保留一个
+include）均执行真实 `nginx -t` 并输出 `syntax is ok` / `test is successful`；
+`xray cert clear` 在真实 root 删除了 acme 与 decoy 证书，最后输出
+`OPS-08/OPS-27 real nginx: PASS`。证据：
+`artifacts/audit-remediation/logs/ops08-27-nginx.log`、
+`tests/e2e-diff/smoke_guard_nginx.sh`。
+
+**验证边界**：该容器没有 init system，脚本用 `systemctl` 桩让 reload 步骤通过；
+Nginx 二进制和 `nginx -t` 都是真实的。OPS-08/27 的 Bash 交互答案（策略选择、
+确认）尚未接入 `run_p2_matrix.sh`，因此双端结论仍为 `NOT_RUN`，不记为 MATCH。
 
 ## 10. 复现入口
 
@@ -303,4 +322,7 @@ E2E_RUN_ID=<id> bash tests/e2e-diff/run_ops_sweep.sh
 E2E_RUN_ID=<id> E2E_ONLY=OPS-19,OPS-21,OPS-09,OPS-31,OPS-32 bash tests/e2e-diff/run_p2_matrix.sh
 docker run --rm -v "$PWD":/src -w /src golang:1.27.4 \
   sh -c 'go build -o /tmp/idleleo ./cmd/idleleo && bash tests/e2e-diff/smoke_guard_cert.sh /tmp/idleleo'
+docker run --rm -v /tmp/idleleo-linux:/usr/local/bin/idleleo:ro \
+  -v "$PWD/tests/e2e-diff/smoke_guard_nginx.sh":/smoke.sh:ro \
+  nginx:1.27-alpine sh /smoke.sh /usr/local/bin/idleleo
 ```

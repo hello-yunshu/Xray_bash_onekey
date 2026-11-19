@@ -71,7 +71,7 @@
 | 外部 IPv6 数据面 | `NOT_RUN` | 只验证监听与本地数据面 | 双栈宿主 + 外部客户端复测 |
 | 多版本 Xray/Bash 配置矩阵 | `NOT_RUN` | fixture 之外的旧配置可能不同 | 固定历史 Release 建矩阵 |
 | OPS 双端复跑 | `NOT_RUN` | 5 行已双端 PASS；其余 18 个 ID 仍只有 Go 单侧 sweep | 继续把剩余 OPS 接入双端驱动，或明确降级为非门禁 |
-| OPS-08 / OPS-27 命令 | `FIXED_VERIFIED`（集成待跑） | `241cc99f` 已新增 `xray guard show/set` 与 `xray cert clear`；Go 单测与沙箱 CLI smoke 通过，真实 `nginx -t` 和 Bash 双端交互仍 `NOT_RUN` | 把两项接入 `run_p2_matrix.sh` 并跑真实 Nginx 安装 |
+| OPS-08 / OPS-27 命令 | `FIXED_VERIFIED`（集成待跑） | `241cc99f` 已新增 `xray guard show/set` 与 `xray cert clear`；Go 单测、沙箱 CLI smoke 与真实 `nginx -t`（nginx:1.27-alpine，三种策略）通过；Bash 双端交互仍 `NOT_RUN` | 把两项接入 `run_p2_matrix.sh` 跑 Bash 交互侧 |
 | OPS-30 语言切换 | `INTENTIONAL_DELTA_APPROVED` | `allowed-diff`，不要求逐字节一致 | 无 |
 | OPS-05/06/07/10/17b/24 | 已有 Go 等价路径 | `xray edit`、`xray tls`、`update nginx`、`schedule run` 覆盖 | 无 |
 | 旧 Stats Ubuntu CI 红灯根因 | 未在本轮重查 | 发布门禁仍可能被阻断 | 下载失败日志后单独修复 |

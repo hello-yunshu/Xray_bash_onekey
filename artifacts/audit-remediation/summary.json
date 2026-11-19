@@ -192,9 +192,9 @@
       "commit": "241cc99f",
       "ids": ["OPS-08","OPS-27"],
       "commands": ["xray guard show/set --policy isolate|reject|decoy","xray cert clear --yes"],
-      "verification": "Go unit tests (9 new) + sandbox CLI smoke",
-      "notRun": "real nginx -t and Bash dual-side interaction",
-      "evidence": ["artifacts/audit-remediation/logs/ops08-27-smoke.log","tests/e2e-diff/smoke_guard_cert.sh"]
+      "verification": "Go unit tests (9 new) + sandbox CLI smoke + real nginx -t in nginx:1.27-alpine for isolate/reject/decoy",
+      "notRun": "Bash dual-side interaction; reload used a systemctl stub because the container has no init",
+      "evidence": ["artifacts/audit-remediation/logs/ops08-27-smoke.log","artifacts/audit-remediation/logs/ops08-27-nginx.log","tests/e2e-diff/smoke_guard_cert.sh","tests/e2e-diff/smoke_guard_nginx.sh"]
     },
     "intentionalDelta": ["OPS-30 (language switch allowed-diff)"],
     "editEquivalentsWithoutOpsRow": ["OPS-05 (xray edit --uuid)","OPS-06 (xray edit --target)","OPS-07 (xray edit)","OPS-10 (xray edit --server-names)","OPS-17b (xray tls)","OPS-24 (update nginx / schedule run)"],
@@ -206,7 +206,7 @@
     { "item": "external IPv6 data plane", "status": "NOT_RUN", "reason": "default Docker bridge has no IPv6" },
     { "item": "multi-version Xray/Bash config matrix", "status": "NOT_RUN", "reason": "requires pinned historical releases" },
     { "item": "OPS dual-side rerun for the other 18 IDs", "status": "NOT_RUN", "reason": "OPS-09/19/21/31/32 rerun on both sides at 1cd8b98c; the remaining 18 IDs only have the Go-side sweep in this round" },
-    { "item": "OPS-08 / OPS-27 dual-side integration", "status": "NOT_RUN", "reason": "Go commands implemented at 241cc99f and covered by unit tests plus sandbox CLI smoke; real nginx -t and Bash interactive answers are not wired into run_p2_matrix.sh yet" },
+    { "item": "OPS-08 / OPS-27 dual-side integration", "status": "NOT_RUN", "reason": "Go commands implemented at 241cc99f; unit tests, sandbox CLI smoke and real nginx -t pass, but Bash interactive answers are not wired into run_p2_matrix.sh yet" },
     { "item": "OPS-30", "status": "INTENTIONAL_DELTA_APPROVED", "reason": "language switch is allowed-diff" },
     { "item": "merge to main / formal release", "status": "INTENTIONAL_DELTA_APPROVED", "reason": "forbidden by the task" }
   ],

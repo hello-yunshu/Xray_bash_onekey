@@ -49,7 +49,7 @@
 | 外部 IPv6 数据面 | `NOT_RUN` | Docker 默认 bridge 无 IPv6；已证明 `::` 监听与 `::1` 数据面，外网 IPv6 需双栈宿主 |
 | 多版本 Xray/Bash 配置矩阵 | `NOT_RUN` | 需要固定历史发行物；当前只使用仓库 fixture 与固定 Xray `26.10.31` |
 | OPS 运营场景双端复跑 | `NOT_RUN` | OPS-09/19/21/31/32 已在 `1cd8b98c` 双端复跑并 PASS；其余 18 个 ID 在当前 HEAD 仍只有 Go 单侧 sweep，不宣称双端 MATCH |
-| OPS-08 / OPS-27 Go 命令 | `FIXED_VERIFIED` | 已在 `241cc99f` 新增 `xray guard show/set`（isolate/reject/decoy，含 deny 端口、include、nginx -t 回滚、元数据）与 `xray cert clear`（符号链接拒删、`--dry-run`、真实 root 才清 acme.sh）。验证为 Go 单测 + 沙箱 CLI smoke；真实 `nginx -t` 与双端交互仍 `NOT_RUN` |
+| OPS-08 / OPS-27 Go 命令 | `FIXED_VERIFIED` | 已在 `241cc99f` 新增 `xray guard show/set`（isolate/reject/decoy，含 deny 端口、include、nginx -t 回滚、元数据）与 `xray cert clear`（符号链接拒删、`--dry-run`、真实 root 才清 acme.sh）。验证为 Go 单测 + 沙箱 CLI smoke + `nginx:1.27-alpine` 真实 `nginx -t`（isolate/reject/decoy 三种策略均通过）；与 Bash 的双端交互仍 `NOT_RUN` |
 | OPS-30 语言切换 | `INTENTIONAL_DELTA_APPROVED` | `allowed-diff`，不要求与 Bash 逐字节一致 |
 | OPS-05/06/07/10/17b/24 | 已有等价路径 | `xray edit`、`xray tls`、`update nginx`、`schedule run` 已覆盖，无同名 OPS 行 |
 | 98 项矩阵的前置端口断言 | `FIXED_VERIFIED` | 旧断言把 Xray 回环后端端口当公网端口，等于固化旧缺陷；已改为校验 Nginx `listen <port>`，不跳用例 |

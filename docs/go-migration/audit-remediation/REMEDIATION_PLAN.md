@@ -59,7 +59,7 @@
 | 外部 IPv6 数据面 | `NOT_RUN` | 默认 Docker bridge 无 IPv6；需双栈宿主 |
 | 多版本 Xray/Bash 配置矩阵 | `NOT_RUN` | 需固定历史 Release |
 | OPS 双端复跑 | 部分完成 | OPS-09/19/21/31/32 已在 `1cd8b98c` 双端 PASS（`audit-ops-dual-20261120`）；其余 18 个 ID 只有 Go 单侧 sweep |
-| OPS-08 / OPS-27 | `FIXED_VERIFIED`（集成待跑） | `241cc99f` 新增 `xray guard show/set` 与 `xray cert clear`；Go 单测与 CLI smoke 通过；真实 Nginx `-t` 与双端交互仍 `NOT_RUN` |
+| OPS-08 / OPS-27 | `FIXED_VERIFIED`（集成待跑） | `241cc99f` 新增 `xray guard show/set` 与 `xray cert clear`；Go 单测、CLI smoke、真实 `nginx -t` 均通过；Bash 双端交互仍 `NOT_RUN` |
 | OPS-30 | `INTENTIONAL_DELTA` | 语言切换为 `allowed-diff`，不要求逐字节一致 |
 | OPS-05/06/07/10/17b/24 | 已有等价路径 | 分别由 `xray edit --uuid/--target/--server-names`、`xray tls`、`update nginx`、`schedule run` 覆盖，只是没有同名 OPS 行 |
 | 旧 Stats Ubuntu CI 红灯 | 未重查 | 需下载失败日志后单独修复 |
