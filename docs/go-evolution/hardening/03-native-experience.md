@@ -1,7 +1,7 @@
 # 03 · 原生体验与证据边界（P3）
 
 - 分支：`work/go-hardening-parity-20261119`
-- 代码提交：`04d06cf41988647ba0738ddbc67d9a4589b3dc12`
+- 代码提交：`911f91d2`（P3 探针与 relay 支持的最终代码）；`de43a36b` 只修正 P3 runner 的空数组展开
 - 基线：`develop/go-native` @ `9b965843dccc955eee8b91903749500f082271f7`
 - 执行时间：2026-11-19（Asia/Shanghai）
 - 环境：macOS 宿主无 Go；全部 Go 构建/测试在 `golang:1.27.4` 容器内执行（`GOFLAGS=-mod=vendor`，`GOPROXY=off`，`GOTOOLCHAIN=local`）
@@ -39,13 +39,17 @@
 
 | 传输 | 场景 | 结果 | 证据 |
 | --- | --- | --- | --- |
-| Reality + raw | P3 驱动真实安装后探针 | `LOCAL_RUN` 通过 | `evidence/goevo-p3-20261119-p3b/container/driver/E13b-doctor-probe/stdout.txt` |
-| Reality + ws | P3 驱动安装配置（`transport=ws`） | `LOCAL_RUN` 通过 | 同上，`evidenceLevel=REAL_CLIENT_PASS` |
-| Reality + grpc | 单元测试构造分享链接 | `LOCAL_RUN` 通过（配置生成层） | `internal/clientprobe/clientprobe_test.go::TestParseShareURIRealityTransports` |
-| Reality + xhttp | 单元测试构造分享链接 | `LOCAL_RUN` 通过（配置生成层） | 同上 |
-| relay | 独立 Nginx Stream 转发节点，不保存后端 VLESS 凭据 | `NOT_RUN` | 无用户凭据，`--client-probe` 返回 `skip` + `NOT_RUN`；只能另做 L4 连通性检查，不能声称 `REAL_CLIENT_PASS` |
+| Reality + raw | P3 驱动真实安装后探针 | `LOCAL_RUN` PASS（62/62） | `evidence/goevo-p3-20261119-p3raw2/`，rc=0，`evidenceLevel=REAL_CLIENT_PASS` |
+| Reality + ws | `E2E_TRANSPORT=ws` 真实安装 | `LOCAL_RUN` PASS（62/62） | `evidence/goevo-p3-20261119-p3ws2/`，E13b rc=0 |
+| Reality + grpc | `E2E_TRANSPORT=grpc` 真实安装 | `LOCAL_RUN` PASS（62/62） | `evidence/goevo-p3-20261119-p3grpc2/`，E13b rc=0 |
+| Reality + xhttp | `E2E_TRANSPORT=xhttp` 真实安装 | `LOCAL_RUN` PASS（62/62） | `evidence/goevo-p3-20261119-p3xhttp2/`，E13b rc=0 |
+| relay | Nginx Stream 转发节点 | `LOCAL_RUN` PASS（真实 HTTP 经 relay） | `evidence/20261119-m10relay2/p2/M10/go/doctor-relay.json`：`relay-probe=ok`、`evidenceLevel=REAL_CLIENT_PASS`、`healthy=true`、rc=0 |
 
-实际探针输出（原始 JSON）：
+四条 Xray 传输均在 `911f91d2` 上由真实安装的 Xray 客户端完成请求；relay 没有 Xray 入站与用户凭据，
+`doctor` 会识别 `role=relay`，解析受管 `stream{}` 片段并以真实 HTTP 请求穿过监听端口证明转发，
+报告为 `REAL_CLIENT_PASS`，同时 limitation 明确它证明的是转发而不是 VLESS 会话。
+
+实际探针输出（`p3raw2`，原始 JSON 摘录）：
 
 ```json
 {
@@ -70,6 +74,7 @@
 - 外部 origin、DNS 与云安全组不在本进程范围内；只能验证本机能到达的路径。
 - Reality 入站的 TCP/TLS 握手不是用户会话；只有 `--client-probe` 能证明用户级可用。
 - TLS 入站探针证明隧道，不证明公网证书链。
+- relay 节点没有 Xray 入站与用户凭据；它的 `--client-probe` 是穿过 Nginx Stream 的真实 HTTP 请求，证明转发而不是 VLESS 会话。
 
 ## P3-02 update preflight：兼容性不再用布尔值冒充
 
@@ -111,20 +116,23 @@ docker run --rm -v "$PWD:/src:ro" -w /src \
 ### 实际执行
 
 ```bash
-E2E_RUN_ID=20261119-p3b bash tests/e2e-diff/run_p3_hot.sh
+E2E_RUN_ID=20261119-p3raw2 bash tests/e2e-diff/run_p3_hot.sh
+E2E_RUN_ID=20261119-p3ws2 E2E_TRANSPORT=ws bash tests/e2e-diff/run_p3_hot.sh
+E2E_RUN_ID=20261119-p3grpc2 E2E_TRANSPORT=grpc bash tests/e2e-diff/run_p3_hot.sh
+E2E_RUN_ID=20261119-p3xhttp2 E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.sh
 ```
 
-真实结果（`tests/e2e-diff/evidence/goevo-p3-20261119-p3b/run.json`）：
+真实结果（`tests/e2e-diff/evidence/goevo-p3-20261119-p3raw2/run.json`）：
 
 | 字段 | 值 |
 | --- | --- |
-| runId | `20261119-p3b` |
-| commit | `04d06cf41988647ba0738ddbc67d9a4589b3dc12` |
-| image | `idleleo-e2e:24.04` @ `sha256:70dea72e...` |
-| idleleo sha256 | `6c9124b3370549a9cdc97ba5241104cde06df1aee3f07a9d0e9d37967893fce1` |
+| runId | `20261119-p3raw2`（及 `p3ws2`/`p3grpc2`/`p3xhttp2`） |
+| commit | `de43a36b117718c09fcb969fdc52a2c8a8701603`（Go 代码同 `911f91d2`） |
+| image | `idleleo-e2e:24.04` @ `sha256:2e722b98...` |
+| idleleo sha256 | `1934067cbd77f611b58b36fa72ef3a82db41c9ca66215981d18fedf242d7e77f` |
 | xray sha256 | `5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328` |
 | assertions | 62 |
-| passed | 62 |
+| passed | 62（四条传输各自 62/62） |
 | failed | 0 |
 | driver_rc | 0 |
 | 结论 | `PASS` |
@@ -150,6 +158,7 @@ E2E_RUN_ID=20261119-p3b bash tests/e2e-diff/run_p3_hot.sh
 
 ## P3 验收结论
 
-- 代码层：P3-01/P3-02 已实现并有单元测试；P3-03 场景在本 SHA 上 62/62 真实通过。
+- 代码层：P3-01/P3-02 已实现并有单元测试；P3-03 在本 SHA 上 raw/ws/grpc/xhttp 四条传输各 62/62 真实通过。
+- 探针层：Reality 四条 Xray 传输的 `--client-probe` 均为 `REAL_CLIENT_PASS`；relay 以真实 HTTP 穿过 Nginx Stream 达到 `REAL_CLIENT_PASS`，并在 limitation 中明确它不是 VLESS 会话。
 - 证据层：`LOCAL_RUN`（容器内真实 systemd/Xray/nginx/TLS origin）已具备；独立 VM、真实 CI、生产 VPS 仍为 `BLOCKED`/`NOT_RUN`。
 - 发布结论：P3 不改变 `NO-GO` 的最终发布判断；仍需完成 P3-04 的真实 VM 验收与 P2 的真实 CI 复跑。

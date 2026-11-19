@@ -1,0 +1,6 @@
+{
+  "configured": false,
+  "inboundTag": "",
+  "reachable": false,
+  "server": ""
+}

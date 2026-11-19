@@ -94,13 +94,49 @@ python3 .github/test/test_color_output.py
 
 `bash -n tests/e2e-diff/drivers/bash_install.sh` → exit 0。
 
+### 2.3 当前 SHA 全量 P2 实跑（2026-11-19 补跑）
+
+`E2E_RUN_ID=20261119-p2full E2E_CONCURRENCY=4 bash tests/e2e-diff/run_p2_matrix.sh`
+（commit `a56a448d`，scope `installs=[M1..M10] edits=[E1..E8] ops=[OPS-19,OPS-21,OPS-09,OPS-31,OPS-32]`）：
+
+| 项 | 结果 | 证据 |
+|---|---|---|
+| M1–M10 安装 | 两侧 `rc=0`，round1/round2 数据面 `reality/ws/grpc/xhttp/relay:ok`，L6 `ok` | `tests/e2e-diff/evidence/20261119-p2full/p2/install-matrix.md` |
+| E1–E8 编辑 | 全部 `allPassed=true` | 同目录 `E*/go/edit/checks.json` |
+| OPS-09/19/31/32 | `PASS` | `install-matrix.md` 的 OPS 表 |
+| OPS-21 | `BLOCKER`（仅 bash 侧） | bash driver 在 GeoData 刷新下载失败时 `tb_apply_rules` 直接 `return`（rc=0）且未写入规则；Go 侧 4 项全过 |
+
+OPS-21 的 bash 失败不是 Go 回归：`bash-apply.log` 显示 `GeoData 下载失败, 无法应用规则`，
+驱动随即观测到 `rulesAdded=false before=1 after=1`。这是 oracle 在无稳定外网时的环境依赖，
+不是降低标准的理由；修复方式是让驱动明确回答离线刷新提示并重试 off 后的控制探针：
+
+```bash
+E2E_RUN_ID=20261119-ops21 E2E_ONLY=OPS-21 bash tests/e2e-diff/run_p2_matrix.sh
+# [OPS-21] verdict=PASS   (commit 1b519028, rc=0)
+```
+
+relay 的真实转发探针在 M10 场景内执行（Go 侧）：
+
+```bash
+E2E_RUN_ID=20261119-m10relay2 E2E_ONLY=M10 bash tests/e2e-diff/run_p2_matrix.sh
+# commit 911f91d2, doctor-relay.rc.json {"rc":0}, healthy=true, evidenceLevel=REAL_CLIENT_PASS
+```
+
+接管/迁移回归：
+
+| run | commit | 结果 | 说明 |
+|---|---|---|---|
+| `20261119-r1` | `a56a448d` | 85 PASS / 1 FAIL | 唯一失败是 M4 INJ bash 安装 `rc=124`；日志显示 Nginx 下载 `curl: (18) partial file`，属外网中断 |
+| `20261119-inj` | `43ceb680` | 26 PASS / 0 FAIL | 重跑同一 M4 注入场景通过 |
+
 ## 3. 未完成 / 未运行
 
 | 项 | 等级 | 原因 |
 |---|---|---|
 | 三条工作流在 GitHub 上的新一轮真实运行 | `NOT_RUN` | 本轮不执行 `git push`；需推送修复分支后由 CI 触发 |
-| `DUAL_SIDE_PASS` 扩充 | `NOT_RUN` | 需要实际运行 34 行 Docker 矩阵并抓取双端数据面证据 |
+| 34 行 OPS 全量 | `PARTIAL` | 本轮实跑 5 行双端数据面（09/19/21/31/32），其余 29 行仍是 `GO_ONLY_PASS`/`NOT-RUN` |
 | 纯 Bash ACME | `BLOCKED` | 缺少 acme.sh 与外部 Pebble 可达性 |
+| 独立 VM 接管/迁移 | `BLOCKED` | 容器结果不能替代真实旧安装 |
 
 ## 4. 复现命令
 

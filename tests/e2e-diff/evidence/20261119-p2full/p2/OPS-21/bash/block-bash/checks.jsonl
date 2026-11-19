@@ -1,0 +1,14 @@
+{"name":"baselineControl","ok":true,"detail":"ok"}
+{"name":"serviceAliveAfterApply","ok":true,"detail":"active"}
+{"name":"applyRcZero","ok":true,"detail":"rc=0"}
+{"name":"rulesAdded","ok":false,"detail":"before=1 after=1"}
+{"name":"fallbackDirect","ok":true,"detail":""}
+{"name":"noCatchAllBlocked","ok":true,"detail":""}
+{"name":"customRuleApplied","ok":false,"detail":""}
+{"name":"controlAfterApply","ok":true,"detail":"ok"}
+{"name":"adsBlocked","ok":true,"detail":"blocked"}
+{"name":"privateBlocked","ok":false,"detail":"timeout"}
+{"name":"countryBlocked","ok":false,"detail":"ok"}
+{"name":"offRcZero","ok":true,"detail":"rc=0"}
+{"name":"offRestored","ok":true,"detail":"baseline=routing-before"}
+{"name":"controlAfterOff","ok":false,"detail":"timeout"}

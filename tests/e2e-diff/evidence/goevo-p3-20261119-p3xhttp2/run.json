@@ -1,0 +1,260 @@
+{
+  "assertions": [
+    {
+      "label": "api status exits 0 before enablement (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "api status reports configured=false",
+      "result": "PASS"
+    },
+    {
+      "label": "hot add without an API exits 8 (rc=8)",
+      "result": "PASS"
+    },
+    {
+      "label": "report says persisted but not applied",
+      "result": "PASS"
+    },
+    {
+      "label": "the committed config already carries the new user",
+      "result": "PASS"
+    },
+    {
+      "label": "a client for the persisted-but-unapplied user starts",
+      "result": "PASS"
+    },
+    {
+      "label": "the unapplied user is rejected by the running process",
+      "result": "PASS"
+    },
+    {
+      "label": "xray restarts after the crash",
+      "result": "PASS"
+    },
+    {
+      "label": "a client for the recovered user starts",
+      "result": "PASS"
+    },
+    {
+      "label": "the user persisted before the crash works after the restart",
+      "result": "PASS"
+    },
+    {
+      "label": "api enable exits 0 (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "api enable reports changed and reachable",
+      "result": "PASS"
+    },
+    {
+      "label": "config has exactly one api inbound",
+      "result": "PASS"
+    },
+    {
+      "label": "xray is active after the api change",
+      "result": "PASS"
+    },
+    {
+      "label": "xray api lsi answers on the loopback API",
+      "result": "PASS"
+    },
+    {
+      "label": "hot retry exits 0 (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "retry skipped the write and applied to the running inbound",
+      "result": "PASS"
+    },
+    {
+      "label": "retry did not rewrite the config",
+      "result": "PASS"
+    },
+    {
+      "label": "the running inbound now has user B",
+      "result": "PASS"
+    },
+    {
+      "label": "real client for B starts",
+      "result": "PASS"
+    },
+    {
+      "label": "client B reaches the origin through VLESS+Reality",
+      "result": "PASS"
+    },
+    {
+      "label": "hot add A exits 0 (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "A was persisted and applied",
+      "result": "PASS"
+    },
+    {
+      "label": "the running inbound has A",
+      "result": "PASS"
+    },
+    {
+      "label": "real client for A starts",
+      "result": "PASS"
+    },
+    {
+      "label": "client A reaches the origin",
+      "result": "PASS"
+    },
+    {
+      "label": "a slow request from A is in flight",
+      "result": "PASS"
+    },
+    {
+      "label": "hot remove A exits 0 (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "A was removed from config and runtime",
+      "result": "PASS"
+    },
+    {
+      "label": "the committed config no longer has A",
+      "result": "PASS"
+    },
+    {
+      "label": "the running inbound no longer has A",
+      "result": "PASS"
+    },
+    {
+      "label": "the connection opened before removal still completed",
+      "result": "PASS"
+    },
+    {
+      "label": "a real client for B starts after A was removed",
+      "result": "PASS"
+    },
+    {
+      "label": "B still works after A was removed",
+      "result": "PASS"
+    },
+    {
+      "label": "a client with the removed credential still starts locally",
+      "result": "PASS"
+    },
+    {
+      "label": "a new connection with A's credential is rejected (rc=52)",
+      "result": "PASS"
+    },
+    {
+      "label": "xray restarts with the committed config",
+      "result": "PASS"
+    },
+    {
+      "label": "restart did not rewrite the config",
+      "result": "PASS"
+    },
+    {
+      "label": "B survives the restart",
+      "result": "PASS"
+    },
+    {
+      "label": "A stays removed after the restart",
+      "result": "PASS"
+    },
+    {
+      "label": "a real client for B starts after the restart",
+      "result": "PASS"
+    },
+    {
+      "label": "B still reaches the origin after the restart",
+      "result": "PASS"
+    },
+    {
+      "label": "both concurrent hot adds exit 0",
+      "result": "PASS"
+    },
+    {
+      "label": "both users are in the committed config",
+      "result": "PASS"
+    },
+    {
+      "label": "both users are in the running inbound",
+      "result": "PASS"
+    },
+    {
+      "label": "doctor fails when the service account cannot read the config (rc=1)",
+      "result": "PASS"
+    },
+    {
+      "label": "the service-access check names the unreadable config",
+      "result": "PASS"
+    },
+    {
+      "label": "repair exits healthy (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "repair restores the config to 0640",
+      "result": "PASS"
+    },
+    {
+      "label": "repair aligns the config group with xray",
+      "result": "PASS"
+    },
+    {
+      "label": "repair aligns the conf directory group with xray",
+      "result": "PASS"
+    },
+    {
+      "label": "xray restarts after the repair",
+      "result": "PASS"
+    },
+    {
+      "label": "a real client for B starts after the repaired restart",
+      "result": "PASS"
+    },
+    {
+      "label": "B reaches the origin after the repaired restart",
+      "result": "PASS"
+    },
+    {
+      "label": "ops summary exits 0 (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "the summary lists the main inbound port",
+      "result": "PASS"
+    },
+    {
+      "label": "the summary lists the loopback API port",
+      "result": "PASS"
+    },
+    {
+      "label": "the summary carries the last change and a restart count",
+      "result": "PASS"
+    },
+    {
+      "label": "ops summary renders as text",
+      "result": "PASS"
+    },
+    {
+      "label": "doctor --client-probe exits 0 (rc=0)",
+      "result": "PASS"
+    },
+    {
+      "label": "the real-client probe reports REAL_CLIENT_PASS",
+      "result": "PASS"
+    },
+    {
+      "label": "doctor is healthy after the hot and repair scenarios (rc=0)",
+      "result": "PASS"
+    }
+  ],
+  "commit": "911f91d2c7bd98c893e2a5d614f81463e9e91696",
+  "driverExit": 0,
+  "failed": 0,
+  "imageId": "sha256:2e722b98cfb43dfcc6fd285bc3d8771ad9a44a40a3c4663027500686db343cde",
+  "installExit": 0,
+  "passed": 62,
+  "runId": "20261119-p3xhttp2",
+  "schemaVersion": 1
+}

@@ -1,0 +1,21 @@
+active
+-rw-r----- 1 root xray 2793 Nov 19 11:51 /etc/idleleo/conf/xray/config.json
+dafe41efacc57825541cb12dc6b3ef0c3184d8912c0f777d32ea5b927d0a0085  /etc/idleleo/conf/xray/config.json
+Nov 19 11:51:24 e2e-20261119-p2full-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 19 11:51:24 e2e-20261119-p2full-OPS-21-go xray[220]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 19 11:51:24 e2e-20261119-p2full-OPS-21-go xray[220]: A unified platform for anti-censorship.
+Nov 19 11:51:24 e2e-20261119-p2full-OPS-21-go xray[220]: 2026/11/19 11:51:24.065688 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 19 11:51:27 e2e-20261119-p2full-OPS-21-go systemd[1]: Stopping xray.service - Xray Service...
+Nov 19 11:51:27 e2e-20261119-p2full-OPS-21-go systemd[1]: xray.service: Deactivated successfully.
+Nov 19 11:51:27 e2e-20261119-p2full-OPS-21-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 19 11:51:27 e2e-20261119-p2full-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 19 11:51:27 e2e-20261119-p2full-OPS-21-go xray[1252]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 19 11:51:27 e2e-20261119-p2full-OPS-21-go xray[1252]: A unified platform for anti-censorship.
+Nov 19 11:51:27 e2e-20261119-p2full-OPS-21-go xray[1252]: 2026/11/19 11:51:27.897929 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 19 11:51:35 e2e-20261119-p2full-OPS-21-go systemd[1]: Stopping xray.service - Xray Service...
+Nov 19 11:51:35 e2e-20261119-p2full-OPS-21-go systemd[1]: xray.service: Deactivated successfully.
+Nov 19 11:51:35 e2e-20261119-p2full-OPS-21-go systemd[1]: Stopped xray.service - Xray Service.
+Nov 19 11:51:35 e2e-20261119-p2full-OPS-21-go systemd[1]: Started xray.service - Xray Service.
+Nov 19 11:51:35 e2e-20261119-p2full-OPS-21-go xray[1415]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 19 11:51:35 e2e-20261119-p2full-OPS-21-go xray[1415]: A unified platform for anti-censorship.
+Nov 19 11:51:35 e2e-20261119-p2full-OPS-21-go xray[1415]: 2026/11/19 11:51:35.739053 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

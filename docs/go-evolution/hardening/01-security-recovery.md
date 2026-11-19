@@ -43,19 +43,31 @@
 | `TestRestoreRefusesWhileJournalIsInterrupted` | journal `APPLYING` → 拒绝第二次恢复并提示 `backup recover` |
 | `TestRecoverPreparedDoesNotTouchFiles` | `PREPARED` 收敛为 `ROLLED_BACK`，文件不变 |
 | `TestRestoreHardKillConvergesWithExplicitRecover` | 子进程在 `after-half` 被 **真实 SIGKILL**；journal 为 `APPLYING`；`Recover` 回滚；再恢复成功 |
+| `TestRestoreHardKillAtEveryDurablePointConverges` | 六个持久点（`after-prepare`/`after-first-file`/`after-half`/`before-commit`/`before-service`/`after-service`）逐一真实 SIGKILL；每个点 journal 非终端、`Recover` 收敛为 `ROLLED_BACK`、内容回到旧值、再次 Restore 成功 |
+| `TestRestoreRollsBackOnFilesystemErrors` | ENOSPC（rename 注入）、EROFS（rename 注入）、EACCES（chmod 注入）均回滚旧内容并留下 `ROLLED_BACK` |
+| `TestRestoreLeavesThirdPartyFilesAlone` | 失败回滚只覆盖清单内文件，第三方 `custom.conf` 保持原样 |
+| `TestRestoreRefusesWhileAnotherProcessHoldsLock` | 另一进程持有共享更新锁时 Restore 报 “another update”，不进入 APPLYING |
+| `TestRecoverRefusesCorruptJournalWithoutTouchingFiles` | journal 非法 JSON 时拒绝收敛，不删除 journal、不改动文件 |
+| `TestRestoreRejectsTraversalWithoutTouchingCanary` | 归档含 `../canary` 时 Verify/Restore 拒绝，根外 canary 内容保持 `untouched` |
 | `TestRepairRefusesSymlinkedPaths` | cert 目录 symlink → 只报告，外部 key 模式/内容不变 |
 | `TestRepairRefusesSymlinkedStagingEntry` | `var/tmp/restore-*` symlink 不被删除 |
 | `TestRepairDryRunTakesNoLockAndWritesNothing` | dry-run 不建锁、不改 mode |
 | `TestRepairRefusesWhileAnotherUpdateHoldsTheLock` | 锁被占用 → repair 拒绝 |
 
-执行命令与结果：
+执行命令与结果（2026-11-19 二次强化后复跑，代码 `911f91d2` 的 `internal/backup` 与 `internal/repair` 内容与 `43ceb680` 相同）：
 
 ```bash
-docker run --rm -v "$PWD":/src -w /src -e GOFLAGS=-mod=vendor -e CGO_ENABLED=0 \
-  -e GOCACHE=/tmp/gocache golang:1.27.4 bash -c \
-  'export PATH=$PATH:/usr/local/go/bin; go test ./internal/backup/ ./internal/repair/ -v'
-# PASS: all backup/repair tests, exit 0
+docker run --rm -v "$PWD:/src:ro" -w /src -e CGO_ENABLED=0 -e GOFLAGS=-mod=vendor \
+  -e GOPROXY=off -e GOTOOLCHAIN=local -e GOCACHE=/tmp/gocache golang:1.27.4 \
+  bash -c 'export PATH=$PATH:/usr/local/go/bin; go test -count=1 -v ./internal/backup ./internal/repair'
+# ok github.com/hello-yunshu/Xray_bash_onekey/internal/backup 0.660s
+# ok github.com/hello-yunshu/Xray_bash_onekey/internal/repair 0.002s
+# PASS，0 FAIL，退出码 0
 ```
+
+子测试实测：`TestRestoreHardKillAtEveryDurablePointConverges` 的
+`prepared/first-file/half/before-commit/before-service/after-service` 六项全部 `PASS`；
+`TestRestoreRollsBackOnFilesystemErrors` 的 `enospc/read-only/permission` 三项全部 `PASS`。
 
 SIGKILL 证据不依赖模拟：子进程通过 `IDLELEO_RESTORE_FAULT=after-half` 调用
 `syscall.Kill(os.Getpid(), SIGKILL)`，父测试用 `WaitStatus.Signaled()` 校验信号为 `SIGKILL`。
