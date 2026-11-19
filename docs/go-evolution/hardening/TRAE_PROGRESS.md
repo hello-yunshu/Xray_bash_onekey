@@ -9,6 +9,7 @@
 | S0 | 清理、分支、SHA/工具链、基线门禁 | 完成 | `59adbce4` | `00-baseline.md`；gofmt/vet/test/build rc=0 |
 | P1-01 | `backup.Verify` 严格清单/边界；`Create` 原子写入 | 完成 | `8ac1385f`、`43ceb680` | `internal/backup/hardening_test.go`；canary/第三方文件/坏 journal |
 | P1-02 | `Restore` 锁 + journal + `recover` + SIGKILL | 完成 | `8ac1385f`、`43ceb680` | 六个持久点真实 SIGKILL；ENOSPC/EROFS/EACCES |
+| T04 | 双容器冷恢复、可选 GeoData 缺失修复 | 完成 | `4c9705a9`、`4ab08050` | `20261119-cold4`：source 8/8、target 19/19、真实客户端 |
 | P1-03 | `repair` 符号链接边界、dry-run 零写入、共享锁 | 完成 | `8ac1385f` | `internal/repair/hardening_test.go` |
 | P1-04 | 变更计划/argv 脱敏复测 | 完成（既有覆盖） | — | `internal/host/exec_test.go`、`internal/host/gate_test.go` rc=0 |
 | P2-01 | 三条 CI 红灯根因修复 | 完成 | `4c986c26` | `Ran 10 tests ... OK`、`73 passed, 0 failed`、actionlint rc=0 |
@@ -24,7 +25,10 @@
 
 | 日期 | 命令 | 结果 |
 |---|---|---|
-| 2026-11-19 | `go test -count=1 ./...`（`golang:1.27.4`，SHA `911f91d2`） | rc=0，25 个包 `ok`，0 FAIL |
+| 2026-11-19 | `go test -count=1 ./...`（`golang:1.27.4`，SHA `4ab08050`） | rc=0，25 个包 `ok`，0 FAIL |
+| 2026-11-19 | `E2E_RUN_ID=20261119-cold4 bash tests/e2e-diff/run_coldrestore.sh` | source 8/8、target 19/19，双侧 rc=0 |
+| 2026-11-19 | PR #182：preview / realroot / native-core-release-qualification / Test Install | 首轮通过 |
+| 2026-11-19 | PR #182：stage-parity / Privacy Guard | 首轮因文档 `::` 被 IPv6 卫生规则命中；已改文档并复跑 |
 | 2026-11-19 | `gofmt -l cmd internal tests` / `go vet ./...` / `go build ./...` | 全部 rc=0 |
 | 2026-11-19 | `python3 -m unittest discover -s tests -v`（`tests/go-parity/parity`） | `Ran 10 tests ... OK` |
 | 2026-11-19 | `python3 .github/test/test_color_output.py` | `73 passed, 0 failed` |
@@ -41,7 +45,7 @@
 
 | 项 | 状态 | 原因 |
 |---|---|---|
-| 真实 GitHub Actions 复跑 | `NOT_RUN` | 未 push；遵守不合并/不发布约束 |
+| 真实 GitHub Actions 复跑 | `CI_RUN` | PR #182（draft，base `develop/go-native`）；首轮结果见上 |
 | 独立 VM 冷恢复/掉电 | `BLOCKED` | 无 VM |
 | 纯 Bash ACME（M8） | `BLOCKED` | 镜像无 `acme.sh`，无外部 ACME 端点 |
 | 接管/迁移独立 VM | `PARTIAL` | 容器 R1/R2/INJ 已跑；独立 VM 未做 |
@@ -51,7 +55,8 @@
 
 ## 边界声明
 
-- 本轮没有合并 `main`、没有 tag/release、没有操作生产 VPS、没有 push。
+- 本轮没有合并 `main`、没有 tag/release、没有操作生产 VPS。
+- 工作分支已 push 并创建 draft PR #182（base `develop/go-native`），只用于真实 CI；未合并。
 - 容器内真实 systemd/Xray/nginx/TLS origin 的结果标记为 `LOCAL_RUN`，不是 `CI_RUN` 或生产验证。
 - 历史 SHA `6ad3be97` 的 M1–M10/OPS 证据不再作为本轮依据；本轮已用 `a56a448d`/`911f91d2` 复跑。
 - relay 的 `REAL_CLIENT_PASS` 只证明 Nginx Stream 转发，不是 VLESS 会话。

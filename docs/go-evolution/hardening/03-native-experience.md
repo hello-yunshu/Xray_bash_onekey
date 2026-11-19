@@ -151,6 +151,8 @@ E2E_RUN_ID=20261119-p3xhttp2 E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.
 
 ## P3-04 真实 VM 边界
 
+- 容器内冷恢复已单独完成（见 `01-security-recovery.md` §4，T04：源容器销毁、目标容器恢复、真实客户端）；
+  这证明恢复事务与目标机权限解析，但仍是容器，不是独立 VM。
 - 独立 VM 部署/接管：`BLOCKED`。本轮没有可用 VM，未执行，不得用容器结果替代。
 - systemd 在真实主机重启后的掉电/重启恢复：`BLOCKED`。
 - 真实 VPS 的生产变更：`BLOCKED`（任务书禁止）。

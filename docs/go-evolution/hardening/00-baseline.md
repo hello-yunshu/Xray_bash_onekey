@@ -58,10 +58,10 @@ docker run --rm -v "$PWD":/src -w /src \
 
 三条红灯的源码级根因（本轮重新确认）：
 
-1. `tests/go-parity/parity/tests/test_fail_closed.py::test_unverified_release_must_fail`
+1. `tests/go-parity/parity/tests/test_fail_closed.py · test_unverified_release_must_fail`
    固定断言真实账本“全部 PENDING 且 rc=2”。账本已于 `9b965843` 签收（26 VERIFIED_GO_PARITY + 2 APPROVED_SAFE_DIVERGENCE），
    `check_release_gate.py` 在没有 `--bash-repo/--native-go-dir/--require-package` 时返回 3。测试语义与账本状态脱节。
-2. `tests/go-parity/parity/scripts/check_preview_gate.py::check_gate_and_ledger`
+2. `tests/go-parity/parity/scripts/check_preview_gate.py · check_gate_and_ledger`
    强制要求 `feature_contracts.json` 恰好 28 项且全部 `PENDING_GO_IMPLEMENTATION`。签收后的 develop 分支每次 push 必然触发该“故意失败”的 Preview。
 3. `Test Install`：ANSI 扫描覆盖被 Git 跟踪的历史原始日志（约 32k 文件），且 7 处 fixture 标记缺失。需区分生产输出、测试 fixture 与历史归档，而不是全局忽略 `.log`。
 
@@ -76,11 +76,11 @@ docker run --rm -v "$PWD":/src -w /src \
 
 | ID | 位置 | 现象 |
 |---|---|---|
-| B-01 | `internal/backup/backup.go::Verify` | 只校验 manifest 声明的条目存在/哈希，不拒绝 tar 内额外未声明条目；不校验 mode；manifest 无大小上限；`io.ReadAll` 可被压缩炸弹打爆 |
-| B-02 | `internal/backup/backup.go::Create` | 直接写最终路径（崩溃留半成品）；不拒绝归档写入受管树内部；不校验受管目录祖先符号链接 |
-| B-03 | `internal/backup/backup.go::Restore` | 无锁、无持久化 journal；`_ = os.Remove(dst+".restore-old")` 无条件删除既有文件；SIGKILL 后无法收敛；不重建服务状态 |
+| B-01 | `internal/backup/backup.go · Verify` | 只校验 manifest 声明的条目存在/哈希，不拒绝 tar 内额外未声明条目；不校验 mode；manifest 无大小上限；`io.ReadAll` 可被压缩炸弹打爆 |
+| B-02 | `internal/backup/backup.go · Create` | 直接写最终路径（崩溃留半成品）；不拒绝归档写入受管树内部；不校验受管目录祖先符号链接 |
+| B-03 | `internal/backup/backup.go · Restore` | 无锁、无持久化 journal；`_ = os.Remove(dst+".restore-old")` 无条件删除既有文件；SIGKILL 后无法收敛；不重建服务状态 |
 | B-04 | `internal/repair/repair.go` | `os.Stat`/`os.Chmod`/`os.Chown`/`os.ReadFile` 跟随符号链接；dry-run 无写但正式运行无共享锁 |
-| B-05 | `internal/backup/backup.go::extract` | 恢复暂存目录同样使用 `filepath.Join`，父级符号链接可越界 |
+| B-05 | `internal/backup/backup.go · extract` | 恢复暂存目录同样使用 `filepath.Join`，父级符号链接可越界 |
 
 ## 7. 本轮验收等级用语
 

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-11-19T12:39:08Z",
+  "includeGeodata": true,
+  "sourceArch": "arm64",
+  "sourceVersion": "0.2.0-phase04",
+  "managedResources": [
+    "etc/idleleo/conf",
+    "etc/idleleo/cert",
+    "etc/idleleo/v1",
+    "etc/idleleo/info",
+    "etc/idleleo/alerts",
+    "etc/idleleo/share/xray"
+  ],
+  "restoreLimits": [
+    "only etc/idleleo/{conf,cert,v1,info,alerts} and opt-in geo assets",
+    "regular files only; symlinks, devices and path escapes are rejected",
+    "the whole archive must expand to at most 4 GiB",
+    "the staged xray config must pass the managed validator before any swap"
+  ],
+  "entries": [
+    {
+      "path": "etc/idleleo/conf/xray/config.json",
+      "mode": 416,
+      "size": 1695,
+      "sha256": "a5b4271d97f6c282c7a07f500a3669fb302e6239df229e55594a60eb312277d5"
+    },
+    {
+      "path": "etc/idleleo/v1/metadata.json",
+      "mode": 420,
+      "size": 611,
+      "sha256": "dc42e2eb86c278d125e1ebe8619450ff86aeb18b492adfcd4c11c62b22a69ff0"
+    }
+  ],
+  "skipped": [
+    "etc/idleleo/cert (absent)",
+    "etc/idleleo/info (absent)",
+    "etc/idleleo/alerts (absent)",
+    "etc/idleleo/share/xray (absent)"
+  ]
+}

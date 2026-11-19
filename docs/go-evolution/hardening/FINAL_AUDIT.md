@@ -35,6 +35,8 @@
 | `1b519028` | P2：M10 内联 relay doctor 探针；OPS-21 离线 geo 提示 |
 | `911f91d2` | doctor：relay 以 nginx unit 判定健康；relay `--client-probe` |
 | `de43a36b` | P3 runner：修复 `set -u` 下空数组展开（原始安装路径） |
+| `4c9705a9` | P1：`backup create --include-geodata` 在可选 GeoData 树缺失时不再整体失败 |
+| `4ab08050` | P1：双容器冷恢复用例（源机销毁、目标机恢复、权限/验证器/服务/真实客户端） |
 
 ## 3. P0/P1 缺陷闭环
 
@@ -46,7 +48,7 @@
 | B-04 | repair 跟随符号链接、正式运行无共享锁 | 逐级 `Lstat`、`O_NOFOLLOW`、正式运行持锁、dry-run 零写入 | `internal/repair/hardening_test.go` |
 | B-05 | 恢复暂存 `filepath.Join` 可越界 | 组件级安全路径解析 + 受管根约束 | `TestRestoreRefusesSymlinkComponent`、`TestRestoreRejectsTraversalWithoutTouchingCanary` |
 
-P1 定向测试共 39 个 `Test*` 函数（`internal/backup` 31、`internal/repair` 8），其中本轮新增 6 个测试与 9 个子测试点；
+P1 定向测试共 41 个 `Test*` 函数（`internal/backup` 33、`internal/repair` 8），其中本轮新增 8 个测试与 9 个子测试点；
 P3 新增客户端探针与 readiness 测试。当前 SHA 全量 `go test -count=1 ./...` 25 个包 `ok`、0 FAIL（见第 7 节）。
 
 ## 4. CI 红灯闭环
@@ -63,7 +65,8 @@ P3 新增客户端探针与 readiness 测试。当前 SHA 全量 `go test -count
 
 | 风险 | 等级 | 现状 | 发布前要求 |
 | --- | --- | --- | --- |
-| 独立 VM 冷恢复/掉电恢复 | P1 | `BLOCKED` | 至少一次真实 VM 全流程 |
+| 冷恢复（容器） | P1 | 已闭合 | `20261119-cold4`：源容器销毁后目标容器恢复，8/8 + 19/19，真实客户端通过 |
+| 独立 VM 冷恢复/掉电恢复 | P1 | `BLOCKED` | 至少一次真实 VM 全流程（P3-04） |
 | 真实 CI 复跑 | P1 | `NOT_RUN` | push 到受保护分支并保存 run id |
 | OPS 29 行无双端证据 | P1 | `GO_ONLY_PASS` | 逐项补双端或正式批准安全差异 |
 | 纯 Bash ACME（M8） | P1 | `BLOCKED` | 提供 `acme.sh` 与可达 ACME 端点后重跑 |

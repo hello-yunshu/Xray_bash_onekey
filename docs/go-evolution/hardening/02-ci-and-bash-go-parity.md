@@ -7,7 +7,7 @@
 
 ### 1.1 Stage gate：`44424910844`
 
-根因：`test_fail_closed.py::test_unverified_release_must_fail` 固定读取真实账本，并断言“全 PENDING、rc=2”。
+根因：`test_fail_closed.py · test_unverified_release_must_fail` 固定读取真实账本，并断言“全 PENDING、rc=2”。
 账本在 `9b965843` 已签收，`check_release_gate.py` 在缺少 pinned Bash/Go/CI 参数时返回 3，测试语义与账本状态脱节。
 
 修复：
@@ -25,7 +25,7 @@ python3 tests/go-parity/parity/tests/test_fail_closed.py
 
 ### 1.2 Preview：`44424910823`
 
-根因：`check_preview_gate.py::check_gate_and_ledger` 要求账本“恰好 28 项且全部 PENDING”，签收后的 develop 分支每次 push 必然失败。
+根因：`check_preview_gate.py · check_gate_and_ledger` 要求账本“恰好 28 项且全部 PENDING”，签收后的 develop 分支每次 push 必然失败。
 
 修复（工作流阶段条件，而非 `if: false` 伪绿）：
 1. 新增 `Detect feature-ledger stage`：校验 id 恰为 F01–F28，输出 `mode=pending|signed`；账本不合法则直接失败。
