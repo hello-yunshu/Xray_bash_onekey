@@ -15,6 +15,8 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 )
 
 type rawEntry struct {
@@ -372,9 +374,211 @@ func TestRestoreKillHelper(t *testing.T) {
 	}
 	root := os.Getenv("IDLELEO_KILL_ROOT")
 	archive := os.Getenv("IDLELEO_KILL_ARCHIVE")
-	_, err := Restore(context.Background(), root, archive, RestoreOptions{NoPreBackup: true})
+	opts := RestoreOptions{NoPreBackup: true}
+	if os.Getenv("IDLELEO_KILL_APPLY") == "1" {
+		opts.Apply = func(context.Context) error { return nil }
+	}
+	_, err := Restore(context.Background(), root, archive, opts)
 	t.Logf("restore returned before fault: %v", err)
 	os.Exit(9)
+}
+
+// TestRestoreHardKillAtEveryDurablePointConverges covers each journal boundary,
+// not just the midpoint. Every point must leave a recoverable journal and end
+// with the pre-restore content.
+func TestRestoreHardKillAtEveryDurablePointConverges(t *testing.T) {
+	if os.Getenv("IDLELEO_KILL_HELPER") == "1" {
+		return
+	}
+	points := []struct {
+		name, fault string
+		apply       bool
+		state       string
+	}{
+		{"prepared", "after-prepare", false, RestoreStatePrepared},
+		{"first-file", "after-first-file", false, RestoreStateApplying},
+		{"half", "after-half", false, RestoreStateApplying},
+		{"before-commit", "before-commit", false, RestoreStateApplying},
+		{"before-service", "before-service", true, RestoreStateApplying},
+		{"after-service", "after-service", true, RestoreStateApplying},
+	}
+	for _, tc := range points {
+		t.Run(tc.name, func(t *testing.T) {
+			root, archive, _ := versionedRoots(t, "old", "new")
+			cmd := exec.Command(os.Args[0], "-test.run=TestRestoreKillHelper", "-test.v")
+			cmd.Env = append(os.Environ(),
+				"IDLELEO_KILL_HELPER=1",
+				"IDLELEO_KILL_ROOT="+root,
+				"IDLELEO_KILL_ARCHIVE="+archive,
+				"IDLELEO_RESTORE_FAULT="+tc.fault,
+			)
+			if tc.apply {
+				cmd.Env = append(cmd.Env, "IDLELEO_KILL_APPLY=1")
+			}
+			_, err := cmd.CombinedOutput()
+			var exitErr *exec.ExitError
+			if !errors.As(err, &exitErr) {
+				t.Fatalf("helper must be killed at %s, got %v", tc.fault, err)
+			}
+			ws, ok := exitErr.Sys().(syscall.WaitStatus)
+			if !ok || !ws.Signaled() || ws.Signal() != syscall.SIGKILL {
+				t.Fatalf("%s: helper must die from SIGKILL, got %v", tc.fault, ws)
+			}
+			rec, err := loadRestoreRecord(root)
+			if err != nil {
+				t.Fatalf("%s: journal must survive: %v", tc.fault, err)
+			}
+			if rec.State != tc.state {
+				t.Fatalf("%s: journal state = %s, want %s", tc.fault, rec.State, tc.state)
+			}
+			rep, err := Recover(context.Background(), root, RecoverOptions{})
+			if err != nil || !rep.Converged || rep.Action != "rolled-back" {
+				t.Fatalf("%s: recover = %+v, %v", tc.fault, rep, err)
+			}
+			assertContent(t, root, "old")
+			if _, err := Restore(context.Background(), root, archive, RestoreOptions{NoPreBackup: true}); err != nil {
+				t.Fatalf("%s: restore after recover: %v", tc.fault, err)
+			}
+			assertContent(t, root, "new")
+		})
+	}
+}
+
+func TestRestoreRollsBackOnFilesystemErrors(t *testing.T) {
+	cases := []struct {
+		name string
+		want string
+		arm  func(fired *bool)
+	}{
+		{"enospc", "no space", func(fired *bool) {
+			renameRestoreFile = func(src, dst string) error {
+				if !*fired {
+					*fired = true
+					return syscall.ENOSPC
+				}
+				return os.Rename(src, dst)
+			}
+		}},
+		{"read-only", "read-only", func(fired *bool) {
+			renameRestoreFile = func(src, dst string) error {
+				if !*fired {
+					*fired = true
+					return syscall.EROFS
+				}
+				return os.Rename(src, dst)
+			}
+		}},
+		{"permission", "permission", func(fired *bool) {
+			chmodRestoreFile = func(name string, mode os.FileMode) error {
+				if !*fired {
+					*fired = true
+					return syscall.EACCES
+				}
+				return os.Chmod(name, mode)
+			}
+		}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			oldRename, oldChmod := renameRestoreFile, chmodRestoreFile
+			t.Cleanup(func() { renameRestoreFile, chmodRestoreFile = oldRename, oldChmod })
+			root, archive, _ := versionedRoots(t, "old", "new")
+			fired := false
+			tc.arm(&fired)
+			_, err := Restore(context.Background(), root, archive, RestoreOptions{NoPreBackup: true})
+			if err == nil || !strings.Contains(strings.ToLower(err.Error()), tc.want) {
+				t.Fatalf("expected %s failure, got %v", tc.name, err)
+			}
+			assertContent(t, root, "old")
+			rec, loadErr := loadRestoreRecord(root)
+			if loadErr != nil {
+				t.Fatal(loadErr)
+			}
+			if rec.State != RestoreStateRolledBack {
+				t.Fatalf("journal state = %s, want %s", rec.State, RestoreStateRolledBack)
+			}
+		})
+	}
+}
+
+func TestRestoreLeavesThirdPartyFilesAlone(t *testing.T) {
+	root, archive, _ := versionedRoots(t, "old", "new")
+	extra := filepath.Join(root, "etc/idleleo/conf/xray/custom.conf")
+	if err := os.WriteFile(extra, []byte("third-party"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	_, err := Restore(context.Background(), root, archive, RestoreOptions{
+		NoPreBackup: true,
+		Apply:       func(context.Context) error { return errors.New("service refused to start") },
+	})
+	if err == nil {
+		t.Fatal("expected service failure")
+	}
+	body, readErr := os.ReadFile(extra)
+	if readErr != nil || string(body) != "third-party" {
+		t.Fatalf("third-party file must survive rollback: %q %v", body, readErr)
+	}
+}
+
+func TestRestoreRefusesWhileAnotherProcessHoldsLock(t *testing.T) {
+	root, archive, _ := versionedRoots(t, "old", "new")
+	lock, err := host.AcquireUpdate(lockFileFor(root))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer lock.Release()
+	_, err = Restore(context.Background(), root, archive, RestoreOptions{NoPreBackup: true})
+	if err == nil || !strings.Contains(err.Error(), "another update") {
+		t.Fatalf("expected lock refusal, got %v", err)
+	}
+	assertContent(t, root, "old")
+}
+
+func TestRecoverRefusesCorruptJournalWithoutTouchingFiles(t *testing.T) {
+	root, _, _ := versionedRoots(t, "old", "new")
+	if err := os.MkdirAll(transactionDir(root), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(restoreJournalPath(root), []byte("{not json"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Recover(context.Background(), root, RecoverOptions{}); err == nil {
+		t.Fatal("a corrupt journal must be refused")
+	}
+	assertContent(t, root, "old")
+	if _, err := os.Stat(restoreJournalPath(root)); err != nil {
+		t.Fatal("a corrupt journal must not be deleted silently")
+	}
+}
+
+// TestRestoreRejectsTraversalWithoutTouchingCanary proves a malicious archive
+// cannot write outside the managed root, byte-for-byte.
+func TestRestoreRejectsTraversalWithoutTouchingCanary(t *testing.T) {
+	base := t.TempDir()
+	root := filepath.Join(base, "managed")
+	if err := os.MkdirAll(root, 0o750); err != nil {
+		t.Fatal(err)
+	}
+	canary := filepath.Join(base, "canary")
+	if err := os.WriteFile(canary, []byte("untouched"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	body := []byte("pwned")
+	manifest := manifestFor(t, []Entry{{Path: "../canary", Mode: 0o600, Size: int64(len(body)), SHA256: sha(body)}})
+	archive := filepath.Join(t.TempDir(), "traversal.tar.gz")
+	writeRawArchive(t, archive, []rawEntry{
+		{name: "../canary", mode: 0o600, body: body},
+		{name: "manifest.json", mode: 0o600, body: manifest},
+	})
+	if _, err := Verify(archive); err == nil {
+		t.Fatal("traversal archive must be rejected")
+	}
+	if _, err := Restore(context.Background(), root, archive, RestoreOptions{NoPreBackup: true}); err == nil {
+		t.Fatal("traversal restore must fail")
+	}
+	if got, err := os.ReadFile(canary); err != nil || string(got) != "untouched" {
+		t.Fatalf("canary was modified: %q %v", got, err)
+	}
 }
 
 // versionedRoots builds a target root containing "old" content and an archive

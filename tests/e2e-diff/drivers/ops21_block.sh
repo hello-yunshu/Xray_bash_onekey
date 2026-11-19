@@ -268,7 +268,10 @@ apply_bash() {
     tb_set_rule_status private_ip true
     tb_set_rule_status bittorrent true
     tb_set_countries '["cn"]'
-    tb_apply_rules </dev/null >>"$DIR/bash-apply.log" 2>&1 || return 1
+    # Answer N to the GeoData refresh prompt: the runner seeds the geo assets
+    # offline, and a flaky download must not decide whether routing is applied.
+    # The apply path still refuses a genuinely missing file (tb_check_geo_files).
+    printf 'n\n' | tb_apply_rules >>"$DIR/bash-apply.log" 2>&1 || return 1
     return 0
 }
 
@@ -466,7 +469,7 @@ if [[ "$SIDE" == "go" ]]; then
         "$(jq -r '[.rules[] | select((.domain // []) | map(tostring | test("ops21\\.example")) | any)] | length == 0' \
             "$DIR/routing-after-off.json" | grep -qx true && echo true || echo false)" ""
 fi
-outcome=$(probe control-after-off "$CONTROL_HOST" "$CONTROL_PORT" 8000)
+outcome=$(probe_ready control-after-off "$CONTROL_HOST" "$CONTROL_PORT" 10)
 check controlAfterOff "$([[ "$outcome" == "ok" && "$(probe_marker control-after-off)" == "true" ]] && echo true || echo false)" "$outcome"
 
 python3 - "$checks" "$DIR/result.json" "$SIDE" <<'PY'

@@ -146,6 +146,30 @@ func Probe(ctx context.Context, xrayBin string, link Link, addr, originURL, mark
 	}
 	defer conn.Close()
 
+	return httpThrough(conn, hostHeader, requestPath, marker)
+}
+
+// ProbeForward proves a raw TCP forwarder (the managed relay) end to end. A
+// relay has no Xray inbound and no user credential, so a real HTTP client
+// through the relay listener is the strongest honest evidence available; the
+// caller must not call it REAL_CLIENT_PASS for a VLESS session.
+func ProbeForward(ctx context.Context, addr, originURL, marker string) (Result, error) {
+	_, hostHeader, requestPath, err := parseOrigin(originURL)
+	if err != nil {
+		return Result{}, err
+	}
+	dialer := net.Dialer{Timeout: 5 * time.Second}
+	conn, err := dialer.DialContext(ctx, "tcp", addr)
+	if err != nil {
+		return Result{}, fmt.Errorf("dial the relay listener %s: %w", addr, err)
+	}
+	defer conn.Close()
+	return httpThrough(conn, hostHeader, requestPath, marker)
+}
+
+// httpThrough performs one HTTP/1.1 GET on an established tunnel and validates
+// the origin response. It is shared by the VLESS probe and the relay probe.
+func httpThrough(conn net.Conn, hostHeader, requestPath, marker string) (Result, error) {
 	request := "GET " + requestPath + " HTTP/1.1\r\nHost: " + hostHeader +
 		"\r\nUser-Agent: idleleo-client-probe\r\nAccept: */*\r\nConnection: close\r\n\r\n"
 	if _, err := conn.Write([]byte(request)); err != nil {

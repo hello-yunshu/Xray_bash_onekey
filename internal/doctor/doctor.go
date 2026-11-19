@@ -102,6 +102,9 @@ type Options struct {
 	ProbeURL    string
 	ProbeExpect string
 	Probe       func(ctx context.Context, xrayBin string, link clientprobe.Link, addr, origin, marker string) (clientprobe.Result, error)
+	// ProbeForward proves a relay (raw TCP stream) with a real HTTP request
+	// through the listener. It is a test seam for the same reason as Probe.
+	ProbeForward func(ctx context.Context, addr, origin, marker string) (clientprobe.Result, error)
 }
 
 // Run is RunWith with production defaults.
@@ -124,22 +127,35 @@ func RunWith(ctx context.Context, root string, opts Options) Report {
 	rep.add(checkLayout(paths))
 	meta, _, metaErr := store.LoadMetadata(paths)
 	rep.add(checkMetadata(metaErr))
-	cfg, _ := checkConfig(paths, meta, opts, ctx)
-	rep.add(cfg)
-	rep.add(checkModes(paths))
+	// A relay owns no Xray runtime config or certificate; its health is the
+	// managed Nginx stream fragment plus a real request through it.
+	relay := metaErr == nil && meta.Role == "relay"
+	if relay {
+		rep.add(checkRelayConfig(paths))
+	} else {
+		cfg, _ := checkConfig(paths, meta, opts, ctx)
+		rep.add(cfg)
+		rep.add(checkModes(paths))
+	}
 	rep.add(checkServiceAccess(ctx, paths))
-	rep.add(checkCertificate(paths, meta))
+	if !relay {
+		rep.add(checkCertificate(paths, meta))
+	}
 	rep.add(checkNginx(paths))
 	rep.add(checkServices(ctx, root, opts))
 	rep.add(checkBackup(paths, opts.Now))
 	rep.add(checkDisk(paths))
 	rep.add(checkLock(paths, opts.Now))
 	rep.add(checkGeodata(paths))
-	if opts.Deep {
+	if opts.Deep && !relay {
 		rep.add(checkConnectivity(ctx, paths))
 	}
 	if opts.ClientProbe {
-		rep.add(checkClientProbe(ctx, paths, opts))
+		if relay {
+			rep.add(checkRelayProbe(ctx, paths, opts))
+		} else {
+			rep.add(checkClientProbe(ctx, paths, opts))
+		}
 	}
 	return rep.finish()
 }
@@ -174,7 +190,7 @@ func (r *Report) finish() Report {
 	r.Healthy = r.Summary.Fail == 0
 	r.EvidenceLevel = EvidenceFileAndService
 	for _, c := range r.Checks {
-		if c.ID == "client-probe" && c.Status == StatusOK {
+		if (c.ID == "client-probe" || c.ID == "relay-probe") && c.Status == StatusOK {
 			r.EvidenceLevel = EvidenceRealClient
 		}
 	}
@@ -198,6 +214,7 @@ func (r *Report) finish() Report {
 		"an external origin, DNS and cloud security groups are outside this process; only what this host can reach is tested",
 		"a TCP connect or TLS handshake through a Reality inbound is not a user session; only --client-probe proves one",
 		"a TLS listener probe proves the tunnel, not the public certificate chain",
+		"a relay node has no Xray inbound or user credential; its --client-probe is a real HTTP request through the Nginx stream and proves forwarding, not a VLESS session",
 	}
 	return *r
 }
@@ -216,6 +233,10 @@ func defaultMethod(id string) string {
 		return "nginx -t"
 	case "connectivity":
 		return "tcp/tls dial"
+	case "relay-probe":
+		return "tcp http probe"
+	case "relay-config":
+		return "stream fragment parse"
 	case "permissions":
 		return "mode bits"
 	case "lock":
@@ -677,6 +698,96 @@ func checkClientProbe(ctx context.Context, paths host.Paths, opts Options) Check
 	}
 	return Check{ID: id, Status: StatusOK, Evidence: EvidenceRealClient,
 		Message: fmt.Sprintf("a real client reached the origin through %s", addr),
+		Detail:  fmt.Sprintf("%s, %d body bytes", res.StatusLine, res.BodyBytes)}
+}
+
+// checkRelayConfig validates the managed stream fragment of a relay root. A
+// relay has no Xray runtime config, so this is its equivalent of the validator
+// check: the file exists and names both a listener and a backend.
+func checkRelayConfig(paths host.Paths) Check {
+	const id = "relay-config"
+	p := filepath.Join(paths.Root, paths.RelayConfig())
+	body, err := os.ReadFile(p)
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Message: "managed relay fragment is missing", Detail: p}
+	}
+	listen, backend, err := parseRelayConf(string(body))
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Message: "managed relay fragment is not understood", Detail: err.Error()}
+	}
+	return Check{ID: id, Status: StatusOK, Message: "relay forwards to " + backend, Detail: "listen " + listen}
+}
+
+// parseRelayConf extracts the first listen and proxy_pass of the managed
+// stream{} fragment written by xraycfg.RelayConf.
+func parseRelayConf(body string) (listen, backend string, err error) {
+	for _, raw := range strings.Split(body, "\n") {
+		line := strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(raw), ";"))
+		fields := strings.Fields(line)
+		if len(fields) < 2 {
+			continue
+		}
+		switch fields[0] {
+		case "listen":
+			if listen == "" {
+				listen = fields[1]
+			}
+		case "proxy_pass":
+			if backend == "" {
+				backend = fields[1]
+			}
+		}
+	}
+	if listen == "" {
+		return "", "", fmt.Errorf("relay fragment has no listen directive")
+	}
+	if backend == "" {
+		return "", "", fmt.Errorf("relay fragment has no proxy_pass directive")
+	}
+	return listen, backend, nil
+}
+
+// checkRelayProbe is the strongest honest layer a relay can offer: a real HTTP
+// client dials the managed stream listener and must receive the origin body.
+// It is never reported as a VLESS user session.
+func checkRelayProbe(ctx context.Context, paths host.Paths, opts Options) Check {
+	const id = "relay-probe"
+	if strings.TrimSpace(opts.ProbeURL) == "" {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "no probe URL supplied; the relay was not exercised"}
+	}
+	body, err := os.ReadFile(filepath.Join(paths.Root, paths.RelayConfig()))
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceNotRun,
+			Message: "managed relay fragment is not readable", Detail: err.Error()}
+	}
+	listen, backend, err := parseRelayConf(string(body))
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceNotRun,
+			Message: "cannot locate the relay listener", Detail: err.Error()}
+	}
+	host, port, err := net.SplitHostPort(listen)
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceNotRun,
+			Message: "relay listener is not host:port", Detail: listen}
+	}
+	switch host {
+	case "", "0.0.0.0", "::", "[::]":
+		host = "127.0.0.1"
+	}
+	addr := net.JoinHostPort(strings.Trim(host, "[]"), port)
+	probe := opts.ProbeForward
+	if probe == nil {
+		probe = clientprobe.ProbeForward
+	}
+	res, err := probe(ctx, addr, opts.ProbeURL, opts.ProbeExpect)
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceRealClient,
+			Message: "a real request through the relay failed",
+			Detail:  err.Error(), Cause: "the listener, the backend or the stream config is not usable"}
+	}
+	return Check{ID: id, Status: StatusOK, Evidence: EvidenceRealClient,
+		Message: fmt.Sprintf("a real HTTP client reached the origin through the relay to %s", backend),
 		Detail:  fmt.Sprintf("%s, %d body bytes", res.StatusLine, res.BodyBytes)}
 }
 

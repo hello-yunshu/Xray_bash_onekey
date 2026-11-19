@@ -214,6 +214,14 @@ func restoreApply(ctx context.Context, root, stage string, manifest Manifest, re
 	return rep, nil
 }
 
+// Rename/chmod are package seams so fault-injection tests can produce ENOSPC,
+// EROFS and EACCES without a real full disk or read-only mount. Production
+// behavior is always os.Rename/os.Chmod.
+var (
+	renameRestoreFile = os.Rename
+	chmodRestoreFile  = os.Chmod
+)
+
 func applyRestoreFile(root, stage string, f *restoreFile) error {
 	if _, err := secureMkdirAll(root, filepath.Dir(f.Path), 0o750); err != nil {
 		return err
@@ -223,10 +231,10 @@ func applyRestoreFile(root, stage string, f *restoreFile) error {
 		return err
 	}
 	src := filepath.Join(stage, filepath.FromSlash(f.Path))
-	if err := os.Rename(src, dst); err != nil {
+	if err := renameRestoreFile(src, dst); err != nil {
 		return err
 	}
-	if err := os.Chmod(dst, os.FileMode(f.Mode)); err != nil {
+	if err := chmodRestoreFile(dst, os.FileMode(f.Mode)); err != nil {
 		return err
 	}
 	// Ownership comes from the target host, never from source metadata. The

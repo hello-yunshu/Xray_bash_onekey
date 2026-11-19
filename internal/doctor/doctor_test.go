@@ -204,6 +204,86 @@ func TestClientProbeWithoutURLIsNotRun(t *testing.T) {
 	}
 }
 
+// relayRoot builds a relay owned root: no Xray runtime config, only the managed
+// Nginx stream fragment and a role=relay metadata record.
+func relayRoot(t *testing.T, listen string) string {
+	t.Helper()
+	root, _ := healthyRoot(t)
+	_ = os.Remove(filepath.Join(root, "etc/idleleo/conf/xray/config.json"))
+	meta := map[string]any{
+		"schemaVersion": 1, "activeEngine": "xray", "role": "relay", "tls": "None",
+		"transport": "None", "ownedResources": []string{"etc/idleleo/conf/nginx/relay-stream.conf"},
+		"updatedAt": "2026-11-18T00:00:00Z",
+	}
+	body, _ := json.Marshal(meta)
+	writeFile(t, root, "etc/idleleo/v1/metadata.json", body, 0o644)
+	conf := "stream {\n    server {\n        listen " + listen + ";\n        proxy_pass origin.example.com:8080;\n    }\n}\n"
+	writeFile(t, root, "etc/idleleo/conf/nginx/relay-stream.conf", []byte(conf), 0o640)
+	return root
+}
+
+// TestRelayProbeIsRealHTTPThroughTheStream proves a relay is probed with a real
+// request through its listener and never with the VLESS client path.
+func TestRelayProbeIsRealHTTPThroughTheStream(t *testing.T) {
+	root := relayRoot(t, "127.0.0.1:24449")
+	var gotAddr string
+	rep := RunWith(context.Background(), root, Options{
+		ClientProbe: true,
+		ProbeURL:    "http://origin.example/relay",
+		ProbeExpect: "relay-ok",
+		Validate:    func(context.Context, string) error { return nil },
+		ProbeForward: func(_ context.Context, addr, origin, marker string) (clientprobe.Result, error) {
+			gotAddr = addr
+			if origin != "http://origin.example/relay" || marker != "relay-ok" {
+				t.Fatalf("origin=%q marker=%q", origin, marker)
+			}
+			return clientprobe.Result{StatusLine: "HTTP/1.1 200 OK", BodyBytes: 9}, nil
+		},
+	})
+	if gotAddr != "127.0.0.1:24449" {
+		t.Fatalf("addr=%q", gotAddr)
+	}
+	if c := find(rep, "client-probe"); c.Status != Status("missing") {
+		t.Fatal("a relay must not use the VLESS client probe")
+	}
+	if c := find(rep, "relay-config"); c.Status != StatusOK {
+		t.Fatalf("relay-config = %+v", c)
+	}
+	if c := find(rep, "relay-probe"); c.Status != StatusOK || c.Evidence != EvidenceRealClient {
+		t.Fatalf("relay-probe = %+v", c)
+	}
+	if rep.EvidenceLevel != EvidenceRealClient {
+		t.Fatalf("evidenceLevel=%q", rep.EvidenceLevel)
+	}
+	if !rep.Healthy {
+		t.Fatalf("relay root must be healthy: %+v", rep.Summary)
+	}
+}
+
+func TestRelayProbeFailureIsFailNotUnknown(t *testing.T) {
+	root := relayRoot(t, "0.0.0.0:24450")
+	var gotAddr string
+	rep := RunWith(context.Background(), root, Options{
+		ClientProbe: true,
+		ProbeURL:    "http://origin.example/",
+		Validate:    func(context.Context, string) error { return nil },
+		ProbeForward: func(_ context.Context, addr, _, _ string) (clientprobe.Result, error) {
+			gotAddr = addr
+			return clientprobe.Result{}, fmt.Errorf("backend refused the connection")
+		},
+	})
+	if gotAddr != "127.0.0.1:24450" {
+		t.Fatalf("wildcard relay listener was not normalized: %q", gotAddr)
+	}
+	check := find(rep, "relay-probe")
+	if check.Status != StatusFail || check.Evidence != EvidenceRealClient {
+		t.Fatalf("relay-probe = %+v", check)
+	}
+	if rep.Healthy {
+		t.Fatal("a failed relay probe must not report healthy")
+	}
+}
+
 func rootWithInbound(t *testing.T, port int, security string) string {
 	t.Helper()
 	root, _ := healthyRoot(t)

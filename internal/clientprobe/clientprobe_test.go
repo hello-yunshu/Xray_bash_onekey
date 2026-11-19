@@ -3,7 +3,9 @@ package clientprobe
 import (
 	"context"
 	"encoding/json"
+	"net"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -108,6 +110,55 @@ func TestProbeRefusesTLSOrigin(t *testing.T) {
 	defer cancel()
 	_, err := Probe(ctx, "/bin/true", Link{UUID: "id", Network: "raw", Security: "none"}, "127.0.0.1:1", "https://origin.example/", "")
 	if err == nil || !strings.Contains(err.Error(), "must use http") {
+		t.Fatalf("err=%v", err)
+	}
+}
+
+// serveRelayOnce answers one HTTP request with a fixed body so the relay probe
+// can be tested without Docker or nginx.
+func serveRelayOnce(t *testing.T, body string) string {
+	t.Helper()
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { l.Close() })
+	go func() {
+		conn, err := l.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		buf := make([]byte, 2048)
+		_, _ = conn.Read(buf)
+		_, _ = conn.Write([]byte("HTTP/1.1 200 OK\r\nContent-Length: " +
+			strconv.Itoa(len(body)) + "\r\nConnection: close\r\n\r\n" + body))
+	}()
+	return l.Addr().String()
+}
+
+func TestProbeForwardReachesTheOrigin(t *testing.T) {
+	addr := serveRelayOnce(t, "relay-ok\n")
+	res, err := ProbeForward(context.Background(), addr, "http://origin.example/", "relay-ok")
+	if err != nil {
+		t.Fatalf("ProbeForward: %v", err)
+	}
+	if res.StatusLine != "HTTP/1.1 200 OK" || res.BodyBytes == 0 || res.Marker != "relay-ok" {
+		t.Fatalf("result=%+v", res)
+	}
+}
+
+func TestProbeForwardMarkerMismatchFails(t *testing.T) {
+	addr := serveRelayOnce(t, "something-else\n")
+	if _, err := ProbeForward(context.Background(), addr, "http://origin.example/", "relay-ok"); err == nil ||
+		!strings.Contains(err.Error(), "relay-ok") {
+		t.Fatalf("err=%v", err)
+	}
+}
+
+func TestProbeForwardRejectsTLSOrigin(t *testing.T) {
+	if _, err := ProbeForward(context.Background(), "127.0.0.1:1", "https://origin.example/", ""); err == nil ||
+		!strings.Contains(err.Error(), "must use http") {
 		t.Fatalf("err=%v", err)
 	}
 }
