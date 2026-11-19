@@ -11,6 +11,9 @@
     "e2eImageDigest": "sha256:2e722b98cfb43dfcc6fd285bc3d8771ad9a44a40a3c4663027500686db343cde",
     "origin": "nginx:1.27-alpine",
     "build": "vendored, GOPROXY=off, GOTOOLCHAIN=local, CGO_ENABLED=0",
+    "binarySha256": "df100b2c97050f30796d96bc3c1c9318abf45021981801b3873826680aefd088",
+    "bashBaseline": "install.sh v3.3.6 pin 0fa7052e",
+    "goBaseline": "origin/develop/go-native 9b965843",
     "host": "macOS, Bash 3.2, Docker Desktop"
   },
   "items": [
@@ -127,6 +130,15 @@
       "commit": "4527b721"
     }
   ],
+  "faultInjection": {
+    "command": "go test -count=1 -v (12 packages, targeted fault tests)",
+    "exitCode": 0,
+    "pass": 31,
+    "fail": 0,
+    "skip": 0,
+    "covered": ["no-root/write-gate","read-only-dir","ENOSPC","EROFS","EACCES","offline","expired-certificate","corrupt-config/journal","port-occupied","repeat-run","concurrency","SIGKILL-durable-points","stale-pid/lock","rollback-failure","invalid-input","migration-activate/validate/recover"],
+    "evidence": "artifacts/audit-remediation/logs/p1e-fault-injection.log"
+  },
   "staticGates": [
     { "check": "gofmt -l cmd internal tests", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/go-static.log" },
     { "check": "go vet ./...", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/go-static.log" },

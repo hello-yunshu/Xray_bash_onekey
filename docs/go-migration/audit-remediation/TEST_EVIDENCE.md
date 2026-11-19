@@ -12,8 +12,24 @@
 | Go | `golang:1.27.4`，digest `sha256:5e8afd493a7124a8586e134d9b532731161d4b9becf9dee5a5956b107426f93d` |
 | E2E 镜像 | `idleleo-e2e:24.04`，digest `sha256:2e722b98cfb43dfcc6fd285bc3d8771ad9a44a40a3c4663027500686db343cde` |
 | Origin | `nginx:1.27-alpine` |
+| Bash 基线 | `install.sh` v3.3.6，pin `0fa7052e` |
+| Go 基线 | `origin/develop/go-native` = `9b965843` |
+| 二进制 SHA256 | `df100b2c97050f30796d96bc3c1c9318abf45021981801b3873826680aefd088`（`go build -trimpath -buildvcs=false ./cmd/idleleo`） |
 | 构建方式 | vendored、`GOPROXY=off`、`GOTOOLCHAIN=local`、`CGO_ENABLED=0` |
 | 主机 | macOS；Bash 3.2；Docker Desktop |
+
+### 1.1 测试入口、工作流与既有材料
+
+| 类别 | 位置 |
+| --- | --- |
+| 单元/全量 | `go test -count=1 ./...`（离线 `--network none`） |
+| P2 双端矩阵 | `tests/e2e-diff/run_p2_matrix.sh`（`matrix.json`，M1–M10） |
+| 历史 98 项矩阵 | `tests/go-parity/matrix/run_matrix_container.sh` + `run_matrix.py` |
+| OPS 运营 sweep | `tests/e2e-diff/run_ops_sweep.sh` |
+| P0 证据脚本 | `artifacts/audit-remediation/p0a_relay_exposure.sh`、`p0c_migration_restore.sh` |
+| CI 工作流 | `.github/workflows/go-parity-stage.yml`、`go-realroot-container.yml`、`go-preview-qualification.yml`、`go-release-qualification.yml`、`test-install.yml` |
+| 既有审计报告 | `docs/go-migration/reference/{AUDIT_V4,AUDIT_REPORT,TRACEABILITY_MATRIX,RELEASE_MIGRATION_CONTRACT}.md`、`docs/go/BASH_GO_REAL_RUNTIME_PARITY_REPORT.md` |
+| 证据目录 | `tests/e2e-diff/evidence/`、`tests/go-parity/evidence/`、`artifacts/audit-remediation/` |
 
 ## 2. P0-A：中转监听与公网暴露
 
@@ -77,6 +93,7 @@ bash artifacts/audit-remediation/p0c_migration_restore.sh
 | `prepare` 不碰运行时 | tls-multi / reality-direct | 5 个运行时资源哈希不变；状态 `PREPARED` |
 | `recover` 丢弃 PREPARED | tls-multi / reality-direct | 状态 `ROLLED_BACK`；运行时哈希不变 |
 | 安全回归 | `./internal/legacybridge ./internal/backup ./internal/repair` | 0 FAIL；日志 `p0c/go-safety-tests.log` |
+| 接管/改后校验/回滚 | `TestActivateSwitchesEntryAndCronOnly`、`TestValidateRejectsDrift`、`TestRecoverActivatingRestoresEntryAndCron`、`TestRecoverAfterMetadataCrashLeavesNoHalfMigration` | PASS（`logs/p1e-fault-injection.log`） |
 
 故障注入覆盖（既有权威测试，本轮重跑）：入口漂移拒绝、第三方入口保持、
 6 个持久点 SIGKILL 收敛、ENOSPC/EROFS/EACCES、坏 journal、并发锁。
@@ -111,6 +128,31 @@ docker run --rm --network none -v "$PWD:/src:ro" -w /src \
 - 所有权/日志：`logs/p1d-ownership.log` 25 PASS，包含
   `TestFail2banInstallKeepsForeignFiles`、`TestFail2banJailToggleEditsOnlyManagedFile`、
   `TestCleanLogsTruncatesOnlyRegularLogFiles`、`TestCleanLogsRefusesRealRootWithoutAck`。
+
+### 7.1 故障注入覆盖（任务书 §4 第 5 层）
+
+命令：`go test -count=1 -v` 定向运行 12 个包，退出码 0；**31 PASS / 0 FAIL /
+0 SKIP**（含迁移接管/回滚 9 项），日志
+`artifacts/audit-remediation/logs/p1e-fault-injection.log`。
+
+| 条件 | 测试 | 结果 |
+| --- | --- | --- |
+| 无 root / 写保护 | `TestRequireSystemWriteSandboxNeedsMarker`、`TestCleanLogsRefusesRealRootWithoutAck` | PASS |
+| 只读目录 | `TestApplyReadOnlyFileLeavesKernelAlone` | PASS |
+| 磁盘耗尽 ENOSPC | `TestRestoreRollsBackOnFilesystemErrors` | PASS |
+| 只读文件系统 EROFS | 同上（子用例） | PASS |
+| 权限拒绝 EACCES | 同上（子用例） | PASS |
+| 断网 | 全量 `go test ./...` 在 `--network none` 下通过 | PASS |
+| 证书异常/过期 | `TestInspectTLSPairRejectsExpired`、`TestRunFindsExpiredCertificateAndLooseModes` | PASS |
+| 配置/日志损坏 | `TestRecoverRefusesCorruptJournalWithoutTouchingFiles`、`TestAuditCorruptMetadataBlocked` | PASS |
+| 端口占用 | `TestAuditPortConflictBlocked`、`TestPortAvailableSeesOccupiedLoopback`、`TestGenerateRejectsReservedPublicPort` | PASS |
+| 重复执行 | P2 矩阵 Round 2 幂等（M1–M10） | MATCH |
+| 并发 | `TestWriteAtomicConcurrentWritersKeepOneCompleteVersion`、`TestRestoreRefusesWhileAnotherProcessHoldsLock`、`TestRepairRefusesWhileAnotherUpdateHoldsTheLock` | PASS |
+| 进程中断 SIGKILL | `TestRestoreHardKillAtEveryDurablePointConverges`（6 个持久点） | PASS |
+| 陈旧任务/锁 | `TestStalePidFileIsReported`、`TestRepairStaleLockNeedsExplicitFlag` | PASS |
+| 回滚失败 | `TestRollbackFailureIsReportedNotHidden`、`TestApplyRollbackFailureKeepsJournal` | PASS |
+| 非法输入 | `TestSetInboundPortRejectsInvalid`；P0-A 3 个非法监听值 | PASS |
+| 迁移接管/回滚 | `TestActivateSwitchesEntryAndCronOnly`、`TestValidateRejectsDrift`、`TestRecoverActivatingRestoresEntryAndCron`、`TestRecoverAfterMetadataCrashLeavesNoHalfMigration` 等 9 项 | PASS |
 
 ## 8. 静态与全量回归
 

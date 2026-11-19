@@ -33,10 +33,10 @@
 | 实际编译 | `go build ./...` 退出码 0 | 满足 |
 | Docker 内 Bash/Go 对照 | 9 场景 × 双端 × 双轮 × L4；98 项矩阵同 HEAD 复跑；运行 SHA `4527b721` | 满足 |
 | 真实 `nginx -t` / 数据面 | P0-A managed Nginx；P2 L4 真实转发 | 满足 |
-| 故障注入 | 6 个 SIGKILL 持久点、ENOSPC/EROFS/EACCES、入口漂移、第三方入口、并发锁 | 满足 |
-| 不降低测试标准 | 网络瞬时失败保留为 `BLOCKER` 并单独重跑；`NOT_RUN` 未计 PASS | 满足 |
+| 故障注入 | 31 PASS / 0 FAIL：无 root、只读、ENOSPC/EROFS/EACCES、断网、过期证书、损坏配置、端口占用、重复执行、并发、SIGKILL、陈旧锁、回滚失败、迁移接管/回滚 | 满足 |
+| 不降低测试标准 | 网络瞬时失败保留为 `BLOCKER` 并单独重跑；`NOT_RUN` 未计 PASS；98 项矩阵只修正固化了旧缺陷的端口断言，未跳用例 | 满足 |
 | 五份指定文档 | `AUDIT_ISSUES.md`、`REMEDIATION_PLAN.md`、`PARITY_MATRIX.csv`、`TEST_EVIDENCE.md`、`FINAL_AUDIT.md` | 满足 |
-| `artifacts/audit-remediation/` | 两个证据脚本、P0-A/P0-C 原始产物、Go/Bash 日志、`summary.json` | 满足 |
+| `artifacts/audit-remediation/` | 两个证据脚本、P0-A/P0-C 原始产物、Go/Bash 日志、脱敏配置样本、`summary.json` | 满足 |
 | 不合并 main / 不发布 / 不碰生产 | 仅本地分支提交；无 tag/release/merge | 满足 |
 | 不声称读取外部链接 | 本文与追踪表均明确未读取 | 满足 |
 
