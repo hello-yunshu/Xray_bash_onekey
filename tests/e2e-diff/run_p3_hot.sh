@@ -123,7 +123,7 @@ docker exec -e E2E_OUT=/out/install -e E2E_PROFILE="reality${TRANSPORT:+-$TRANSP
     -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" -e E2E_PORT=443 \
     "$NAME" bash /src/tests/e2e-diff/drivers/go_install.sh \
     --binary /usr/local/bin/xray --mode reality --domain "$DOMAIN" \
-    --target "$TARGET" --port 443 --container "${TRANSPORT_ARGS[@]}" >>"$EVID/run.log" 2>&1
+    --target "$TARGET" --port 443 --container ${TRANSPORT_ARGS[@]+"${TRANSPORT_ARGS[@]}"} >>"$EVID/run.log" 2>&1
 install_rc=$?
 log "install_rc=$install_rc"
 if [[ $install_rc -ne 0 ]]; then
