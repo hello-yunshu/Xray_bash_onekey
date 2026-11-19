@@ -1,0 +1,157 @@
+{
+  "phase": "audit-remediation-2026-11-19",
+  "generatedAt": "2026-11-19T23:59:00+08:00",
+  "branch": "work/go-hardening-parity-20261119",
+  "commit": "4527b721fda1dee39545f63ae35f27f9f5078e4f",
+  "base": "origin/develop/go-native = 9b965843",
+  "environment": {
+    "goImage": "golang:1.27.4",
+    "goImageDigest": "sha256:5e8afd493a7124a8586e134d9b532731161d4b9becf9dee5a5956b107426f93d",
+    "e2eImage": "idleleo-e2e:24.04",
+    "e2eImageDigest": "sha256:2e722b98cfb43dfcc6fd285bc3d8771ad9a44a40a3c4663027500686db343cde",
+    "origin": "nginx:1.27-alpine",
+    "build": "vendored, GOPROXY=off, GOTOOLCHAIN=local, CGO_ENABLED=0",
+    "host": "macOS, Bash 3.2, Docker Desktop"
+  },
+  "items": [
+    {
+      "id": "P0-A",
+      "title": "relay listen binding and public exposure",
+      "status": "ALREADY_FIXED_VERIFIED",
+      "commands": [
+        { "cmd": "bash artifacts/audit-remediation/p0a_relay_exposure.sh", "exitCode": 0 },
+        { "cmd": "nginx -t (managed, 4 listen forms, inside node container)", "exitCode": 0 }
+      ],
+      "evidence": [
+        "artifacts/audit-remediation/p0a/summary.json",
+        "artifacts/audit-remediation/p0a/results.jsonl",
+        "artifacts/audit-remediation/p0a/nginx-127.log",
+        "artifacts/audit-remediation/p0a/nginx-any.log",
+        "artifacts/audit-remediation/p0a/nginx-v6loop.log",
+        "artifacts/audit-remediation/p0a/nginx-v6any.log"
+      ],
+      "notes": "127.0.0.1/::1 local reachable, cross-container refused; 0.0.0.0 reachable; 3 invalid inputs rc=1 with unchanged fragment. External IPv6 marked NOT_RUN (default bridge has no IPv6).",
+      "commit": "b8b31f7e (semantics) + evidence script"
+    },
+    {
+      "id": "P0-B",
+      "title": "TLS share topology derived from manager metadata",
+      "status": "FIXED_VERIFIED",
+      "commands": [
+        { "cmd": "go test -count=1 -run TestXrayShare -v ./internal/cli (in golang:1.27.4)", "exitCode": 0 },
+        { "cmd": "red test: commented applyShareMetadataDefaults call, rerun TLS case", "exitCode": 1 }
+      ],
+      "evidence": [
+        "internal/cli/share_metadata_test.go",
+        "docs/go-migration/audit-remediation/TEST_EVIDENCE.md#3-p0-btls"
+      ],
+      "notes": "6/6 PASS after fix. Red test produced security=none and sni=127.0.0.1, proving the test hits the defect.",
+      "commit": "4527b721"
+    },
+    {
+      "id": "P0-C",
+      "title": "migration/restore must not destroy real resources",
+      "status": "ALREADY_FIXED_VERIFIED",
+      "commands": [
+        { "cmd": "bash artifacts/audit-remediation/p0c_migration_restore.sh", "exitCode": 0 },
+        { "cmd": "go test ./internal/legacybridge ./internal/backup ./internal/repair", "exitCode": 0 }
+      ],
+      "evidence": [
+        "artifacts/audit-remediation/p0c/summary.json",
+        "artifacts/audit-remediation/p0c/results.jsonl",
+        "artifacts/audit-remediation/p0c/go-safety-tests.log"
+      ],
+      "notes": "6 legacy fixtures show identical tree SHA before/after audit; prepare keeps 5 runtime resources unchanged; recover returns ROLLED_BACK. Fault injection (SIGKILL x6, ENOSPC/EROFS/EACCES, bad journal, lock contention) covered by authoritative tests.",
+      "commit": "8ac1385f, 43ceb680 + evidence script"
+    },
+    {
+      "id": "P1-A",
+      "title": "transport/metadata parity coverage",
+      "status": "FIXED_VERIFIED",
+      "commands": [
+        { "cmd": "E2E_RUN_ID=audit-final-20261119 bash tests/e2e-diff/run_p2_matrix.sh", "exitCode": 0 },
+        { "cmd": "E2E_RUN_ID=audit-final-m7-20261119 E2E_ONLY=M7 bash tests/e2e-diff/run_p2_matrix.sh", "exitCode": 0 }
+      ],
+      "evidence": [
+        "tests/e2e-diff/evidence/audit-final-20261119/p2/",
+        "tests/e2e-diff/evidence/audit-final-m7-20261119/p2/",
+        "docs/go-migration/audit-remediation/PARITY_MATRIX.csv"
+      ],
+      "notes": "9 executable scenarios MATCH across Go/Bash/L4. M8 ACME NOT_RUN. Original M7 transient network BLOCKER preserved; rerun recorded separately.",
+      "commit": "4527b721"
+    },
+    {
+      "id": "P1-B",
+      "title": "transactional deployment",
+      "status": "ALREADY_FIXED_VERIFIED",
+      "commands": [
+        { "cmd": "go test -count=1 -v ./internal/deploy (rollback cases)", "exitCode": 0 }
+      ],
+      "evidence": [
+        "artifacts/audit-remediation/logs/p1b-deploy-rollback.log",
+        "internal/deploy/deploy_test.go"
+      ],
+      "notes": "5 PASS / 0 FAIL: reinstall rollback restores files and service, fresh rollback removes new files, managed Nginx failure reports residual install, rollback failure is reported not hidden.",
+      "commit": "4527b721"
+    },
+    {
+      "id": "P1-C",
+      "title": "DNS/network reproducibility",
+      "status": "ALREADY_FIXED_VERIFIED",
+      "commands": [
+        { "cmd": "go test -count=1 ./... (docker --network none, GOPROXY=off)", "exitCode": 0 }
+      ],
+      "evidence": [
+        "artifacts/audit-remediation/logs/go-test-offline.log"
+      ],
+      "notes": "Full suite passes with no network. No hardcoded 1.1.1.1/8.8.8.8/DoH found in repo.",
+      "commit": "4527b721"
+    },
+    {
+      "id": "P1-D",
+      "title": "long-running behavior and resource ownership",
+      "status": "ALREADY_FIXED_VERIFIED",
+      "commands": [
+        { "cmd": "go test -race ./internal/backup ./internal/repair ./internal/legacybridge ./internal/schedule ./internal/store ./internal/change", "exitCode": 0 },
+        { "cmd": "go test (fail2ban/log ownership cases)", "exitCode": 0 }
+      ],
+      "evidence": [
+        "artifacts/audit-remediation/logs/p1d-race.log",
+        "artifacts/audit-remediation/logs/p1d-ownership.log"
+      ],
+      "notes": "25 ownership/log tests PASS; race detector clean.",
+      "commit": "4527b721"
+    }
+  ],
+  "staticGates": [
+    { "check": "gofmt -l cmd internal tests", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/go-static.log" },
+    { "check": "go vet ./...", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/go-static.log" },
+    { "check": "go build ./...", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/go-static.log" },
+    { "check": "go test -count=1 ./... (--network none)", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/go-test-offline.log" },
+    { "check": "bash -n install.sh scripts/*.sh .github/test/*.sh tests/e2e-diff/*.sh artifacts/audit-remediation/*.sh", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/bash-syntax.log" }
+  ],
+  "parityMatrix": [
+    { "id": "M1", "scenario": "reality-standard", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M1" },
+    { "id": "M2", "scenario": "reality-nginx", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M2" },
+    { "id": "M3", "scenario": "reality-transport", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M3" },
+    { "id": "M4", "scenario": "tls-ws", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M4" },
+    { "id": "M5", "scenario": "tls-grpc", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M5" },
+    { "id": "M6", "scenario": "tls-xhttp", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M6" },
+    { "id": "M7", "scenario": "tls-ws-grpc-xhttp", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-m7-20261119/p2/M7" },
+    { "id": "M8", "scenario": "tls-acme", "verdict": "NOT_RUN", "evidence": "requires public domain and CA; see TEST_EVIDENCE.md" },
+    { "id": "M9", "scenario": "none-ws", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M9" },
+    { "id": "M10", "scenario": "relay-stream", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M10" }
+  ],
+  "notRunOrBlocked": [
+    { "item": "standalone VPS (systemd restart, real cron)", "status": "BLOCKED", "reason": "task forbids operating production VPS; no dedicated test host" },
+    { "item": "public CA / DNS-01 / EAB pure-Bash ACME", "status": "BLOCKED", "reason": "requires public domain and CA" },
+    { "item": "external IPv6 data plane", "status": "NOT_RUN", "reason": "default Docker bridge has no IPv6" },
+    { "item": "multi-version Xray/Bash config matrix", "status": "NOT_RUN", "reason": "requires pinned historical releases" },
+    { "item": "merge to main / formal release", "status": "INTENTIONAL_DELTA_APPROVED", "reason": "forbidden by the task" }
+  ],
+  "decisions": {
+    "pr": "eligible to continue as draft review",
+    "merge": "NO-GO",
+    "release": "NO-GO"
+  }
+}

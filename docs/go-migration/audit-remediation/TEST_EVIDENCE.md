@@ -1,0 +1,153 @@
+# 测试证据（2026-11-19）
+
+> 所有结果来自当前分支 `work/go-hardening-parity-20261119`。代码提交
+> `4527b721fda1dee39545f63ae35f27f9f5078e4f`；P2 矩阵运行的代码 SHA 见各
+> `run.json` 的 `commit` 字段。`NOT_RUN` 不计通过。
+
+## 1. 环境
+
+| 项 | 值 |
+| --- | --- |
+| 日期 | 2026-11-19（Asia/Shanghai） |
+| Go | `golang:1.27.4`，digest `sha256:5e8afd493a7124a8586e134d9b532731161d4b9becf9dee5a5956b107426f93d` |
+| E2E 镜像 | `idleleo-e2e:24.04`，digest `sha256:2e722b98cfb43dfcc6fd285bc3d8771ad9a44a40a3c4663027500686db343cde` |
+| Origin | `nginx:1.27-alpine` |
+| 构建方式 | vendored、`GOPROXY=off`、`GOTOOLCHAIN=local`、`CGO_ENABLED=0` |
+| 主机 | macOS；Bash 3.2；Docker Desktop |
+
+## 2. P0-A：中转监听与公网暴露
+
+命令：
+
+```bash
+bash artifacts/audit-remediation/p0a_relay_exposure.sh
+```
+
+结果文件：`artifacts/audit-remediation/p0a/summary.json`（`allPass: true`），
+二进制 SHA256 前缀 `8221745cb4c6`。
+
+| 地址 | install | `nginx -t` | 容器内本机 | 同桥对端 | 结论 |
+| --- | --- | --- | --- | --- | --- |
+| `127.0.0.1:18443` | 0 | 0 | 0 | 1（拒绝） | PASS |
+| `0.0.0.0:18444` | 0 | 0 | 0 | 0 | PASS |
+| `[::1]:18445` | 0 | 0 | 0 | 1（拒绝） | PASS |
+| `[::]:18446` | 0 | 0 | 0 | 1（IPv4 拒绝，`ipv6only`） | PASS；外部 IPv6 `NOT_RUN` |
+| `node.example` / `127.0.0.1]` / `0.0.0.0:443` | 1 | — | — | — | PASS（拒绝且 fragment 哈希不变） |
+
+说明：Docker 默认 bridge 无 IPv6，`::` 只证明监听器与本地数据面；外部 IPv6 数据面
+标 `NOT_RUN`。managed Nginx 真实执行 `nginx -t`，日志见 `p0a/nginx-*.log`。
+
+## 3. P0-B：TLS 分享拓扑
+
+命令：
+
+```bash
+docker run --rm -v "$PWD:/src:ro" -w /src \
+  -e CGO_ENABLED=0 -e GOFLAGS=-mod=vendor -e GOPROXY=off -e GOTOOLCHAIN=local -e GOCACHE=/tmp/gocache \
+  golang:1.27.4 bash -c 'export PATH=$PATH:/usr/local/go/bin; go test -count=1 -run TestXrayShare -v ./internal/cli'
+```
+
+结果：6/6 PASS。
+
+| 用例 | 断言 | 结果 |
+| --- | --- | --- |
+| `TestXrayShareUsesMetadataForPublicTLS` | 回环 `security=none` + `TLS` 元数据 → `security=tls`、`sni`、`:443` | PASS |
+| `TestXrayShareUsesMetadataForReality` | `Reality` 元数据 → `security=reality`、含 `pbk` | PASS |
+| `TestXrayShareUsesMetadataToResolveLoopbackNone` | `None` 元数据消解歧义 | PASS |
+| `TestXrayShareExplicitFlagWinsOverMetadata` | 显式 `none`/host/port 覆盖元数据 | PASS |
+| `TestXrayShareWithoutMetadataStillRefusesAmbiguousLoopback` | 无元数据仍拒绝，错误含 `public security is ambiguous` | PASS |
+| `TestXrayShareMetadataKeepsSelectedUser` | `--user` 与元数据并存仍选对 UUID/email | PASS |
+
+红测：注释 `applyShareMetadataDefaults` 调用后重跑，TLS 用例 FAIL（输出
+`security=none`、`sni=127.0.0.1`），证明用例确实覆盖缺陷；恢复调用后全绿。
+
+## 4. P0-C：迁移/恢复不破坏资源
+
+命令：
+
+```bash
+bash artifacts/audit-remediation/p0c_migration_restore.sh
+```
+
+结果：`p0c/summary.json`（`allPass: true`）。
+
+| 检查 | 样本 | 结果 |
+| --- | --- | --- |
+| `bridge audit` 只读 | reality-direct / reality-nginx / tls-multi / custom-dns-routing / relay / xtls-only | 6/6 全树 SHA256 前后一致；xtls 正确判 `blocked` |
+| `prepare` 不碰运行时 | tls-multi / reality-direct | 5 个运行时资源哈希不变；状态 `PREPARED` |
+| `recover` 丢弃 PREPARED | tls-multi / reality-direct | 状态 `ROLLED_BACK`；运行时哈希不变 |
+| 安全回归 | `./internal/legacybridge ./internal/backup ./internal/repair` | 0 FAIL；日志 `p0c/go-safety-tests.log` |
+
+故障注入覆盖（既有权威测试，本轮重跑）：入口漂移拒绝、第三方入口保持、
+6 个持久点 SIGKILL 收敛、ENOSPC/EROFS/EACCES、坏 journal、并发锁。
+
+## 5. P1-B：事务性部署
+
+命令与日志：`artifacts/audit-remediation/logs/p1b-deploy-rollback.log`。
+
+结果：5 PASS / 0 FAIL，覆盖：
+`TestReinstallRollbackRestoresFilesAndService`、`TestFreshInstallRollbackRemovesNewFiles`、
+`TestFinalizeFailureMentionsManagedNginx`、`TestManagedNginxFailureReportsResidualInstall`、
+`TestRollbackFailureIsReportedNotHidden`。失败发生在配置/服务阶段后，均恢复到旧文件与
+旧 `enable/active`；Nginx 残留被显式报告，不假装原子。
+
+## 6. P1-C：离线可复现
+
+命令：
+
+```bash
+docker run --rm --network none -v "$PWD:/src:ro" -w /src \
+  -e CGO_ENABLED=0 -e GOFLAGS=-mod=vendor -e GOPROXY=off -e GOTOOLCHAIN=local -e GOCACHE=/tmp/gocache \
+  golang:1.27.4 bash -c 'export PATH=$PATH:/usr/local/go/bin; go test -count=1 ./...'
+```
+
+结果：退出码 0，全部包 `ok`；日志 `logs/go-test-offline.log`。仓库内无
+`1.1.1.1 / 8.8.8.8 / DoH` 硬编码；e2e 数据面使用容器内 origin。
+
+## 7. P1-D：长期运行与所有权
+
+- `go test -race`：`internal/backup`、`repair`、`legacybridge`、`schedule`、`store`、
+  `change` 全绿（`logs/p1d-race.log`）。
+- 所有权/日志：`logs/p1d-ownership.log` 25 PASS，包含
+  `TestFail2banInstallKeepsForeignFiles`、`TestFail2banJailToggleEditsOnlyManagedFile`、
+  `TestCleanLogsTruncatesOnlyRegularLogFiles`、`TestCleanLogsRefusesRealRootWithoutAck`。
+
+## 8. 静态与全量回归
+
+| 检查 | 命令 | 退出码 | 证据 |
+| --- | --- | --- | --- |
+| gofmt | `gofmt -l cmd internal tests`（要求空） | 0 | `logs/go-static.log` |
+| go vet | `go vet ./...` | 0 | 同上 |
+| go build | `go build ./...` | 0 | 同上 |
+| 离线全量 | `go test -count=1 ./...`（`--network none`） | 0 | `logs/go-test-offline.log` |
+| Bash 语法 | `bash -n install.sh scripts/*.sh .github/test/*.sh tests/e2e-diff/*.sh artifacts/audit-remediation/*.sh` | 0 | `logs/bash-syntax.log` |
+
+## 9. P1-A：Bash/Go 矩阵
+
+目录：`tests/e2e-diff/evidence/audit-final-20261119/p2/`。每行同时执行 Bash 与 Go，
+Round 1 为主、Round 2 验幂等；L1→L4 分层对照，L4 为真实数据面。
+
+| ID | 场景 | 结论 |
+| --- | --- | --- |
+| M1 | Reality 标准 | MATCH |
+| M2 | Reality + Nginx | MATCH |
+| M3 | Reality + ws | MATCH |
+| M4 | TLS ws | MATCH |
+| M5 | TLS gRPC | MATCH |
+| M6 | TLS xHTTP | MATCH |
+| M7 | TLS ws+gRPC+xHTTP | MATCH（首轮 Go 侧遇 GitHub 下载 `unexpected EOF`，落盘为 `audit-final-20261119` 的 `BLOCKER`；单独重跑 `audit-final-m7-20261119` 双端、双轮、L4 全 ok） |
+| M9 | None ws | MATCH |
+| M10 | 独立 relay | MATCH |
+
+9/9 可执行场景为 `MATCH`。首轮有一行（M7）确实是网络瞬时失败，未被隐藏：原始
+`BLOCKER` 与重跑证据都保留在仓库中；重跑后 Go/Bash 的安装、两轮幂等与 L4 数据面
+全部通过。M8（ACME）与真实 VPS/多版本 Xray 不在本轮可执行范围，按
+`BLOCKED`/`NOT_RUN` 记录。
+
+## 10. 复现入口
+
+```bash
+bash artifacts/audit-remediation/p0a_relay_exposure.sh
+bash artifacts/audit-remediation/p0c_migration_restore.sh
+E2E_RUN_ID=<id> E2E_ONLY=M1,M4,M9 E2E_CONCURRENCY=3 bash tests/e2e-diff/run_p2_matrix.sh
+```

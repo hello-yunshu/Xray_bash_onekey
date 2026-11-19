@@ -1,0 +1,11 @@
+23:52:41 run_id=audit-final-m7-20261119
+23:52:42 image_id=sha256:c38512481fb38040e988c076f2328184f93b46fa4cb2c60ff11770b3e820bc30
+23:52:42 building idleleo
+23:52:47 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=df100b2c97050f30796d96bc3c1c9318abf45021981801b3873826680aefd088
+23:52:47 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+23:52:47 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+23:52:50 argv-verify written
+23:52:50 [M7] start
+00:02:01 [M7] done
+00:02:01 scope: installs=[M7] edits=[] ops=[]
+00:02:01 P2 finished: tests/e2e-diff/evidence/audit-final-m7-20261119/p2
