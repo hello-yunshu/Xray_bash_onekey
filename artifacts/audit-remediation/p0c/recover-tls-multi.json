@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "previousState": "PREPARED",
+  "state": "ROLLED_BACK",
+  "actions": [
+    "discarded unactivated candidate",
+    "removed staged manager metadata",
+    "removed var/lib/idleleo/bridge/plan.json",
+    "removed opt/idleleo/bin/idleleo.candidate",
+    "removed staged snapshot"
+  ],
+  "requiresManual": false,
+  "rillUnchanged": true
+}

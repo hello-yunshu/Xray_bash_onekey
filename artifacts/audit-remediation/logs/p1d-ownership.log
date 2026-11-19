@@ -1,0 +1,56 @@
+=== RUN   TestFail2banInstallWritesBashJailsAndSkipsMissingLogs
+--- PASS: TestFail2banInstallWritesBashJailsAndSkipsMissingLogs (0.16s)
+=== RUN   TestFail2banInstallRespectsDisableFlags
+--- PASS: TestFail2banInstallRespectsDisableFlags (0.01s)
+=== RUN   TestFail2banInstallRequiresTheBinary
+--- PASS: TestFail2banInstallRequiresTheBinary (0.00s)
+=== RUN   TestFail2banInstallRejectsCandidateWithoutWriting
+--- PASS: TestFail2banInstallRejectsCandidateWithoutWriting (0.00s)
+=== RUN   TestFail2banInstallKeepsForeignFiles
+--- PASS: TestFail2banInstallKeepsForeignFiles (0.01s)
+=== RUN   TestFail2banUninstallRemovesOnlyManifestFiles
+--- PASS: TestFail2banUninstallRemovesOnlyManifestFiles (0.01s)
+=== RUN   TestFail2banUninstallWithoutManifestNeedsForce
+--- PASS: TestFail2banUninstallWithoutManifestNeedsForce (0.00s)
+=== RUN   TestFail2banUnbanVerifiesLiveList
+--- PASS: TestFail2banUnbanVerifiesLiveList (0.00s)
+=== RUN   TestFail2banJailToggleEditsOnlyManagedFile
+--- PASS: TestFail2banJailToggleEditsOnlyManagedFile (0.01s)
+=== RUN   TestFail2banTrustPersistsAndRollsBackOnReloadFailure
+--- PASS: TestFail2banTrustPersistsAndRollsBackOnReloadFailure (0.01s)
+=== RUN   TestRecoverKeepsJournalWhenSnapshotIsBad
+--- PASS: TestRecoverKeepsJournalWhenSnapshotIsBad (0.01s)
+=== RUN   TestRecoverRefusesCorruptJournal
+--- PASS: TestRecoverRefusesCorruptJournal (0.00s)
+=== RUN   TestRecoverCleansCommittedJournal
+--- PASS: TestRecoverCleansCommittedJournal (0.03s)
+=== RUN   TestInstallConvergesPendingJournal
+--- PASS: TestInstallConvergesPendingJournal (0.07s)
+=== RUN   TestRecoverRequiresDeployLock
+--- PASS: TestRecoverRequiresDeployLock (0.00s)
+=== RUN   TestCleanLogsTruncatesOnlyRegularLogFiles
+--- PASS: TestCleanLogsTruncatesOnlyRegularLogFiles (0.00s)
+=== RUN   TestCleanLogsWithoutLogDirectoriesIsNoop
+--- PASS: TestCleanLogsWithoutLogDirectoriesIsNoop (0.00s)
+=== RUN   TestCleanLogsRefusesRealRootWithoutAck
+--- PASS: TestCleanLogsRefusesRealRootWithoutAck (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.317s
+=== RUN   TestPrepareRefusesUnfinishedJournal
+--- PASS: TestPrepareRefusesUnfinishedJournal (0.16s)
+=== RUN   TestRecoverCorruptJournal
+--- PASS: TestRecoverCorruptJournal (0.00s)
+=== RUN   TestStatusReadsJournal
+--- PASS: TestStatusReadsJournal (0.04s)
+=== RUN   TestDeactivateReleasesImportedMetadataWithoutJournal
+--- PASS: TestDeactivateReleasesImportedMetadataWithoutJournal (0.01s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	0.204s
+=== RUN   TestRestoreRefusesWhileJournalIsInterrupted
+--- PASS: TestRestoreRefusesWhileJournalIsInterrupted (0.15s)
+=== RUN   TestRestoreRefusesWhileAnotherProcessHoldsLock
+--- PASS: TestRestoreRefusesWhileAnotherProcessHoldsLock (0.00s)
+=== RUN   TestRecoverRefusesCorruptJournalWithoutTouchingFiles
+--- PASS: TestRecoverRefusesCorruptJournalWithoutTouchingFiles (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/backup	0.164s

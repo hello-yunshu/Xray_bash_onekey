@@ -1,0 +1,9 @@
+{"address":"127.0.0.1","port":18443,"install_rc":0,"nginx_test_rc":0,"local_rc":0,"remote_rc":1,"verdict":"PASS"}
+{"address":"0.0.0.0","port":18444,"install_rc":0,"nginx_test_rc":0,"local_rc":0,"remote_rc":0,"verdict":"PASS"}
+{"address":"::1","port":18445,"install_rc":0,"nginx_test_rc":0,"local_rc":0,"remote_rc":1,"verdict":"PASS"}
+{"check":"ipv6_wildcard_listener","listen_ss_hit":1,"external_ipv6":"NOT_RUN"}
+{"address":"::","port":18446,"install_rc":0,"nginx_test_rc":0,"local_rc":0,"remote_rc":1,"verdict":"PASS"}
+{"address":"node.example","install_rc":1,"verdict":"PASS"}
+{"address":"127.0.0.1]","install_rc":1,"verdict":"PASS"}
+{"address":"0.0.0.0:443","install_rc":1,"verdict":"PASS"}
+{"check":"invalid_leaves_config_untouched","verdict":"PASS"}

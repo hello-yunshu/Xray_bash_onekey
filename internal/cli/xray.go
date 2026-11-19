@@ -221,12 +221,19 @@ func xrayShare(opts Options, cfg config, args []string) int {
 		PublicSecurity: flagValue(args, "--public-security"),
 		User:           flagValue(args, "--user"),
 	}
-	// Link-only preferences persisted by `xray config edit --fp/--spx`. A
-	// missing metadata file is not fatal: the link then keeps the defaults.
+	// Metadata carries the trusted public topology: Bash TLS nodes keep Xray on
+	// loopback with stream security=none, so the runtime config alone cannot
+	// tell an Nginx TLS front from a plain public port. A missing or unreadable
+	// metadata file is not fatal: explicit flags still work and ShareConfig
+	// keeps refusing an ambiguous loopback config.
 	if paths, pathErr := host.NewPaths(cfg.root); pathErr == nil {
-		if meta, _, metaErr := store.LoadMetadata(paths); metaErr == nil && meta.ShareLinkOnly != nil {
-			shareOpts.Fingerprint = meta.ShareLinkOnly.Fingerprint
-			shareOpts.SpiderX = meta.ShareLinkOnly.SpiderX
+		if meta, _, metaErr := store.LoadMetadata(paths); metaErr == nil {
+			applyShareMetadataDefaults(&shareOpts, meta)
+			// Link-only preferences persisted by `xray config edit --fp/--spx`.
+			if meta.ShareLinkOnly != nil {
+				shareOpts.Fingerprint = meta.ShareLinkOnly.Fingerprint
+				shareOpts.SpiderX = meta.ShareLinkOnly.SpiderX
+			}
 		}
 	}
 	info, err := xraycfg.ShareConfig(raw, shareOpts)
@@ -262,6 +269,32 @@ func xrayShare(opts Options, cfg config, args []string) int {
 		fmt.Fprintf(opts.Out, "warning=%s\n", w)
 	}
 	return 0
+}
+
+// applyShareMetadataDefaults fills the public-side fields that the runtime
+// config cannot prove when Nginx terminates TLS in front of a loopback Xray
+// backend. Explicit --public-security/--host/--public-port always win; an
+// unknown TLS label is left empty so ShareConfig keeps failing closed.
+func applyShareMetadataDefaults(opts *xraycfg.ShareOptions, meta store.Metadata) {
+	if strings.TrimSpace(opts.PublicSecurity) == "" {
+		switch meta.TLS {
+		case "TLS":
+			opts.PublicSecurity = xraycfg.ModeTLS
+		case "Reality":
+			opts.PublicSecurity = xraycfg.ModeReality
+		case "None":
+			opts.PublicSecurity = xraycfg.ModeNone
+		}
+	}
+	if meta.Install == nil {
+		return
+	}
+	if strings.TrimSpace(opts.Host) == "" && len(meta.Install.ServerNames) > 0 {
+		opts.Host = meta.Install.ServerNames[0]
+	}
+	if opts.PublicPort == 0 && meta.Install.Port > 0 {
+		opts.PublicPort = meta.Install.Port
+	}
 }
 
 // terminalQR renders link as the same UTF-8 matrix Bash prints with

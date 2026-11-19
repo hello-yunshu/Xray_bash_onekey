@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "root": "/work/roots/custom-dns-routing",
+  "legacyVersion": "3.3.4",
+  "xrayVersion": "26.10.31",
+  "role": "node",
+  "tls": "Reality",
+  "transport": "raw",
+  "nginxRequired": false,
+  "port": 9443,
+  "userCount": 1,
+  "runtimePath": "/work/roots/custom-dns-routing/etc/idleleo/conf/xray/config.json",
+  "runtimeSha256": "f21b5d930ab2485334add9d7057f918f734c960de7cb509cd39b3affdcc1bcdd",
+  "runtimeBytes": 1918,
+  "customDns": true,
+  "customRouting": true,
+  "customOutbounds": true,
+  "customItems": [],
+  "certFiles": [],
+  "nginxFiles": [],
+  "units": {
+    "nginx": {
+      "path": "/work/roots/custom-dns-routing/etc/systemd/system/nginx.service",
+      "present": false
+    },
+    "xray": {
+      "path": "/work/roots/custom-dns-routing/etc/systemd/system/xray.service",
+      "present": false
+    }
+  },
+  "entry": {
+    "path": "/work/roots/custom-dns-routing/usr/bin/idleleo",
+    "exists": true,
+    "isSymlink": true,
+    "linkTarget": "../../etc/idleleo/install.sh",
+    "sha256": "4a53aafd23b9b656770bc95377d168468c2d10d819ff0cfc062fdf83d74df65b",
+    "isGoBridge": false
+  },
+  "legacyScript": {
+    "path": "/work/roots/custom-dns-routing/etc/idleleo/install.sh",
+    "sha256": "4a53aafd23b9b656770bc95377d168468c2d10d819ff0cfc062fdf83d74df65b"
+  },
+  "geoLegacyCron": false,
+  "projectCronLines": 0,
+  "relayConf": {
+    "path": ""
+  },
+  "rill": {
+    "installed": false,
+    "observationAgeSeconds": 0,
+    "status": "absent",
+    "enabled": false
+  },
+  "permissionFixes": [],
+  "findings": [
+    {
+      "code": "xray-unit-missing",
+      "severity": "fix",
+      "message": "xray.service is missing; service semantics cannot be preserved"
+    }
+  ],
+  "verdict": "needs-fix"
+}

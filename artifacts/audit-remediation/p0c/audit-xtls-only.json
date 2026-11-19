@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "root": "/work/roots/xtls-only",
+  "legacyVersion": "2.7.1",
+  "xrayVersion": "1.8.4",
+  "role": "node",
+  "tls": "XTLS",
+  "transport": "none",
+  "nginxRequired": false,
+  "port": 443,
+  "userCount": 0,
+  "runtimePath": "/work/roots/xtls-only/etc/idleleo/conf/xray/config.json",
+  "customDns": false,
+  "customRouting": false,
+  "customOutbounds": false,
+  "customItems": [],
+  "certFiles": [],
+  "nginxFiles": [],
+  "units": {
+    "nginx": {
+      "path": "/work/roots/xtls-only/etc/systemd/system/nginx.service",
+      "present": false
+    },
+    "xray": {
+      "path": "/work/roots/xtls-only/etc/systemd/system/xray.service",
+      "present": false
+    }
+  },
+  "entry": {
+    "path": "/work/roots/xtls-only/usr/bin/idleleo",
+    "exists": true,
+    "isSymlink": true,
+    "linkTarget": "../../etc/idleleo/install.sh",
+    "sha256": "4a53aafd23b9b656770bc95377d168468c2d10d819ff0cfc062fdf83d74df65b",
+    "isGoBridge": false
+  },
+  "legacyScript": {
+    "path": "/work/roots/xtls-only/etc/idleleo/install.sh",
+    "sha256": "4a53aafd23b9b656770bc95377d168468c2d10d819ff0cfc062fdf83d74df65b"
+  },
+  "geoLegacyCron": false,
+  "projectCronLines": 0,
+  "relayConf": {
+    "path": ""
+  },
+  "rill": {
+    "installed": false,
+    "observationAgeSeconds": 0,
+    "status": "absent",
+    "enabled": false
+  },
+  "permissionFixes": [],
+  "findings": [
+    {
+      "code": "legacy-xtls-removed",
+      "severity": "block",
+      "message": "the XTLS-only profile was removed; automatic migration is refused"
+    },
+    {
+      "code": "runtime-config-invalid",
+      "severity": "block",
+      "message": "runtime config unreadable: open /work/roots/xtls-only/etc/idleleo/conf/xray/config.json: no such file or directory"
+    },
+    {
+      "code": "xray-unit-missing",
+      "severity": "fix",
+      "message": "xray.service is missing; service semantics cannot be preserved"
+    }
+  ],
+  "verdict": "blocked"
+}
