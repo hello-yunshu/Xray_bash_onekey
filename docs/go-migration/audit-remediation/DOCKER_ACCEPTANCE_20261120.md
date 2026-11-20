@@ -149,9 +149,12 @@ MATCH。
 三轮之间没有删除失败证据：M7 首轮网络 `unexpected EOF`、A3 pre-fix 默认值、
 A4 父提交负例通过、M8 Bash 委托 Go 均保留在仓库中。
 
-## 6.1 CI（HEAD `aa4b9da9`，2026-11-20）
+## 6.1 CI（2026-11-20）
 
-推送后 7 个 workflow 全部 `success`，无失败、无进行中：
+代码候选 `aa4b9da9` 与文档 HEAD `beb51ab9` 推送后，7 个 workflow 均全部
+`success`，无失败、无进行中。
+
+### 代码候选 `aa4b9da9`
 
 | Workflow | run id | 结论 |
 | --- | --- | --- |
@@ -162,6 +165,18 @@ A4 父提交负例通过、M8 Bash 委托 Go 均保留在仓库中。
 | Go real-root change acceptance (container) | 44725121880 | success |
 | Test Install | 44725121834 | success |
 | Go production parity release qualification | 44725121949 | success |
+
+### 文档 HEAD `beb51ab9`
+
+| Workflow | run id | 结论 |
+| --- | --- | --- |
+| Go parity stage gate | 44725987921 | success |
+| Privacy Guard | 44725987933 | success |
+| Rill Xray Agent | 44725987816 | success |
+| Go preview qualification (NOT FOR RELEASE) | 44725987872 | success |
+| Go real-root change acceptance (container) | 44725987940 | success |
+| Test Install | 44725987830 | success |
+| Go production parity release qualification | 44725987943 | success |
 
 Test Install 本次通过，但历史“静默退出”的根因未定位，因此 A5 仍记 `PARTIAL`；
 不用一次绿色 CI 反推问题已修复。

@@ -412,6 +412,15 @@
       "success": 7,
       "failure": 0,
       "testInstallRun": 44725121834
+    },
+    "headCi": {
+      "commit": "beb51ab918bec118a5e5a54742f2161ab510f22e",
+      "workflows": 7,
+      "success": 7,
+      "failure": 0,
+      "checksPass": 30,
+      "checksSkipped": 1,
+      "note": "docs-only commit; same 7 workflows green"
     }
   }
 }

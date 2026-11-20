@@ -485,6 +485,7 @@ A4 负例：把候选新增测试复制到父提交 `45666732` 仍然通过，�
 | P3 xhttp | 62/62 | `tests/e2e-diff/evidence/goevo-p3-docker-final-p3xhttp-20261120-df3f3838/` |
 | race（8 包） | rc=0 | `.../race-final.log` |
 | CI（`aa4b9da9`） | 7/7 success（含 Test Install） | run 44725121966/21993/21851/22135/21880/21834/21949 |
+| CI（HEAD `beb51ab9`） | 7/7 success（30 check pass / 1 skip） | run 44725987921/87933/87816/87872/87940/87830/87943 |
 
 ### 12.3 未完成项
 

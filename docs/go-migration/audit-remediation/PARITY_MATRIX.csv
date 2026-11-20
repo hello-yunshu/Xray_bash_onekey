@@ -33,3 +33,4 @@ C3-R3,multi-version-distro-ipv6,—,—,—,—,—,NOT_RUN/VPS_DEFERRED,docs/go
 C4-R3,soak-30min,—,—,—,—,—,NOT_RUN,docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261120.md
 D4-R3,docker-candidate-conclusion,—,—,—,—,—,NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE,artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/final-gates.json
 D3-CI,ci-7-workflows,—,7/7 success,—,Test Install success,—,PASS,GitHub Actions aa4b9da9: 44725121966/21993/21851/22135/21880/21834/21949
+D3-CI-HEAD,ci-7-workflows-head,—,7/7 success,—,Test Install success,—,PASS,GitHub Actions beb51ab9: 44725987921/87933/87816/87872/87940/87830/87943
