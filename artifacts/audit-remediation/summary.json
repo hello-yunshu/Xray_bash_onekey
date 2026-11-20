@@ -218,7 +218,7 @@
   },
   "followup20261120": {
     "reviewBaseline": "d13fca44",
-    "fixCommits": ["9f66b22a", "f217a2fa", "b212f1cf", "c65dbd04", "102f52e1", "1cd248e6", "ce746d8c"],
+    "fixCommits": ["9f66b22a", "f217a2fa", "b212f1cf", "c65dbd04", "102f52e1", "1cd248e6", "ce746d8c", "c1b14832"],
     "report": "docs/go-migration/audit-remediation/REVIEW_20261120_FOLLOWUP.md",
     "fixes": {"FUP-01": "share metadata is used only for its own canonical runtime path with a matching runtimeSha256", "FUP-02": "Reality share requires an explicit --host; serverNames stay the SNI", "FUP-03": "environment.txt carries hashes and repository-relative paths only", "FUP-04": "F28 redacts argv/stdout/stderr; the x25519 private key is no longer passed in", "FUP-05": "F28 uses --root and every probe passes an explicit --host", "FUP-06": "the matrix snapshots the dirty flag before creating its output directory", "FUP-07": "stale metadata degrades to a warning; the runtime config still renders", "FUP-08": "config edit takes --host; old/new/short-id links all dial it, URL values are rejected and a Reality edit without --host warns", "FUP-09": "OPS-32 judges recovery in the trailing 2*fail_timeout of the window with the same gap cap and sample minimum", "FUP-10": "OPS-19/31/32 read the Nginx release artifact and config templates from a verified offline cache; the Go side never falls back to the network", "FUP-11": "OPS-19 bash install reads a seeded apt .deb closure (IDLELEO_APT_CACHE): apt update is skipped, dpkg installs the whole closure and a missing package fails closed instead of falling back to the archive network"},
     "tests": {
@@ -264,8 +264,10 @@
       },
       "privacyHygiene": {"findings": 0, "files": 34624},
       "ci": {
-        "sha": "ce746d8c",
-        "workflows": {"stageGate": 44680509165, "privacy": 44680508152, "releaseQualification": 44680507886, "preview": 44680507803, "realRoot": 44680507913, "testInstall": 44680507985},
+        "sha": "c1b14832",
+        "workflows": {"stageGate": 44684614465, "privacy": 44684614495, "releaseQualification": 44684614437, "preview": 44684614456, "realRoot": 44684614461, "testInstall": 44684614474},
+        "previousSha": "ce746d8c",
+        "previousWorkflows": {"stageGate": 44680509165, "privacy": 44680508152, "releaseQualification": 44680507886, "preview": 44680507803, "realRoot": 44680507913, "testInstall": 44680507985},
         "conclusion": "all success"
       },
       "notRun": ["F01 (needs a real root/systemd environment)"]

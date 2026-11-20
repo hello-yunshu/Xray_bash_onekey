@@ -3,17 +3,18 @@
   "generatedAt": "2026-11-20T02:45:00Z",
   "branch": "work/go-hardening-parity-20261119",
   "baselineSha": "9b965843dccc955eee8b91903749500f082271f7",
-  "codeSha": "ce746d8c2b9c81e8db62a890ca432a76e34212ea",
+  "codeSha": "c1b14832364f733b11e2323c509d33dd78d8c0a8",
   "followupCodeShas": [
     "9f66b22ad9b555a3ae7f8a1e5d5d5d248907be99",
     "f217a2fa8656c86471f18c4d8b0b858d438f5a87",
     "102f52e1876a6d1957c4869beacf232e4e05f196",
     "a7d0d4f0229337c72fb965889ae1ea6dccba9653",
     "1cd248e654aba99b70b2420db30fc32c84c15d43",
-    "ce746d8c2b9c81e8db62a890ca432a76e34212ea"
+    "ce746d8c2b9c81e8db62a890ca432a76e34212ea",
+    "c1b14832364f733b11e2323c509d33dd78d8c0a8"
   ],
   "summaryScope": "items below are the 2026-11-19 baseline; see followup20261120",
-  "ciSha": "ce746d8c2b9c81e8db62a890ca432a76e34212ea",
+  "ciSha": "c1b14832364f733b11e2323c509d33dd78d8c0a8",
   "pr": {
     "number": 182,
     "url": "https://github.com/hello-yunshu/Xray_bash_onekey/pull/182",
@@ -29,6 +30,12 @@
     "offline": true
   },
   "ci": {
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614465": "Go parity stage gate: success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614456": "Go preview qualification (NOT FOR RELEASE): success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614437": "Go production parity release qualification: success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614461": "Go real-root change acceptance (container): success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614474": "Test Install: success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614495": "Privacy Guard: success (c1b14832)",
     "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680509165": "Go parity stage gate: success (ce746d8c)",
     "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507803": "Go preview qualification (NOT FOR RELEASE): success (ce746d8c)",
     "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507886": "Go production parity release qualification: success (ce746d8c)",
@@ -273,7 +280,7 @@
         "title": "real CI on followup HEAD",
         "status": "CI_PASS",
         "evidencePath": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680509165",
-        "reason": "six pull_request workflows green at ce746d8c: stage gate 44680509165, privacy 44680508152, release qualification 44680507886, preview 44680507803, real-root 44680507913, test install 44680507985"
+        "reason": "six pull_request workflows green at ce746d8c (stage gate 44680509165, privacy 44680508152, release qualification 44680507886, preview 44680507803, real-root 44680507913, test install 44680507985) and again at c1b14832 (stage gate 44684614465, privacy 44684614495, release qualification 44684614437, preview 44684614456, real-root 44684614461, test install 44684614474)"
       },
       {
         "id": "F09",
@@ -299,9 +306,9 @@
       {
         "id": "F12",
         "title": "offline apt cache for OPS-19 installs",
-        "status": "LOCAL_RUN_PASS",
+        "status": "CI_PASS",
         "evidencePath": "tests/e2e-diff/evidence/fix-20261120-apt1/p2/, fix-20261120-apt2/p2/",
-        "reason": "IDLELEO_APT_CACHE seeds the 75-deb closure from the same ubuntu:24.04 digest; the offline path skips apt update and dpkg-installs the closure, failing closed on a missing package; OPS-19 PASS locally and still PASSes with ports.ubuntu.com and the other archive hosts pinned to 127.0.0.1"
+        "reason": "IDLELEO_APT_CACHE seeds the 75-deb closure from the same ubuntu:24.04 digest; the offline path skips apt update and dpkg-installs the closure, failing closed on a missing package; OPS-19 PASS locally and still PASSes with ports.ubuntu.com and the other archive hosts pinned to 127.0.0.1; the six pull_request workflows are green at c1b14832"
       }
     ],
     "conclusion": "NO-GO for release and merge"

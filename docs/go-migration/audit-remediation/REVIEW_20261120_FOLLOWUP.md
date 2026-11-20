@@ -10,7 +10,7 @@
 | 分支 | `work/go-hardening-parity-20261119` |
 | 目标书基线 | `a1056a14` |
 | 复审起点 | `d13fca44`（含 OPS-08/27 与证据） |
-| 修复提交 | `9f66b22a`（分享归属、Reality Host、隐私、F28）、`f217a2fa`（E2E 显式 Host）、`b212f1cf`（矩阵快照顺序）、`c65dbd04`（矩阵证据）、`102f52e1`（陈旧元数据降级）、`1cd248e6`（`config edit --host`、OPS-32 恢复判定）、`ce746d8c`（OPS-19/31/32 离线包缓存）。 |
+| 修复提交 | `9f66b22a`（分享归属、Reality Host、隐私、F28）、`f217a2fa`（E2E 显式 Host）、`b212f1cf`（矩阵快照顺序）、`c65dbd04`（矩阵证据）、`102f52e1`（陈旧元数据降级）、`1cd248e6`（`config edit --host`、OPS-32 恢复判定）、`ce746d8c`（OPS-19/31/32 离线包缓存）、`c1b14832`（OPS-19 apt 离线缓存）。 |
 | 证据提交 | `d56e1dac`（门禁/Fixture/E7-E8）、`afe677a3`（矩阵 clean2）、紧随其后的 OPS-32 与文档提交，见 `git log`。 |
 | 二进制 | `idleleo 0.2.0-phase04`，`-buildvcs=false -trimpath`，`sha256 42f2de09…`；Xray `26.10.31`，`sha256 59396499…`（`artifacts/audit-remediation/followup-20261120/c3/binaries.sha256`）。 |
 | 允许范围 | 仅整改分支提交/推送；**未**合并 `main`/`develop/go-native`，**未**打 tag 发版，**未**操作生产 VPS，**未**强推共享历史。 |
@@ -33,10 +33,10 @@
 
 ## 3. 测试结果
 
-### 3.1 最终复验（代码 `1cd248e6` + 缓存提交 `ce746d8c`）
+### 3.1 最终复验（代码 `1cd248e6` + 缓存提交 `ce746d8c` + apt 提交 `c1b14832`）
 
-> 下表 F28/F08/F18/矩阵/E1-E8 在 `1cd248e6` 上运行；`ce746d8c` 只新增缓存路径与
-> 证据，缓存相关的两行是它的验证结果。
+> 下表 F28/F08/F18/矩阵/E1-E8 在 `1cd248e6` 上运行；`ce746d8c` 新增 Nginx/模板
+> 缓存路径，`c1b14832` 新增 apt 缓存路径；缓存相关的行是它们的验证结果。
 
 | 套件 | 结果 | 证据 |
 | --- | --- | --- |
@@ -68,10 +68,23 @@
 | P2 OPS-31 | **PASS**（reality-balance 增删） | `.../fix-20261120-p2d/p2/OPS-31/` |
 | P2 OPS-32（旧判定） | ws PASS；reality `BLOCKER`（判定口径，非行为差异；新分析器重算 PASS） | `.../fix-20261120-p2d/p2/OPS-32/`、`artifacts/audit-remediation/followup-20261120/ops32-reanalysis/` |
 
-## 4. 同 HEAD CI（代码 `ce746d8c`，草稿 PR #182）
+## 4. 同 HEAD CI（代码 `c1b14832`，草稿 PR #182）
 
-> 推送后在 `ce746d8c` 上触发；其后的文档提交只改文档，代码与 `ce746d8c` 相同，
-> 后续如需再改代码必须重跑。
+> 当前代码 HEAD `c1b14832` 上六项 `pull_request` workflow 全部 success。
+
+| Workflow | Run | 结论 |
+| --- | --- | --- |
+| Go parity stage gate | [44684614465](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614465) | success |
+| Privacy Guard | [44684614495](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614495) | success |
+| Go production parity release qualification | [44684614437](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614437) | success |
+| Go preview qualification (not for release) | [44684614456](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614456) | success |
+| Go real-root change acceptance (container) | [44684614461](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614461) | success |
+| Test Install | [44684614474](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614474) | success |
+| Rill Xray Agent | [44684614535](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614535) | success |
+
+PR #182 保持 **draft**，未合并 `develop/go-native`，未打 tag，未触碰生产 VPS。
+
+### 4.1 前序代码 `ce746d8c`
 
 | Workflow | Run | 结论 |
 | --- | --- | --- |
@@ -113,8 +126,8 @@ PR #182 保持 **draft**，未合并 `develop/go-native`，未打 tag，未触�
    OPS-19/31/32 的判定输入，失败也不会改变 verdict，但会拖慢安装日志。
 2. **证据体积。** `tests/go-parity/evidence/matrix-fix-20261120-clean2/` 约
    15 MB，已入库；后续可考虑压缩或只保留 summary 与失败样本。
-3. **同 HEAD CI 回填。** 代码不变时无需重跑；后续代码变化必须重跑并替换 run id
-   （见 §4）。
+3. **同 HEAD CI 回填。** 当前 HEAD `c1b14832` 的六项 workflow 已回填（见 §4）；
+   后续代码变化必须重跑并替换 run id。
 
 ## 6. 结论
 
@@ -125,7 +138,7 @@ Host/SNI 混用、证据隐私、矩阵自污染，以及本轮新增的
 `config edit --host`（FUP-08）与 OPS-32 恢复判定（FUP-09）。最终代码
 `1cd248e6` 上：本地全量门禁、F28 57/0、F08 129/0、F18 178/0、98 项矩阵 0 GAP
 （`repo_dirty=0`）、E1-E6 全绿、E7 13/13、E8 14/14、OPS-32 ws/reality 均 PASS、
-证据卫生 0 findings。
+证据卫生 0 findings。缓存提交 `ce746d8c`/`c1b14832` 上的六项 CI workflow 全绿。
 
 仍判 NO-GO 的唯一原因是外部环境项：独立 VPS 的公网 ACME、IPv6 与多版本
 Xray/Bash 矩阵没有证据，而目标书禁止操作生产 VPS。按目标书“NOT_RUN/BLOCKED
