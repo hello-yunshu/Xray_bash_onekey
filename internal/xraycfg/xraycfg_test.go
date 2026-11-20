@@ -537,7 +537,7 @@ func TestShareFromExistingConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := Share(g.Config, 0, "", 0)
+	s, err := Share(g.Config, 0, "example.com", 0)
 	if err != nil {
 		t.Fatal(err)
 	}

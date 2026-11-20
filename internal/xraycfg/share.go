@@ -153,6 +153,9 @@ func ShareConfig(raw []byte, opts ShareOptions) (ShareInfo, error) {
 	}
 	host := strings.TrimSpace(opts.Host)
 	if host == "" {
+		if mode == ModeReality {
+			return ShareInfo{}, fmt.Errorf("--host is required to render a Reality share link: reality serverNames (%s) are the SNI/camouflage identity, not the public address clients dial", strings.Join(serverNames, ","))
+		}
 		if len(serverNames) > 0 {
 			host = serverNames[0]
 		} else {

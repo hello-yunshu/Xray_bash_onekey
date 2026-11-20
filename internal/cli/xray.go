@@ -225,17 +225,18 @@ func xrayShare(opts Options, cfg config, args []string) int {
 	}
 	// Metadata carries the trusted public topology: Bash TLS nodes keep Xray on
 	// loopback with stream security=none, so the runtime config alone cannot
-	// tell an Nginx TLS front from a plain public port. A missing or unreadable
-	// metadata file is not fatal: explicit flags still work and ShareConfig
-	// keeps refusing an ambiguous loopback config.
-	if paths, pathErr := host.NewPaths(cfg.root); pathErr == nil {
-		if meta, _, metaErr := store.LoadMetadata(paths); metaErr == nil {
-			applyShareMetadataDefaults(&shareOpts, meta)
-			// Link-only preferences persisted by `xray config edit --fp/--spx`.
-			if meta.ShareLinkOnly != nil {
-				shareOpts.Fingerprint = meta.ShareLinkOnly.Fingerprint
-				shareOpts.SpiderX = meta.ShareLinkOnly.SpiderX
-			}
+	// tell an Nginx TLS front from a plain public port. It may only describe the
+	// config it owns; a path or hash mismatch is never silently applied.
+	meta, managed, metaErr := managedShareMetadata(cfg.root, path, raw)
+	if metaErr != nil {
+		return fail(opts, cfg, metaErr)
+	}
+	if managed {
+		applyShareMetadataDefaults(&shareOpts, meta)
+		// Link-only preferences persisted by `xray config edit --fp/--spx`.
+		if meta.ShareLinkOnly != nil {
+			shareOpts.Fingerprint = meta.ShareLinkOnly.Fingerprint
+			shareOpts.SpiderX = meta.ShareLinkOnly.SpiderX
 		}
 	}
 	info, err := xraycfg.ShareConfig(raw, shareOpts)
@@ -273,10 +274,56 @@ func xrayShare(opts Options, cfg config, args []string) int {
 	return 0
 }
 
+// managedShareMetadata returns the manager metadata under root only when the
+// selected config is provably the one it describes: the canonical selected path
+// must equal root + runtimeConfigPath, and a recorded runtimeSha256 must match
+// the bytes about to be shared. Metadata from another root or another config
+// must never leak into this link; a matching path with a different hash is a
+// stale ownership record and is reported instead of silently ignored.
+func managedShareMetadata(root, selected string, raw []byte) (store.Metadata, bool, error) {
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		return store.Metadata{}, false, nil
+	}
+	meta, _, err := store.LoadMetadata(paths)
+	if err != nil {
+		return store.Metadata{}, false, nil
+	}
+	if err := store.ValidateManagerPath(meta.RuntimeConfigPath); err != nil {
+		return store.Metadata{}, false, nil
+	}
+	managed, err := paths.Join(meta.RuntimeConfigPath, false)
+	if err != nil {
+		return store.Metadata{}, false, nil
+	}
+	if canonicalPath(managed) != canonicalPath(selected) {
+		return store.Metadata{}, false, nil
+	}
+	if meta.RuntimeSHA256 != "" && meta.RuntimeSHA256 != store.HashBytes(raw) {
+		return store.Metadata{}, false, fmt.Errorf("manager metadata under %s is stale: runtimeSha256 does not match the shared config; re-run the managed change that writes this config before sharing", root)
+	}
+	return meta, true, nil
+}
+
+// canonicalPath resolves a path for ownership comparison. Missing files still
+// get an absolute, cleaned form so a path that does not exist cannot compare
+// equal by accident.
+func canonicalPath(path string) string {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return filepath.Clean(path)
+	}
+	if resolved, err := filepath.EvalSymlinks(abs); err == nil {
+		return resolved
+	}
+	return filepath.Clean(abs)
+}
+
 // applyShareMetadataDefaults fills the public-side fields that the runtime
 // config cannot prove when Nginx terminates TLS in front of a loopback Xray
-// backend. Explicit --public-security/--host/--public-port always win; an
-// unknown TLS label is left empty so ShareConfig keeps failing closed.
+// backend. Explicit flags always win. Install.ServerNames is deliberately not
+// used: for Reality it is the SNI/camouflage identity, not the address clients
+// dial, so a connection host must be supplied explicitly.
 func applyShareMetadataDefaults(opts *xraycfg.ShareOptions, meta store.Metadata) {
 	if strings.TrimSpace(opts.PublicSecurity) == "" {
 		switch meta.TLS {
@@ -290,9 +337,6 @@ func applyShareMetadataDefaults(opts *xraycfg.ShareOptions, meta store.Metadata)
 	}
 	if meta.Install == nil {
 		return
-	}
-	if strings.TrimSpace(opts.Host) == "" && len(meta.Install.ServerNames) > 0 {
-		opts.Host = meta.Install.ServerNames[0]
 	}
 	if opts.PublicPort == 0 && meta.Install.Port > 0 {
 		opts.PublicPort = meta.Install.Port

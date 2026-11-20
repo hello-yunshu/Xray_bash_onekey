@@ -27,6 +27,11 @@ docker build --pull=false -q \
   --build-arg "BASE_IMAGE=${MATRIX_BASE_IMAGE:-golang:1.27.4-bookworm@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea}" \
   -t "$IMAGE" -f "$DIR/Dockerfile" "$DIR" >/dev/null
 
+# Record only the digest and a repository-relative path: the checksum output
+# embeds the caller's absolute path (and therefore the user name) by default.
+install_sha="$(sha256sum "$REPO/install.sh" 2>/dev/null || shasum -a 256 "$REPO/install.sh")"
+install_sha="${install_sha%% *}"
+
 {
   echo "repo_commit=$(git -C "$REPO" rev-parse HEAD)"
   echo "repo_dirty=$(git -C "$REPO" status --porcelain | wc -l | tr -d ' ')"
@@ -34,7 +39,8 @@ docker build --pull=false -q \
   echo "test_image=$(docker image inspect "$IMAGE" --format '{{.Id}}')"
   echo "docker_arch=$(docker version --format '{{.Server.Arch}}')"
   echo "docker_version=$(docker version --format '{{.Server.Version}}')"
-  echo "bash_install_sha256=$(sha256sum "$REPO/install.sh" 2>/dev/null || shasum -a 256 "$REPO/install.sh")"
+  echo "bash_install_sha256=$install_sha"
+  echo "bash_install_path=install.sh"
 } >"$OUT/environment.txt"
 
 docker run --rm --network=none --read-only --tmpfs /tmp:rw,exec,size=1024m \

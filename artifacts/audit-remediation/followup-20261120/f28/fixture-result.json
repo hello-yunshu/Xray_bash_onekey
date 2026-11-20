@@ -1,0 +1,10 @@
+{
+  "bashRepo": "/src",
+  "elapsedSeconds": 0.04,
+  "failed": 0,
+  "fixture": "F28",
+  "goBin": "/src/artifacts/audit-remediation/followup-20261120/bin/idleleo-new",
+  "goBinSha256": "b747fda98c795b9a63bad692ca1339fa5c9e8cb75eb966b1cfc5eefedc433f42",
+  "hostMachine": "aarch64",
+  "passed": 57
+}

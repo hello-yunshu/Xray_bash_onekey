@@ -38,6 +38,9 @@ func writeShareRoot(t *testing.T, cfgBody []byte, meta *store.Metadata) (string,
 		meta.ActiveEngine = "xray"
 		meta.Role = "node"
 		meta.RuntimeConfigPath = "etc/idleleo/conf/xray/config.json"
+		if meta.RuntimeSHA256 == "" {
+			meta.RuntimeSHA256 = store.HashBytes(cfgBody)
+		}
 		b, err := json.Marshal(meta)
 		if err != nil {
 			t.Fatal(err)
@@ -76,7 +79,8 @@ func TestXrayShareUsesMetadataForPublicTLS(t *testing.T) {
 		TLS: "TLS", Transport: "ws",
 		Install: &store.InstallSnapshot{Port: 443, ServerNames: []string{"example.com"}},
 	})
-	code, info, raw := shareJSON(t, "--root", root, "xray", "share", "--path", cfgPath, "--json")
+	code, info, raw := shareJSON(t, "--root", root, "xray", "share", "--path", cfgPath,
+		"--host", "example.com", "--json")
 	if code != 0 {
 		t.Fatalf("share failed: %s", raw)
 	}
@@ -99,15 +103,103 @@ func TestXrayShareUsesMetadataForReality(t *testing.T) {
 		TLS: "Reality", Transport: "tcp",
 		Install: &store.InstallSnapshot{Port: 443, ServerNames: []string{"example.com"}},
 	})
-	code, info, raw := shareJSON(t, "--root", root, "xray", "share", "--path", cfgPath, "--json")
+	code, info, raw := shareJSON(t, "--root", root, "xray", "share", "--path", cfgPath,
+		"--host", "198.51.100.25", "--json")
 	if code != 0 {
 		t.Fatalf("share failed: %s", raw)
 	}
 	if info.Mode != xraycfg.ModeReality || !strings.Contains(info.ShareURI, "security=reality") {
 		t.Fatalf("metadata Reality not applied: %+v", info)
 	}
+	if info.Host != "198.51.100.25" || info.Port != 443 {
+		t.Fatalf("public host/port not explicit: %+v", info)
+	}
+	if !strings.Contains(info.ShareURI, "@198.51.100.25:443?") ||
+		!strings.Contains(info.ShareURI, "sni=example.com") {
+		t.Fatalf("connection host and SNI are not separated: %s", info.ShareURI)
+	}
+	if strings.Contains(info.ShareURI, "@example.com") {
+		t.Fatalf("Reality SNI leaked into the dial address: %s", info.ShareURI)
+	}
 	if !strings.Contains(info.ShareURI, "pbk=") {
 		t.Fatalf("reality public key missing: %s", info.ShareURI)
+	}
+}
+
+func TestXrayShareRealityRefusesToDialTheSNI(t *testing.T) {
+	generated, err := xraycfg.Generate(xraycfg.Spec{
+		Mode: xraycfg.ModeReality, Domain: "www.example.com", Port: 443,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, cfgPath := writeShareRoot(t, generated.Config, &store.Metadata{
+		TLS: "Reality", Transport: "tcp",
+		Install: &store.InstallSnapshot{Port: 443, ServerNames: []string{"www.example.com"}},
+	})
+	code, _, raw := shareJSON(t, "--root", root, "xray", "share", "--path", cfgPath, "--json")
+	if code == 0 {
+		t.Fatalf("Reality share must require an explicit --host, not reuse serverNames: %s", raw)
+	}
+	if !strings.Contains(raw, "--host is required") {
+		t.Fatalf("unexpected refusal reason: %s", raw)
+	}
+}
+
+func TestXrayShareIgnoresMetadataFromAnotherRoot(t *testing.T) {
+	reality, err := xraycfg.Generate(xraycfg.Spec{
+		Mode: xraycfg.ModeReality, Domain: "www.example.com", Port: 443,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, cfgPath := writeShareRoot(t, reality.Config, nil)
+	// A second root whose metadata says loopback security=none; it describes a
+	// different deployment and must never be applied to the first root's config.
+	otherRoot, _ := writeShareRoot(t, []byte(loopbackNoneConfig), &store.Metadata{
+		TLS: "None", Transport: "ws",
+		Install: &store.InstallSnapshot{Port: 10086},
+	})
+	code, info, raw := shareJSON(t, "--root", otherRoot, "xray", "share", "--path", cfgPath,
+		"--host", "198.51.100.25", "--json")
+	if code != 0 {
+		t.Fatalf("foreign metadata polluted the share: %s", raw)
+	}
+	if info.Mode != xraycfg.ModeReality || !strings.Contains(info.ShareURI, "security=reality") {
+		t.Fatalf("runtime Reality was overridden by another root's metadata: %+v", info)
+	}
+}
+
+func TestXrayShareRefusesStaleMetadata(t *testing.T) {
+	root, cfgPath := writeShareRoot(t, []byte(loopbackNoneConfig), &store.Metadata{
+		TLS: "None", Transport: "ws",
+		Install:       &store.InstallSnapshot{Port: 10086},
+		RuntimeSHA256: strings.Repeat("0", 64),
+	})
+	code, _, raw := shareJSON(t, "--root", root, "xray", "share", "--path", cfgPath,
+		"--host", "203.0.113.9", "--public-port", "10086", "--json")
+	if code == 0 {
+		t.Fatalf("stale metadata must not be trusted: %s", raw)
+	}
+	if !strings.Contains(raw, "stale") {
+		t.Fatalf("unexpected stale metadata error: %s", raw)
+	}
+}
+
+func TestXrayShareMatchesMetadataThroughNormalizedPath(t *testing.T) {
+	root, _ := writeShareRoot(t, []byte(loopbackNoneConfig), &store.Metadata{
+		TLS: "TLS", Transport: "ws",
+		Install: &store.InstallSnapshot{Port: 443, ServerNames: []string{"example.com"}},
+	})
+	// Same file spelled with dot and parent segments; ownership must still match.
+	weird := filepath.Join(root, "etc", ".", "idleleo/v1/../conf/xray/config.json")
+	code, info, raw := shareJSON(t, "--root", root, "xray", "share", "--path", weird,
+		"--host", "example.com", "--json")
+	if code != 0 {
+		t.Fatalf("normalized path lost its metadata: %s", raw)
+	}
+	if info.Mode != xraycfg.ModeTLS || !strings.Contains(info.ShareURI, "security=tls") {
+		t.Fatalf("metadata TLS not applied through normalized path: %+v", info)
 	}
 }
 
@@ -174,7 +266,7 @@ func TestXrayShareMetadataKeepsSelectedUser(t *testing.T) {
 		Install: &store.InstallSnapshot{Port: 443, ServerNames: []string{"example.com"}},
 	})
 	code, info, raw := shareJSON(t, "--root", root, "xray", "share", "--path", cfgPath,
-		"--user", "second@example.com", "--json")
+		"--host", "example.com", "--user", "second@example.com", "--json")
 	if code != 0 {
 		t.Fatalf("share failed: %s", raw)
 	}

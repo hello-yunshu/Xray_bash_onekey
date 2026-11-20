@@ -269,7 +269,7 @@ func TestEditPortOnlyTouchesPort(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	info, err := Share(g2.Config, 0, "", 0)
+	info, err := Share(g2.Config, 0, "198.51.100.25", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
