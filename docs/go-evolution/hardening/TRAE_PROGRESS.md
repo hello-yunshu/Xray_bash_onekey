@@ -69,7 +69,7 @@
 | A2 分享 Host/SNI | PASS_IMPACT_SCOPED（候选未重跑） | `share_metadata_test.go`；F28 57/0 |
 | A3 Guard | PASS（pre-fix `enabled/isolate` → `not-applicable`） | `.../a3-guard-redgreen.log` |
 | A4 XHTTP | 非缺陷（父提交负例测试通过） | `.../a4-prefix-probe.log` |
-| A5 缓存/OPS-32 | PASS；Test Install `CI_PENDING` | `.../p2/OPS-32` |
+| A5 缓存/OPS-32 | PASS；Test Install 在 `aa4b9da9` CI 通过，根因未定位 | `.../p2/OPS-32`、run 44725121834 |
 | M1–M10 | 双端 rc=0；两轮 L4/L6 ok；幂等 rc2=0 | `round3-final-20261120-1821-df3f3838/p2/` |
 | E1–E8 | 67 项 Go 检查全满足 | 同上 |
 | OPS 双端 | 5 行 PASS | 同上 |
@@ -79,6 +79,7 @@
 | R1/R2/INJ | 106/0 | `docker-final-r1-20261120-df3f3838/r1/` |
 | P3 xhttp | 62/62 | `goevo-p3-docker-final-p3xhttp-20261120-df3f3838/` |
 | race | 8 包 rc=0 | `.../race-final.log` |
+| CI | `aa4b9da9` 7/7 success（含 Test Install） | run 44725121966/21993/21851/22135/21880/21834/21949 |
 
 未完成：OPS 34 全双端（5/34）、9 个 subscripts、多版本/第二发行版、
 30 分钟 soak、纯 Bash ACME、公网 CA/外部 IPv6/VPS 重启。

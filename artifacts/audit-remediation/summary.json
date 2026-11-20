@@ -721,8 +721,7 @@
       "multi-version Xray/Bash and second distro NOT_RUN",
       "30min soak NOT_RUN",
       "pure Bash ACME BLOCKED / BASH_DELEGATES_GO",
-      "A2/A3 Bash interactions and F28 not rerun at candidate",
-      "Test Install silent exit CI_PENDING"
+      "A2/A3 Bash interactions and F28 not rerun at candidate"
     ],
     "conclusions": {
       "dockerDevelopmentCandidate": "NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
@@ -736,6 +735,21 @@
       "second distro",
       "30min soak",
       "9 subscripts"
-    ]
+    ],
+    "ci": {
+      "commit": "aa4b9da950efefc5a6407f9e9887109c7e76bac9",
+      "workflows": 7,
+      "success": 7,
+      "failure": 0,
+      "runs": [
+        44725121966,
+        44725121993,
+        44725121851,
+        44725122135,
+        44725121880,
+        44725121834,
+        44725121949
+      ]
+    }
   }
 }

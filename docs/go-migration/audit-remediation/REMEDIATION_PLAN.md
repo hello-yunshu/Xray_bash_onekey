@@ -117,7 +117,8 @@
    因此**不做全量重写**，只保留 `normalizeXHTTPPath` 作为编辑路径的防御性统一，
    并按语义差异记录。
 4. **A2/A5**：A2 仅做影响面复核，不把旧绿证写成候选新执行；A5 的 Test Install
-   静默退出保留 `CI_PENDING`，不以重试掩盖。
+   在 `aa4b9da9` CI 通过，但历史静默退出的根因未定位，因此 A5 仍记 `PARTIAL`，
+   不以一次绿色 CI 或重试掩盖。
 5. **B4 不降级**：任务书明确禁止 Go-only sweep 替代 34 个 OPS 与 9 个 subscripts。
    本轮未完成的部分原样留在账本，Docker 候选因此 NO-GO。
 6. **发布**：保持 draft PR；不合并、不打 tag、不发版、不操作生产 VPS。

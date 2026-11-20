@@ -146,7 +146,8 @@
 3. 多版本 Xray/Bash、第二发行版 smoke 未执行。
 4. 30 分钟 + 两个调度周期 soak 未执行。
 5. M8 Bash 侧为 `BASH_DELEGATES_GO`，纯 `acme.sh` `BLOCKED`。
-6. A2/A3 的 Bash 交互与 F28 未在候选 SHA 重跑；Test Install `CI_PENDING`。
+6. A2/A3 的 Bash 交互与 F28 未在候选 SHA 重跑；Test Install 在 `aa4b9da9`
+   通过，但历史静默退出的根因未定位。
 
 ### 7.3 双结论
 

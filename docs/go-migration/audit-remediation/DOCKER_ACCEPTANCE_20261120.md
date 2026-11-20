@@ -42,7 +42,7 @@
 | A2 | 分享把 SNI 当拨号地址 / 跨 root 元数据污染 | 上轮已复现（F28 35/2） | 路径+SHA 归属、`--host` 强制、Reality 不猜；F28 57/0、F08 129/0、F18 178/0 | PASS_IMPACT_SCOPED（候选未重跑） |
 | A3 | `guard show` 缺状态时默认 enabled/isolate | pre-fix：`sniGuard=true policy=isolate`（`a3-guard-redgreen.log`） | candidate：`applicable=false status=not-applicable`；真实 nginx 三策略 + drift/missing | PASS |
 | A4 | XHTTP `/xhttp` vs `/xhttp/` | 父提交负例测试**通过**，无可复现断连 | 真实 Xray 26.10.31 四种路径交叉 200/301 | 非缺陷，语义差异记录 |
-| A5 | 已修复项/缓存/OPS-32/Test Install | 历史静默退出 | OPS-32 ws+reality 在候选 PASS；缓存与离线门禁 PASS | PARTIAL（Test Install `CI_PENDING`） |
+| A5 | 已修复项/缓存/OPS-32/Test Install | 历史静默退出 | OPS-32 ws+reality 在候选 PASS；缓存与离线门禁 PASS；`aa4b9da9` 上 Test Install 通过 | PARTIAL（静默退出根因未定位） |
 
 细节与根因：`artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/defects.md`。
 
@@ -148,6 +148,23 @@ MATCH。
 
 三轮之间没有删除失败证据：M7 首轮网络 `unexpected EOF`、A3 pre-fix 默认值、
 A4 父提交负例通过、M8 Bash 委托 Go 均保留在仓库中。
+
+## 6.1 CI（HEAD `aa4b9da9`，2026-11-20）
+
+推送后 7 个 workflow 全部 `success`，无失败、无进行中：
+
+| Workflow | run id | 结论 |
+| --- | --- | --- |
+| Go parity stage gate | 44725121966 | success |
+| Privacy Guard | 44725121993 | success |
+| Rill Xray Agent | 44725121851 | success |
+| Go preview qualification (NOT FOR RELEASE) | 44725122135 | success |
+| Go real-root change acceptance (container) | 44725121880 | success |
+| Test Install | 44725121834 | success |
+| Go production parity release qualification | 44725121949 | success |
+
+Test Install 本次通过，但历史“静默退出”的根因未定位，因此 A5 仍记 `PARTIAL`；
+不用一次绿色 CI 反推问题已修复。
 
 ## 7. 证据卫生
 

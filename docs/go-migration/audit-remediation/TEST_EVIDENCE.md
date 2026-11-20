@@ -464,7 +464,7 @@ Bash 与 Go 共享同一份缓存，并保留全部既有校验。
 | A2 分享拨号地址/SNI/归属 | PASS_IMPACT_SCOPED（候选未重跑 F28） | `internal/cli/share_metadata_test.go`；F28 57/0、F08 129/0、F18 178/0 |
 | A3 Guard show 不再默认 enabled/isolate | PASS | `.../a3-guard-redgreen.log`、`smoke-guard-cert-final.log` |
 | A4 XHTTP 路径 | 非缺陷，语义差异记录 | `.../a4-prefix-probe.log`、`artifacts/go-docker-20261120/a4-xhttp-path.log` |
-| A5 已修复项/缓存/OPS-32/Test Install | PARTIAL（Test Install `CI_PENDING`） | `.../p2/OPS-32`、`gate-final.log` |
+| A5 已修复项/缓存/OPS-32/Test Install | PARTIAL（Test Install 在 `aa4b9da9` 通过，根因未定位） | `.../p2/OPS-32`、`gate-final.log`、run 44725121834 |
 
 A3 红绿：父提交在“元数据 Reality、无 Nginx guard fragment”时输出
 `sniGuard=true policy=isolate`；候选输出 `applicable=false status=not-applicable`。
@@ -484,6 +484,7 @@ A4 负例：把候选新增测试复制到父提交 `45666732` 仍然通过，�
 | R1/R2/INJ | 106 PASS / 0 FAIL | `tests/e2e-diff/evidence/docker-final-r1-20261120-df3f3838/r1/` |
 | P3 xhttp | 62/62 | `tests/e2e-diff/evidence/goevo-p3-docker-final-p3xhttp-20261120-df3f3838/` |
 | race（8 包） | rc=0 | `.../race-final.log` |
+| CI（`aa4b9da9`） | 7/7 success（含 Test Install） | run 44725121966/21993/21851/22135/21880/21834/21949 |
 
 ### 12.3 未完成项
 

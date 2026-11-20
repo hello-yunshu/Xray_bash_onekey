@@ -356,7 +356,7 @@
         "title": "fixed items/cache/OPS-32",
         "status": "PARTIAL",
         "evidencePath": "tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/OPS-32",
-        "reason": "Test Install CI_PENDING"
+        "reason": "Test Install passed at aa4b9da9 (run 44725121834); silent-exit root cause not investigated"
       },
       {
         "id": "M1-M10",
@@ -402,10 +402,16 @@
       "multi-version/distro NOT_RUN",
       "30min soak NOT_RUN",
       "pure Bash ACME BLOCKED",
-      "A2/A3 Bash interactions and F28 not rerun at candidate",
-      "Test Install CI_PENDING"
+      "A2/A3 Bash interactions and F28 not rerun at candidate"
     ],
     "dockerDevelopmentCandidate": "NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
-    "formalRelease": "NO_GO_NOT_AUTHORIZED"
+    "formalRelease": "NO_GO_NOT_AUTHORIZED",
+    "ci": {
+      "commit": "aa4b9da950efefc5a6407f9e9887109c7e76bac9",
+      "workflows": 7,
+      "success": 7,
+      "failure": 0,
+      "testInstallRun": 44725121834
+    }
   }
 }

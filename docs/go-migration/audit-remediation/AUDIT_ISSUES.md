@@ -96,7 +96,7 @@ FUP-08/09 的验证见 [REVIEW_20261120_FOLLOWUP.md](REVIEW_20261120_FOLLOWUP.md
 | A2 分享 Host/SNI 与元数据归属 | `PASS_IMPACT_SCOPED` | `internal/cli/share_metadata_test.go`；F28 57/0、F08 129/0、F18 178/0 | 候选未重跑 F28；`df3f3838` 只改 XHTTP 路径，未触及 share |
 | A3 Guard show 默认 enabled/isolate；set 锁/journal/回滚 | `FIXED_VERIFIED` | `a3-guard-redgreen.log`、`smoke-guard-cert-final.log`、`guard_test.go` | pre-fix `sniGuard=true/isolate` → candidate `not-applicable`；真实 nginx 三策略 PASS；Bash 交互 `NOT_RUN` |
 | A4 XHTTP `/xhttp` vs `/xhttp/` | `NO_DEFECT_SEMANTIC_DIFF` | `a4-prefix-probe.log`、`a4-xhttp-path.log` | 父提交负例测试通过；真实 Xray 四交叉 200/301；`normalizeXHTTPPath` 为防御性统一 |
-| A5 已修复项/缓存/OPS-32/Test Install | `PARTIAL` | `OPS-32`、`gate-final.log` | OPS-32 ws+reality PASS；Test Install 静默退出仍 `CI_PENDING` |
+| A5 已修复项/缓存/OPS-32/Test Install | `PARTIAL` | `OPS-32`、`gate-final.log`、run 44725121834 | OPS-32 ws+reality PASS；Test Install 在 `aa4b9da9` 通过，但历史静默退出根因未定位 |
 
 ### 6.1 §4 未闭环项的更新
 
@@ -106,7 +106,7 @@ FUP-08/09 的验证见 [REVIEW_20261120_FOLLOWUP.md](REVIEW_20261120_FOLLOWUP.md
 | OPS 双端 | 5 个双端 PASS；17 个仅 Go sweep；2 个仅 Go 命令；10 个 `NOT_RUN`。**不满足任务书 B4** |
 | 9 个 subscripts | `NOT_RUN` |
 | 30 分钟 soak | `NOT_RUN` |
-| Test Install 静默退出 | `CI_PENDING` |
+| Test Install 静默退出 | 本次 CI 通过（run 44725121834），根因未定位，仍 `PARTIAL` |
 
 ### 6.2 结论
 

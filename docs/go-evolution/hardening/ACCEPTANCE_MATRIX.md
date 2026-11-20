@@ -100,7 +100,7 @@ IPv6、多版本矩阵未验证）。
 | G07 | OPS 双端 5 行 + Go sweep 36/0 | `PARTIAL` | `round3-final…/p2/`、`round3-ops-20261120-1818/` | 34 行未全部双端，不满足 B4 |
 | G08 | 冷恢复 + R1/R2/INJ + P3 | `DUAL_SIDE_PASS`/`LOCAL_RUN` PASS | cold 27/27、R1 106/0、P3 62/62 | 容器内，非独立 VM |
 | G09 | 98 项矩阵 + race + 门禁 | `LOCAL_RUN` PASS | 54/40/0/4/6；8 包 race rc=0；gate rc=0 | 配置矩阵非真实部署 |
-| G10 | Test Install 静默退出 | `CI_PENDING` | 历史 flake 记录 | 未复现、未修复 |
+| G10 | Test Install 静默退出 | `CI_PASS`（根因未定位） | `aa4b9da9` run 44725121834 success | 本次未复现；不声称已修复 |
 
 **候选结论**：`NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`。阻断项是 B4 的 34 OPS 与
 9 subscripts、C3 多版本/第二发行版、C4 soak；不是 A1–A5 的安全整改。

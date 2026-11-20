@@ -52,4 +52,4 @@ D1-GATE,D1,gofmt/vet/build/test 全量,—,df3f3838,bash -n install.sh,go gate,0
 D1-RACE,D1,8 个核心包 -race,—,df3f3838,—,go test -race,,0,UNIT_RACE,无数据竞争,8 包全部 ok，race_rc=0,PASS,artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/race-final.log,—,
 D1-MATRIX98,D1,98 项历史 Bash/Go 矩阵,Bash 固定 fixture,df3f3838,run_matrix_container.sh,run_matrix_container.sh,0,0,CONFIG_FUNCTION_MATRIX,0 GAP,104 行：54 MATCH + 40 CORE + 4 REFUSED + 6 A1,PASS,tests/go-parity/evidence/matrix-20261120-final/summary.json,非真实部署；候选 SHA 矩阵元数据 commit=86d810e5（工作树重跑）,
 D1-FIXTURES,D1,F28/F08/F18 原生门禁,—,df3f3838,—,fixture runner,,,HISTORICAL_GREEN,分享/隐私基线不回退,最近绿证 57/0、129/0、178/0（c1b14832/ce746d8c）,NOT_RERUN_AT_CANDIDATE,artifacts/audit-remediation/followup-20261120/c3/,候选 SHA 未重跑；影响面为未触及 share 路径,
-D3-CI,D3,最新 HEAD 七个 workflow,—,df3f3838,—,gh run list,,,CI,最新 HEAD 全绿,推送后查询,CI_PENDING,GitHub Actions,以实际 run id 为准,
+D3-CI,D3,最新 HEAD 七个 workflow,—,df3f3838,—,gh run list,,,CI,最新 HEAD 全绿,7/7 success at aa4b9da9（含 Test Install 44725121834）,PASS,GitHub Actions run 44725121966/21993/21851/22135/21880/21834/21949,Test Install 本次通过，历史静默退出根因未定位,

@@ -148,7 +148,7 @@ E2E_RUN_ID=<run-id> E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.sh
 | A2 分享 Host/SNI | `PASS_IMPACT_SCOPED`：候选未触及 share；F28 57/0 为最近绿证 | `share_metadata_test.go` |
 | A3 Guard | `FIXED_VERIFIED`：pre-fix `enabled/isolate` → candidate `not-applicable`；真实 nginx 三策略 | `.../a3-guard-redgreen.log`、`smoke-guard-cert-final.log` |
 | A4 XHTTP | `NO_DEFECT_SEMANTIC_DIFF`：父提交负例测试通过；真实四交叉 200/301 | `.../a4-prefix-probe.log`、`a4-xhttp-path.log` |
-| A5 缓存/OPS-32 | PASS；Test Install `CI_PENDING` | `OPS-32`、`gate-final.log` |
+| A5 缓存/OPS-32 | PASS；Test Install 在 `aa4b9da9` CI 通过，根因未定位 | `OPS-32`、`gate-final.log`、run 44725121834 |
 | M1–M10 | `DUAL_SIDE_PASS`；M8 `DOCKER_EQUIVALENT_WITH_LIMITS` | `round3-final-20261120-1821-df3f3838/p2/` |
 | 冷恢复/R1/P3 | cold 27/27、R1 106/0、P3 62/62 | 对应 evidence 目录 |
 | 98 项矩阵 / race | 0 GAP；8 包 race rc=0 | `matrix-20261120-final/`、`race-final.log` |
