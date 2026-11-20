@@ -1,0 +1,4 @@
+cert renew: domain=example.com state=issued notAfter=2027-02-18T15:08:57Z
+certificate: /etc/idleleo/cert/xray.crt
+key: /etc/idleleo/cert/xray.key
+account: https://pebble:14000/my-account/4566d7485fef7f65

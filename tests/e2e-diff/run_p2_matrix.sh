@@ -21,6 +21,7 @@ RUN_ID="${E2E_RUN_ID:-$(date +%Y%m%d-%H%M)-$(git -C "$ROOT" rev-parse --short HE
 EVID="$SUITE/evidence/$RUN_ID/p2"
 WORK="/tmp/e2e-$RUN_ID"
 IMAGE_TAG="${E2E_IMAGE_TAG:-idleleo-e2e:24.04}"
+IMAGE_DOCKERFILE="${E2E_IMAGE_DOCKERFILE:-$SUITE/image/Dockerfile}"
 GO_IMAGE="${E2E_GO_IMAGE:-golang:1.27.4}"
 DOMAIN="${E2E_DOMAIN:-example.com}"
 TARGET="${E2E_TARGET:-www.cloudflare.com}"
@@ -137,7 +138,7 @@ log "run_id=$RUN_ID"
 if [[ -n "${E2E_BLOCK_HOSTS:-}" ]]; then
     log "blocked_hosts=${E2E_BLOCK_HOSTS} (pinned to 127.0.0.1 for offline proof)"
 fi
-docker build -q -t "$IMAGE_TAG" -f "$SUITE/image/Dockerfile" "$SUITE/image" >/dev/null || {
+docker build -q -t "$IMAGE_TAG" -f "$IMAGE_DOCKERFILE" "$SUITE/image" >/dev/null || {
     log "FATAL: image build failed"; exit 2
 }
 IMAGE_ID=$(docker image inspect -f '{{.Id}}' "$IMAGE_TAG")
@@ -872,6 +873,359 @@ ops_go_cli() {
     docker exec -e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY \
         "$server" idleleo "$@" >"$out/$name.out" 2>"$out/$name.err"
     echo $? >"$out/$name.rc"
+}
+
+# --- generic OPS rows -------------------------------------------------------
+# OPS-04/05/06/07/10/17c/30 now have a Bash execution path (bash_ops.exp) and a
+# Go counter-command. A row is PASS only when both sides were observed in the
+# same job; a missing side is HARNESS-ERROR.
+OPS_PORT_ALT="${E2E_OPS_PORT_ALT:-8443}"
+OPS_UUID="${E2E_OPS_UUID:-99999999-8888-7777-6666-555555555555}"
+OPS_UUID_LABEL="${E2E_OPS_UUID_LABEL:-e2e-uuid}"
+
+ops_bash_base() { # <server> <dir> <sid>
+    local server=$1 dir=$2 sid=$3
+    if [[ "$sid" == "M2" ]]; then
+        run_bash_round M2 "$OPS_NET" "$server" "$dir" 1 "" reality "" "1>1>1" "1"
+    else
+        run_bash_round M1 "$OPS_NET" "$server" "$dir" 1 "" reality "-2" "" "1"
+    fi
+}
+
+ops_go_base() { # <server> <dir> <mode>
+    local server=$1 dir=$2 mode=$3
+    docker exec "$server" install -m 0755 /seed/idleleo /usr/local/bin/idleleo
+    docker exec "$server" install -m 0755 /seed/xray /usr/local/bin/xray
+    docker exec "${NGINX_CACHE_ENVS[@]+"${NGINX_CACHE_ENVS[@]}"}" \
+        "${RELEASE_CACHE_ENVS[@]+"${RELEASE_CACHE_ENVS[@]}"}" \
+        -e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY \
+        "$server" idleleo xray install --binary /usr/local/bin/xray --mode "$mode" \
+        --domain "$DOMAIN" --target "$TARGET" --port 443 --container --json \
+        >"$dir/go-install.json" 2>"$dir/go-install.err"
+    echo $? >"$dir/go-install.rc"
+}
+
+ops_bash_menu() { # <server> <dir> <ops-id>
+    local server=$1 dir=$2 oid=$3
+    docker exec -e E2E_OPS_ID="$oid" -e E2E_LOG=/out/ops.log \
+        -e E2E_TIMEOUT="${E2E_TIMEOUT:-900}" -e E2E_TARGET="$TARGET" \
+        -e E2E_PORT_ALT="$OPS_PORT_ALT" -e E2E_UUID_LABEL="$OPS_UUID_LABEL" \
+        -e XRAY_VERSIONS_FILE=/etc/idleleo/versions.json \
+        "$server" expect -f /src/tests/e2e-diff/drivers/bash_ops.exp \
+        >"$dir/ops.out" 2>&1
+    echo $? >"$dir/ops.rc"
+}
+
+ops_snapshot() { # <server> <dir> <tag>
+    local server=$1 dir=$2 tag=$3
+    docker exec "$server" sh -c \
+        'jq -S "(.inbounds[]?.streamSettings.realitySettings.privateKey?) = \"REDACTED\"" \
+         /etc/idleleo/conf/xray/config.json 2>/dev/null' >"$dir/$tag.config.sorted.json"
+    docker exec "$server" sh -c \
+        'jq -r ".inbounds[]?.port // empty" /etc/idleleo/conf/xray/config.json 2>/dev/null' \
+        >"$dir/$tag.inbound-ports.txt"
+    docker exec "$server" sh -c \
+        'jq -r ".inbounds[]?.settings.clients[]?.id // empty" /etc/idleleo/conf/xray/config.json 2>/dev/null' \
+        >"$dir/$tag.client-ids.txt"
+    docker exec "$server" sh -c \
+        'jq -r ".inbounds[]?.streamSettings.realitySettings.target // empty" \
+         /etc/idleleo/conf/xray/config.json 2>/dev/null' >"$dir/$tag.reality-target.txt"
+    docker exec "$server" sh -c \
+        'jq -r ".inbounds[]?.streamSettings.realitySettings.serverNames // [] | join(\",\")" \
+         /etc/idleleo/conf/xray/config.json 2>/dev/null' >"$dir/$tag.reality-server-names.txt"
+    # Effective Nginx config: the managed tree can sit several levels deep and
+    # a stock /etc/nginx/nginx.conf must never be mistaken for it.
+    docker exec "$server" sh -c '
+        bin=""
+        for p in nginx /usr/local/nginx/sbin/nginx /etc/idleleo/nginx/sbin/nginx \
+                 $(find / -maxdepth 6 -type f -name nginx -perm -u+x 2>/dev/null | head -3); do
+            if command -v "$p" >/dev/null 2>&1 || [ -x "$p" ]; then bin="$p"; break; fi
+        done
+        [ -n "$bin" ] && "$bin" -T 2>/dev/null
+    ' >"$dir/$tag.nginx-dump.txt"
+    docker exec "$server" sh -c 'crontab -l 2>/dev/null' >"$dir/$tag.cron.txt"
+    docker exec "$server" sh -c \
+        'systemctl list-timers --all --no-pager 2>/dev/null | grep -i idleleo || true' \
+        >"$dir/$tag.timers.txt"
+    docker exec "$server" sh -c \
+        'sha256sum /etc/idleleo/language.conf 2>/dev/null || echo absent' \
+        >"$dir/$tag.language.sha256"
+    docker exec "$server" systemctl is-active xray >"$dir/$tag.active.txt" 2>&1
+}
+
+ops_generic_verdict() { # <ops-id>
+    local oid=$1 base="$EVID/$1"
+    python3 - "$base" "$oid" "$TARGET" <<'PY'
+import json
+import os
+import re
+import sys
+
+base, oid, target_domain = sys.argv[1], sys.argv[2], sys.argv[3]
+
+
+def read(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.read()
+    except OSError:
+        return None
+
+
+def read_rc(path):
+    raw = read(path)
+    if raw is None:
+        return None
+    try:
+        return int(raw.strip())
+    except ValueError:
+        return None
+
+
+def lines(path):
+    return [x.strip() for x in (read(path) or "").splitlines() if x.strip()]
+
+
+UUID_RE = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
+bash_rc = read_rc(os.path.join(base, "bash", "ops.rc"))
+go_rc = read_rc(os.path.join(base, "go", "10-op.rc"))
+bash_install_rc = read_rc(os.path.join(base, "bash", "install.rc"))
+go_install_rc = read_rc(os.path.join(base, "go", "go-install.rc"))
+
+harness = []
+for name, value in (("bash install rc", bash_install_rc), ("go install rc", go_install_rc),
+                    ("bash ops rc", bash_rc), ("go ops rc", go_rc)):
+    if value is None:
+        harness.append("missing %s" % name)
+if bash_rc == 124 or go_rc == 124:
+    harness.append("driver rc=124")
+
+report = {"id": oid, "bothInstallRc": {"bash": bash_install_rc, "go": go_install_rc},
+          "opsRc": {"bash": bash_rc, "go": go_rc}}
+reasons = []
+
+
+def snap(side, tag, name):
+    return os.path.join(base, side, "%s.%s" % (tag, name))
+
+
+def targets(side, tag):
+    return lines(snap(side, tag, "reality-target.txt"))
+
+
+def server_names(side, tag):
+    return lines(snap(side, tag, "reality-server-names.txt"))
+
+
+def nginx_config(side, tag):
+    """Uncommented directives from `nginx -T`, one stripped line each."""
+    out = []
+    for line in lines(snap(side, tag, "nginx-dump.txt")):
+        if line.startswith("#"):
+            continue
+        out.append(line.strip())
+    return out
+
+
+def nginx_raw(side, tag):
+    """Every non-empty `nginx -T` line, comments included."""
+    return [x.strip() for x in lines(snap(side, tag, "nginx-dump.txt")) if x.strip()]
+
+
+if harness:
+    verdict = "HARNESS-ERROR"
+    reasons = harness
+elif oid == "OPS-04":
+    # Reality+Nginx keeps the loopback inbound on 9443 and moves the public
+    # Nginx listen port; the user-facing "port" is the Nginx one.
+    b_listen = [x for x in nginx_config("bash", "after") if x.startswith("listen")]
+    g_listen = [x for x in nginx_config("go", "after") if x.startswith("listen")]
+    b_active = (read(snap("bash", "after", "active.txt")) or "").strip()
+    g_active = (read(snap("go", "after", "active.txt")) or "").strip()
+    if bash_rc != 0:
+        reasons.append("bash port change rc=%s" % bash_rc)
+    if go_rc != 0:
+        reasons.append("go port change rc=%s" % go_rc)
+    if not any("8443" in x for x in b_listen):
+        reasons.append("bash nginx does not listen on 8443: %s" % b_listen)
+    if not any("8443" in x for x in g_listen):
+        reasons.append("go nginx does not listen on 8443: %s" % g_listen)
+    if b_active != "active" or g_active != "active":
+        reasons.append("xray not active (bash=%s go=%s)" % (b_active, g_active))
+    report.update({"nginxListen": {"bash": b_listen, "go": g_listen},
+                   "active": {"bash": b_active, "go": g_active}})
+    verdict = "BLOCKER" if reasons else "PASS"
+elif oid == "OPS-05":
+    b_before = lines(snap("bash", "before", "client-ids.txt"))
+    b_after = lines(snap("bash", "after", "client-ids.txt"))
+    g_before = lines(snap("go", "before", "client-ids.txt"))
+    g_after = lines(snap("go", "after", "client-ids.txt"))
+    if bash_rc != 0:
+        reasons.append("bash uuid change rc=%s" % bash_rc)
+    if go_rc != 0:
+        reasons.append("go uuid change rc=%s" % go_rc)
+    if not b_after or b_after == b_before:
+        reasons.append("bash client id unchanged")
+    if not g_after or g_after == g_before:
+        reasons.append("go client id unchanged")
+    if any(not UUID_RE.match(x) for x in b_after + g_after):
+        reasons.append("non-UUID client id observed")
+    report.update({"clientIds": {"bash": {"before": b_before, "after": b_after},
+                                 "go": {"before": g_before, "after": g_after}},
+                   "bashUuidLabel": "e2e-uuid",
+                   "allowedDiff": "bash derives UUIDv5 from the mapping string; go applies the literal UUID"})
+    verdict = "BLOCKER" if reasons else "PASS"
+elif oid == "OPS-06":
+    b_after = targets("bash", "after")
+    g_after = targets("go", "after")
+    b_names = server_names("bash", "after")
+    g_names = server_names("go", "after")
+    if bash_rc != 0:
+        reasons.append("bash target change rc=%s" % bash_rc)
+    if go_rc == 2:
+        report["verdict"] = "BLOCKED"
+        report["reasons"] = ["go refused the target change: origin probe failed (rc=2, no write)"]
+        report["targets"] = {"bash": b_after, "go": g_after}
+        with open(os.path.join(base, "ops.json"), "w", encoding="utf-8") as fh:
+            json.dump(report, fh, indent=2, sort_keys=True)
+            fh.write("\n")
+        print("BLOCKED")
+        raise SystemExit(0)
+    if go_rc != 0:
+        reasons.append("go target change rc=%s" % go_rc)
+    if not b_after or b_after[0].split(":")[0] != target_domain:
+        reasons.append("bash target not applied: %s" % b_after)
+    if not g_after or g_after[0].split(":")[0] != target_domain:
+        reasons.append("go target not applied: %s" % g_after)
+    if b_names != g_names:
+        reasons.append("serverNames differ (bash=%s go=%s)" % (b_names, g_names))
+    report["targets"] = {"bash": b_after, "go": g_after}
+    report["serverNames"] = {"bash": b_names, "go": g_names}
+    verdict = "BLOCKER" if reasons else "PASS"
+elif oid == "OPS-07":
+    # Reality + Nginx gates TLS versions in the stream map, so the observable
+    # change is the uncommented "TLSv1.2 1;" line, not an ssl_protocols directive.
+    b_tls = [x for x in nginx_config("bash", "after") if re.match(r"TLSv1\.2\s+1;", x)]
+    g_tls = [x for x in nginx_config("go", "after") if re.match(r"TLSv1\.2\s+1;", x)]
+    b_before = [x for x in nginx_raw("bash", "before") if re.match(r"#TLSv1\.2\s+1;", x)]
+    g_before = [x for x in nginx_raw("go", "before") if re.match(r"#TLSv1\.2\s+1;", x)]
+    if bash_rc != 0:
+        reasons.append("bash tls version change rc=%s" % bash_rc)
+    if go_rc != 0:
+        reasons.append("go tls version change rc=%s" % go_rc)
+    if not any("TLSv1.2" in x for x in b_tls):
+        reasons.append("bash 00-xray.conf keeps TLSv1.2 disabled: %s" % b_tls)
+    if not any("TLSv1.2" in x for x in g_tls):
+        reasons.append("go 00-xray.conf keeps TLSv1.2 disabled: %s" % g_tls)
+    if not b_before or not g_before:
+        reasons.append("baseline did not have TLSv1.2 commented out")
+    report["nginxTls"] = {"bash": b_tls, "go": g_tls,
+                          "bashBefore": b_before, "goBefore": g_before}
+    verdict = "BLOCKER" if reasons else "PASS"
+elif oid == "OPS-10":
+    if bash_rc == 3:
+        report["verdict"] = "NOT-RUN"
+        report["reasons"] = ["nested file_manager menu was not driven (documented out of scope)"]
+        report["blockedFile"] = read(os.path.join(base, "bash", "nested.json"))
+        with open(os.path.join(base, "ops.json"), "w", encoding="utf-8") as fh:
+            json.dump(report, fh, indent=2, sort_keys=True)
+            fh.write("\n")
+        print("NOT-RUN")
+        raise SystemExit(0)
+    b_after = [x for x in nginx_config("bash", "after") if x.startswith("server_name")]
+    g_after = [x for x in nginx_config("go", "after")
+               if x.startswith("server_name") and target_domain in x]
+    if bash_rc != 0:
+        reasons.append("bash serverNames change rc=%s" % bash_rc)
+    if go_rc != 0:
+        reasons.append("go serverNames change rc=%s" % go_rc)
+    if not any(target_domain in x for x in b_after):
+        reasons.append("bash nginx server_name lacks %s: %s" % (target_domain, b_after))
+    if not g_after:
+        reasons.append("go nginx server_name lacks %s" % target_domain)
+    report["nginxServerNames"] = {"bash": b_after, "go": g_after}
+    verdict = "BLOCKER" if reasons else "PASS"
+elif oid == "OPS-17c":
+    b_cron = read(snap("bash", "after", "cron.txt")) or ""
+    g_timers = read(snap("go", "after", "timers.txt")) or ""
+    if bash_rc != 0:
+        reasons.append("bash auto-update setup rc=%s" % bash_rc)
+    if go_rc != 0:
+        reasons.append("go schedule install rc=%s" % go_rc)
+    if "auto_update.sh" not in b_cron:
+        reasons.append("bash crontab lacks auto_update.sh")
+    if "idleleo" not in g_timers:
+        reasons.append("go has no idleleo timer: %s" % g_timers.strip())
+    report["autoUpdate"] = {"bashCron": b_cron, "goTimers": g_timers}
+    report["allowedDiff"] = "bash writes a crontab entry; go writes a systemd timer"
+    verdict = "BLOCKER" if reasons else "PASS"
+elif oid == "OPS-30":
+    b_before = (read(snap("bash", "before", "language.sha256")) or "").strip()
+    b_after = (read(snap("bash", "after", "language.sha256")) or "").strip()
+    if bash_rc != 0:
+        reasons.append("bash language change rc=%s" % bash_rc)
+    if b_before == b_after:
+        reasons.append("language.conf unchanged (before=%s after=%s)" % (b_before, b_after))
+    report["language"] = {"before": b_before, "after": b_after}
+    report["allowedDiff"] = "go has no language capability; row is bash-only"
+    verdict = "BLOCKER" if reasons else "BASH-ONLY"
+else:
+    verdict = "NOT-RUN"
+    reasons = ["no verdict rule"]
+
+report["verdict"] = verdict
+report["reasons"] = reasons
+with open(os.path.join(base, "ops.json"), "w", encoding="utf-8") as fh:
+    json.dump(report, fh, indent=2, sort_keys=True)
+    fh.write("\n")
+print(verdict)
+PY
+}
+
+ops_simple_job() { # <ops-id> <base-scenario> <go-mode>
+    local oid=$1 sid=$2 gmode=$3
+    OPS_NET="e2e-$RUN_ID-$oid"
+    local base="$EVID/$oid" bdir="$EVID/$oid/bash" gdir="$EVID/$oid/go"
+    mkdir -p "$bdir" "$gdir"
+    docker network create "$OPS_NET" >/dev/null 2>&1 || true
+    log "[$oid] start"
+
+    local bserver="e2e-$RUN_ID-$oid-bash"
+    if start_server "$bserver" "$oid" bash "$bdir" "$OPS_NET"; then
+        ops_bash_base "$bserver" "$bdir" "$sid"
+        ops_snapshot "$bserver" "$bdir" before
+        ops_bash_menu "$bserver" "$bdir" "$oid"
+        ops_snapshot "$bserver" "$bdir" after
+    else
+        echo '{"status":"harness-error","reason":"container start failed"}' >"$bdir/harness.json"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" >/dev/null 2>&1 || true
+
+    local gserver="e2e-$RUN_ID-$oid-go"
+    if start_server "$gserver" "$oid" go "$gdir" "$OPS_NET"; then
+        ops_go_base "$gserver" "$gdir" "$gmode"
+        ops_snapshot "$gserver" "$gdir" before
+        case "$oid" in
+            OPS-04) ops_go_cli "$gserver" "$gdir" 10-op xray config edit --port 8444 --public-port "$OPS_PORT_ALT" --yes --no-probe --container --json ;;
+            OPS-05) ops_go_cli "$gserver" "$gdir" 10-op xray config edit --uuid "$OPS_UUID" --yes --no-probe --container --json ;;
+            OPS-06) ops_go_cli "$gserver" "$gdir" 10-op xray config edit --target "$TARGET:443" --server-names "$TARGET" --yes --no-probe --container --json ;;
+            OPS-07) ops_go_cli "$gserver" "$gdir" 10-op xray tls --version 1.2+ --container ;;
+            OPS-10) ops_go_cli "$gserver" "$gdir" 10-op xray config edit --server-names "$TARGET" --yes --no-probe --container --json ;;
+            OPS-17c)
+                ops_go_cli "$gserver" "$gdir" 10-op schedule install --interval 3600 --container
+                ops_go_cli "$gserver" "$gdir" 11-status schedule status
+                ;;
+            OPS-30) echo 0 >"$gdir/10-op.rc" ;;
+        esac
+        ops_snapshot "$gserver" "$gdir" after
+    else
+        echo '{"status":"harness-error","reason":"container start failed"}' >"$gdir/harness.json"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$gserver" >/dev/null 2>&1 || true
+    docker network rm "$OPS_NET" >/dev/null 2>&1 || true
+
+    log "[$oid] verdict=$(ops_generic_verdict "$oid")"
 }
 
 # ops19_verdict turns the two observation sets into ops.json. Missing evidence
@@ -1978,6 +2332,13 @@ ops_job() {
         OPS-09) ops_balance_job OPS-09 ws wsServers tls ;;
         OPS-31) ops_balance_job OPS-31 reality realityServers reality ;;
         OPS-32) ops32_job ;;
+        OPS-04) ops_simple_job OPS-04 M2 reality-nginx ;;
+        OPS-05) ops_simple_job OPS-05 M2 reality-nginx ;;
+        OPS-06) ops_simple_job OPS-06 M2 reality-nginx ;;
+        OPS-07) ops_simple_job OPS-07 M2 reality-nginx ;;
+        OPS-10) ops_simple_job OPS-10 M2 reality-nginx ;;
+        OPS-17c) ops_simple_job OPS-17c M1 reality ;;
+        OPS-30) ops_simple_job OPS-30 M1 reality ;;
         *) log "[$1] no execution path in this runner; not claiming a verdict" ;;
     esac
 }
@@ -2024,7 +2385,8 @@ fi
 # have real execution paths; every other OPS row is reported NOT-RUN rather than
 # silently inheriting its declared verdict.
 OIDS=()
-for oid in OPS-19 OPS-21 OPS-09 OPS-31 OPS-32; do
+for oid in OPS-19 OPS-21 OPS-09 OPS-31 OPS-32 \
+           OPS-04 OPS-05 OPS-06 OPS-07 OPS-10 OPS-17c OPS-30; do
     if [[ -z "$ONLY" ]]; then
         OIDS+=("$oid")
     else

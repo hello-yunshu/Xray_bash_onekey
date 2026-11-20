@@ -11,8 +11,8 @@
 
 | 结论 | 判定 | 一句话依据 |
 | --- | --- | --- |
-| Docker 开发候选 | **NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE** | 安全整改 A1/A3 与核心双端、真实客户端、迁移、故障注入通过；但 34 个 OPS 仅 5 个双端、9 个 subscripts 未跑、多版本/第二发行版与 30 分钟 soak 未执行，按 D4 不能给 GO |
-| 正式发布资格 | **尚未授权 / NO_GO** | 任务书禁止发布与合并；独立 VPS、公网 CA、外部 IPv6、多版本与长期 soak 仍 `VPS_DEFERRED`/`NOT_RUN` |
+| Docker 开发候选 | **NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE** | 既有 5 项 OPS 未退化，新增 6 项中 4 项双端 PASS、1 项 `NOT_RUN`、1 项 `BASH_ONLY`；OPS-04 复现 Go `config edit --public-port` no-op 缺陷（`BLOCKER`）；S4/S5/S7/S8/S9、30 分钟 soak、3 个真实 Xray 版本、Debian 12 smoke 均通过，S6 因外网资产不可达 `BLOCKED`。仍有 BLOCKER/NOT_RUN，按 D4 不能给 GO |
+| 正式发布资格 | **尚未授权 / NO_GO** | 任务书禁止发布与合并；独立 VPS、公网 CA、外部公网 IPv6 仍 `VPS_DEFERRED`；旧 Bash 节点升级矩阵与纯 Bash ACME 未完成 |
 
 **没有合并、没有打 tag、没有发布、没有操作生产 VPS。** PR 保持 draft。
 
@@ -78,18 +78,45 @@ MATCH。
 
 | 范围 | 数量 | 方式 | 结果 |
 | --- | --- | --- | --- |
-| OPS-09/19/21/31/32 | 5 | Bash 菜单等价路径 + Go CLI，真实 Nginx/Xray/数据面 | 双端 PASS |
+| OPS-09/19/21/31/32 | 5 | Bash 菜单等价路径 + Go CLI，真实 Nginx/Xray/数据面 | 双端 PASS（本轮全量回归未退化） |
+| OPS-04/05/06/07/17c/30（新增） | 6 | 同一次运行内 Bash `expect` 驱动真实 `install.sh` 菜单 + Go CLI，快照比对 | 05/06/07/17c 双端 PASS；04 `BLOCKER`；30 `BASH_ONLY` |
+| OPS-10 | 1 | Go CLI 已改 serverNames；Bash 进入二级菜单后未驱动 | `NOT_RUN` |
 | OPS Go sweep | 17 个 ID / 36 断言 | 仅 Go | 36 PASS / 0 FAIL |
 | OPS-08/27 | 2 | 仅 Go + 真实 `nginx -t` | PASS |
-| 其余 OPS | 10 | 未执行（部分有等价命令未跑） | `NOT_RUN`（OPS-30 为批准的差异） |
+| 其余 OPS | 3 | 未执行 | `NOT_RUN` |
 
-**这就是 Docker 候选 NO-GO 的首要原因**：任务书要求 34 个 OPS 一行一个、
-逐项双端，且明确“不要留 Go-only sweep 作为替代”。本轮没有做到。
+**新增 OPS 的证据与判定口径**（全部在 `tests/e2e-diff/evidence/ops-full-3/p2/`）：
+
+| ID | Bash 观测 | Go 观测 | 判定 |
+| --- | --- | --- | --- |
+| OPS-04 | `2>2>2` 改端口后 Nginx `listen 8443 reuseport`，Xray active | `xray config edit --port 8444 --public-port 8443` 返回 `noChanges=true`/`dryRun=true`/`nginxUpdated=false`，Nginx 仍 `listen 443` | **BLOCKER**：Go 侧编辑未落盘，不是 Bash 差异 |
+| OPS-05 | `2>2>1` 自定义映射 → UUIDv5 | `config edit --uuid <literal> --no-probe` 写入同一格式 UUID | `MATCH (allowed-diff)`：取值算法不同、结构等价 |
+| OPS-06 | `2>2>3` 改 target + serverNames | `config edit --target <host>:443 --server-names <host>` 一致 | `MATCH` |
+| OPS-07 | `2>2>4` 启用 TLSv1.2 → Nginx `TLSv1.2 1;` 取消注释 | `xray tls --version 1.2+` 产生同一行 | `MATCH` |
+| OPS-10 | `2>3>2` 进入嵌套 file_manager，driver 未驱动 | CLI 修改 serverNames（Go 侧仅参考） | `NOT_RUN`（不计 PASS） |
+| OPS-17c | `5>4` 启用自动更新 → cron `auto_update.sh` | `schedule install --interval 3600` → systemd timer `idleleo-schedule` | `MATCH` |
+| OPS-30 | `8` 切换语言 → `language.conf` 变化 | 无 Go 等价命令 | `BASH_ONLY`（不计 dualSide） |
+
+**OPS-04 是真实缺陷**：Go 的编辑预检在 `NoChanges` 时直接返回，未进入写盘阶段；
+按 spec §7 未修改 `internal/` 业务代码，因此如实记 `BLOCKER`，不以 Bash 结果替代。
+
+**这就是 Docker 候选 NO-GO 的首要原因**：34 个 OPS 中仍有 1 个 `BLOCKER`、
+1 个 `NOT_RUN`、3 个未执行，且 OPS-30 无 Go 等价；不能用 Go-only sweep 替代。
 
 ### 4.4 subscripts
 
-原 9 项 subscripts 未逐项确认真实运行、Go 原生替换或有意取消。标 `NOT_RUN`，
-不以历史 CI 或空映射替代。
+`tests/e2e-diff/run_s_scripts.sh` 本轮真实运行，证据 `tests/e2e-diff/evidence/s-6-1/s/`
+（`assertions.txt` 53 PASS / 5 FAIL，`run.json`）。
+
+| 子脚本 | 结果 | 说明 |
+| --- | --- | --- |
+| S4 auto_update | PASS | 正常/重复/坏元数据三路径；重复不改 `install_config.json` |
+| S5 ssl_update + Pebble | PASS | 真实 ACME 签发/续期/失败保证书，Nginx/Xray 保持 active |
+| S6 geo_update | **BLOCKED** | 下载依赖 `release-assets.githubusercontent.com`，本网络 TLS 失败（`curl: (35)`）；失败分支与回滚断言通过，正常下载 5 条断言不成立，按 spec 记 `BLOCKED` 而非产品 FAIL |
+| S7 acme.sh legacy | PASS | 安装、`--version`/`--help`、缺 state 时 fail-closed；真实签发 `BLOCKED`（外部 CA） |
+| S8 tcp | PASS | 沙箱 plan/apply/rollback + 历史 `tcp.sh` 下载 `bash -n`；真实内核 apply `BLOCKED`（宿主无 bbr） |
+| S9 speedtest | PASS | 正常/重复/不可达服务器；历史 `superspeed.sh` 下载 `bash -n` |
+| S1–S3 | 引用 | 直接引用同批次 OPS-19/21/09/31 证据，不重复造数据 |
 
 ### 4.5 98 项历史矩阵
 
@@ -123,9 +150,9 @@ MATCH。
 
 | 项 | 状态 | 说明 |
 | --- | --- | --- |
-| 2 个真实旧 Xray + 当前版本 | `NOT_RUN` | 未取得固定上游 Release 资产；不伪造版本 |
-| 2 个代表旧 Bash 节点 | `NOT_RUN` | 同上 |
-| 第二发行版 smoke | `NOT_RUN` | 本轮只有 Ubuntu 24.04 |
+| 2 个真实旧 Xray + 当前版本 | PASS（二进制/配置兼容） | `v26.11.9`、`v26.10.31`、`v26.10.21` 对同一 Reality 配置 `xray -test` 均 rc=0（`versions-3/versions/xray-versions.json`）；不是逐版本完整部署 |
+| 2 个代表旧 Bash 节点 | `NOT_RUN` | 未取得旧节点快照，不伪造 |
+| 第二发行版 smoke | PASS | Debian 12.15：M1 Reality 安装 + OPS-19 fail2ban 双端 PASS（`debian12-1/p2/`） |
 | 容器内 IPv6 监听/回环 | PASS | `[::]`/`::1` 已测 |
 | 外部公网 IPv6/NAT | `VPS_DEFERRED` | 宿主无公网 IPv6 |
 
@@ -135,8 +162,11 @@ MATCH。
   断网、过期证书、坏配置/journal、端口占用、并发、SIGKILL、陈旧锁、回滚失败、
   迁移接管/回滚。
 - A1/A3 新增真实 root 与真实 Nginx 故障场景。
-- **30 分钟 + 两个调度周期 soak 未执行**（无现成 runner，未新增架构），
-  标 `NOT_RUN`，不声称长期稳定性。
+- **30 分钟 soak 已执行**：`run_soak.sh` 30/30 次（60s 间隔）均满足
+  `systemctl is-active xray`、`xray -test` rc=0、`:443` 监听、`NRestarts=0`、
+  RSS < 512MiB，`soak.json` verdict=`PASS`（`soak-30m-1/soak/`）。
+- 两个调度周期：由 OPS-17c 的 cron/timer 安装与 `schedule status` 断言覆盖；
+  未做跨小时的真实触发观察。
 
 ## 6. 三轮审计闭环
 
@@ -201,6 +231,29 @@ E2E_RUN_ID=round3-ops-$(date +%Y%m%d-%H%M) bash tests/e2e-diff/run_ops_sweep.sh
 E2E_RUN_ID=round3-ops-dual E2E_ONLY=OPS-19,OPS-21,OPS-09,OPS-31,OPS-32 \
   bash tests/e2e-diff/run_p2_matrix.sh
 
+# OPS 新增 6 项 + 既有 5 项全量回归
+E2E_RUN_ID=ops-full-3 \
+  E2E_ONLY=OPS-04,OPS-05,OPS-06,OPS-07,OPS-17c,OPS-30,OPS-19,OPS-21,OPS-09,OPS-31,OPS-32 \
+  bash tests/e2e-diff/run_p2_matrix.sh
+
+# OPS-10（嵌套菜单，预期 NOT-RUN）
+E2E_RUN_ID=ops10-2 E2E_ONLY=OPS-10 bash tests/e2e-diff/run_p2_matrix.sh
+
+# 子脚本 S4–S9
+E2E_RUN_ID=s-6-1 bash tests/e2e-diff/run_s_scripts.sh
+
+# 30 分钟 soak
+E2E_RUN_ID=soak-30m-1 bash tests/e2e-diff/run_soak.sh
+
+# 多版本 Xray（3 个真实 tag）
+E2E_RUN_ID=versions-3 bash tests/e2e-diff/run_xray_versions.sh
+
+# 第二发行版 smoke（Debian 12）
+E2E_RUN_ID=debian12-1 \
+  E2E_IMAGE_TAG=idleleo-e2e:debian12 \
+  E2E_IMAGE_DOCKERFILE=tests/e2e-diff/image/Dockerfile.debian12 \
+  E2E_ONLY=M1,OPS-19 bash tests/e2e-diff/run_p2_matrix.sh
+
 # 冷恢复
 E2E_RUN_ID=docker-final-cold bash tests/e2e-diff/run_coldrestore.sh
 
@@ -239,5 +292,8 @@ docker run --rm --network none -v "$PWD:/src:ro" -w /src \
   `round3-ops-20261120-1818/`、`goevo-coldrestore-docker-final-cold-20261120-df3f3838/`、
   `docker-final-r1-20261120-df3f3838/`、`goevo-p3-docker-final-p3xhttp-20261120-df3f3838/`、
   `tests/go-parity/evidence/matrix-20261120-final/`
+- 本轮新增证据：`tests/e2e-diff/evidence/ops-full-3/p2/`（OPS 全量回归）、
+  `ops10-2/p2/`（OPS-10）、`s-6-1/s/`（S4–S9）、`soak-30m-1/soak/`、
+  `versions-3/versions/`、`debian12-1/p2/`、`preflight-ops/`。
 - 既有审计文档：`AUDIT_ISSUES.md`、`REMEDIATION_PLAN.md`、`PARITY_MATRIX.csv`、
   `TEST_EVIDENCE.md`、`FINAL_AUDIT.md`

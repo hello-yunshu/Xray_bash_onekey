@@ -1,0 +1,20 @@
+{
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-07",
+  "nginxTls": {
+    "bash": [],
+    "go": []
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "bash nginx conf lacks TLSv1.2: []",
+    "go nginx conf lacks TLSv1.2: []"
+  ],
+  "verdict": "BLOCKER"
+}

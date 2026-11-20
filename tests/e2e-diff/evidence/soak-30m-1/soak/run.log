@@ -1,0 +1,32 @@
+22:52:54 run_id=soak-30m-1 iterations=30 interval=60s
+22:53:03 iter=1 ok active=active test=0 listen=1 rss=36364KiB
+22:54:04 iter=2 ok active=active test=0 listen=1 rss=11616KiB
+22:55:04 iter=3 ok active=active test=0 listen=1 rss=12536KiB
+22:56:04 iter=4 ok active=active test=0 listen=1 rss=14468KiB
+22:57:05 iter=5 ok active=active test=0 listen=1 rss=14816KiB
+22:58:05 iter=6 ok active=active test=0 listen=1 rss=13920KiB
+22:59:06 iter=7 ok active=active test=0 listen=1 rss=12692KiB
+23:00:06 iter=8 ok active=active test=0 listen=1 rss=12696KiB
+23:01:07 iter=9 ok active=active test=0 listen=1 rss=12696KiB
+23:02:07 iter=10 ok active=active test=0 listen=1 rss=11880KiB
+23:03:08 iter=11 ok active=active test=0 listen=1 rss=11828KiB
+23:04:08 iter=12 ok active=active test=0 listen=1 rss=9920KiB
+23:05:09 iter=13 ok active=active test=0 listen=1 rss=9920KiB
+23:06:09 iter=14 ok active=active test=0 listen=1 rss=10128KiB
+23:07:10 iter=15 ok active=active test=0 listen=1 rss=9840KiB
+23:08:10 iter=16 ok active=active test=0 listen=1 rss=10364KiB
+23:09:10 iter=17 ok active=active test=0 listen=1 rss=10428KiB
+23:10:11 iter=18 ok active=active test=0 listen=1 rss=10352KiB
+23:11:11 iter=19 ok active=active test=0 listen=1 rss=10288KiB
+23:12:12 iter=20 ok active=active test=0 listen=1 rss=9752KiB
+23:13:12 iter=21 ok active=active test=0 listen=1 rss=9752KiB
+23:14:13 iter=22 ok active=active test=0 listen=1 rss=12640KiB
+23:15:13 iter=23 ok active=active test=0 listen=1 rss=12008KiB
+23:16:14 iter=24 ok active=active test=0 listen=1 rss=12008KiB
+23:17:14 iter=25 ok active=active test=0 listen=1 rss=12008KiB
+23:18:15 iter=26 ok active=active test=0 listen=1 rss=11976KiB
+23:19:15 iter=27 ok active=active test=0 listen=1 rss=11976KiB
+23:20:16 iter=28 ok active=active test=0 listen=1 rss=11624KiB
+23:21:16 iter=29 ok active=active test=0 listen=1 rss=9748KiB
+23:22:17 iter=30 ok active=active test=0 listen=1 rss=9792KiB
+23:22:17 verdict=PASS iterations=30/30

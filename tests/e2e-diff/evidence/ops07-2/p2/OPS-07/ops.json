@@ -1,0 +1,25 @@
+{
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-07",
+  "nginxTls": {
+    "bash": [
+      "TLSv1.2    1;"
+    ],
+    "bashBefore": [],
+    "go": [
+      "TLSv1.2    1;"
+    ],
+    "goBefore": []
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "baseline did not have TLSv1.2 commented out"
+  ],
+  "verdict": "BLOCKER"
+}

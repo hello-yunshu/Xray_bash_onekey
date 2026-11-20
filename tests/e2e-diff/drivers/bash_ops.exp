@@ -1,0 +1,234 @@
+#!/usr/bin/expect -f
+# Drives the REAL install.sh management menu for the OPS rows that the
+# differential matrix previously listed without an execution path.
+#
+# One process per OPS id (E2E_OPS_ID). Every answer is sent only after its own
+# prompt has been matched; an unmatched prompt, EOF or timeout exits 124 and is
+# reported as HARNESS-ERROR. A missing prerequisite (no managed Nginx, nested
+# file_manager menu) is exit 3 with a machine-readable reason, never a silent
+# pass.
+#
+# Environment:
+#   E2E_OPS_ID        OPS-04 | OPS-05 | OPS-06 | OPS-07 | OPS-10 | OPS-17c | OPS-30
+#   E2E_LOG           transcript path (append)
+#   E2E_TIMEOUT       expect timeout seconds (default 900)
+#   E2E_TARGET        Reality target domain (default www.cloudflare.com)
+#   E2E_PORT_ALT      replacement inbound port (default 8443)
+#   E2E_UUID_LABEL    custom UUIDv5 mapping string (default e2e-uuid)
+#
+# Exit codes: 0 success, 1 business failure, 3 documented prerequisite missing,
+#             124 harness error.
+
+set timeout [expr {[info exists env(E2E_TIMEOUT)] ? $env(E2E_TIMEOUT) : 900}]
+
+set logf $env(E2E_LOG)
+log_file -a $logf
+
+set opsid $env(E2E_OPS_ID)
+set target [expr {[info exists env(E2E_TARGET)] ? $env(E2E_TARGET) : "www.cloudflare.com"}]
+set port_alt [expr {[info exists env(E2E_PORT_ALT)] ? $env(E2E_PORT_ALT) : "8443"}]
+set uuid_label [expr {[info exists env(E2E_UUID_LABEL)] ? $env(E2E_UUID_LABEL) : "e2e-uuid"}]
+
+proc harness_error {msg} {
+    puts "HARNESS-ERROR: $msg"
+    exit 124
+}
+
+proc blocked {reason {kind "blocked"}} {
+    global logf
+    set dir [file dirname $logf]
+    set fh [open "$dir/$kind.json" w]
+    puts $fh "{\"status\":\"BLOCKED\",\"reason\":\"$reason\"}"
+    close $fh
+    puts "BLOCKED: $reason"
+    exit 3
+}
+
+proc step {header prompt answer label} {
+    expect {
+        -re $header { }
+        eof { harness_error "$label: eof before header '$header'" }
+        timeout { harness_error "$label: timeout waiting header '$header'" }
+    }
+    expect {
+        -re $prompt {
+            send "$answer\r"
+            puts "STEP\[$label\]=$answer"
+        }
+        eof { harness_error "$label: eof before prompt '$prompt'" }
+        timeout { harness_error "$label: timeout waiting prompt '$prompt'" }
+    }
+}
+
+proc ask {prompt answer label} {
+    expect {
+        -re $prompt {
+            send "$answer\r"
+            puts "STEP\[$label\]=$answer"
+        }
+        eof { harness_error "$label: eof before prompt '$prompt'" }
+        timeout { harness_error "$label: timeout waiting prompt '$prompt'" }
+    }
+}
+
+proc navigate {path} {
+    foreach item [split $path ">"] {
+        expect {
+            -re {请输入选项} {
+                send "$item\r"
+                puts "STEP\[menu\]=$item"
+            }
+            eof { harness_error "menu: eof before prompt (item $item)" }
+            timeout { harness_error "menu: timeout before prompt (item $item)" }
+        }
+    }
+}
+
+# Leave install.sh cleanly. A menu action returns to its parent menu, so "0" at
+# the configuration submenu only moves one level up. Keep answering 0 until the
+# process exits; a pause prompt may appear on some paths.
+proc close_menu {} {
+    for {set depth 0} {$depth < 6} {incr depth} {
+        expect {
+            # OPS-30 switches the menu language, so the trailing prompts can be
+            # English after the action returns.
+            -re {回到菜单|按回车|Back to the menu|Press Enter} {
+                send "\r"
+                puts "STEP\[pause\]=enter"
+                exp_continue
+            }
+            -re {请输入选项|please enter an option} {
+                send "0\r"
+                puts "STEP\[exit\]=0"
+            }
+            -re {安装失败|自动恢复失败} { puts "INSTALL_FAILED"; exit 1 }
+            eof {
+                set rc [wait]
+                puts "EXPECT_WAIT_STATUS=$rc"
+                exit [lindex $rc 3]
+            }
+            timeout { harness_error "menu did not exit (level $depth)" }
+        }
+    }
+    harness_error "menu nesting exceeded 6 levels"
+}
+
+proc finish {} {
+    close_menu
+}
+
+proc ops04 {} {
+    global port_alt
+    navigate "2>2>2"
+    step {确定端口} {请输入端口} $port_alt port
+    finish
+}
+
+proc ops05 {} {
+    global uuid_label
+    navigate "2>2>1"
+    ask {是否需要自定义字符串映射} y uuid5
+    ask {请输入自定义字符串} $uuid_label uuid5Label
+    finish
+}
+
+proc ops06 {} {
+    global target
+    navigate "2>2>3"
+    # target_set runs an nmap/curl TLS check; offline this lands on the
+    # documented "set anyway" branch, which is the same branch the runner
+    # pins for every other target_set call.
+    expect {
+        -re {确认域名符合要求后请输入} {
+            send "$target\r"
+            puts "STEP\[target\]=$target"
+            exp_continue
+        }
+        -re {是否仍要设置此域名} {
+            send "y\r"
+            puts "STEP\[targetForce\]=y"
+            exp_continue
+        }
+        -re {是否需要自定义 .*serverNames} {
+            send "n\r"
+            puts "STEP\[serverNames\]=n"
+        }
+        eof { harness_error "ops06: eof during target_set" }
+        timeout { harness_error "ops06: timeout during target_set" }
+    }
+    finish
+}
+
+proc ops07 {} {
+    if {![file exists "/usr/local/nginx/conf/nginx.conf"]} {
+        blocked "managed-nginx-absent"
+    }
+    navigate "2>2>4"
+    step {请选择 TLS 版本} {请输入[:：]} 2 tlsVersion
+    finish
+}
+
+proc ops10 {} {
+    if {![file exists "/usr/local/nginx/conf/nginx.conf"]} {
+        blocked "managed-nginx-absent"
+    }
+    navigate "2>3>2"
+    ask {是否变更} y nginxServerNames
+    expect {
+        -re {请选择一个选项} {
+            # file_manager.sh owns this menu; driving it is a separate flow with
+            # its own prompts. Exit it and report NOT-RUN instead of inventing a
+            # verdict from a half-driven nested menu.
+            send "5\r"
+            puts "NESTED-MENU: file_manager detected; exiting without driving it"
+            blocked "nested-file-manager-menu-not-driven" nested
+        }
+        -re {请输入选项} { send "0\r"; puts "STEP\[exit\]=0" }
+        eof { harness_error "ops10: eof before a serverNames outcome" }
+        timeout { harness_error "ops10: timeout before a serverNames outcome" }
+    }
+    close_menu
+}
+
+proc ops17c {} {
+    navigate "5>4"
+    # Answer exactly one prompt, then let close_menu drain the trailing
+    # "回到菜单 [Enter]" pause; exp_continue here would spin on that pause.
+    expect {
+        -re {是否启用} {
+            send "y\r"
+            puts "STEP\[autoUpdate\]=y"
+        }
+        -re {是否关闭} {
+            send "n\r"
+            puts "STEP\[autoUpdateClose\]=n"
+        }
+        -re {已设置自动更新} {
+            puts "STEP\[autoUpdateAlreadySet\]=yes"
+        }
+        -re {请输入选项} { send "0\r"; puts "STEP\[exit\]=0" }
+        eof { }
+        timeout { harness_error "ops17c: timeout waiting for the auto-update prompt" }
+    }
+    close_menu
+}
+
+proc ops30 {} {
+    navigate "8"
+    ask {请输入数字} 2 language
+    finish
+}
+
+puts "OPS_ID=$opsid"
+spawn bash /src/install.sh
+
+switch -- $opsid {
+    OPS-04 { ops04 }
+    OPS-05 { ops05 }
+    OPS-06 { ops06 }
+    OPS-07 { ops07 }
+    OPS-10 { ops10 }
+    OPS-17c { ops17c }
+    OPS-30 { ops30 }
+    default { harness_error "unknown E2E_OPS_ID '$opsid'" }
+}

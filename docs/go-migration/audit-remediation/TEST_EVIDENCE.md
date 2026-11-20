@@ -500,3 +500,59 @@ A4 负例：把候选新增测试复制到父提交 `45666732` 仍然通过，�
 
 - Docker 开发候选：`NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`（D4：容器必需项未全部完成）。
 - 正式发布：`NO_GO_NOT_AUTHORIZED`（任务书禁止；VPS 项未验证）。
+
+## 13. 2026-11-20 补齐轮（OPS 新增行 / subscripts / soak / 多版本 / Debian）
+
+本节记录 12.3 中 OPS、subscripts、多版本、第二发行版与 30 分钟 soak 的补齐结果；
+未覆盖 12.3 的 VPS、公网 CA、外部 IPv6 边界。
+
+### 13.1 OPS 全量回归（`ops-full-3`）
+
+命令：`E2E_ONLY=OPS-04,OPS-05,OPS-06,OPS-07,OPS-17c,OPS-30,OPS-19,OPS-21,OPS-09,OPS-31,OPS-32`。
+证据：`tests/e2e-diff/evidence/ops-full-3/p2/`。全部为同一次运行内双侧观测。
+
+| ID | 判定 | 关键事实 |
+| --- | --- | --- |
+| OPS-04 | `BLOCKER` | Go `config edit --port/--public-port` 返回 `noChanges=true`、`dryRun=true`，Nginx 仍 `listen 443`；同一运行 Bash 已把 Nginx 改为 8443 |
+| OPS-05 | `MATCH (allowed-diff)` | 两侧 client id 均已变化；Bash UUIDv5 vs Go 字面量 UUID |
+| OPS-06 | `MATCH` | 两侧 target 与 serverNames 一致（去掉端口后比较） |
+| OPS-07 | `MATCH` | 两侧 Nginx 由 `#TLSv1.2 1;` 变为 `TLSv1.2 1;` |
+| OPS-17c | `MATCH` | Bash cron `auto_update.sh`；Go systemd timer `idleleo-schedule` |
+| OPS-30 | `BASH_ONLY` | `language.conf` 由 absent → 新 SHA；Go 无语言命令，不计 dualSide |
+| OPS-09/19/21/31/32 | `PASS` | 既有 5 项本轮未退化 |
+
+OPS-10 单独运行（`ops10-2`）：Bash 进入二级 file_manager 后 driver 未驱动，
+`NOT_RUN`，不计 PASS。
+
+### 13.2 子脚本（`s-6-1`）
+
+命令：`bash tests/e2e-diff/run_s_scripts.sh`；证据 `s-6-1/s/assertions.txt`、
+`run.json`。53 PASS / 5 FAIL。
+
+| 子脚本 | 判定 | 依据 |
+| --- | --- | --- |
+| S4 | PASS | auto_update 正常/重复/坏元数据；重复不改配置 |
+| S5 | PASS | Pebble 真实签发/续期/失败保证书 |
+| S6 | `BLOCKED` | `curl: (35) SSL_ERROR_SYSCALL` 访问 `release-assets.githubusercontent.com`；5 条正常下载断言不成立，失败分支通过 |
+| S7 | PASS | acme.sh 安装/版本/帮助/缺 state fail-closed |
+| S8 | PASS | 沙箱 tcp plan/apply/rollback；真实内核 apply `BLOCKED`（无 bbr） |
+| S9 | PASS | speedtest 正常/重复/不可达；历史脚本 `bash -n` |
+| S1–S3 | 引用 | OPS-19/21/09/31 证据 |
+
+### 13.3 soak / 多版本 / 第二发行版
+
+| 项 | 结果 | 证据 |
+| --- | --- | --- |
+| 30 分钟 soak | PASS 30/30 | `soak-30m-1/soak/soak.json`：active、`xray -test` rc=0、`:443` 监听、`NRestarts=0`、RSS < 512MiB |
+| 多版本 Xray | PASS | `versions-3/versions/xray-versions.json`：`v26.11.9`、`v26.10.31`、`v26.10.21` 对同一 Reality 配置 `xray -test` rc=0（二进制兼容口径） |
+| 第二发行版 | PASS | `debian12-1/p2/`：Debian 12.15 上 M1 安装 rc=0、OPS-19 双端 PASS |
+
+### 13.4 结论修正
+
+- OPS 覆盖从“5 双端 + 10 未执行”更新为：9 双端 PASS（含 1 allowed-diff）、
+  OPS-04 双侧观测 `BLOCKER`、19 Go-only、1 BASH_ONLY、4 NOT_RUN。
+- subscripts 从“未逐项确认”更新为：S4/S5/S7/S8/S9 PASS，S6 `BLOCKED`，
+  S1–S3 引用 OPS 证据。
+- 多版本、第二发行版、30 分钟 soak 从 `NOT_RUN` 更新为 PASS（边界见 13.3）。
+- Docker 候选仍为 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`：OPS-04 是真实 Go 缺陷，
+  另有 OPS-10/3 项未执行；正式发布仍 `NO_GO_NOT_AUTHORIZED`。

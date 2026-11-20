@@ -1,0 +1,23 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-04,OPS-05,OPS-06,OPS-07,OPS-17c,OPS-30,OPS-19,OPS-21,OPS-09,OPS-31,OPS-32",
+  "ops": [
+    "OPS-19",
+    "OPS-21",
+    "OPS-09",
+    "OPS-31",
+    "OPS-32",
+    "OPS-04",
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-17c",
+    "OPS-30"
+  ],
+  "runId": "ops-full-3",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

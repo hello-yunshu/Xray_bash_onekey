@@ -1,0 +1,124 @@
+{
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "port": 443,
+      "listen": "0.0.0.0",
+      "protocol": "VLESS",
+      "tag": "VLESS-Reality-in",
+      "settings": {
+        "clients": [
+          {
+            "id": "91ab7097-e79b-5fa7-9fcb-6b87806ecfd6",
+            "flow": "xtls-rprx-vision",
+            "level": 0,
+            "email": "36924f9ba@hey.run"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "raw",
+        "security": "reality",
+        "realitySettings": {
+          "target": "www.cloudflare.com:443",
+          "serverNames": [
+            "www.cloudflare.com"
+          ],
+          "minClientVer": "1.0.0",
+          "privateKey": "0CPWperVpRa2PjdOKKJ0neMh1nZFe8iLkMjKsw0r_lI",
+          "shortIds": [
+            "f87ba452cdd7f9c2"
+          ]
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ],
+        "routeOnly": true
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIPv4v6"
+        }
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blocked"
+    }
+  ],
+  "dns": {
+    "servers": [
+      "https+local://dns.google/dns-query",
+      "https+local://cloudflare-dns.com/dns-query",
+      "https+local://doh.opendns.com/dns-query",
+      "208.67.222.222",
+      "8.8.8.8",
+      "1.1.1.1",
+      "localhost"
+    ],
+    "disableCache": false
+  },
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      {
+        "type": "field",
+        "outboundTag": "blocked",
+        "domain": [
+          "geosite:cn"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "blocked",
+        "ip": [
+          "geoip:cn"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "blocked",
+        "protocol": [
+          "bittorrent"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "blocked",
+        "domain": [
+          "geosite:category-ads-all"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "blocked",
+        "ip": [
+          "geoip:private"
+        ]
+      },
+      {
+        "type": "field",
+        "inboundTag": [
+          "VLESS-Reality-in"
+        ],
+        "outboundTag": "direct"
+      }
+    ]
+  }
+}
