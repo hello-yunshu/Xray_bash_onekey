@@ -60,6 +60,6 @@
 
 ## T12. 文档、提交与 CI
 - [x] 更新 DOCKER_ACCEPTANCE/TRAE_PROGRESS/TEST_EVIDENCE/PARITY_MATRIX/acceptance.json。
-- [ ] 提交并推送分支，等待 7 个工作流全绿。
-- [ ] 输出中文最终报告；PR #182 保持 draft。
+- [x] 提交并推送分支，等待 7 个工作流全绿。
+- [x] 输出中文最终报告；PR #182 保持 draft。
 - 验证：新 HEAD CI 7/7 success；JSON 全部可解析；dualSide 计数只含 PASS 行。
