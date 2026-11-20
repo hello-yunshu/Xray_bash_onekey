@@ -26,7 +26,7 @@
 | FUP-06 | P1 | 98 项矩阵首次 `repo_dirty=1` 由输出目录自污染 | 先快照再 `mkdir`；复跑 `repo_dirty=0` | FIXED_VERIFIED |
 | FUP-07 | P1 | 直接编辑 `config.json` 后 `xray share` 因哈希不符完全不可用 | 陈旧哈希降级：跳过元数据默认值、按运行时配置渲染并输出 `stale` 警告；loopback 歧义仍返回可操作错误 | FIXED_VERIFIED |
 
-## 3. 测试结果（均在最终 HEAD 重跑）
+## 3. 测试结果（代码 HEAD `102f52e1`；个别跑在父提交，已注明）
 
 | 套件 | 结果 | 证据 |
 | --- | --- | --- |
@@ -36,18 +36,31 @@
 | F18（QR / 分享输出） | **178 / 0** | `.../f18-final/` |
 | F28 pre-fix 红测对照 | 35 passed / 2 failed → 57 / 0 | `.../f28-prefix-excerpt.txt`、`.../f28/`（修复提交时） |
 | 98 项 Bash/Go 矩阵 | 104 行 = 54 `MATCH` + 40 `MATCH_CORE_FIELDS` + 4 `REFUSED` + 6 `A1_PASS`，**0 GAP**，`repo_dirty=0` | `tests/go-parity/evidence/matrix-fix-20261120-clean/` |
-| P2 M1-M10 | 全部 `allPassed` | `tests/e2e-diff/evidence/fix-20261120-p2b/p2/` |
+| P2 M1-M10 | 全部 `allPassed` | `tests/e2e-diff/evidence/fix-20261120-p2b/p2/`（`f217a2fa`） |
 | P2 E1-E7 | 全部 `allPassed` | 同上 |
-| P2 E8 | **14/14 `allPassed`**（修复后 `oldLinkCaptured`、`backupHasOldShareUri` 转绿） | `.../fix-20261120-p2c/p2/E8/go/edit/checks.json` |
+| P2 E8 | **14/14 `allPassed`**（修复后 `oldLinkCaptured`、`backupHasOldShareUri` 转绿） | `.../fix-20261120-p2c/p2/E8/go/edit/checks.json`（`102f52e1`） |
 | P2 OPS-21 | **PASS**（修复前 `HARNESS-ERROR`，`shareUri=false`） | `.../fix-20261120-p2c/p2/OPS-21/` |
-| P2 OPS-09 | PASS | `.../fix-20261120-p2b/p2/OPS-09/` |
+| P2 OPS-09 | PASS | `.../fix-20261120-p2b/p2/OPS-09/`（`f217a2fa`） |
 | P2 OPS-19 | **PASS**（109s；p2b 同项曾因 GitHub 下载超时 `BLOCKER`） | `.../fix-20261120-p2d/p2/OPS-19/` |
 | P2 OPS-31 | **PASS**（reality-balance 增删） | `.../fix-20261120-p2d/p2/OPS-31/` |
 | P2 OPS-32 | **ws PASS，reality `BLOCKER`（判定器抖动）** | `.../fix-20261120-p2d/p2/OPS-32/` |
 | 证据卫生 | `hygiene: 0 finding(s) in 3560 file(s)` | 本轮扫描 |
 | `environment.txt` 契约 | 2 tests OK | `tests/go-parity/matrix/test_environment_contract.py` |
 
-## 4. 剩余问题
+## 4. 同 HEAD CI（`a7d0d4f0`，草稿 PR #182）
+
+| Workflow | Run | 结论 |
+| --- | --- | --- |
+| Go parity stage gate | [44660940430](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44660940430) | success（含 F28：同 HEAD 的 57/0） |
+| Privacy Guard | [44660940260](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44660940260) | success |
+| Go production parity release qualification | [44660940218](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44660940218) | success |
+| Go preview qualification (not for release) | [44660940291](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44660940291) | success |
+| Go real-root change acceptance (container) | [44660940298](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44660940298) | success |
+| Test Install | [44660940288](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44660940288) | success |
+
+PR #182 保持 **draft**，未合并 `develop/go-native`，未打 tag，未触碰生产 VPS。
+
+## 5. 剩余问题
 
 ### P0
 
@@ -70,30 +83,33 @@
    （apt/nginx 下载）在 `p2b`、`p2e` 出现 `curl: (18) Transferred a partial file` /
    `rc=124`，导致 `BLOCKER`/`HARNESS-ERROR`，与代码无关；`p2d` 同机重试即通过。
    建议 CI 预置包缓存或离线镜像，并把下载失败与行为差异分开记 verdict。
-4. **真实 root 场景未覆盖。** F01 需要真实 systemd/root 环境，本轮 `NOT_RUN`；
-   独立 VPS、公网 ACME、外部 IPv6、多版本矩阵仍为 `BLOCKED`/`NOT_RUN`。
+4. **独立实机场景未覆盖。** 真实 root 已由 CI 的
+   `Go real-root change acceptance (container)` 覆盖（`44660940298`），但独立测试
+   VPS 上的公网 ACME、外部 IPv6、多版本 Xray/Bash 矩阵仍为 `BLOCKED`/`NOT_RUN`。
 
 ### P2
 
-1. GitHub Actions 同 HEAD 的 run id 需在推送后回填（Stage Gate、Privacy Guard、
-   Release Qualification、Preview/Real-root/Test Install）。
+1. 同 HEAD CI 已回填（§4）；后续代码变化需重跑并替换 run id。
 2. `tests/go-parity/evidence/matrix-fix-20261120-clean/` 约 15 MB，已入库；
    后续可考虑压缩或只保留 summary 与失败样本。
 
-## 5. 结论
+## 6. 结论
 
 **NO-GO（不合并、不发版）。**
 
 本轮整改范围内的问题（P0 分享元数据污染、Reality Host/SNI 混用、证据隐私、
-矩阵自污染）已真实修复并在最终 HEAD 复验通过；但独立 VPS/真实 ACME/IPv6/
-多版本仍无证据，P1-1（`config edit` 链接 Host）尚未收敛，OPS-19/31/32 本轮只拿到
-“历史 PASS + 网络 BLOCKED”的组合结论。按目标书“NOT_RUN/BLOCKED 不算通过”，
-不具备合入主线或发布的条件。
+矩阵自污染）已真实修复；最终 HEAD 上本地全量门禁、F28/F08/F18、98 项矩阵和
+同 HEAD 的 6 个 CI workflow 全部通过（含 real-root 容器与 Test Install）。
+仍然不满足合入条件的原因：OPS-32/reality 的恢复窗口判定仍为 `BLOCKER`（判定器
+抖动，未记为通过），P1-1（`config edit` 链接 Host）尚未收敛，独立 VPS、公网
+ACME、外部 IPv6 与多版本 Xray/Bash 矩阵仍无证据。按目标书“NOT_RUN/BLOCKED 不算
+通过”，不具备合入主线或发布的条件。
 
-## 6. 下一步最小动作
+## 7. 下一步最小动作
 
-1. 推送整改分支，跑同 HEAD 的 GitHub Actions 并回填 run id（不合并）。
-2. 修 P1-1：为 `config edit` 引入显式 `--host`（或持久化公网地址），统一
+1. 修 P1-1：为 `config edit` 引入显式 `--host`（或持久化公网地址），统一
    `oldShareUri`/`ShortIDLinks` 的拨号地址语义。
+2. 修 P1-2：调整 OPS-32 恢复窗口判定（聚合命中率/后段比例，或单 worker/共享
+   zone），消除采样抖动。
 3. 为 OPS-19/31/32 增加离线包缓存，消除网络抖动对 verdict 的影响。
-4. 在独立测试 VPS 上补 F01、真实 ACME、IPv6 与多版本矩阵后，重新评审 GO/NO-GO。
+4. 在独立测试 VPS 上补公网 ACME、IPv6 与多版本矩阵后，重新评审 GO/NO-GO。
