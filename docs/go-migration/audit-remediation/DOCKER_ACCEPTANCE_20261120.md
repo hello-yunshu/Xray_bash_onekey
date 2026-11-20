@@ -105,8 +105,10 @@ Reality+Nginx 下公网端口只改 Nginx 前端与分享链接，运行时 inbo
 `TestEditPublicPortOnNginxFrontIsNotANoOp`。修复后 `ops04-8` 与 `opsfix-3`
 均为双端 `PASS`，Nginx 两侧都监听 8443。
 
-**Docker 候选仍为 NO-GO**：OPS-16/17b/23/24 仍无双端执行路径（17b/24 无 Go 等价
-命令，16 需要 ACME 证书状态，23 依赖外部测速服务器），OPS-30 无 Go 等价；
+**Docker 候选仍为 NO-GO**：OPS-16/17b/23/24 仍无双端执行记录。Go 侧其实已有
+`update nginx --manifest` 与 `schedule run --job geodata-refresh`，`matrix.json`
+旧的 `go: null` 是过期元数据；未跑的原因是双端驱动尚未接入这两条路径，且
+OPS-24 依赖的 GeoData 资产本轮下载超时（同 S6 `BLOCKED`）。OPS-30 无 Go 等价；
 不能用 Go-only sweep 替代。
 
 ### 4.4 subscripts

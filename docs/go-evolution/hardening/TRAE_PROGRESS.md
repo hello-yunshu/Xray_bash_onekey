@@ -102,7 +102,7 @@
 | 第二发行版 | PASS（Debian 12.15 M1 + OPS-19） | `tests/e2e-diff/evidence/debian12-1/p2/` |
 | preflight | Go `xray tls`/`config edit`/`schedule`/`update` 能力确认 | `tests/e2e-diff/evidence/preflight-ops/` |
 
-未完成（补齐后）：OPS-16/17b/23/24 无双端路径、S6 需外网 GitHub 资产、纯 Bash ACME、
+未完成（补齐后）：OPS-16/17b/23/24 双端驱动未接入（17b/24 已有 Go 命令）、S6 需外网 GitHub 资产、纯 Bash ACME、
 公网 CA、外部公网 IPv6、生产 VPS。OPS-04 的 Go `NoChanges` 误判已修复并有回归测试。
 
 **结论不变**：Docker 开发候选 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；

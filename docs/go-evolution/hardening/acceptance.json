@@ -461,7 +461,7 @@
       "evidence": "tests/e2e-diff/evidence/debian12-1/p2/"
     },
     "blockers": [
-      "OPS-16/17b/23/24 remain without a dual-side execution path",
+      "OPS-16/17b/23/24 remain NOT_RUN: dual-side drivers are not wired (17b/24 do have Go commands) and OPS-24 shares S6's geo asset timeout",
       "S6 geo_update BLOCKED: release-assets.githubusercontent.com TLS recovered but the 16.5MB asset times out within the script's 90s bound",
       "pure Bash ACME BLOCKED",
       "external IPv6/public CA/VPS reboot VPS_DEFERRED"
