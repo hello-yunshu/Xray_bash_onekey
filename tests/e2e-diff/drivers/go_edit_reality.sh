@@ -75,7 +75,7 @@ PY
 }
 
 share_uri() {
-    "$IDLELEO" xray share --path "$CFG" --public-port 443 --json 2>/dev/null |
+    "$IDLELEO" xray share --path "$CFG" --host 127.0.0.1 --public-port 443 --json 2>/dev/null |
         python3 -c 'import json,sys; print(json.load(sys.stdin)["shareUri"])'
 }
 

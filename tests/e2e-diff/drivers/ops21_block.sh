@@ -180,7 +180,7 @@ share_uri() {
     # The Go side reads the link from the same code path users get, so the
     # probe cannot disagree with the CLI about key, flow or shortId.
     if [[ "$SIDE" == "go" ]] && command -v "$IDLELEO" >/dev/null 2>&1; then
-        "$IDLELEO" xray share --path "$CFG" --public-port 443 --json 2>/dev/null |
+        "$IDLELEO" xray share --path "$CFG" --host 127.0.0.1 --public-port 443 --json 2>/dev/null |
             python3 -c 'import json,sys; print(json.load(sys.stdin).get("shareUri",""))'
         return
     fi

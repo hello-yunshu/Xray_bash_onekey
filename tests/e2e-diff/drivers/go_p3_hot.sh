@@ -52,7 +52,7 @@ runtime_id() { # runtime_id <email>
 }
 runtime_has() { [ "$(runtime_id "$1")" = "$2" ]; }
 share_uri() { # share_uri <email>  (never written to evidence)
-    $GO xray share --path "$CFG" --user "$1" --json 2>/dev/null | jq -r '.shareUri // ""'
+    $GO xray share --path "$CFG" --host 127.0.0.1 --user "$1" --json 2>/dev/null | jq -r '.shareUri // ""'
 }
 client_readiness() { # client_readiness <socks-port>
     for _ in $(seq 1 120); do
