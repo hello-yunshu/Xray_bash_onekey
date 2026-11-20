@@ -170,19 +170,55 @@ func TestXrayShareIgnoresMetadataFromAnotherRoot(t *testing.T) {
 	}
 }
 
-func TestXrayShareRefusesStaleMetadata(t *testing.T) {
-	root, cfgPath := writeShareRoot(t, []byte(loopbackNoneConfig), &store.Metadata{
+func TestXrayShareWarnsOnStaleMetadataWithoutApplyingIt(t *testing.T) {
+	reality, err := xraycfg.Generate(xraycfg.Spec{
+		Mode: xraycfg.ModeReality, Domain: "www.example.com", Port: 443,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The metadata hash no longer matches the bytes on disk (a direct edit). Its
+	// public port/security must not shape the link, but share must still render
+	// the runtime config instead of refusing with no way to recover.
+	root, cfgPath := writeShareRoot(t, reality.Config, &store.Metadata{
 		TLS: "None", Transport: "ws",
 		Install:       &store.InstallSnapshot{Port: 10086},
 		RuntimeSHA256: strings.Repeat("0", 64),
 	})
-	code, _, raw := shareJSON(t, "--root", root, "xray", "share", "--path", cfgPath,
-		"--host", "203.0.113.9", "--public-port", "10086", "--json")
-	if code == 0 {
-		t.Fatalf("stale metadata must not be trusted: %s", raw)
+	code, info, raw := shareJSON(t, "--root", root, "xray", "share", "--path", cfgPath,
+		"--host", "198.51.100.25", "--json")
+	if code != 0 {
+		t.Fatalf("share must still render a directly edited config: %s", raw)
 	}
-	if !strings.Contains(raw, "stale") {
-		t.Fatalf("unexpected stale metadata error: %s", raw)
+	if info.Mode != xraycfg.ModeReality || info.Port != 443 {
+		t.Fatalf("stale metadata shaped the link: %+v", info)
+	}
+	found := false
+	for _, w := range info.Warnings {
+		if strings.Contains(w, "stale") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("stale metadata was not reported: %+v", info.Warnings)
+	}
+}
+
+func TestXrayShareKeepsStaleLoopbackNoneAmbiguous(t *testing.T) {
+	// When the only way to disambiguate is the metadata that just went stale,
+	// the safe outcome is the actionable ambiguity error, never a guessed link.
+	root, cfgPath := writeShareRoot(t, []byte(loopbackNoneConfig), &store.Metadata{
+		TLS: "TLS", Transport: "ws",
+		Install:       &store.InstallSnapshot{Port: 443},
+		RuntimeSHA256: strings.Repeat("0", 64),
+	})
+	code, _, raw := shareJSON(t, "--root", root, "xray", "share", "--path", cfgPath,
+		"--host", "example.com", "--json")
+	if code == 0 {
+		t.Fatalf("stale metadata must not resolve an ambiguous loopback config: %s", raw)
+	}
+	if !strings.Contains(raw, "--public-security") {
+		t.Fatalf("expected an actionable ambiguity error: %s", raw)
 	}
 }
 

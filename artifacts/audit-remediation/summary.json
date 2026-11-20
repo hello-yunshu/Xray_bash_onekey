@@ -1,9 +1,9 @@
 {
-  "phase": "audit-remediation-2026-11-19",
-  "generatedAt": "2026-11-19T23:59:00+08:00",
+  "phase": "audit-remediation-2026-11-20-followup",
+  "generatedAt": "2026-11-20T09:00:00+08:00",
   "branch": "work/go-hardening-parity-20261119",
-  "commit": "4527b721fda1dee39545f63ae35f27f9f5078e4f",
-  "latestCommit": "241cc99f",
+  "commit": "9f66b22a",
+  "latestCommit": "f217a2fa",
   "base": "origin/develop/go-native = 9b965843",
   "environment": {
     "goImage": "golang:1.27.4",
@@ -49,8 +49,8 @@
         "internal/cli/share_metadata_test.go",
         "docs/go-migration/audit-remediation/TEST_EVIDENCE.md#3-p0-btls"
       ],
-      "notes": "6/6 PASS after fix. Red test produced security=none and sni=127.0.0.1, proving the test hits the defect.",
-      "commit": "4527b721"
+      "notes": "6/6 PASS after the 2026-11-19 fix. 2026-11-20 review found cross-root metadata pollution and SNI-as-host; both fixed at 9f66b22a. Metadata now applies only when --path canonicalizes to runtimeConfigPath and runtimeSha256 matches; Reality requires an explicit --host. 10/10 CLI cases PASS; F28 red test 35 passed/2 failed -> 57/0.",
+      "commit": "4527b721 + 9f66b22a"
     },
     {
       "id": "P0-C",
@@ -161,11 +161,12 @@
   ],
   "historicalMatrix": {
     "source": "docs/go/BASH_GO_REAL_RUNTIME_PARITY_REPORT.md (commit ace4a16, 2026-11-08)",
-    "rerunCommand": "MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh \"$PWD\" \"$PWD/tests/go-parity/evidence/matrix-20261120-final\"",
+    "rerunCommand": "MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh \"$PWD\" \"$PWD/tests/go-parity/evidence/matrix-fix-20261120-clean\"",
     "exitCode": 0,
     "counts": { "match": 54, "matchCoreFields": 40, "gap": 0, "refused": 4, "a1Pass": 6, "bashCases": 98 },
     "assertionCorrected": "Fronted modes now pass --public-port and check the generated Nginx listen port; the previous check compared the loopback backend port and encoded the pre-fix port collision.",
-    "evidence": "tests/go-parity/evidence/matrix-20261120-final/summary.json"
+    "evidence": "tests/go-parity/evidence/matrix-fix-20261120-clean/summary.json",
+    "repoDirty": 0
   },
   "ops": {
     "command": "E2E_RUN_ID=audit-ops-20261120 bash tests/e2e-diff/run_ops_sweep.sh",

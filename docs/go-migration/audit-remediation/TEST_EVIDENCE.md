@@ -326,3 +326,61 @@ docker run --rm -v /tmp/idleleo-linux:/usr/local/bin/idleleo:ro \
   -v "$PWD/tests/e2e-diff/smoke_guard_nginx.sh":/smoke.sh:ro \
   nginx:1.27-alpine sh /smoke.sh /usr/local/bin/idleleo
 ```
+
+## 11. 2026-11-20 复审证据
+
+环境：macOS 宿主机 + Docker；Go 统一用
+`golang:1.27.4`，`GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local`；
+Xray `26.10.31`；Nginx `1.27-alpine`。修复提交 `9f66b22a` + `f217a2fa`。
+
+### 11.1 静态与全量
+
+| 命令 | 结果 | 日志 |
+| --- | --- | --- |
+| `gofmt -l cmd internal tests` | 无输出 | `artifacts/audit-remediation/followup-20261120/c1/go.log` |
+| `go vet ./...` | exit 0 | 同上 |
+| `go build ./...` | exit 0 | 同上 |
+| `go test -count=1 ./...` | 全绿 | 同上 |
+| 重点包 `-v` + `-race` | 全绿 | `.../c1/targeted-race.log` |
+| `bash -n install.sh` | exit 0 | 终端记录 |
+
+### 11.2 分享链路红绿对照
+
+- **pre-fix（`d13fca44`）F28**：在 Docker 内给 `/etc/idleleo` 放入一份 `tls=None`
+  的无关元数据，`xray share` 未带 `--root`，结果 **35 passed / 2 failed**，错误正是
+  `--public-security none conflicts with runtime stream security=reality`。摘要见
+  `artifacts/audit-remediation/followup-20261120/f28-prefix-excerpt.txt`。
+- **post-fix**：同一测试 **57 passed / 0 failed**，证据
+  `artifacts/audit-remediation/followup-20261120/f28/`。
+- 其他受影响 fixture：F08 **129/0**、F18 **178/0**（含 `qrencode`），证据
+  `.../f08/`、`.../f18/`。
+- 单元测试新增：跨 root 元数据、同路径陈旧哈希（忽略默认值并告警、歧义时拒绝）、
+  路径规范化、Reality 拒绝 SNI 当 Host、Reality Host/SNI 分离、显式标志覆盖、
+  多用户选择。
+
+### 11.3 矩阵与 P2
+
+| 套件 | 结果 | 证据 |
+| --- | --- | --- |
+| 98 项 Bash/Go 矩阵 | 104 行 = 54 `MATCH` + 40 `MATCH_CORE_FIELDS` + 4 `REFUSED` + 6 `A1_PASS`，0 GAP | `tests/go-parity/evidence/matrix-fix-20261120-clean/`（`repo_dirty=0`） |
+| P2 M1-M10 / E1-E8 / OPS-19/21/09/31/32 | 见 `fix-20261120-p2b` 的逐项 verdict | `tests/e2e-diff/evidence/fix-20261120-p2b/p2/` |
+| 复跑前的失败定位 | `fix-20261120-p2`：E1/E7/E8 与 OPS-21 均因 Reality 分享缺少 `--host` 而失败；非产品缺陷，已在驱动中显式传 Host | `tests/e2e-diff/evidence/fix-20261120-p2/p2/` |
+
+### 11.4 隐私与证据卫生
+
+| 检查 | 结果 |
+| --- | --- |
+| `check_evidence_hygiene.py --mask .` | 0 命中（修复前 4 处本机绝对路径） |
+| `test_environment_contract.py` | 通过（生成器剥离校验和路径 + 全量历史 environment.txt 扫描） |
+| F28 `commands.log` | 无 `PrivateKey`、无 `x25519 -i` argv；仅 `<redacted command>` |
+| `artifacts/audit-remediation/followup-20261120/binaries.sha256` | 记录 pre-fix / post-fix 二进制摘要，二进制本体未入库 |
+
+### 11.5 复现命令
+
+```bash
+MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh \
+  "$PWD" "$PWD/tests/go-parity/evidence/matrix-fix-20261120-clean"
+E2E_RUN_ID=fix-20261120-p2b bash tests/e2e-diff/run_p2_matrix.sh
+python3 tests/go-parity/parity/scripts/check_evidence_hygiene.py --mask .
+python3 tests/go-parity/matrix/test_environment_contract.py
+```

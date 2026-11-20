@@ -226,11 +226,9 @@ func xrayShare(opts Options, cfg config, args []string) int {
 	// Metadata carries the trusted public topology: Bash TLS nodes keep Xray on
 	// loopback with stream security=none, so the runtime config alone cannot
 	// tell an Nginx TLS front from a plain public port. It may only describe the
-	// config it owns; a path or hash mismatch is never silently applied.
-	meta, managed, metaErr := managedShareMetadata(cfg.root, path, raw)
-	if metaErr != nil {
-		return fail(opts, cfg, metaErr)
-	}
+	// config it owns; metadata from another root or for different bytes is never
+	// applied, because a stale public port/security would render a wrong link.
+	meta, managed, stale := managedShareMetadata(cfg.root, path, raw)
 	if managed {
 		applyShareMetadataDefaults(&shareOpts, meta)
 		// Link-only preferences persisted by `xray config edit --fp/--spx`.
@@ -242,6 +240,13 @@ func xrayShare(opts Options, cfg config, args []string) int {
 	info, err := xraycfg.ShareConfig(raw, shareOpts)
 	if err != nil {
 		return fail(opts, cfg, err)
+	}
+	// A direct edit of config.json leaves the metadata hash behind. The runtime
+	// config is still authoritative for everything that can be derived from it,
+	// so share keeps working; the caller is told the public-side defaults were
+	// skipped instead of silently rendering a link from stale facts.
+	if stale != "" {
+		info.Warnings = append(info.Warnings, stale)
 	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
 	if cfg.json {
@@ -277,32 +282,33 @@ func xrayShare(opts Options, cfg config, args []string) int {
 // managedShareMetadata returns the manager metadata under root only when the
 // selected config is provably the one it describes: the canonical selected path
 // must equal root + runtimeConfigPath, and a recorded runtimeSha256 must match
-// the bytes about to be shared. Metadata from another root or another config
-// must never leak into this link; a matching path with a different hash is a
-// stale ownership record and is reported instead of silently ignored.
-func managedShareMetadata(root, selected string, raw []byte) (store.Metadata, bool, error) {
+// the bytes about to be shared. Metadata from another root or another config is
+// never applied. A matching path with a different hash means the file was edited
+// outside the manager: the runtime config still wins, the defaults are skipped,
+// and the returned warning explains why the link may lack persisted preferences.
+func managedShareMetadata(root, selected string, raw []byte) (store.Metadata, bool, string) {
 	paths, err := host.NewPaths(root)
 	if err != nil {
-		return store.Metadata{}, false, nil
+		return store.Metadata{}, false, ""
 	}
 	meta, _, err := store.LoadMetadata(paths)
 	if err != nil {
-		return store.Metadata{}, false, nil
+		return store.Metadata{}, false, ""
 	}
 	if err := store.ValidateManagerPath(meta.RuntimeConfigPath); err != nil {
-		return store.Metadata{}, false, nil
+		return store.Metadata{}, false, ""
 	}
 	managed, err := paths.Join(meta.RuntimeConfigPath, false)
 	if err != nil {
-		return store.Metadata{}, false, nil
+		return store.Metadata{}, false, ""
 	}
 	if canonicalPath(managed) != canonicalPath(selected) {
-		return store.Metadata{}, false, nil
+		return store.Metadata{}, false, ""
 	}
 	if meta.RuntimeSHA256 != "" && meta.RuntimeSHA256 != store.HashBytes(raw) {
-		return store.Metadata{}, false, fmt.Errorf("manager metadata under %s is stale: runtimeSha256 does not match the shared config; re-run the managed change that writes this config before sharing", root)
+		return store.Metadata{}, false, "runtime metadata is stale (runtimeSha256 does not match the shared config, usually a direct edit): public-side defaults were not applied; re-run a managed change or pass --host/--public-port/--public-security explicitly"
 	}
-	return meta, true, nil
+	return meta, true, ""
 }
 
 // canonicalPath resolves a path for ownership comparison. Missing files still

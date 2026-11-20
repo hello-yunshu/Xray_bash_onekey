@@ -1,0 +1,40 @@
+{
+  "cron": {
+    "curCount": 0,
+    "duplicates": [],
+    "prevCount": 0,
+    "stable": true
+  },
+  "inbounds": null,
+  "manifest": {
+    "added": [
+      "/etc/idleleo/cert/.user-managed",
+      "/etc/idleleo/conf/nginx/00-xray.conf",
+      "/etc/idleleo/conf/nginx/01-xray-80.conf",
+      "/etc/idleleo/conf/nginx/02-xray-server.conf",
+      "/etc/idleleo/conf/nginx/127.0.0.1.grpcServers",
+      "/etc/idleleo/conf/nginx/127.0.0.1.wsServers",
+      "/etc/idleleo/conf/nginx/127.0.0.1.xhttpServers",
+      "/etc/idleleo/conf/nginx/nginx.default",
+      "/etc/idleleo/info/xray_info.inf",
+      "/etc/idleleo/info/xray_info_clash.yaml",
+      "/etc/idleleo/share",
+      "/etc/idleleo/share/xray",
+      "/etc/systemd/system/nginx.service",
+      "/usr/local/nginx/sbin/nginx"
+    ],
+    "addedCount": 14,
+    "backupAddedCount": 12,
+    "backupRemovedCount": 0,
+    "changed": [
+      "/etc/idleleo/conf/install_config.json",
+      "/etc/idleleo/logs/install.log"
+    ],
+    "changedCount": 2,
+    "removed": [],
+    "removedCount": 0,
+    "stable": false
+  },
+  "ok": false,
+  "schemaVersion": 1
+}

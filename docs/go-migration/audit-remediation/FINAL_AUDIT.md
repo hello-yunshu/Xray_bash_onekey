@@ -9,7 +9,7 @@
 | 范围 | 结论 |
 | --- | --- |
 | P0-A 中转绑定/公网暴露 | `ALREADY_FIXED_VERIFIED`：真实 managed Nginx `nginx -t` 4/4，回环绑定跨容器拒绝、通配可达 |
-| P0-B TLS 分享拓扑 | `FIXED_VERIFIED`：CLI 从管理元数据消歧，6 个回归用例；红测证明缺陷可被击中 |
+| P0-B TLS 分享拓扑 | `FIXED_VERIFIED`（2026-11-20 复审加强）：元数据仅在路径+SHA 归属成立时消歧；Reality 强制显式 Host；10 个回归用例；F28 pre-fix 35/2 → 57/0 |
 | P0-C 迁移/恢复资源安全 | `ALREADY_FIXED_VERIFIED`：6 个 Bash 样本扫描零写入，prepare/recover 不碰运行时 5 项，故障注入全绿 |
 | P1-A 传输/元数据覆盖 | `FIXED_VERIFIED`：9 个矩阵场景 Go/Bash/L4 全 `MATCH`；历史 98 项矩阵复跑 `0 GAP`；OPS Go sweep 36 PASS；5 个 OPS 双端复跑 PASS |
 | P1-B 事务性部署 | `ALREADY_FIXED_VERIFIED`：5 个回滚用例通过，失败不隐瞒 Nginx 残留 |
@@ -94,3 +94,21 @@
 - `artifacts/audit-remediation/logs/ops08-27-smoke.log`（OPS-08/27 CLI smoke）
 - `tests/go-parity/matrix/run_matrix.py`（前置端口断言修正）
 - `artifacts/audit-remediation/fixtures/`（脱敏配置样本）
+
+## 6. 2026-11-20 复审补充
+
+- **复审起点**：`d13fca44`（任务书基线 `a1056a14` 之后含 OPS-08/27 与证据）。
+  **修复提交**：`9f66b22a`、`f217a2fa`。
+- **新增 P0 修复**：
+  1. `xray share` 只在 `--path` 与 `metadata.runtimeConfigPath` 规范化同路径且
+     `runtimeSha256` 匹配时使用元数据；跨 root/跨配置不再污染；同路径哈希不符时
+     跳过默认值并按运行时配置渲染，同时输出 `stale` 警告（loopback 歧义仍拒绝）。
+  2. Reality 不再把 `Install.ServerNames[0]`/`realitySettings.serverNames` 当连接
+     Host；缺少 `--host` 直接拒绝。
+  3. `environment.txt` 只写 SHA256 值与仓库相对路径；历史 evidence 已脱敏。
+  4. F28 不再打印临时 X25519 私钥；fixture root 移出 evidence。
+- **测试**：`go test -count=1 ./...`、`go vet ./...`、`gofmt -l` 全绿；F28 57/0、
+  F08 129/0、F18 178/0；98 项矩阵 54 MATCH + 40 MATCH_CORE_FIELDS + 4 REFUSED、
+  0 GAP；P2 全量见 `tests/e2e-diff/evidence/fix-20261120-p2b/`。
+- **结论不变：NO-GO / 不合并。** 独立 VPS、公网 ACME、多版本矩阵、外部 IPv6、
+  剩余 OPS 双端仍未验证；本轮只允许整改分支提交与推送。

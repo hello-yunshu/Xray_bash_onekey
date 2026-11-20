@@ -62,3 +62,18 @@
 - OPS 34 行中的 29 行：`GO_ONLY_PASS`/`NOT_RUN`，不能写成 `DUAL_SIDE_PASS`。
 - 所有独立 VM、生产 VPS、真实 ACME：`BLOCKED`。
 - 本矩阵中的 relay `REAL_CLIENT_PASS` 证明的是 Nginx Stream 转发，不得表述为 VLESS 用户会话。
+
+## 5. 2026-11-20 复审项
+
+| ID | 项 | 状态 | 证据 | 边界 |
+|---|---|---|---|---|
+| F01 | F28 Reality 分享跨 root 污染 | `LOCAL_RUN` PASS | pre-fix 35/2 → post-fix 57/0；`artifacts/audit-remediation/followup-20261120/f28*` | 容器内 fixture，非真实 VPS |
+| F02 | Reality Host 与 SNI 分离 | `LOCAL_RUN` PASS | `share_metadata_test.go` 10 例；F08 129/0、F18 178/0 | 要求调用方提供 `--host` 属预期行为变更 |
+| F03 | `environment.txt` 宿主路径 | `LOCAL_RUN` PASS | 生成器剥离路径；`test_environment_contract.py` 通过 | CI 需在新提交上复跑 |
+| F04 | F28 临时私钥泄漏 | `LOCAL_RUN` PASS | `commands.log` 仅 `<redacted>`；fixture root 移出 evidence | 历史工件未逐个重写，仅本次新增证据 |
+| F05 | Go 全量门禁 | `LOCAL_RUN` PASS | `artifacts/audit-remediation/followup-20261120/c1/` | — |
+| F06 | 98 项矩阵 | `LOCAL_RUN` PASS | 104 行 0 GAP；`tests/go-parity/evidence/matrix-fix-20261120-clean/` | 容器内，无真实部署 |
+| F07 | P2 全量矩阵 | `LOCAL_RUN` PASS | `tests/e2e-diff/evidence/fix-20261120-p2b/p2/` | 容器内 systemd/Xray/Nginx |
+| F08 | 真实 CI | `PENDING` | 推送后记录 run id | 不能用本地结果替代 |
+
+**结论**：复审项全部为容器内验证；发布/合并判断仍 **NO-GO**。

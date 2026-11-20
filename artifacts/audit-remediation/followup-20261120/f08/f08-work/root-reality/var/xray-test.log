@@ -1,0 +1,5 @@
+-test -config /out/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-3982091571.json
+-test -config /out/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-6118434.json
+-test -config /out/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-2592836674.json
+-test -config /out/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-884338275.json
+-test -config /out/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-3389943258.json

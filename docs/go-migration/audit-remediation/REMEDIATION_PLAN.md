@@ -66,3 +66,21 @@
 | M8 公网 ACME | `NOT_RUN` | 与公网 CA 项同因 |
 
 这些项不阻断“交付整改证据”，但阻断“发布/合并”判断。
+
+## 7. 2026-11-20 复审决策
+
+1. **元数据归属优先于便利性**：`xray share` 只有在 `--path` 与
+   `metadata.runtimeConfigPath` 规范化同路径、且 `runtimeSha256` 匹配时才使用
+   元数据；跨 root / 跨配置不得回填。宁可让用户补 `--public-security`，也不能
+   把无关元数据套到别的配置上。
+2. **Host 与 SNI 永久分离**：Reality 的 `serverNames` 只作为 SNI/伪装身份；连接
+   地址必须显式 `--host`。TLS+Nginx 仍允许从运行时 `tlsSettings.serverName`
+   推导 Host（该值本就是公网域名）。
+3. **测试必须自洽**：Fixture 自己的 `share` 必须带 `--root`，不得依赖宿主机
+   `/etc/idleleo`；所有 Reality 探针显式给 Host。
+4. **证据不携带宿主信息与临时密钥**：`environment.txt` 只记录 SHA256 与仓库相对
+   路径；fixture 根目录移出 evidence；`f.run(redact=True)` 脱敏 argv/stdout。
+5. **不为通过而放宽断言**：F28 从 35/2 恢复为 57/0 是修复代码与测试自洽性的结果，
+   没有跳过用例；OPS/矩阵失败项全部保留并按实际环境标 `BLOCKED`/`NOT_RUN`。
+6. **回滚**：`git revert 9f66b22a f217a2fa` 会恢复“SNI 当 Host + 跨 root 元数据”
+   的旧行为，仅在确认元数据不会跨 root 复用时才可考虑。

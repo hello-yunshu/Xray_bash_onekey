@@ -4,6 +4,10 @@
 > `origin/develop/go-native` = `9b965843`）。分支 `work/go-hardening-parity-20261119`。
 > 本文只记录**当前 HEAD 可复核的事实**；未执行的项标 `NOT_RUN`/`BLOCKED`，不当作通过。
 > 未读取任务书中的 ChatGPT 链接，不作任何“已读”声明。
+>
+> 2026-11-20 复审：任务书基线 `a1056a14`，复审起点 `d13fca44`（已在基线上追加
+> OPS-08/27 与证据），修复提交 `9f66b22a`（分享归属/SNI/隐私）与 `f217a2fa`
+> （E2E 显式 Host）。§5 记录本轮新增问题与结论。
 
 ## 1. 方法
 
@@ -19,16 +23,24 @@
 | ID | 优先级 | 原审计依据 | 当前 HEAD 复现 | 影响范围 | 修复策略 | 自动化用例 | 结果 | 证据路径 | commit |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | P0-A | P0 | `AUDIT_V4.md` P0-A；`RELEASE_MIGRATION_CONTRACT.md` 中转边界 | 否：4 个地址实测，`listen`/`proxy_timeout 720m`/`keepalive` 均在 | relay 公网暴露/绕行 | 保留显式 `listen`；非法地址 fail-closed 且不改 fragment | `artifacts/audit-remediation/p0a_relay_exposure.sh` + `nginx -t` | `ALREADY_FIXED_VERIFIED` | `artifacts/audit-remediation/p0a/summary.json` | `b8b31f7e` |
-| P0-B | P0 | `AUDIT_V4.md` P0-B；`TRACEABILITY_MATRIX.md` 分享链路 | 是（修复前）：`xray share` 不读元数据，TLS 回环节点分享为 `security=none` | 分享链接泄露真实拓扑/协议 | 元数据回填 `TLS/host/port`；显式标志优先；未知/缺失保持 fail-closed | `internal/cli/share_metadata_test.go` 6 例 + 红测 | `FIXED_VERIFIED` | `internal/cli/share_metadata_test.go`；`TEST_EVIDENCE.md` §3 | `4527b721` |
+| P0-B | P0 | `AUDIT_V4.md` P0-B；`TRACEABILITY_MATRIX.md` 分享链路 | 是（修复前）：`xray share` 不读元数据，TLS 回环节点分享为 `security=none`；2026-11-20 又发现跨 root 元数据污染与 SNI 当 Host | 分享链接泄露真实拓扑/协议或指向错误入口 | 元数据仅在路径+SHA 归属成立时回填 TLS/port；Reality 强制显式 `--host`；显式标志优先；未知/缺失保持 fail-closed | `internal/cli/share_metadata_test.go` 10 例 + F28/F08/F18 回归 | `FIXED_VERIFIED` | `internal/cli/share_metadata_test.go`；`TEST_EVIDENCE.md` §3、§11 | `4527b721`、`9f66b22a` |
 | P0-C | P0 | `AUDIT_V4.md` P0-C；`TRACEABILITY_MATRIX.md` 迁移/恢复 | 否：锁、journal、原子写、入口漂移保护均在 | 迁移覆盖入口/配置/证书/cron | `audit` 只读；`prepare` 不碰运行时；`activate` 仅切入口/cron；`recover` 回滚 | `p0c_migration_restore.sh`；`legacybridge/backup/repair` 测试 | `ALREADY_FIXED_VERIFIED` | `artifacts/audit-remediation/p0c/summary.json`；`logs/p1e-fault-injection.log` | `8ac1385f`、`43ceb680` |
 
 ### P0-B 变更细节
 
-- 仅当 `--public-security/--host/--public-port` **未显式给出**时，从
-  `metadata.json` 的 `TLS`、`Install.ServerNames[0]`、`Install.Port` 回填。
+> 2026-11-20 复审修正：初版实现把 `Install.ServerNames[0]` 当作公网连接地址，
+> 且未校验元数据与所选配置的归属关系。Reality 的 `serverNames` 是 SNI/伪装身份，
+> 不是客户端拨号地址；该行为已在 `9f66b22a` 修正，见 §5。
+
+- 仅当所选 `--path` 与 `meta.runtimeConfigPath` **规范化后同路径**，且
+  `meta.runtimeSha256`（非空时）与文件字节一致，才从 `metadata.json` 回填
+  `--public-security` 与 `--public-port`；跨 root、跨配置、过期哈希一律不采用。
+- 同一路径但哈希不一致说明配置被直接编辑过：元数据不再参与渲染，`xray share`
+  仍按运行时配置生成链接，并在 `warnings` 中明确报告 `stale`。若唯一能消歧的信息
+  恰好来自该陈旧元数据（loopback + `security=none`），则返回可操作的
+  `--public-security` 错误，绝不猜一个可能错误的公网链接。
 - 映射：`TLS→tls`、`Reality→reality`、`None→none`；未知值不回填，保持 fail-closed。
-- 显式标志优先；无元数据时行为与旧版完全一致（回环 `security=none` + 未声明公网
-  security 仍拒绝）。
+- 显式标志优先；Reality 链接必须显式 `--host`，不再把 SNI 当连接地址。
 - 同一份元数据继续提供 `ShareLinkOnly` 的 `fp/spx`，不新增敏感字段。
 
 ## 3. P1 问题
@@ -54,3 +66,14 @@
 | OPS-05/06/07/10/17b/24 | 已有等价路径 | `xray edit`、`xray tls`、`update nginx`、`schedule run` 已覆盖，无同名 OPS 行 |
 | 98 项矩阵的前置端口断言 | `FIXED_VERIFIED` | 旧断言把 Xray 回环后端端口当公网端口，等于固化旧缺陷；已改为校验 Nginx `listen <port>`，不跳用例 |
 | 正式发布与 `main` 合并 | `INTENTIONAL_DELTA_APPROVED` | 任务书明确禁止；仅提交工作分支 |
+
+## 5. 2026-11-20 复审新增问题
+
+| ID | 级别 | 复现 | 修复 | commit | 状态 |
+| --- | --- | --- | --- | --- | --- |
+| FUP-01 | P0 | F28 在 CI 中 35 passed / 2 failed：`--public-security none conflicts with runtime stream security=reality`。`xray share` 读取默认 `/etc/idleleo` 元数据并套到另一个 `--root` 的 Reality 配置 | 元数据仅在 `--path` 与 `runtimeConfigPath` 规范化同路径、且 `runtimeSha256` 匹配时生效；跨 root/跨配置忽略；同路径哈希不符时忽略默认值并输出 `stale` 警告，运行时配置仍可分享 | `9f66b22a` + 复审修订 | `FIXED_VERIFIED`（本地 pre-fix 红测 35/2 → 57/0） |
+| FUP-02 | P0 | Reality 分享把 `Install.ServerNames[0]`（SNI/伪装域名）当客户端拨号 Host | 删除该回填；Reality 无显式 `--host` 直接拒绝；TLS/Nginx 仍用运行时 `tlsSettings.serverName` | `9f66b22a` | `FIXED_VERIFIED` |
+| FUP-03 | P0 | `tests/go-parity/evidence/matrix-20261120-final/environment.txt` 第 7 行含 macOS 本机绝对路径，Stage Gate / Privacy Guard 红 | 生成器只写 SHA256 值与仓库相对路径；历史 evidence 同步脱敏；新增 `test_environment_contract.py` 阻止复发 | `9f66b22a` | `FIXED_VERIFIED` |
+| FUP-04 | P1 | F28 `commands.log`、PASS/FAIL detail 与 `xray x25519 -i` argv 含临时私钥 | `f.run(redact=True)` 脱敏命令与输出；只保留布尔断言；fixture root 移出 evidence 目录 | `9f66b22a` | `FIXED_VERIFIED` |
+| FUP-05 | P1 | F28 的 `share` 未带 `--root`，测试自身不自洽 | 加 `--root`；其余 Reality 探针显式 `--host 127.0.0.1` | `9f66b22a`、`f217a2fa` | `FIXED_VERIFIED` |
+| FUP-06 | P2 | 矩阵 `repo_dirty` 把自身输出目录算进去 | 在创建 evidence 目录前快照 `git status` | `b212f1cf` | `FIXED_VERIFIED` |

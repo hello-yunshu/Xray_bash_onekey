@@ -1,5 +1,8 @@
 # 最终审计 · 2026-11-19
 
+> 2026-11-20 复审追加见 §8：在 `9f66b22a` / `f217a2fa` 修复分享归属、Host/SNI
+> 分离、证据卫生与 F28 私钥泄漏；结论仍为发布/合并 **NO-GO**。
+
 ## 1. 结论
 
 | 范围 | 结论 | 理由 |
@@ -117,3 +120,20 @@ E2E_RUN_ID=<run-id> E2E_TRANSPORT=ws bash tests/e2e-diff/run_p3_hot.sh
 E2E_RUN_ID=<run-id> E2E_TRANSPORT=grpc bash tests/e2e-diff/run_p3_hot.sh
 E2E_RUN_ID=<run-id> E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.sh
 ```
+
+## 8. 2026-11-20 复审
+
+| 项 | 结论 | 证据 |
+| --- | --- | --- |
+| F28 Reality 分享失败（CI 35/2） | `FIXED_VERIFIED`：跨 root 元数据不再生效，F28 本地 57/0 | `artifacts/audit-remediation/followup-20261120/f28/` |
+| Reality Host/SNI 混用 | `FIXED_VERIFIED`：`serverNames` 只作 SNI，连接地址必须显式 `--host` | `internal/xraycfg/share.go`、`share_metadata_test.go` |
+| `environment.txt` 本机路径 | `FIXED_VERIFIED`：生成器与历史证据均脱敏，新增契约测试 | `tests/go-parity/matrix/test_environment_contract.py` |
+| F28 临时私钥进入日志/证据 | `FIXED_VERIFIED`：`redact=True`，fixture root 移出 evidence | `tests/go-parity/parity/features/fixture_support.py` |
+| Go 全量门禁 | PASS：gofmt/vet/build/test、重点包 `-race` | `artifacts/audit-remediation/followup-20261120/c1/` |
+| 98 项矩阵 | PASS：104 行，54 MATCH + 40 MATCH_CORE_FIELDS + 4 REFUSED + 6 A1，0 GAP | `tests/go-parity/evidence/matrix-fix-20261120-clean/` |
+| P2 全量矩阵 | PASS：`fix-20261120-p2b`（M1-M10、E1-E8、5 个 OPS） | `tests/e2e-diff/evidence/fix-20261120-p2b/` |
+| 真实 CI | 以推送后的 run id 为准；本地不得替代 | GitHub Actions |
+| 发布/合并 | **NO-GO**：独立 VM、公网 ACME、多版本矩阵、外部 IPv6、剩余 OPS 双端仍未验证 | — |
+
+**口径要求**：本文件与 `docs/go-migration/audit-remediation/FINAL_AUDIT.md` 必须
+同时保持“NO-GO / 不合并”；不得引用旧 SHA 的绿灯替代当前 HEAD 的 CI。

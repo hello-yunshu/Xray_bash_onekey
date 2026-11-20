@@ -1,9 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-19T00:00:00Z",
+  "generatedAt": "2026-11-20T00:00:00Z",
   "branch": "work/go-hardening-parity-20261119",
   "baselineSha": "9b965843dccc955eee8b91903749500f082271f7",
-  "codeSha": "4ab08050",
+  "codeSha": "9f66b22ad9b555a3ae7f8a1e5d5d5d248907be99",
+  "followupCodeShas": [
+    "9f66b22ad9b555a3ae7f8a1e5d5d5d248907be99",
+    "f217a2fa8656c86471f18c4d8b0b858d438f5a87"
+  ],
+  "summaryScope": "items below are the 2026-11-19 baseline; see followup20261120",
   "ciSha": "4f12543e",
   "pr": {
     "number": 182,
@@ -189,6 +194,67 @@
     "blocked": 1,
     "fail": 0,
     "notRun": 0
+  },
+  "followup20261120": {
+    "items": [
+      {
+        "id": "F01",
+        "title": "F28 Reality share cross-root metadata",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "artifacts/audit-remediation/followup-20261120/f28/",
+        "reason": "pre-fix 35 passed / 2 failed; post-fix 57 passed / 0 failed"
+      },
+      {
+        "id": "F02",
+        "title": "Reality host and SNI separation",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "internal/cli/share_metadata_test.go",
+        "reason": "serverNames never becomes the dial address; explicit --host required"
+      },
+      {
+        "id": "F03",
+        "title": "environment.txt host path",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/go-parity/matrix/test_environment_contract.py",
+        "reason": "generator writes digest plus repo-relative path only"
+      },
+      {
+        "id": "F04",
+        "title": "F28 transient private key leakage",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/go-parity/parity/features/fixture_support.py",
+        "reason": "redact=True and fixture root moved outside evidence"
+      },
+      {
+        "id": "F05",
+        "title": "full Go gate",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "artifacts/audit-remediation/followup-20261120/c1/",
+        "reason": "gofmt, vet, build, full tests and race subset green"
+      },
+      {
+        "id": "F06",
+        "title": "98-case Bash/Go matrix",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/go-parity/evidence/matrix-fix-20261120-clean/summary.json",
+        "reason": "104 rows, 0 gap, repo_dirty=0"
+      },
+      {
+        "id": "F07",
+        "title": "P2 full matrix",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-p2b/p2/",
+        "reason": "M1-M10, E1-E8 and five OPS cases"
+      },
+      {
+        "id": "F08",
+        "title": "real CI on followup HEAD",
+        "status": "PENDING",
+        "evidencePath": "GitHub Actions",
+        "reason": "record run ids after push; local runs do not substitute"
+      }
+    ],
+    "conclusion": "NO-GO for release and merge"
   },
   "boundaries": [
     "independent VM cold restore and power-loss recovery: BLOCKED",

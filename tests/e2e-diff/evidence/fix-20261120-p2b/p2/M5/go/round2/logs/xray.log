@@ -1,0 +1,16 @@
+<TS> e2e-fix-20261120-p2b-M5-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M5-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-fix-20261120-p2b-M5-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-fix-20261120-p2b-M5-go xray[<PID>]: 2026/11/20 01:04:59.766442 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-fix-20261120-p2b-M5-go xray[<PID>]: 2026/11/20 01:04:59.766468 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+<TS> e2e-fix-20261120-p2b-M5-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-fix-20261120-p2b-M5-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-fix-20261120-p2b-M5-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M5-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M5-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-fix-20261120-p2b-M5-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-fix-20261120-p2b-M5-go xray[<PID>]: 2026/11/20 01:05:05.902117 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-fix-20261120-p2b-M5-go xray[<PID>]: 2026/11/20 01:05:05.902169 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+2026/11/20 01:04:59.767394 [Warning] core: Xray 26.10.31 started
+2026/11/20 01:05:03.475857 [Warning] transport/internet/grpc/encoding: received "X-Forwarded-For" from 127.0.0.1:51388 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 01:05:05.903240 [Warning] core: Xray 26.10.31 started

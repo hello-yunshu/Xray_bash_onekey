@@ -1,0 +1,33 @@
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: 2026/11/20 01:00:35.405908 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: 2026/11/20 01:00:35.409832 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: 2026/11/20 01:00:37.567775 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: 2026/11/20 01:00:37.568589 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: 2026/11/20 01:00:53.016453 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: 2026/11/20 01:00:53.017628 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M2-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: 2026/11/20 01:00:55.278668 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-fix-20261120-p2b-M2-bash xray[<PID>]: 2026/11/20 01:00:55.280436 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+2026/11/20 01:00:35.412902 [Warning] core: Xray 26.10.31 started
+2026/11/20 01:00:37.570758 [Warning] core: Xray 26.10.31 started
+2026/11/20 01:00:53.034050 [Warning] core: Xray 26.10.31 started
+2026/11/20 01:00:55.284046 [Warning] core: Xray 26.10.31 started

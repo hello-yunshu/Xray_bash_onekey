@@ -1,0 +1,52 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "target",
+    "server-names"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.serverNames[0]",
+    "inbounds[0].streamSettings.realitySettings.target"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "3a68ace71a0ece0cafaa2feec64921d305441c97d42d71c8bf7b45dfbeba76e7",
+  "newSha256": "dec3081e524b25c12fd0650a2f2a6d019116f87b6a01f89b80c56584ed640ebb",
+  "backupDir": "/etc/idleleo/backup/edit-20261120T012530",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://fa62a911-7c53-44ed-9553-22c367109637@local.test:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=local.test&fp=chrome&pbk=dbaE2PHKC0cXGv1bGB_M_IZZueKgAhnXWb_Akcv6HFo&sid=aa1ae2c2&type=raw#idleleo-reality",
+  "originTarget": "127.0.0.1:8443",
+  "originProbe": "tcp+tls(verify) 127.0.0.1:8443 (sni local.test)",
+  "tlsSystemTrusted": false,
+  "disconnect": false,
+  "warnings": null,
+  "shortIds": [
+    "aa1ae2c2"
+  ],
+  "oldShareUri": "vless://fa62a911-7c53-44ed-9553-22c367109637@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=dbaE2PHKC0cXGv1bGB_M_IZZueKgAhnXWb_Akcv6HFo&sid=aa1ae2c2&type=raw#idleleo-reality",
+  "upstreamUnchanged": true,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "3a68ace71a0ece0cafaa2feec64921d305441c97d42d71c8bf7b45dfbeba76e7",
+    "newSha256": "dec3081e524b25c12fd0650a2f2a6d019116f87b6a01f89b80c56584ed640ebb",
+    "changed": [
+      "server-names",
+      "target"
+    ],
+    "affectedServices": [
+      "xray"
+    ],
+    "disconnectRisk": "none: no live session is dropped",
+    "validationSteps": [
+      "xray -test"
+    ],
+    "rollbackScope": "runtime config",
+    "ownership": "idleleo-managed",
+    "fingerprint": "12fec5fbd1aa8b6e"
+  }
+}
