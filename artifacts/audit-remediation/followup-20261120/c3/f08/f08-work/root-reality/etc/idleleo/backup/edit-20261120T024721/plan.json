@@ -1,0 +1,19 @@
+{
+  "operation": "edit-runtime-config",
+  "resource": "/src/artifacts/audit-remediation/followup-20261120/c3/f08/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "6d0dd239fbae21896f44f6dbd5f6af49ed3f3e193b448cc3bf57c6b7fca8aa99",
+  "newSha256": "30a2febb1927a6ca3bcb305bcf22560847a11736a8cc241f753dc7874c7d0275",
+  "changed": [
+    "target"
+  ],
+  "affectedServices": [
+    "xray"
+  ],
+  "disconnectRisk": "none: no live session is dropped",
+  "validationSteps": [
+    "xray -test"
+  ],
+  "rollbackScope": "runtime config",
+  "ownership": "idleleo-managed",
+  "fingerprint": "184689f544851209"
+}
