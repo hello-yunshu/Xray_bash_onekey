@@ -1,7 +1,8 @@
 # 最终审计 · 2026-11-19
 
-> 2026-11-20 复审追加见 §8：在 `9f66b22a` / `f217a2fa` 修复分享归属、Host/SNI
-> 分离、证据卫生与 F28 私钥泄漏；结论仍为发布/合并 **NO-GO**。
+> 2026-11-20 复审追加见 §8：在 `9f66b22a` / `f217a2fa` / `102f52e1` / `1cd248e6`
+> 修复分享归属、Host/SNI 分离、证据卫生、F28 私钥泄漏、`config edit --host`
+> 与 OPS-32 恢复判定；结论仍为发布/合并 **NO-GO**。
 
 ## 1. 结论
 
@@ -9,7 +10,7 @@
 | --- | --- | --- |
 | 合并到 `main` | **NO-GO** | 独立 VM 未验收、OPS 29 行无双端证据、真实多版本 Xray 矩阵未跑 |
 | 发布正式版本 / tag | **NO-GO** | 同上；且任务书禁止本轮发布 |
-| 合并到 `develop/go-native` | **GO（作为候选）** | 当前 SHA 全量 Go 门禁与 P3 真实场景通过；P1/P2 代码有定向负例 |
+| 合并到 `develop/go-native` | **NO-GO（2026-11-20 复审后）** | 代码与容器级证据已全绿，但独立 VM/公网 ACME 等外部门禁仍未补齐；保持 draft PR |
 | 生产 VPS 操作 | **禁止** | 任务书约束 |
 
 本轮已把工作分支推送到 origin 并创建 draft PR #182（base `develop/go-native`），仅用于触发真实 CI；
@@ -125,13 +126,14 @@ E2E_RUN_ID=<run-id> E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.sh
 
 | 项 | 结论 | 证据 |
 | --- | --- | --- |
-| F28 Reality 分享失败（CI 35/2） | `FIXED_VERIFIED`：跨 root 元数据不再生效，F28 本地 57/0 | `artifacts/audit-remediation/followup-20261120/f28/` |
+| F28 Reality 分享失败（CI 35/2） | `FIXED_VERIFIED`：跨 root 元数据不再生效，F28 本地 57/0 | `artifacts/audit-remediation/followup-20261120/c3/f28/` |
 | Reality Host/SNI 混用 | `FIXED_VERIFIED`：`serverNames` 只作 SNI，连接地址必须显式 `--host` | `internal/xraycfg/share.go`、`share_metadata_test.go` |
+| `config edit` 链接 Host（FUP-08） | `FIXED_VERIFIED`：`--host` 成为唯一拨号地址，E7 13/13、E8 14/14 | `internal/xraycfg/reality_edit_test.go`、`tests/e2e-diff/evidence/fix-20261120-p2h/` |
 | `environment.txt` 本机路径 | `FIXED_VERIFIED`：生成器与历史证据均脱敏，新增契约测试 | `tests/go-parity/matrix/test_environment_contract.py` |
 | F28 临时私钥进入日志/证据 | `FIXED_VERIFIED`：`redact=True`，fixture root 移出 evidence | `tests/go-parity/parity/features/fixture_support.py` |
-| Go 全量门禁 | PASS：gofmt/vet/build/test、重点包 `-race` | `artifacts/audit-remediation/followup-20261120/c1/` |
-| 98 项矩阵 | PASS：104 行，54 MATCH + 40 MATCH_CORE_FIELDS + 4 REFUSED + 6 A1，0 GAP | `tests/go-parity/evidence/matrix-fix-20261120-clean/` |
-| P2 全量矩阵 | PASS：`fix-20261120-p2b`（M1-M10、E1-E8、5 个 OPS） | `tests/e2e-diff/evidence/fix-20261120-p2b/` |
+| Go 全量门禁 | PASS：gofmt/vet/build/test，`rc=0` | `artifacts/audit-remediation/followup-20261120/c3/gate.rc` |
+| 98 项矩阵 | PASS：104 行，54 MATCH + 40 MATCH_CORE_FIELDS + 4 REFUSED + 6 A1，0 GAP，`repo_dirty=0` | `tests/go-parity/evidence/matrix-fix-20261120-clean2/` |
+| P2 编辑与 OPS-32 | PASS：E7/E8 全绿；OPS-32 ws/reality 均 PASS | `tests/e2e-diff/evidence/fix-20261120-p2h/`、`.../fix-20261120-p2i/` |
 | 真实 CI | 以推送后的 run id 为准；本地不得替代 | GitHub Actions |
 | 发布/合并 | **NO-GO**：独立 VM、公网 ACME、多版本矩阵、外部 IPv6、剩余 OPS 双端仍未验证 | — |
 

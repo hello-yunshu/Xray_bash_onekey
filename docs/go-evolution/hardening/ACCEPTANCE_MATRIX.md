@@ -67,13 +67,16 @@
 
 | ID | 项 | 状态 | 证据 | 边界 |
 |---|---|---|---|---|
-| F01 | F28 Reality 分享跨 root 污染 | `LOCAL_RUN` PASS | pre-fix 35/2 → post-fix 57/0；`artifacts/audit-remediation/followup-20261120/f28*` | 容器内 fixture，非真实 VPS |
+| F01 | F28 Reality 分享跨 root 污染 | `LOCAL_RUN` PASS | pre-fix 35/2 → post-fix 57/0；`artifacts/audit-remediation/followup-20261120/c3/f28/` | 容器内 fixture，非真实 VPS |
 | F02 | Reality Host 与 SNI 分离 | `LOCAL_RUN` PASS | `share_metadata_test.go` 10 例；F08 129/0、F18 178/0 | 要求调用方提供 `--host` 属预期行为变更 |
-| F03 | `environment.txt` 宿主路径 | `LOCAL_RUN` PASS | 生成器剥离路径；`test_environment_contract.py` 通过 | CI 需在新提交上复跑 |
+| F03 | `environment.txt` 宿主路径 | `LOCAL_RUN` PASS | 生成器剥离路径；`test_environment_contract.py` 2 tests OK | CI 需在新提交上复跑 |
 | F04 | F28 临时私钥泄漏 | `LOCAL_RUN` PASS | `commands.log` 仅 `<redacted>`；fixture root 移出 evidence | 历史工件未逐个重写，仅本次新增证据 |
-| F05 | Go 全量门禁 | `LOCAL_RUN` PASS | `artifacts/audit-remediation/followup-20261120/c1/` | — |
-| F06 | 98 项矩阵 | `LOCAL_RUN` PASS | 104 行 0 GAP；`tests/go-parity/evidence/matrix-fix-20261120-clean/` | 容器内，无真实部署 |
-| F07 | P2 全量矩阵 | `LOCAL_RUN` PASS | `tests/e2e-diff/evidence/fix-20261120-p2b/p2/` | 容器内 systemd/Xray/Nginx |
+| F05 | Go 全量门禁 | `LOCAL_RUN` PASS | `.../c3/gate.rc`（gofmt/vet/build/test 均 `rc=0`） | — |
+| F06 | 98 项矩阵 | `LOCAL_RUN` PASS | 104 行 0 GAP、`repo_dirty=0`；`tests/go-parity/evidence/matrix-fix-20261120-clean2/` | 容器内，无真实部署 |
+| F07 | P2 编辑与 OPS | `LOCAL_RUN` PASS | E7 13/13、E8 14/14；OPS-32 ws/reality PASS；`.../fix-20261120-p2h`、`.../fix-20261120-p2i` | 容器内 systemd/Xray/Nginx |
 | F08 | 真实 CI | `PENDING` | 推送后记录 run id | 不能用本地结果替代 |
+| F09 | `config edit --host`（FUP-08） | `LOCAL_RUN` PASS | `reality_edit_test.go` 3 例；E7/E8 双侧 `--host 127.0.0.1` 全绿 | `--host` 只影响链接渲染，不写配置字段 |
+| F10 | OPS-32 恢复判定（FUP-09） | `LOCAL_RUN` PASS | 尾部 `2*fail_timeout` 规则；p2i ws/reality PASS；p2d 重算 PASS | 判定口径修正，探测数据未改 |
 
-**结论**：复审项全部为容器内验证；发布/合并判断仍 **NO-GO**。
+**结论**：复审项全部为容器内验证；F09/F10 在 `1cd248e6` 上复验；F08 待推送后回填。
+发布/合并判断仍 **NO-GO**（独立 VM、公网 ACME、IPv6、多版本矩阵未验证）。

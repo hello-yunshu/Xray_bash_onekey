@@ -58,7 +58,7 @@
 | 公网 CA / DNS-01 / EAB 纯 Bash ACME | `BLOCKED` | 需要受控公网域名与 CA |
 | 外部 IPv6 数据面 | `NOT_RUN` | 默认 Docker bridge 无 IPv6；需双栈宿主 |
 | 多版本 Xray/Bash 配置矩阵 | `NOT_RUN` | 需固定历史 Release |
-| OPS 双端复跑 | 部分完成 | OPS-09/19/21/31/32 已在 `1cd8b98c` 双端 PASS（`audit-ops-dual-20261120`）；其余 18 个 ID 只有 Go 单侧 sweep |
+| OPS 双端复跑 | 部分完成 | OPS-09/19/21/31 已双端 PASS；OPS-32 在 `1cd248e6` 重跑（`fix-20261120-p2i`）ws/reality 均 PASS；其余 18 个 ID 只有 Go 单侧 sweep |
 | OPS-08 / OPS-27 | `FIXED_VERIFIED`（集成待跑） | `241cc99f` 新增 `xray guard show/set` 与 `xray cert clear`；Go 单测、CLI smoke、真实 `nginx -t` 均通过；Bash 双端交互仍 `NOT_RUN` |
 | OPS-30 | `INTENTIONAL_DELTA` | 语言切换为 `allowed-diff`，不要求逐字节一致 |
 | OPS-05/06/07/10/17b/24 | 已有等价路径 | 分别由 `xray edit --uuid/--target/--server-names`、`xray tls`、`update nginx`、`schedule run` 覆盖，只是没有同名 OPS 行 |
@@ -84,3 +84,22 @@
    没有跳过用例；OPS/矩阵失败项全部保留并按实际环境标 `BLOCKED`/`NOT_RUN`。
 6. **回滚**：`git revert 9f66b22a f217a2fa` 会恢复“SNI 当 Host + 跨 root 元数据”
    的旧行为，仅在确认元数据不会跨 root 复用时才可考虑。
+
+## 8. 2026-11-20 收尾修复决策（`1cd248e6`）
+
+1. **`--host` 是渲染输入，不是配置字段。** `EditRequest.Host` 只决定
+   `OldShareURI`/`NewShareURI`/`ShortIDLinks` 的 authority，不写入
+   `streamSettings`；缺省时退回 `shareHostFor(spec)` 并保持旧行为。
+   含 `/` 或 `://` 的值直接拒绝，避免把 URL 拼进链接。
+2. **`--host` 单独使用不产生变更。** `config edit` 仍是变更命令；只给 `--host`
+   会返回 “nothing to edit”，并在文案里说明它只影响链接渲染。Reality 编辑未给
+   `--host` 时，报告追加警告而不是失败（兼容既有调用方）。
+3. **E2E 两侧同源。** E7/E8 的 CLI 与驱动都显式 `--host 127.0.0.1`，
+   `oldLinkCaptured`/`backupHasOldShareUri` 不再依赖 SNI 恰好等于探测地址。
+4. **OPS-32 判定以可复现为准。** nginx 在 `fail_timeout` 后以衰减权重放行后端，
+   A 的命中本就稀疏；要求 A 链延伸到窗口末尾测到的是 worker 采样运气。改为完整
+   窗口尾部 `2*fail_timeout` 内 A ≥ `stable_min` 且相邻间隔 ≤ `fail_timeout`，
+   同时保留“先 A 后 B”的 first-A 记录，避免把一次命中当成恢复。
+5. **旧数据不回写。** p2d 的 `ops.json` 保持原判，重算结果单独放在
+   `artifacts/audit-remediation/followup-20261120/ops32-reanalysis/`，新结论以
+   p2i 的新探测为准，保证“原始证据”与“分析结论”可区分。

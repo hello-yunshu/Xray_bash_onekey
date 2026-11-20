@@ -3,12 +3,13 @@
   "generatedAt": "2026-11-20T02:45:00Z",
   "branch": "work/go-hardening-parity-20261119",
   "baselineSha": "9b965843dccc955eee8b91903749500f082271f7",
-  "codeSha": "a7d0d4f0229337c72fb965889ae1ea6dccba9653",
+  "codeSha": "1cd248e654aba99b70b2420db30fc32c84c15d43",
   "followupCodeShas": [
     "9f66b22ad9b555a3ae7f8a1e5d5d5d248907be99",
     "f217a2fa8656c86471f18c4d8b0b858d438f5a87",
     "102f52e1876a6d1957c4869beacf232e4e05f196",
-    "a7d0d4f0229337c72fb965889ae1ea6dccba9653"
+    "a7d0d4f0229337c72fb965889ae1ea6dccba9653",
+    "1cd248e654aba99b70b2420db30fc32c84c15d43"
   ],
   "summaryScope": "items below are the 2026-11-19 baseline; see followup20261120",
   "ciSha": "4f12543e",
@@ -237,29 +238,43 @@
         "id": "F05",
         "title": "full Go gate",
         "status": "LOCAL_RUN_PASS",
-        "evidencePath": "artifacts/audit-remediation/followup-20261120/c1/",
-        "reason": "gofmt, vet, build, full tests and race subset green"
+        "evidencePath": "artifacts/audit-remediation/followup-20261120/c3/gate.rc",
+        "reason": "gofmt, vet, build and full tests rc=0 at 1cd248e6"
       },
       {
         "id": "F06",
         "title": "98-case Bash/Go matrix",
         "status": "LOCAL_RUN_PASS",
-        "evidencePath": "tests/go-parity/evidence/matrix-fix-20261120-clean/summary.json",
+        "evidencePath": "tests/go-parity/evidence/matrix-fix-20261120-clean2/summary.json",
         "reason": "104 rows, 0 gap, repo_dirty=0"
       },
       {
         "id": "F07",
-        "title": "P2 full matrix",
+        "title": "P2 edit and OPS scenarios",
         "status": "LOCAL_RUN_PASS",
-        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-p2b/p2/, fix-20261120-p2c, fix-20261120-p2d",
-        "reason": "M1-M10, E1-E7, OPS-09 in p2b; E7/E8/OPS-21 in p2c; OPS-19/31 and OPS-32/ws in p2d. OPS-32/reality stays BLOCKER on the recovery-window assertion"
+        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-p2h/p2/, fix-20261120-p2i/p2/OPS-32",
+        "reason": "E7 13/13 and E8 14/14 with --host 127.0.0.1 on both sides; OPS-32 ws and reality PASS; M1-M10/E1-E7/OPS-09/19/21/31 remain PASS from p2b-p2d"
       },
       {
         "id": "F08",
         "title": "real CI on followup HEAD",
-        "status": "CI_PASS",
-        "evidencePath": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44660940260",
-        "reason": "same-HEAD runs: stage gate 44660940430, privacy 44660940260, release qualification 44660940218, preview 44660940291, real-root 44660940298, test install 44660940288"
+        "status": "PENDING",
+        "evidencePath": "GitHub Actions",
+        "reason": "fill run ids after pushing 1cd248e6"
+      },
+      {
+        "id": "F09",
+        "title": "config edit --host is the dial address",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "internal/xraycfg/reality_edit_test.go",
+        "reason": "three link tests cover old/new/short-id links, URL rejection; E7/E8 green at 1cd248e6"
+      },
+      {
+        "id": "F10",
+        "title": "OPS-32 stable recovery rule",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-p2i/p2/OPS-32",
+        "reason": "trailing 2*fail_timeout rule; ws and reality PASS; p2d probes re-analyzed to PASS under the same rule"
       }
     ],
     "conclusion": "NO-GO for release and merge"

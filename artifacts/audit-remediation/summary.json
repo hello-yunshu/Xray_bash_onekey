@@ -218,16 +218,16 @@
   },
   "followup20261120": {
     "reviewBaseline": "d13fca44",
-    "fixCommits": ["9f66b22a", "f217a2fa", "b212f1cf", "c65dbd04", "102f52e1"],
+    "fixCommits": ["9f66b22a", "f217a2fa", "b212f1cf", "c65dbd04", "102f52e1", "1cd248e6"],
     "report": "docs/go-migration/audit-remediation/REVIEW_20261120_FOLLOWUP.md",
-    "fixes": {"FUP-01": "share metadata is used only for its own canonical runtime path with a matching runtimeSha256", "FUP-02": "Reality share requires an explicit --host; serverNames stay the SNI", "FUP-03": "environment.txt carries hashes and repository-relative paths only", "FUP-04": "F28 redacts argv/stdout/stderr; the x25519 private key is no longer passed in", "FUP-05": "F28 uses --root and every probe passes an explicit --host", "FUP-06": "the matrix snapshots the dirty flag before creating its output directory", "FUP-07": "stale metadata degrades to a warning; the runtime config still renders"},
+    "fixes": {"FUP-01": "share metadata is used only for its own canonical runtime path with a matching runtimeSha256", "FUP-02": "Reality share requires an explicit --host; serverNames stay the SNI", "FUP-03": "environment.txt carries hashes and repository-relative paths only", "FUP-04": "F28 redacts argv/stdout/stderr; the x25519 private key is no longer passed in", "FUP-05": "F28 uses --root and every probe passes an explicit --host", "FUP-06": "the matrix snapshots the dirty flag before creating its output directory", "FUP-07": "stale metadata degrades to a warning; the runtime config still renders", "FUP-08": "config edit takes --host; old/new/short-id links all dial it, URL values are rejected and a Reality edit without --host warns", "FUP-09": "OPS-32 judges recovery in the trailing 2*fail_timeout of the window with the same gap cap and sample minimum"},
     "tests": {
-      "goGate": {"status": "PASS", "evidence": "artifacts/audit-remediation/followup-20261120/c2/go.log"},
-      "F28": {"passed": 57, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/f28-final"},
-      "F08": {"passed": 129, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/f08-final"},
-      "F18": {"passed": 178, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/f18-final"},
+      "goGate": {"status": "PASS", "evidence": "artifacts/audit-remediation/followup-20261120/c3/gate.rc"},
+      "F28": {"passed": 57, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/c3/f28"},
+      "F08": {"passed": 129, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/c3/f08"},
+      "F18": {"passed": 178, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/c3/f18"},
       "F28PreFix": {"passed": 35, "failed": 2, "evidence": "artifacts/audit-remediation/followup-20261120/f28-prefix-excerpt.txt"},
-      "matrix": {"rows": 104, "gap": 0, "repoDirty": 0, "evidence": "tests/go-parity/evidence/matrix-fix-20261120-clean"},
+      "matrix": {"rows": 104, "gap": 0, "repoDirty": 0, "evidence": "tests/go-parity/evidence/matrix-fix-20261120-clean2"},
       "p2Full": {
         "run": "fix-20261120-p2b",
         "commit": "f217a2fa",
@@ -235,13 +235,16 @@
         "invalidatedByNetwork": ["OPS-19", "OPS-31", "OPS-32"]
       },
       "p2Final": {
-        "runs": ["fix-20261120-p2c", "fix-20261120-p2d"],
-        "passed": ["E7", "E8", "OPS-21", "OPS-19", "OPS-31", "OPS-32/ws"],
-        "blocked": ["OPS-32/reality: recovery-window assertion"]
+        "runs": ["fix-20261120-p2c", "fix-20261120-p2d", "fix-20261120-p2h", "fix-20261120-p2i"],
+        "commit": "1cd248e6",
+        "passed": ["E7", "E8", "OPS-21", "OPS-19", "OPS-31", "OPS-32/ws", "OPS-32/reality"],
+        "blocked": [],
+        "ops32Reanalysis": {"rule": "trailing 2*fail_timeout, max gap fail_timeout, min 3 A responses", "evidence": "artifacts/audit-remediation/followup-20261120/ops32-reanalysis"}
       },
-      "privacyHygiene": {"findings": 0, "files": 3560},
+      "privacyHygiene": {"findings": 0, "files": 33667},
       "notRun": ["F01 (needs a real root/systemd environment)"]
     },
+    "boundaries": ["standalone VPS ACME and IPv6: no test host; production VPS is forbidden", "multi-version Xray/Bash matrix: NOT_RUN"],
     "conclusion": "NO-GO"
   }
 }

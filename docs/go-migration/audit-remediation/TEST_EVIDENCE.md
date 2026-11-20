@@ -331,7 +331,8 @@ docker run --rm -v /tmp/idleleo-linux:/usr/local/bin/idleleo:ro \
 
 环境：macOS 宿主机 + Docker；Go 统一用
 `golang:1.27.4`，`GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local`；
-Xray `26.10.31`；Nginx `1.27-alpine`。修复提交 `9f66b22a` + `f217a2fa`。
+Xray `26.10.31`；Nginx `1.27-alpine`。修复提交 `9f66b22a` + `f217a2fa`，
+收尾修复 `1cd248e6`（`config edit --host`、OPS-32 恢复判定）。
 
 ### 11.1 静态与全量
 
@@ -379,8 +380,35 @@ Xray `26.10.31`；Nginx `1.27-alpine`。修复提交 `9f66b22a` + `f217a2fa`。
 
 ```bash
 MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh \
-  "$PWD" "$PWD/tests/go-parity/evidence/matrix-fix-20261120-clean"
-E2E_RUN_ID=fix-20261120-p2b bash tests/e2e-diff/run_p2_matrix.sh
+  "$PWD" "$PWD/tests/go-parity/evidence/matrix-fix-20261120-clean2"
+E2E_RUN_ID=fix-20261120-p2h E2E_ONLY=E7,E8 bash tests/e2e-diff/run_p2_matrix.sh
+E2E_RUN_ID=fix-20261120-p2i E2E_ONLY=OPS-32 bash tests/e2e-diff/run_p2_matrix.sh
 python3 tests/go-parity/parity/scripts/check_evidence_hygiene.py --mask .
 python3 tests/go-parity/matrix/test_environment_contract.py
 ```
+
+### 11.6 收尾修复复验（`1cd248e6`）
+
+| 项 | 结果 | 证据 |
+| --- | --- | --- |
+| `gofmt` / `go vet` / `go build` / `go test ./...` | `rc=0`，0 FAIL | `artifacts/audit-remediation/followup-20261120/c3/{gate.rc,go-test.log}` |
+| 二进制固定 | `idleleo` `42f2de09…`（`-buildvcs=false -trimpath`）、Xray `26.10.31` `59396499…` | `.../c3/binaries.sha256` |
+| F28 / F08 / F18 | **57/0**、**129/0**、**178/0** | `.../c3/{f28,f08,f18}/fixture-result.json` |
+| E7 / E8（两侧 `--host 127.0.0.1`） | **13/13**、**14/14** `allPassed`，`run.json.commit=1cd248e6` | `tests/e2e-diff/evidence/fix-20261120-p2h/p2/` |
+| 98 项矩阵 | 104 行 = 54 `MATCH` + 40 `MATCH_CORE_FIELDS` + 4 `REFUSED` + 6 `A1_PASS`，0 GAP，`repo_dirty=0` | `tests/go-parity/evidence/matrix-fix-20261120-clean2/` |
+| OPS-32（ws / reality） | **PASS / PASS**，`run.json.commit=1cd248e6` | `tests/e2e-diff/evidence/fix-20261120-p2i/p2/OPS-32/` |
+| 证据卫生 | `hygiene: 0 finding(s)` | 本轮全仓扫描 |
+
+- **`config edit --host`**：`internal/xraycfg/reality_edit_test.go` 新增
+  `TestEditHostBecomesTheDialAddress`（三个链接都拨 `@203.0.113.10:443`、仍带
+  `sni=example.com`、不再出现 `@example.com:443`）、
+  `TestEditShortIDLinksUseTheExplicitHost`、`TestEditRejectsURLAsHost`；
+  `internal/cli` / `internal/deploy` / `internal/xraycfg` 全包测试通过。
+- **OPS-32 判定修正**：`stable_recovery` 改为“完整窗口尾部 `2*fail_timeout`
+  内 A ≥ 3 且相邻 A 间隔 ≤ `fail_timeout`”。p2d 的原始探测数据用新分析器重算
+  同样得到 PASS（reality 链长 bash 9 / go 5，ws 链长 bash 11 / go 10；见
+  `artifacts/audit-remediation/followup-20261120/ops32-reanalysis/`），说明
+  p2d 的 `BLOCKER` 来自判定口径而非行为差异；本轮以 p2i 的新探测数据为准。
+- E7/E8 的驱动与命令行两侧统一用 `--host 127.0.0.1`，`oldLinkCaptured` /
+  `backupHasOldShareUri` 不再依赖“SNI 恰好等于探测地址”。
+

@@ -77,3 +77,10 @@
 | FUP-04 | P1 | F28 `commands.log`、PASS/FAIL detail 与 `xray x25519 -i` argv 含临时私钥 | `f.run(redact=True)` 脱敏命令与输出；只保留布尔断言；fixture root 移出 evidence 目录 | `9f66b22a` | `FIXED_VERIFIED` |
 | FUP-05 | P1 | F28 的 `share` 未带 `--root`，测试自身不自洽 | 加 `--root`；其余 Reality 探针显式 `--host 127.0.0.1` | `9f66b22a`、`f217a2fa` | `FIXED_VERIFIED` |
 | FUP-06 | P2 | 矩阵 `repo_dirty` 把自身输出目录算进去 | 在创建 evidence 目录前快照 `git status` | `b212f1cf` | `FIXED_VERIFIED` |
+| FUP-07 | P1 | 直接编辑 `config.json` 后 `xray share` 因哈希不符完全不可用（OPS-21 `shareUri=false`） | 陈旧哈希降级为警告，仍按运行时配置渲染；loopback 歧义保持可操作错误 | `102f52e1` | `FIXED_VERIFIED` |
+| FUP-08 | P1 | `xray config edit` 的 `OldShareURI`/`NewShareURI`/`ShortIDLinks` 把 Reality SNI 当拨号地址，报告与备份可能给出不可连接的链接 | `EditRequest.Host` 成为唯一拨号地址来源；URL 形式拒绝；Reality 缺 `--host` 时输出降级警告；E7/E8 与驱动两侧显式 `--host 127.0.0.1` | `1cd248e6` | `FIXED_VERIFIED` |
+| FUP-09 | P1 | OPS-32 要求 A 链一直延续到恢复窗口末尾；nginx 以衰减权重重新放行后端，A 本就稀疏，同一行为在 bash 过、go 判 `BLOCKER` | 判定改为窗口尾部 `2*fail_timeout` 内 A ≥ `stable_min` 且相邻间隔 ≤ `fail_timeout`；规则文案同步 | `1cd248e6` | `FIXED_VERIFIED` |
+
+FUP-08/09 的验证见 [REVIEW_20261120_FOLLOWUP.md](REVIEW_20261120_FOLLOWUP.md)
+§3、§5；FUP-08 只影响链接渲染，不写配置字段，`--host` 单独使用时提示
+“nothing to edit”（它不产生运行时变更）。
