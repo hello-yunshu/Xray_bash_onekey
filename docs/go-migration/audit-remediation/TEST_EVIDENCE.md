@@ -422,8 +422,9 @@ Bash 与 Go 共享同一份缓存，并保留全部既有校验。
 | --- | --- | --- |
 | Go 单元 | 4 个 `ResolveFromCache` 测试通过：命中不发任何网络请求；损坏/缺失/build 不符全部失败 | `internal/nginx/artifact_test.go` |
 | OPS-19 / OPS-31 / OPS-32（ws + reality） | **PASS**；4 份 bash 安装日志均出现 `Nginx 使用离线缓存` + `使用缓存产物` 与模板 `使用离线缓存: config/...`，0 下载错误 | `tests/e2e-diff/evidence/fix-20261120-cache2/p2/` |
+| OPS-19 apt | **PASS**；安装日志出现 `使用离线 apt 缓存, 跳过软件源更新`，`Get:` / `apt-get update` 均为 0 条；阻断 `ports.ubuntu.com` 等归档主机后仍 **PASS** | `.../fix-20261120-apt1/p2/`、`.../fix-20261120-apt2/p2/` |
 | 离线证明（GitHub/raw 全部指向 `127.0.0.1`） | OPS-32 **ws PASS / reality PASS** | `tests/e2e-diff/evidence/fix-20261120-cache4/p2/` |
-| 缓存清单 | build `2026.10.15.7679`、arch `arm`、tarball `dc78117f…`、manifest `d9f6e162…` | `.../cache2/p2/nginx-cache.json` |
+| 缓存清单 | Nginx build `2026.10.15.7679`、arch `arm`、tarball `dc78117f…`；apt `75` 个 .deb（含 fail2ban 及依赖） | `.../cache2/p2/nginx-cache.json`、`.../apt1/p2/apt-cache.json` |
 
 - Nginx 包缓存：runner 先校验 `release-manifest.json` 的
   `versions.nginx_build`、`assets[arch].filename/sha256/size_bytes` 与宿主文件一致，
@@ -432,11 +433,16 @@ Bash 与 Go 共享同一份缓存，并保留全部既有校验。
   `sha256 mismatch`），避免“缓存失败被在线下载悄悄替代”。
 - 模板缓存：runner 把 `config/vless_reality.json`、`config/vless_tls.json` 播种到
   `/seed/release`；`download_json_file` 命中后仍执行 `jq empty` 校验，损坏即失败。
+- apt 缓存：runner 用与 E2E 镜像相同的 `ubuntu:24.04@sha256:…` 下载
+  `bc curl dbus git jq lsof python3 qrencode cron fail2ban` 的完整 .deb 闭包
+  （75 个）到 `$HOME/.cache/xray-audit/apt/noble-<arch>`，校验非空后注入
+  `IDLELEO_APT_CACHE=/seed/apt`。`check_system` 在离线模式下跳过 `apt update`；
+  `pkg_install` 若发现缺包则 `dpkg -i` 整个闭包，仍缺包即失败，不回退网络。
 - 离线证明命令：
 
   ```bash
-  E2E_RUN_ID=<id> E2E_ONLY=OPS-32 E2E_CONCURRENCY=1 \
-    E2E_BLOCK_HOSTS=github.com,raw.githubusercontent.com,cdn.jsdelivr.net,objects.githubusercontent.com,release-assets.githubusercontent.com \
+  E2E_RUN_ID=<id> E2E_ONLY=OPS-19 E2E_CONCURRENCY=1 \
+    E2E_BLOCK_HOSTS=ports.ubuntu.com,archive.ubuntu.com,security.ubuntu.com,deb.debian.org,github.com,raw.githubusercontent.com,cdn.jsdelivr.net,objects.githubusercontent.com,release-assets.githubusercontent.com \
     bash tests/e2e-diff/run_p2_matrix.sh
   ```
 

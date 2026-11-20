@@ -2324,6 +2324,29 @@ validate_supported_system() {
     return 1
 }
 
+# Offline apt mode (IDLELEO_APT_CACHE): E2E/CI seeds the exact .deb closure so
+# no apt call reaches the network. The cache directory is authoritative: a
+# missing or broken closure fails closed instead of silently downloading.
+apt_offline_mode() {
+    [[ -n "${IDLELEO_APT_CACHE:-}" && -d "${IDLELEO_APT_CACHE}" ]] &&
+        type -P dpkg >/dev/null 2>&1
+}
+
+# Install the seeded .deb closure in one dpkg call: dpkg orders the set itself
+# and skips packages that are already installed at the same version.
+apt_offline_install() {
+    local -a debs=("${IDLELEO_APT_CACHE}"/*.deb)
+    if [[ ! -e "${debs[0]}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "离线 apt 缓存为空"): ${IDLELEO_APT_CACHE} ${Font}"
+        return 1
+    fi
+    if ! dpkg -i "${debs[@]}" >/dev/null 2>&1; then
+        log_echo "${Error} ${RedBG} $(gettext "离线 apt 缓存安装失败") ${Font}"
+        return 1
+    fi
+    return 0
+}
+
 check_system() {
     if is_rpm_family && [[ ${VERSION_ID%%.*} -ge 10 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} ${VERSION} ${Font}"
@@ -2341,7 +2364,11 @@ check_system() {
         if [[ ! -f "${xray_install_config_file}" ]]; then
             wait_for_apt_lock 60 || exit 1
             dpkg --configure -a || exit 1
-            $INS update || exit 1
+            if apt_offline_mode; then
+                log_echo "${Info} ${GreenBG} $(gettext "使用离线 apt 缓存, 跳过软件源更新"): ${IDLELEO_APT_CACHE} ${Font}"
+            else
+                $INS update || exit 1
+            fi
         fi
     elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 24 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
@@ -2356,7 +2383,11 @@ check_system() {
             fi
             # Configure any interrupted packages — safe now that we hold the lock.
             dpkg --configure -a || exit 1
-            $INS update || exit 1
+            if apt_offline_mode; then
+                log_echo "${Info} ${GreenBG} $(gettext "使用离线 apt 缓存, 跳过软件源更新"): ${IDLELEO_APT_CACHE} ${Font}"
+            else
+                $INS update || exit 1
+            fi
         fi
     else
         log_echo "${Error} ${RedBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} $(gettext "不在支持的系统列表内, 安装中断")! ${Font}"
@@ -2743,6 +2774,25 @@ pkg_install() {
     local install_array=(${1//,/ })
     local failed=0
     local need_install=0
+    if apt_offline_mode; then
+        for p in "${install_array[@]}"; do
+            if [[ -z $(pkg_install_judge "${p}") ]]; then
+                need_install=1
+            fi
+        done
+        if [[ ${need_install} -eq 1 ]]; then
+            apt_offline_install || return 1
+            for p in "${install_array[@]}"; do
+                if [[ -z $(pkg_install_judge "${p}") ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "离线 apt 缓存缺少软件包"): ${p} ${Font}"
+                    return 1
+                fi
+            done
+        fi
+        log_echo "${OK} ${GreenBG} $(gettext "已安装") ${1//,/ } ${Font}"
+        sleep 0.5
+        return 0
+    fi
     for p in "${install_array[@]}"; do
         if [[ -z $(pkg_install_judge "${p}") ]]; then
             need_install=1

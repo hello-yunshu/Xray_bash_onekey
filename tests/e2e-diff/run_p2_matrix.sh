@@ -48,7 +48,7 @@ if [[ -n "${E2E_BLOCK_HOSTS:-}" ]]; then
 fi
 host_blocked() {
     local want="$1" h
-    for h in "${BLOCK_HOSTS[@]}"; do
+    for h in ${BLOCK_HOSTS[@]+"${BLOCK_HOSTS[@]}"}; do
         [[ "${h// /}" == "$want" ]] && return 0
     done
     return 1
@@ -134,7 +134,7 @@ if [[ -d "$EVID" && -n "$(ls -A "$EVID" 2>/dev/null)" ]]; then
     exit 2
 fi
 log "run_id=$RUN_ID"
-if [[ ${#BLOCK_HOSTS[@]} -gt 0 ]]; then
+if [[ -n "${E2E_BLOCK_HOSTS:-}" ]]; then
     log "blocked_hosts=${E2E_BLOCK_HOSTS} (pinned to 127.0.0.1 for offline proof)"
 fi
 docker build -q -t "$IMAGE_TAG" -f "$SUITE/image/Dockerfile" "$SUITE/image" >/dev/null || {
@@ -283,6 +283,68 @@ if seed_release_cache; then
 else
     RELEASE_CACHE_ENVS=()
     log "release_cache=miss (falling back to online downloads)"
+fi
+
+# --- offline apt cache ------------------------------------------------------
+# OPS-19 (and the OPS M2/M3 installs) refresh the Ubuntu archive before any
+# package work. Seed the exact .deb closure for the installer's dependency set
+# so `apt update` is skipped and any install stays local; the installer fails
+# closed when the closure is incomplete.
+APT_CACHE_ENVS=()
+APT_PACKAGES="bc curl dbus git jq lsof python3 qrencode cron fail2ban"
+APT_BASE_IMAGE=$(awk '/^FROM /{print $2; exit}' "$SUITE/image/Dockerfile")
+APT_CACHE="${E2E_APT_CACHE:-$HOME/.cache/xray-audit/apt/noble-$ARCH}"
+
+apt_cache_needed() {
+    [[ -z "$ONLY" || "$ONLY" == *OPS-* ]]
+}
+
+seed_apt_cache() {
+    local dest="$WORK/seed/apt"
+    local apt_source="host-cache"
+    mkdir -p "$dest" "$APT_CACHE"
+    if ! compgen -G "$APT_CACHE/*.deb" >/dev/null; then
+        apt_source="download"
+        if ! docker run --rm "$APT_BASE_IMAGE" bash -c "
+                set -e
+                export DEBIAN_FRONTEND=noninteractive
+                apt-get update -qq
+                apt-get install -y --download-only --no-install-recommends $APT_PACKAGES >/dev/null
+                tar -C /var/cache/apt/archives -cf - .
+            " | tar -C "$APT_CACHE" -xf -; then
+            log "apt_cache=miss reason=download-failed base=$APT_BASE_IMAGE"
+            return 1
+        fi
+    fi
+    if ! compgen -G "$APT_CACHE/*.deb" >/dev/null; then
+        log "apt_cache=miss reason=empty dir=$APT_CACHE"
+        return 1
+    fi
+    cp "$APT_CACHE"/*.deb "$dest/"
+    APT_CACHE_ENVS=(-e IDLELEO_APT_CACHE=/seed/apt)
+    python3 - "$dest" "$EVID/apt-cache.json" "$APT_PACKAGES" "$apt_source" <<'PY'
+import hashlib, json, os, sys
+dest, out, packages, source = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+debs = []
+for name in sorted(os.listdir(dest)):
+    if name.endswith('.deb'):
+        with open(os.path.join(dest, name), 'rb') as fh:
+            debs.append({"file": name, "sha256": hashlib.sha256(fh.read()).hexdigest()})
+with open(out, 'w') as fh:
+    json.dump({"packages": packages.split(), "source": source,
+               "debCount": len(debs), "debs": debs}, fh, indent=2)
+    fh.write('\n')
+PY
+    log "apt_cache=$apt_source debs=$(ls "$dest"/*.deb | wc -l | tr -d ' ') packages=$APT_PACKAGES"
+}
+
+if ! apt_cache_needed; then
+    log "apt_cache=skipped (no OPS scenario selected)"
+elif seed_apt_cache; then
+    log "apt_cache=hit (OPS offline apt)"
+else
+    APT_CACHE_ENVS=()
+    log "apt_cache=miss (falling back to apt update)"
 fi
 
 docker run --rm -v "$WORK/seed:/seed" "$IMAGE_TAG" bash -c \
@@ -535,7 +597,8 @@ run_bash_round() {
                 -e E2E_RELAY_PORT="$RELAY_PORT" -e E2E_PREV_OUT="/out"
                 -e E2E_TIMEOUT="${E2E_TIMEOUT:-900}"
                 "${NGINX_CACHE_ENVS[@]+"${NGINX_CACHE_ENVS[@]}"}"
-                "${RELEASE_CACHE_ENVS[@]+"${RELEASE_CACHE_ENVS[@]}"}")
+                "${RELEASE_CACHE_ENVS[@]+"${RELEASE_CACHE_ENVS[@]}"}"
+                "${APT_CACHE_ENVS[@]+"${APT_CACHE_ENVS[@]}"}")
     # Round 2 tests config idempotency, not live takeover. Bash reinstall
     # replaces the binary before its port guard, so the still-running service
     # is no longer recognised and the guard rejects its own port. Stop the
@@ -577,6 +640,7 @@ run_go_round() {
         "${acme_envs[@]+"${acme_envs[@]}"}"
         "${NGINX_CACHE_ENVS[@]+"${NGINX_CACHE_ENVS[@]}"}"
         "${RELEASE_CACHE_ENVS[@]+"${RELEASE_CACHE_ENVS[@]}"}"
+        "${APT_CACHE_ENVS[@]+"${APT_CACHE_ENVS[@]}"}"
         "$server" bash "/src/tests/e2e-diff/drivers/$driver" "${argv[@]}")
     "${run_cmd[@]}"; local rc=$?
     # The managed Nginx artifact comes from the network. A reset/EOF there is an

@@ -295,6 +295,13 @@
         "status": "LOCAL_RUN_PASS",
         "evidencePath": "tests/e2e-diff/evidence/fix-20261120-cache2/p2/, fix-20261120-cache4/p2/",
         "reason": "Nginx release artifact and config templates come from a verified local cache; OPS-19/31/32 PASS with zero download errors and OPS-32 still PASSes with github.com/raw.githubusercontent.com pinned to 127.0.0.1"
+      },
+      {
+        "id": "F12",
+        "title": "offline apt cache for OPS-19 installs",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-apt1/p2/, fix-20261120-apt2/p2/",
+        "reason": "IDLELEO_APT_CACHE seeds the 75-deb closure from the same ubuntu:24.04 digest; the offline path skips apt update and dpkg-installs the closure, failing closed on a missing package; OPS-19 PASS locally and still PASSes with ports.ubuntu.com and the other archive hosts pinned to 127.0.0.1"
       }
     ],
     "conclusion": "NO-GO for release and merge"

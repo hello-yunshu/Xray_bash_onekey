@@ -78,6 +78,7 @@
 | F09 | `config edit --host`（FUP-08） | `LOCAL_RUN` PASS | `reality_edit_test.go` 3 例；E7/E8 双侧 `--host 127.0.0.1` 全绿 | `--host` 只影响链接渲染，不写配置字段 |
 | F10 | OPS-32 恢复判定（FUP-09） | `LOCAL_RUN` PASS | 尾部 `2*fail_timeout` 规则；p2i ws/reality PASS；p2d 重算 PASS | 判定口径修正，探测数据未改 |
 | F11 | OPS-19/31/32 离线包缓存（FUP-10） | `LOCAL_RUN` PASS | Nginx 包 + 模板缓存命中，0 下载错误；`.../fix-20261120-cache2/p2/`；阻断 GitHub/raw 后 OPS-32 ws/reality 仍 PASS：`.../fix-20261120-cache4/p2/` | 只覆盖 Nginx 与配置模板，apt/统计脚本可选下载不在判定链 |
+| F12 | OPS-19 apt 离线缓存（FUP-11） | `LOCAL_RUN` PASS | 75 个 .deb 闭包；`Get:` / `apt-get update` 0 条；阻断 `ports.ubuntu.com` 等归档主机后仍 PASS：`.../fix-20261120-apt2/p2/` | 仅 apt；`xray_stats` 可选在线更新未缓存 |
 
 **结论**：复审项全部为容器内验证；F09/F10 在 `1cd248e6` 上复验，F08 在
 `5f382902` 上 6 条 CI 全绿。发布/合并判断仍 **NO-GO**（独立 VM、公网 ACME、
