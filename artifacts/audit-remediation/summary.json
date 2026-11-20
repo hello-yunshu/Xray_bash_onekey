@@ -1,6 +1,6 @@
 {
   "phase": "audit-remediation-2026-11-20-followup",
-  "generatedAt": "2026-11-20T09:00:00+08:00",
+  "generatedAt": "2026-11-20T10:30:00+08:00",
   "branch": "work/go-hardening-parity-20261119",
   "commit": "9f66b22a",
   "latestCommit": "f217a2fa",
@@ -215,5 +215,33 @@
     "pr": "eligible to continue as draft review",
     "merge": "NO-GO",
     "release": "NO-GO"
+  },
+  "followup20261120": {
+    "reviewBaseline": "d13fca44",
+    "fixCommits": ["9f66b22a", "f217a2fa", "b212f1cf", "c65dbd04", "102f52e1"],
+    "report": "docs/go-migration/audit-remediation/REVIEW_20261120_FOLLOWUP.md",
+    "fixes": {"FUP-01": "share metadata is used only for its own canonical runtime path with a matching runtimeSha256", "FUP-02": "Reality share requires an explicit --host; serverNames stay the SNI", "FUP-03": "environment.txt carries hashes and repository-relative paths only", "FUP-04": "F28 redacts argv/stdout/stderr; the x25519 private key is no longer passed in", "FUP-05": "F28 uses --root and every probe passes an explicit --host", "FUP-06": "the matrix snapshots the dirty flag before creating its output directory", "FUP-07": "stale metadata degrades to a warning; the runtime config still renders"},
+    "tests": {
+      "goGate": {"status": "PASS", "evidence": "artifacts/audit-remediation/followup-20261120/c2/go.log"},
+      "F28": {"passed": 57, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/f28-final"},
+      "F08": {"passed": 129, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/f08-final"},
+      "F18": {"passed": 178, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/f18-final"},
+      "F28PreFix": {"passed": 35, "failed": 2, "evidence": "artifacts/audit-remediation/followup-20261120/f28-prefix-excerpt.txt"},
+      "matrix": {"rows": 104, "gap": 0, "repoDirty": 0, "evidence": "tests/go-parity/evidence/matrix-fix-20261120-clean"},
+      "p2Full": {
+        "run": "fix-20261120-p2b",
+        "commit": "f217a2fa",
+        "passed": ["M1-M10", "E1-E7", "OPS-09"],
+        "invalidatedByNetwork": ["OPS-19", "OPS-31", "OPS-32"]
+      },
+      "p2Final": {
+        "runs": ["fix-20261120-p2c", "fix-20261120-p2d"],
+        "passed": ["E7", "E8", "OPS-21", "OPS-19", "OPS-31", "OPS-32/ws"],
+        "blocked": ["OPS-32/reality: recovery-window assertion"]
+      },
+      "privacyHygiene": {"findings": 0, "files": 3560},
+      "notRun": ["F01 (needs a real root/systemd environment)"]
+    },
+    "conclusion": "NO-GO"
   }
 }

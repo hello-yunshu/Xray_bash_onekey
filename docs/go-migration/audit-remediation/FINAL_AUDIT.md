@@ -110,5 +110,9 @@
 - **测试**：`go test -count=1 ./...`、`go vet ./...`、`gofmt -l` 全绿；F28 57/0、
   F08 129/0、F18 178/0；98 项矩阵 54 MATCH + 40 MATCH_CORE_FIELDS + 4 REFUSED、
   0 GAP；P2 全量见 `tests/e2e-diff/evidence/fix-20261120-p2b/`。
+- **最终 HEAD 复验**（`102f52e1`）：E7 13/13、E8 14/14、OPS-21 PASS（修复前
+  `HARNESS-ERROR`）、OPS-19 109s PASS、OPS-31 PASS、OPS-32/ws PASS；
+  OPS-32/reality 因恢复窗口判定抖动记 `BLOCKER`（配置与错误日志两端一致）。
+  详见 [REVIEW_20261120_FOLLOWUP.md](REVIEW_20261120_FOLLOWUP.md)。
 - **结论不变：NO-GO / 不合并。** 独立 VPS、公网 ACME、多版本矩阵、外部 IPv6、
   剩余 OPS 双端仍未验证；本轮只允许整改分支提交与推送。
