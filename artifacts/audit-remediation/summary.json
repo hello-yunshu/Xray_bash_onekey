@@ -242,6 +242,11 @@
         "ops32Reanalysis": {"rule": "trailing 2*fail_timeout, max gap fail_timeout, min 3 A responses", "evidence": "artifacts/audit-remediation/followup-20261120/ops32-reanalysis"}
       },
       "privacyHygiene": {"findings": 0, "files": 33667},
+      "ci": {
+        "sha": "5f382902",
+        "workflows": {"stageGate": 44671935449, "privacy": 44671935247, "releaseQualification": 44671935222, "preview": 44671935256, "realRoot": 44671935218, "testInstall": 44671935238},
+        "conclusion": "all success"
+      },
       "notRun": ["F01 (needs a real root/systemd environment)"]
     },
     "boundaries": ["standalone VPS ACME and IPv6: no test host; production VPS is forbidden", "multi-version Xray/Bash matrix: NOT_RUN"],

@@ -59,18 +59,18 @@
 | P2 OPS-31 | **PASS**（reality-balance 增删） | `.../fix-20261120-p2d/p2/OPS-31/` |
 | P2 OPS-32（旧判定） | ws PASS；reality `BLOCKER`（判定口径，非行为差异；新分析器重算 PASS） | `.../fix-20261120-p2d/p2/OPS-32/`、`artifacts/audit-remediation/followup-20261120/ops32-reanalysis/` |
 
-## 4. 同 HEAD CI（`1cd248e6`，草稿 PR #182）
+## 4. 同 HEAD CI（文档提交 `5f382902`，草稿 PR #182）
 
-> 本节回填推送后触发的 6 个 workflow；文档提交为 docs-only，不改代码。
+> 推送后在 `5f382902` 上触发；代码内容与 `1cd248e6` 相同，后续如需再改代码必须重跑。
 
 | Workflow | Run | 结论 |
 | --- | --- | --- |
-| Go parity stage gate | 待回填 | 待回填 |
-| Privacy Guard | 待回填 | 待回填 |
-| Go production parity release qualification | 待回填 | 待回填 |
-| Go preview qualification (not for release) | 待回填 | 待回填 |
-| Go real-root change acceptance (container) | 待回填 | 待回填 |
-| Test Install | 待回填 | 待回填 |
+| Go parity stage gate | [44671935449](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935449) | success |
+| Privacy Guard | [44671935247](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935247) | success |
+| Go production parity release qualification | [44671935222](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935222) | success |
+| Go preview qualification (not for release) | [44671935256](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935256) | success |
+| Go real-root change acceptance (container) | [44671935218](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935218) | success |
+| Test Install | [44671935238](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935238) | success |
 
 PR #182 保持 **draft**，未合并 `develop/go-native`，未打 tag，未触碰生产 VPS。
 

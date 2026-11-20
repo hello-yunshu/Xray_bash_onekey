@@ -12,7 +12,7 @@
     "1cd248e654aba99b70b2420db30fc32c84c15d43"
   ],
   "summaryScope": "items below are the 2026-11-19 baseline; see followup20261120",
-  "ciSha": "4f12543e",
+  "ciSha": "5f382902310349ade6bbc0acad1cd6a199dbe48d",
   "pr": {
     "number": 182,
     "url": "https://github.com/hello-yunshu/Xray_bash_onekey/pull/182",
@@ -28,12 +28,18 @@
     "offline": true
   },
   "ci": {
-    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239779": "Go parity stage gate: success",
-    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239752": "Go preview qualification (NOT FOR RELEASE): success",
-    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239918": "Go production parity release qualification: success",
-    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527240183": "Go real-root change acceptance (container): success",
-    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527240075": "Test Install: success",
-    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239956": "Privacy Guard: success"
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935449": "Go parity stage gate: success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935256": "Go preview qualification (NOT FOR RELEASE): success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935222": "Go production parity release qualification: success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935218": "Go real-root change acceptance (container): success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935238": "Test Install: success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935247": "Privacy Guard: success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239779": "Go parity stage gate: success (2026-11-19 baseline 4f12543e)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239752": "Go preview qualification (NOT FOR RELEASE): success (4f12543e)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239918": "Go production parity release qualification: success (4f12543e)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527240183": "Go real-root change acceptance (container): success (4f12543e)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527240075": "Test Install: success (4f12543e)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239956": "Privacy Guard: success (4f12543e)"
   },
   "items": [
     {
@@ -258,9 +264,9 @@
       {
         "id": "F08",
         "title": "real CI on followup HEAD",
-        "status": "PENDING",
-        "evidencePath": "GitHub Actions",
-        "reason": "fill run ids after pushing 1cd248e6"
+        "status": "CI_PASS",
+        "evidencePath": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935449",
+        "reason": "six pull_request workflows green at 5f382902: stage gate 44671935449, privacy 44671935247, release qualification 44671935222, preview 44671935256, real-root 44671935218, test install 44671935238"
       },
       {
         "id": "F09",
