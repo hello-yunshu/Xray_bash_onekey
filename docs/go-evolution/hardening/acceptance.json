@@ -11,10 +11,13 @@
     "a7d0d4f0229337c72fb965889ae1ea6dccba9653",
     "1cd248e654aba99b70b2420db30fc32c84c15d43",
     "ce746d8c2b9c81e8db62a890ca432a76e34212ea",
-    "c1b14832364f733b11e2323c509d33dd78d8c0a8"
+    "c1b14832364f733b11e2323c509d33dd78d8c0a8",
+    "9d2420e273e84316c45cf56f3f47a82f04b3cc02",
+    "caed1817efa5285c25e6c142d5e83a664aa9c5ca"
   ],
   "summaryScope": "items below are the 2026-11-19 baseline; see followup20261120",
-  "ciSha": "c1b14832364f733b11e2323c509d33dd78d8c0a8",
+  "ciSha": "caed1817efa5285c25e6c142d5e83a664aa9c5ca",
+  "ciNote": "7/7 workflows green on this SHA; later commits are docs-only",
   "pr": {
     "number": 182,
     "url": "https://github.com/hello-yunshu/Xray_bash_onekey/pull/182",
