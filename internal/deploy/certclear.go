@@ -40,8 +40,12 @@ var managedPairNames = map[string]bool{
 	"decoy.crt": true, "decoy.key": true,
 }
 
-var certDirective = regexp.MustCompile(`(?m)^[ \t]*(ssl_certificate|ssl_certificate_key|ssl_trusted_certificate|ssl_client_certificate)[ \t]+([^;]+);`)
+// certDirective is deliberately not anchored to the start of a line: real
+// Nginx accepts several directives on one physical line, so a line-anchored
+// pattern silently misses every directive after the first.
+var certDirective = regexp.MustCompile(`(ssl_certificate_key|ssl_certificate|ssl_trusted_certificate|ssl_client_certificate)[ \t]+([^;{}]+);`)
 var jsonCertField = regexp.MustCompile(`"(certificateFile|keyFile|certFile|certKeyFile)"\s*:\s*"([^"]+)"`)
+var nginxIncludeDirective = regexp.MustCompile(`\binclude[ \t]+([^;{}]+);`)
 
 // ClearCertsSpec is one "clear every managed certificate" request.
 //
@@ -125,10 +129,11 @@ func ClearCertificates(ctx context.Context, spec ClearCertsSpec) (ClearCertsRepo
 	}
 
 	meta, _ := loadCertMetadata(paths)
-	refs := collectCertReferences(paths, meta)
+	scan := collectCertReferences(paths, meta)
+	rep.Warnings = append(rep.Warnings, scan.warnings...)
 
 	var moves []certMove
-	local, err := planManagedDir(paths, dir, refs, meta, &rep)
+	local, err := planManagedDir(paths, dir, scan, meta, &rep)
 	if err != nil {
 		return rep, err
 	}
@@ -155,7 +160,14 @@ func ClearCertificates(ctx context.Context, spec ClearCertsSpec) (ClearCertsRepo
 	if len(moves) == 0 {
 		return rep, nil
 	}
-	removed, warnings, err := executeCertClear(paths, moves)
+	// Validate the live configuration before deleting anything. A tree that is
+	// already broken must not lose certificates on top of the breakage.
+	if managedNginxInstalled(paths) {
+		if testErr := balanceNginxTest(ctx, paths.Root); testErr != nil {
+			return rep, fmt.Errorf("refusing to clear certificates: the managed Nginx configuration is invalid before the change: %w", testErr)
+		}
+	}
+	removed, warnings, err := executeCertClear(ctx, paths, moves)
 	rep.Warnings = append(rep.Warnings, warnings...)
 	rep.Removed = append(rep.Removed, removed...)
 	if err != nil {
@@ -205,7 +217,8 @@ func loadCertMetadata(paths host.Paths) (store.Metadata, bool) {
 	return meta, true
 }
 
-func planManagedDir(paths host.Paths, dir string, refs map[string][]string, meta store.Metadata, rep *ClearCertsReport) ([]certMove, error) {
+func planManagedDir(paths host.Paths, dir string, scan certReferenceScan, meta store.Metadata, rep *ClearCertsReport) ([]certMove, error) {
+	refs := scan.refs
 	if dir == "" {
 		rep.Missing = true
 		return nil, nil
@@ -254,6 +267,11 @@ func planManagedDir(paths host.Paths, dir string, refs map[string][]string, meta
 			}
 			files, used, unknown, hasLink := scanCertDir(target, refs, managerOwned, scheduleCerts, ownedResources)
 			inUse := len(used) > 0 || refsContainDir(refs, target)
+			if scan.failClosed && (managerOwned || files > 0) {
+				keepEntry(rep, target, "directory", certOwnerUnknown, inUse, used,
+					"the effective configuration could not be fully scanned; refusing to remove a project directory")
+				continue
+			}
 			if hasLink || unknown {
 				reason := "directory holds a symlink or a file whose ownership is not proven; refusing to remove it"
 				keepEntry(rep, target, "directory", certOwnerUnknown, inUse, used, reason)
@@ -285,6 +303,9 @@ func planManagedDir(paths host.Paths, dir string, refs map[string][]string, meta
 			keepEntry(rep, target, "file", certOwnerUser, false, nil, "the .user-managed marker forbids automatic removal")
 		case owner != certOwnerProject:
 			keepEntry(rep, target, "file", owner, false, nil, "ownership is not proven; not removed")
+		case scan.failClosed:
+			keepEntry(rep, target, "file", owner, false, nil,
+				"the effective configuration could not be fully scanned; cannot prove this certificate is unused")
 		default:
 			addPlan(rep, target, "file", owner, false, nil, certActionDelete, "")
 			moves = append(moves, certMove{From: target, Kind: "file"})
@@ -390,64 +411,142 @@ func configuredScheduleCerts(paths host.Paths) map[string]bool {
 	return out
 }
 
-// collectCertReferences gathers every absolute certificate path referenced by
-// an effective managed configuration. Relative paths are resolved against the
-// root; an unresolvable directive is ignored here and surfaced as a warning by
-// the caller only when it could change a decision.
-func collectCertReferences(paths host.Paths, meta store.Metadata) map[string][]string {
-	refs := map[string][]string{}
-	add := func(raw, source string) {
-		raw = strings.TrimSpace(strings.Trim(raw, `"'`))
-		if raw == "" {
+// certReferenceScan is the result of following the effective configuration.
+// failClosed means at least one reference could not be proven: a variable path,
+// an unreadable file or a missing include. In that state every project-owned
+// certificate is kept, because deleting an unproven file could break a live
+// server on the next reload.
+type certReferenceScan struct {
+	refs       map[string][]string
+	warnings   []string
+	failClosed bool
+}
+
+// collectCertReferences gathers every certificate path referenced by the
+// effective managed configuration: the managed Nginx main config and its real
+// include chain (including paths outside the managed directory), every managed
+// fragment, every Xray configuration under the managed tree and the renewal
+// schedule. Symlink aliases are resolved so a reference through a link still
+// protects the real managed file.
+func collectCertReferences(paths host.Paths, meta store.Metadata) certReferenceScan {
+	scan := certReferenceScan{refs: map[string][]string{}}
+	prefix := nginxPrefixDir(paths)
+	visited := map[string]bool{}
+
+	var scanFile func(path string, depth int)
+	scanFile = func(path string, depth int) {
+		clean := filepath.Clean(path)
+		if visited[clean] || depth > 16 {
 			return
 		}
-		p := raw
-		if filepath.IsAbs(p) {
-			// Managed configs name /etc/idleleo/... ; a sandbox root relocates
-			// that absolute tree under the disposable directory.
-			if paths.Root != "/" {
-				p = filepath.Join(paths.Root, filepath.FromSlash(strings.TrimPrefix(p, "/")))
-			}
-		} else {
-			p = filepath.Join(paths.Root, filepath.FromSlash(p))
+		visited[clean] = true
+		raw, err := os.ReadFile(clean)
+		if err != nil {
+			scan.incomplete("cannot read configuration " + clean)
+			return
 		}
-		refs[filepath.Clean(p)] = append(refs[filepath.Clean(p)], source)
+		text := stripNginxComments(string(raw))
+
+		for _, m := range nginxIncludeDirective.FindAllStringSubmatch(text, -1) {
+			target := strings.TrimSpace(strings.Trim(m[1], `"'`))
+			if target == "" {
+				continue
+			}
+			if strings.Contains(target, "$") {
+				scan.incomplete("the include path in " + clean + " uses a variable")
+				continue
+			}
+			resolved := resolveNginxPath(paths, prefix, target)
+			if resolved == "" {
+				scan.incomplete("the include path in " + clean + " cannot be resolved")
+				continue
+			}
+			globbed := strings.ContainsAny(target, "*?[")
+			matches := []string{resolved}
+			if globbed {
+				found, globErr := filepath.Glob(resolved)
+				if globErr != nil {
+					scan.incomplete("the include glob in " + clean + " is invalid")
+					continue
+				}
+				matches = found
+			}
+			for _, included := range matches {
+				fi, statErr := os.Stat(included)
+				if statErr != nil || fi.IsDir() {
+					if !globbed {
+						scan.incomplete("the included configuration " + included + " cannot be read")
+					}
+					continue
+				}
+				scanFile(included, depth+1)
+			}
+		}
+		for _, m := range certDirective.FindAllStringSubmatch(text, -1) {
+			scan.add(paths, prefix, m[2], clean)
+		}
 	}
 
-	// Managed Nginx fragments and the managed main configuration.
+	// The managed main config is the entry point of the effective chain.
+	if mainConf, err := paths.Join(filepath.Join(nginx.InstallDirRel, "conf", "nginx.conf"), false); err == nil {
+		if _, statErr := os.Stat(mainConf); statErr == nil {
+			scanFile(mainConf, 0)
+		}
+	}
 	for _, rel := range []string{nginx.ConfDirRel, filepath.Join(nginx.InstallDirRel, "conf")} {
 		dir, err := paths.Join(rel, false)
 		if err != nil {
 			continue
 		}
 		_ = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
-			if err != nil || d.IsDir() {
+			if err != nil {
+				if path != dir {
+					scan.incomplete("cannot read configuration " + path)
+				}
 				return nil
 			}
-			if !strings.HasSuffix(path, ".conf") {
+			if d.IsDir() {
 				return nil
 			}
-			raw, readErr := os.ReadFile(path)
-			if readErr != nil {
+			if d.Type()&os.ModeSymlink != 0 || !d.Type().IsRegular() {
 				return nil
 			}
-			for _, m := range certDirective.FindAllStringSubmatch(string(raw), -1) {
-				add(m[2], path)
-			}
+			scanFile(path, 1)
 			return nil
 		})
 	}
 
-	// Xray runtime config (TLS certificates; Reality has no certificate files).
+	// Xray runtime config plus any additional managed Xray configuration; a
+	// second config can reference the same certificate files.
 	runtimeRel := meta.RuntimeConfigPath
 	if err := store.ValidateManagerPath(runtimeRel); err != nil {
 		runtimeRel = paths.RuntimeConfig()
 	}
+	xrayPaths := map[string]bool{}
 	if runtimePath, err := paths.Join(runtimeRel, false); err == nil {
-		if raw, readErr := os.ReadFile(runtimePath); readErr == nil {
-			for _, m := range jsonCertField.FindAllStringSubmatch(string(raw), -1) {
-				add(m[2], runtimePath)
+		xrayPaths[filepath.Clean(runtimePath)] = true
+	}
+	if xrayDir, err := paths.Join("etc/idleleo/conf/xray", false); err == nil {
+		_ = filepath.WalkDir(xrayDir, func(path string, d os.DirEntry, err error) error {
+			if err != nil || d.IsDir() || !d.Type().IsRegular() {
+				return nil
 			}
+			if strings.HasSuffix(path, ".json") {
+				xrayPaths[filepath.Clean(path)] = true
+			}
+			return nil
+		})
+	}
+	for xrayPath := range xrayPaths {
+		raw, readErr := os.ReadFile(xrayPath)
+		if readErr != nil {
+			if !os.IsNotExist(readErr) {
+				scan.incomplete("cannot read Xray configuration " + xrayPath)
+			}
+			continue
+		}
+		for _, m := range jsonCertField.FindAllStringSubmatch(string(raw), -1) {
+			scan.add(paths, prefix, m[2], xrayPath)
 		}
 	}
 
@@ -455,11 +554,113 @@ func collectCertReferences(paths host.Paths, meta store.Metadata) map[string][]s
 	if cfgPath, err := paths.Join(schedule.ConfigRel, false); err == nil {
 		if raw, readErr := os.ReadFile(cfgPath); readErr == nil {
 			for _, m := range jsonCertField.FindAllStringSubmatch(string(raw), -1) {
-				add(m[2], cfgPath)
+				scan.add(paths, prefix, m[2], cfgPath)
 			}
+		} else if !os.IsNotExist(readErr) {
+			scan.incomplete("cannot read the renewal schedule " + cfgPath)
 		}
 	}
-	return refs
+	return scan
+}
+
+func (s *certReferenceScan) incomplete(reason string) {
+	s.failClosed = true
+	s.warnings = append(s.warnings, reason+"; certificates whose use cannot be proven will be kept")
+}
+
+func (s *certReferenceScan) add(paths host.Paths, prefix, raw, source string) {
+	raw = strings.TrimSpace(strings.Trim(raw, `"'`))
+	if raw == "" {
+		return
+	}
+	if strings.Contains(raw, "$") {
+		s.incomplete("a certificate directive in " + source + " uses a variable path")
+		return
+	}
+	p := resolveNginxPath(paths, prefix, raw)
+	if p == "" {
+		s.incomplete("a certificate directive in " + source + " cannot be resolved")
+		return
+	}
+	s.record(p, source)
+	if real, err := filepath.EvalSymlinks(p); err == nil && filepath.Clean(real) != p {
+		s.record(filepath.Clean(real), source)
+	}
+}
+
+func (s *certReferenceScan) record(path, source string) {
+	for _, existing := range s.refs[path] {
+		if existing == source {
+			return
+		}
+	}
+	s.refs[path] = append(s.refs[path], source)
+}
+
+// nginxPrefixDir is the prefix Nginx resolves relative include and certificate
+// paths against. The managed install wins; a sandbox without one falls back to
+// its root, which keeps relative fixtures working.
+func nginxPrefixDir(paths host.Paths) string {
+	install := filepath.Join(paths.Root, filepath.FromSlash(nginx.InstallDirRel))
+	if fi, err := os.Stat(filepath.Join(install, "conf")); err == nil && fi.IsDir() {
+		return install
+	}
+	return paths.Root
+}
+
+func resolveNginxPath(paths host.Paths, prefix, raw string) string {
+	raw = strings.TrimSpace(strings.Trim(raw, `"'`))
+	if raw == "" {
+		return ""
+	}
+	p := raw
+	if filepath.IsAbs(p) {
+		// Managed configs name /etc/idleleo/... ; a sandbox root relocates that
+		// absolute tree under the disposable directory.
+		if paths.Root != "/" {
+			p = filepath.Join(paths.Root, filepath.FromSlash(strings.TrimPrefix(p, "/")))
+		}
+	} else {
+		p = filepath.Join(prefix, filepath.FromSlash(p))
+	}
+	return filepath.Clean(p)
+}
+
+// stripNginxComments removes unquoted '#' comments so a commented-out directive
+// can never protect or delete a certificate.
+func stripNginxComments(text string) string {
+	var b strings.Builder
+	inSingle, inDouble := false, false
+	for i := 0; i < len(text); i++ {
+		c := text[i]
+		switch {
+		case c == '\'' && !inDouble:
+			inSingle = !inSingle
+			b.WriteByte(c)
+		case c == '"' && !inSingle:
+			inDouble = !inDouble
+			b.WriteByte(c)
+		case c == '#' && !inSingle && !inDouble:
+			for i < len(text) && text[i] != '\n' {
+				i++
+			}
+			if i < len(text) {
+				b.WriteByte('\n')
+			}
+		default:
+			b.WriteByte(c)
+		}
+	}
+	return b.String()
+}
+
+// managedNginxInstalled reports whether a real managed Nginx binary exists to
+// validate the tree against. A missing install means no Nginx can be broken by
+// the removal, so the check is skipped.
+func managedNginxInstalled(paths host.Paths) bool {
+	bin := filepath.Join(paths.Root, filepath.FromSlash(nginx.InstallDirRel), "sbin", "nginx")
+	fi, err := os.Stat(bin)
+	return err == nil && fi.Mode().IsRegular()
 }
 
 // planACMEState removes only acme.sh domain directories whose certificate is
@@ -560,7 +761,7 @@ func fileExists(path string) bool {
 // the same filesystem, so a rollback is an atomic metadata operation.
 var renameCertFile = os.Rename
 
-func executeCertClear(paths host.Paths, moves []certMove) ([]string, []string, error) {
+func executeCertClear(ctx context.Context, paths host.Paths, moves []certMove) ([]string, []string, error) {
 	id := fmt.Sprintf("%d-%d", time.Now().UnixNano(), os.Getpid())
 	stage := filepath.Join(certStateDir(paths), "staging", id)
 	if err := os.MkdirAll(stage, 0o700); err != nil {
@@ -605,6 +806,23 @@ func executeCertClear(paths host.Paths, moves []certMove) ([]string, []string, e
 		removed = append(removed, mv.From)
 	}
 
+	// Prove the moved tree still runs before committing the transaction. The
+	// staged files are reversible, so a failed check restores everything.
+	if err := verifyCertClearTree(ctx, paths); err != nil {
+		rbErr := rollbackCertMoves(moves)
+		j.LastError = err.Error()
+		if rbErr != nil {
+			j.State = certJournalRecoveryRequired
+			j.LastError += "; rollback failed: " + rbErr.Error()
+			_ = writeCertJournal(paths, &j)
+			return nil, warnings, fmt.Errorf("%w (rollback failed: %v; run `idleleo xray cert clear` again to recover)", err, rbErr)
+		}
+		j.State = certJournalRolledBack
+		_ = writeCertJournal(paths, &j)
+		cleanupCertJournal(paths, stage, home)
+		return nil, warnings, fmt.Errorf("%w; the previous certificate tree was restored", err)
+	}
+
 	j.State = certJournalCommitted
 	if err := writeCertJournal(paths, &j); err != nil {
 		// The moves already happened; the journal stays PREPARED, so the next run
@@ -615,6 +833,36 @@ func executeCertClear(paths host.Paths, moves []certMove) ([]string, []string, e
 		warnings = append(warnings, "staging cleanup failed: "+err.Error())
 	}
 	return removed, warnings, nil
+}
+
+// verifyCertClearTree proves the staged removals did not break the services that
+// own the certificates. It only runs real binaries that are installed; a node
+// without them has nothing that could load the files.
+func verifyCertClearTree(ctx context.Context, paths host.Paths) error {
+	if managedNginxInstalled(paths) {
+		if err := balanceNginxTest(ctx, paths.Root); err != nil {
+			return fmt.Errorf("nginx -t rejected the configuration after the certificate change: %w", err)
+		}
+	}
+	xrayBin := filepath.Join(paths.Root, "usr/local/bin/xray")
+	if fi, err := os.Stat(xrayBin); err == nil && fi.Mode().IsRegular() {
+		if conf, err := paths.Join(paths.RuntimeConfig(), false); err == nil {
+			if _, statErr := os.Stat(conf); statErr == nil {
+				res, runErr := host.Run(ctx, host.ExecSpec{
+					Path: xrayBin, Args: []string{"-test", "-config", conf},
+					Env: geodataEnv(paths.Root), Timeout: 60 * time.Second,
+				})
+				if runErr != nil {
+					return runErr
+				}
+				if res.ExitCode != 0 {
+					return fmt.Errorf("xray -test rejected the runtime configuration after the certificate change (exit %d): %s",
+						res.ExitCode, strings.TrimSpace(res.Stderr))
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func rollbackCertMoves(moves []certMove) error {

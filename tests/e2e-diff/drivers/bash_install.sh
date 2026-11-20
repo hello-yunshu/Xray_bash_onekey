@@ -42,14 +42,16 @@ fi
 
 # The installer treats a missing /etc/idleleo/install.sh as a fresh bootstrap and
 # refuses to continue without remote Release metadata. Seed the tracked copy so
-# the flow under test runs locally instead of downloading itself.
+# the flow under test runs locally instead of downloading itself. A historical
+# migration run points E2E_INSTALL_SRC at the real older installer instead.
+SRC_INSTALLER="${E2E_INSTALL_SRC:-/src/install.sh}"
 mkdir -p /etc/idleleo /etc/idleleo/tmp
-install -m 0755 /src/install.sh /etc/idleleo/install.sh
-log "seeded_installer=yes"
+install -m 0755 "$SRC_INSTALLER" /etc/idleleo/install.sh
+log "seeded_installer=yes source=$SRC_INSTALLER"
 
 # Local version metadata keeps read_version/check_online_version_connect off the
 # network. The shell version must match the tracked script under test.
-src_version=$(grep -m1 '^shell_version=' /src/install.sh | awk -F'=|"' '{print $3}')
+src_version=$(grep -m1 '^shell_version=' "$SRC_INSTALLER" | awk -F'=|"' '{print $3}')
 src_version="${src_version:-3.3.6}"
 # The Nginx build must match the offline cache seeded by the runner, so both
 # sides resolve the same artifact; the default keeps the historical build.

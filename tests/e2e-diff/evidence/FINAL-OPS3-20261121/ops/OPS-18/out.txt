@@ -1,0 +1,123 @@
+{
+  "supported": true,
+  "goos": "linux",
+  "kernelRelease": "7.2.12-orbstack-00394-gbecdd6130068",
+  "availableCongestion": [
+    "reno",
+    "cubic"
+  ],
+  "current": {
+    "net.ipv4.tcp_congestion_control": "cubic"
+  },
+  "managedFile": {
+    "path": "/etc/sysctl.d/90-idleleo-tcp.conf",
+    "exists": false,
+    "owned": false,
+    "mode": 0,
+    "uid": 0,
+    "gid": 0,
+    "values": {}
+  },
+  "statePath": "/var/lib/idleleo/tcp/state.json",
+  "sources": [
+    {
+      "path": "/etc/sysctl.conf",
+      "name": "sysctl.conf",
+      "ours": false,
+      "values": {},
+      "priority": 1000
+    },
+    {
+      "path": "/etc/sysctl.d/10-bufferbloat.conf",
+      "name": "10-bufferbloat.conf",
+      "ours": false,
+      "values": {
+        "net.core.default_qdisc": "fq_codel"
+      },
+      "priority": 0
+    },
+    {
+      "path": "/etc/sysctl.d/10-console-messages.conf",
+      "name": "10-console-messages.conf",
+      "ours": false,
+      "values": {
+        "kernel.printk": "4 4 1 7"
+      },
+      "priority": 1
+    },
+    {
+      "path": "/etc/sysctl.d/10-ipv6-privacy.conf",
+      "name": "10-ipv6-privacy.conf",
+      "ours": false,
+      "values": {
+        "net.ipv6.conf.all.use_tempaddr": "2",
+        "net.ipv6.conf.default.use_tempaddr": "2"
+      },
+      "priority": 2
+    },
+    {
+      "path": "/etc/sysctl.d/10-kernel-hardening.conf",
+      "name": "10-kernel-hardening.conf",
+      "ours": false,
+      "values": {
+        "kernel.kptr_restrict": "1"
+      },
+      "priority": 3
+    },
+    {
+      "path": "/etc/sysctl.d/10-magic-sysrq.conf",
+      "name": "10-magic-sysrq.conf",
+      "ours": false,
+      "values": {
+        "kernel.sysrq": "176"
+      },
+      "priority": 4
+    },
+    {
+      "path": "/etc/sysctl.d/10-map-count.conf",
+      "name": "10-map-count.conf",
+      "ours": false,
+      "values": {
+        "vm.max_map_count": "1048576"
+      },
+      "priority": 5
+    },
+    {
+      "path": "/etc/sysctl.d/10-network-security.conf",
+      "name": "10-network-security.conf",
+      "ours": false,
+      "values": {
+        "net.ipv4.conf.all.rp_filter": "2",
+        "net.ipv4.conf.default.rp_filter": "2"
+      },
+      "priority": 6
+    },
+    {
+      "path": "/etc/sysctl.d/10-ptrace.conf",
+      "name": "10-ptrace.conf",
+      "ours": false,
+      "values": {
+        "kernel.yama.ptrace_scope": "1"
+      },
+      "priority": 7
+    },
+    {
+      "path": "/etc/sysctl.d/10-zeropage.conf",
+      "name": "10-zeropage.conf",
+      "ours": false,
+      "values": {
+        "vm.mmap_min_addr": "32768"
+      },
+      "priority": 8
+    }
+  ],
+  "effective": {
+    "net.core.default_qdisc": "fq_codel",
+    "net.ipv4.tcp_congestion_control": ""
+  },
+  "conflicts": [],
+  "warnings": [
+    "read net.core.default_qdisc: open /proc/sys/net/core/default_qdisc: no such file or directory",
+    "kernel does not list bbr in tcp_available_congestion_control"
+  ]
+}

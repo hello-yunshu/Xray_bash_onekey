@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
@@ -310,8 +311,8 @@ type SNIGuardStatus struct {
 
 var (
 	guardDecoyServerName = regexp.MustCompile(`(?m)^[ \t]*server_name[ \t]+([^;]+);`)
-	guardIncludePolicy   = regexp.MustCompile(`(?m)^[ \t]*include[ \t]+/etc/idleleo/conf/nginx/(03-(?:isolate|decoy)\.conf);`)
-	guardIncludeGlob     = regexp.MustCompile(`(?m)^[ \t]*include[ \t]+/etc/idleleo/conf/nginx/\*\.conf;[ \t]*$`)
+	guardIncludePolicy   = regexp.MustCompile(`\binclude[ \t]+/etc/idleleo/conf/nginx/(03-(?:isolate|decoy)\.conf)\s*;`)
+	guardIncludeGlob     = regexp.MustCompile(`\binclude[ \t]+/etc/idleleo/conf/nginx/\*\.conf\s*;`)
 )
 
 // InspectSNIGuard reports the actual policy and any disagreement between the
@@ -358,18 +359,27 @@ func InspectSNIGuard(root string) (SNIGuardStatus, error) {
 	if err != nil {
 		return st, err
 	}
+
+	inconsistent := func(reason string) (SNIGuardStatus, error) {
+		st.Status = "inconsistent"
+		st.Warnings = append(st.Warnings, reason)
+		return st, nil
+	}
+
 	mainBody, readErr := os.ReadFile(mainConf)
-	if readErr == nil {
-		st.Evidence = append(st.Evidence, mainConf)
+	if readErr != nil {
+		// Without the main config the include chain is unknown. Inferring a
+		// policy from the fragment directory would report a protection that may
+		// not be loaded at all.
+		return inconsistent("cannot read the managed Nginx main configuration " + mainConf + ": " + readErr.Error())
 	}
+	st.Evidence = append(st.Evidence, mainConf)
 	includes := map[string]bool{}
-	globInclude := false
-	if readErr == nil {
-		for _, m := range guardIncludePolicy.FindAllStringSubmatch(string(mainBody), -1) {
-			includes[m[1]] = true
-		}
-		globInclude = guardIncludeGlob.Match(mainBody)
+	for _, m := range guardIncludePolicy.FindAllStringSubmatch(string(mainBody), -1) {
+		includes[m[1]] = true
 	}
+	globInclude := guardIncludeGlob.Match(mainBody)
+
 	decoyFrag := filepath.Join(nginxDir, guardDecoyFrag)
 	isolateFrag := filepath.Join(nginxDir, guardIsolateFrag)
 	hasDecoy := fileExists(decoyFrag)
@@ -384,12 +394,6 @@ func InspectSNIGuard(root string) (SNIGuardStatus, error) {
 	}
 	if hasIsolate {
 		st.Evidence = append(st.Evidence, isolateFrag)
-	}
-
-	inconsistent := func(reason string) (SNIGuardStatus, error) {
-		st.Status = "inconsistent"
-		st.Warnings = append(st.Warnings, reason)
-		return st, nil
 	}
 	if hasDecoy && hasIsolate {
 		return inconsistent("both 03-isolate.conf and 03-decoy.conf exist")
@@ -417,13 +421,21 @@ func InspectSNIGuard(root string) (SNIGuardStatus, error) {
 		}
 	case port == GuardDecoyPort:
 		return inconsistent("the deny upstream targets the decoy port but 03-decoy.conf is missing")
+	case port == GuardIsolatePort && !hasIsolate:
+		return inconsistent("the deny upstream targets the isolate port but 03-isolate.conf is missing")
 	case port == GuardIsolatePort:
 		st.Policy = SNIPolicyIsolate
 	default:
 		st.Policy = SNIPolicyReject
 	}
 	st.Enabled = true
+	// Files are consistent. "active" additionally requires a running Nginx that
+	// loaded them; otherwise the truthful state is "configured".
 	st.Status = "active"
+	if !nginxRunning(root) {
+		st.Status = "configured"
+		st.Warnings = append(st.Warnings, "the policy files are consistent but the managed Nginx is not running; reporting configured, not active")
+	}
 
 	if metaErr != nil {
 		st.MetadataSynced = false
@@ -452,8 +464,34 @@ func InspectSNIGuard(root string) (SNIGuardStatus, error) {
 	if st.DecoyDomain == "" {
 		st.DecoyDomain = meta.SNIGuard.DecoyDomain
 	}
-	st.Status = "active"
+	if st.Status != "configured" {
+		st.Status = "active"
+	}
 	return st, nil
+}
+
+// nginxRunning reports whether the managed Nginx master is alive. A missing
+// binary or pid file is not evidence of an applied policy, so the caller must
+// report "configured" instead of "active".
+func nginxRunning(root string) bool {
+	bin := filepath.Join(root, filepath.FromSlash(nginx.InstallDirRel), "sbin", "nginx")
+	if fi, err := os.Stat(bin); err != nil || !fi.Mode().IsRegular() {
+		return false
+	}
+	pidFile := filepath.Join(root, filepath.FromSlash(nginx.InstallDirRel), "logs", "nginx.pid")
+	raw, err := os.ReadFile(pidFile)
+	if err != nil {
+		return false
+	}
+	pid, err := strconv.Atoi(strings.TrimSpace(string(raw)))
+	if err != nil || pid <= 0 {
+		return false
+	}
+	proc, err := os.FindProcess(pid)
+	if err != nil {
+		return false
+	}
+	return proc.Signal(syscall.Signal(0)) == nil
 }
 
 func normalizeSNIPolicy(policy string) (string, error) {

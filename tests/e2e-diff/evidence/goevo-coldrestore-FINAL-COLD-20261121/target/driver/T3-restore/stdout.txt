@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "archive": "/handoff/state.tar.gz",
+  "archiveSha256": "56eb111b281e1dbd925a46083b02b631604d745891c96dc726544b3f50e62025",
+  "bytes": 0,
+  "files": 2,
+  "createdAt": "",
+  "restored": [
+    "etc/idleleo/conf/xray/config.json",
+    "etc/idleleo/v1/metadata.json"
+  ],
+  "preBackup": "/etc/idleleo/backup/pre-restore-20261120T182516Z.tar.gz",
+  "sensitive": true
+}

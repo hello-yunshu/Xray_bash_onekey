@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "units": {
+    "nginx": {
+      "errorLines": 1,
+      "lines": 7,
+      "sampleErrors": [
+        "<TS> e2e-FINAL-M-20261121-E5-go systemd[1]: nginx.service: Failed to parse PID from file /usr/local/nginx/logs/nginx.pid: Invalid argument"
+      ],
+      "sha256": "7ab3c797586ee95bcbf32cfeb109257a83bfcef3933730fabccdf80c20dd90b0",
+      "warningLines": 0
+    },
+    "xray": {
+      "errorLines": 0,
+      "lines": 6,
+      "sampleErrors": [],
+      "sha256": "b1168a5f13ae94342f7022596d8c59bc7f5451cfcd0c31a487f0286b81759545",
+      "warningLines": 2
+    }
+  }
+}

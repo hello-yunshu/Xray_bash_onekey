@@ -2435,6 +2435,11 @@ with open(out, "w", encoding="utf-8") as fh:
 PY
 log "scope: installs=[$SCOPE_INSTALLS] edits=[$SCOPE_EDITS] ops=[$SCOPE_OPS]"
 
+# The Bash menu transcript and `nginx -T` dump carry the capture host's public
+# address; rewrite it to documentation ranges before the evidence is reported
+# or committed.
+python3 "$SUITE/collect/sanitize_evidence.py" "$EVID" || log "evidence sanitize failed"
+
 BASELINE="${E2E_BASELINE:-$SUITE/evidence/clean-run01-d5f17dc/p2}"
 BASELINE_ARGS=()
 [[ -d "$BASELINE" ]] && BASELINE_ARGS=(--baseline "$BASELINE")

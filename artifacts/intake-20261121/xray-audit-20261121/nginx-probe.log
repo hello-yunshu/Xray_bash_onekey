@@ -1,0 +1,15 @@
+Nginx valid config, inline cert directives:
+nginx: the configuration file /tmp/tmp.OTbqj9XNas/nginx.conf syntax is ok
+nginx: configuration file /tmp/tmp.OTbqj9XNas/nginx.conf test is successful
+nginx_rc=0
+Exact Go regex output:
+After moving test certificate only:
+2026/11/20 17:49:55 [emerg] 1105#1105: cannot load certificate "/tmp/tmp.OTbqj9XNas/cert.pem": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/tmp/tmp.OTbqj9XNas/cert.pem, r) error:10000080:BIO routines::no such file)
+nginx: configuration file /tmp/tmp.OTbqj9XNas/nginx.conf test failed
+nginx_rc=1
+Multiline positive control:
+nginx: the configuration file /tmp/tmp.OTbqj9XNas/multiline.conf syntax is ok
+nginx: configuration file /tmp/tmp.OTbqj9XNas/multiline.conf test is successful
+nginx_rc=0
+ssl_certificate=/tmp/tmp.OTbqj9XNas/cert.pem
+ssl_certificate_key=/tmp/tmp.OTbqj9XNas/key.pem

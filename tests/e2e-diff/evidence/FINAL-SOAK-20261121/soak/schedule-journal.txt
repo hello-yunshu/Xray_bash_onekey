@@ -1,0 +1,14 @@
+Nov 20 18:56:16 e2e-FINAL-SOAK-20261121-sched systemd[1]: Starting idleleo-schedule.service - idleleo Go scheduled maintenance (Bridge migration takeover)...
+Nov 20 18:56:16 e2e-FINAL-SOAK-20261121-sched idleleo[213]: 2026-11-20T18:56:16Z job=auto-update result=degraded no Go release channel is configured; no automatic update runs (explicit product degradation, see `idleleo update configure`)
+Nov 20 18:56:16 e2e-FINAL-SOAK-20261121-sched idleleo[213]: 2026-11-20T18:56:16Z job=cert-renew result=skipped no certificate files to monitor
+Nov 20 18:56:16 e2e-FINAL-SOAK-20261121-sched idleleo[213]: 2026-11-20T18:56:16Z job=geodata-refresh result=ok geoip.dat=3312784 bytes geosite.dat=7554929 bytes; xray not active, no reload
+Nov 20 18:56:16 e2e-FINAL-SOAK-20261121-sched idleleo[213]: 2026-11-20T18:56:16Z job=stats-collect result=skipped no runtime config (relay role has no Xray stats)
+Nov 20 18:56:16 e2e-FINAL-SOAK-20261121-sched systemd[1]: idleleo-schedule.service: Deactivated successfully.
+Nov 20 18:56:16 e2e-FINAL-SOAK-20261121-sched systemd[1]: Finished idleleo-schedule.service - idleleo Go scheduled maintenance (Bridge migration takeover).
+Nov 20 18:56:32 e2e-FINAL-SOAK-20261121-sched systemd[1]: Starting idleleo-schedule.service - idleleo Go scheduled maintenance (Bridge migration takeover)...
+Nov 20 18:56:32 e2e-FINAL-SOAK-20261121-sched idleleo[276]: 2026-11-20T18:56:32Z job=auto-update result=degraded no Go release channel is configured; no automatic update runs (explicit product degradation, see `idleleo update configure`)
+Nov 20 18:56:32 e2e-FINAL-SOAK-20261121-sched idleleo[276]: 2026-11-20T18:56:32Z job=cert-renew result=skipped no certificate files to monitor
+Nov 20 18:56:32 e2e-FINAL-SOAK-20261121-sched idleleo[276]: 2026-11-20T18:56:32Z job=geodata-refresh result=ok geoip.dat=3312784 bytes geosite.dat=7554929 bytes; xray not active, no reload
+Nov 20 18:56:32 e2e-FINAL-SOAK-20261121-sched idleleo[276]: 2026-11-20T18:56:32Z job=stats-collect result=skipped no runtime config (relay role has no Xray stats)
+Nov 20 18:56:32 e2e-FINAL-SOAK-20261121-sched systemd[1]: idleleo-schedule.service: Deactivated successfully.
+Nov 20 18:56:32 e2e-FINAL-SOAK-20261121-sched systemd[1]: Finished idleleo-schedule.service - idleleo Go scheduled maintenance (Bridge migration takeover).

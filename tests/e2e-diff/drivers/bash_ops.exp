@@ -226,7 +226,11 @@ proc ops30 {} {
 }
 
 puts "OPS_ID=$opsid"
-spawn bash /src/install.sh
+set install_src "/src/install.sh"
+if {[info exists env(E2E_INSTALL_SRC)] && $env(E2E_INSTALL_SRC) ne ""} {
+    set install_src $env(E2E_INSTALL_SRC)
+}
+spawn bash $install_src
 
 switch -- $opsid {
     OPS-04 { ops04 }

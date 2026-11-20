@@ -1,0 +1,5 @@
+94959452005fe8fecd8f5aa383f93a3d909e2e188c751acb2b5dc9ee26e614e6  /etc/idleleo/conf/xray/config.json
+30ebd0786e91da7f82dc78f38d0841def24fbf5321f747044799c073a6cd291c  /etc/idleleo/cert/xray.crt
+f715b30e10fa6f3eb68d04246a55f79051da1e4dfec0da2d97b950800d5b8f5d  /etc/idleleo/cert/xray.key
+cfc75dd93d5b1f043732d86f26e71f81378eb14d0a53f0b2f91d4001d5f6e189  /etc/systemd/system/xray.service
+d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d  /etc/systemd/system/nginx.service

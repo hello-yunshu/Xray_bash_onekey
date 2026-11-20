@@ -1,0 +1,24 @@
+<TS> e2e-FINAL-M-20261121-M8-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: 2026/11/20 18:09:15.995845 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: 2026/11/20 18:09:15.995993 [Warning] core: Xray 26.10.31 started
+<TS> e2e-FINAL-M-20261121-M8-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-FINAL-M-20261121-M8-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-FINAL-M-20261121-M8-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-FINAL-M-20261121-M8-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: 2026/11/20 18:09:21.482027 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: 2026/11/20 18:09:21.482060 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-FINAL-M-20261121-M8-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-FINAL-M-20261121-M8-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-FINAL-M-20261121-M8-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-FINAL-M-20261121-M8-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: 2026/11/20 18:09:36.414660 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-FINAL-M-20261121-M8-bash xray[<PID>]: 2026/11/20 18:09:36.414981 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/20 18:09:21.487011 [Warning] core: Xray 26.10.31 started
+2026/11/20 18:09:25.659961 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:34272 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 18:09:36.418432 [Warning] core: Xray 26.10.31 started

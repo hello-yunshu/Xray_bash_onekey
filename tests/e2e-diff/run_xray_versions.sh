@@ -125,6 +125,64 @@ docker cp "e2e-$RUN_ID-versions:/etc/idleleo/conf/xray/config.json" "$EVID/xray.
 
 results="$EVID/results.tsv"
 : >"$results"
+
+# deploy_and_probe boots a throwaway systemd container with the release binary,
+# performs a real Go install and a real client business request. `xray -test` is
+# kept as the first gate, but it is never reported as a deployment.
+deploy_and_probe() { # <tag> <binary-dir> <out-dir>
+    local tag=$1 bindir=$2 out=$3
+    local safe did dnet dc
+    safe=$(printf '%s' "$tag" | tr -c 'A-Za-z0-9' '_')
+    did="ver-$safe"
+    dnet="e2e-$RUN_ID-$did-net"
+    dc="e2e-$RUN_ID-$did"
+    mkdir -p "$out" "$WORK/secret/$tag"
+    docker network create "$dnet" >/dev/null 2>&1 || true
+    # shellcheck disable=SC2046
+    if ! docker run -d --name "$dc" --hostname "$dc" --network "$dnet" \
+            --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock \
+            $(cgroup_mount_args) \
+            -v "$ROOT:/src:ro" -v "$bindir:/xray-bin:ro" -v "$SEED:/seed:ro" -v "$out:/out" \
+            "$IMAGE_TAG" /usr/lib/systemd/systemd >/dev/null 2>&1; then
+        printf 'BLOCKER\tcontainer-start\n' >"$out/deploy.txt"
+        return 2
+    fi
+    local st=""
+    for _ in $(seq 1 60); do
+        st=$(docker exec "$dc" systemctl is-system-running 2>/dev/null || true)
+        [[ "$st" == running || "$st" == degraded ]] && break
+        sleep 1
+    done
+    docker exec "$dc" install -m 0755 /seed/idleleo /usr/local/bin/idleleo
+    docker exec "$dc" install -m 0755 /xray-bin/xray /usr/local/bin/xray
+    docker exec -e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY "$dc" \
+        idleleo xray install --binary /usr/local/bin/xray --mode reality \
+        --domain example.com --target www.cloudflare.com --port 443 \
+        --container --json >"$out/install.json" 2>"$out/install.err"
+    local irc=$?
+    echo "$irc" >"$out/install.rc"
+    if [[ "$irc" -ne 0 ]]; then
+        printf 'BLOCKER\tinstall-rc=%s\n' "$irc" >"$out/deploy.txt"
+        docker rm -f "$dc" >/dev/null 2>&1; docker network rm "$dnet" >/dev/null 2>&1
+        return 3
+    fi
+    local client_xray="${E2E_CLIENT_XRAY:-}"
+    [[ -n "$client_xray" && -x "$client_xray" ]] || client_xray="$SEED/xray"
+    bash "$SUITE/collect/l4.sh" "$dc" "$dc-client" "$IMAGE_TAG" "$dnet" \
+        reality example.com "$client_xray" "$WORK/secret/$tag" "$out/connectivity" auto \
+        >"$out/l4.log" 2>&1
+    local lrc=$?
+    echo "$lrc" >"$out/l4.rc"
+    if [[ "$lrc" -eq 0 ]]; then
+        printf 'PASS\tclient-business-request\n' >"$out/deploy.txt"
+    else
+        printf 'BLOCKER\tclient-l4-rc=%s\n' "$lrc" >"$out/deploy.txt"
+    fi
+    docker rm -f "$dc" >/dev/null 2>&1 || true
+    docker network rm "$dnet" >/dev/null 2>&1 || true
+    return "$lrc"
+}
+
 for tag in "${tags[@]}"; do
     ver="${tag#v}"
     dir="$CACHE/$tag"
@@ -159,10 +217,20 @@ for tag in "${tags[@]}"; do
         >"$EVID/$tag.test.log" 2>&1 || rc=$?
     reported=$(docker run --rm -v "$dir/bin:/xray-bin:ro" "$IMAGE_TAG" /xray-bin/xray version 2>/dev/null | head -1)
     if [[ "$rc" -eq 0 ]]; then
-        printf '%s\t%s\t%s\t%s\t%s\n' "$tag" "PASS" "$reported" "$sha" "$zip" >>"$results"
-        log "tag=$tag PASS $reported"
+        dverdict="NOT-RUN"; ddetail="deploy-not-attempted"
+        deploy_and_probe "$tag" "$dir/bin" "$EVID/$tag-deploy" || true
+        if [[ -f "$EVID/$tag-deploy/deploy.txt" ]]; then
+            dverdict=$(cut -f1 "$EVID/$tag-deploy/deploy.txt")
+            ddetail=$(cut -f2 "$EVID/$tag-deploy/deploy.txt")
+        else
+            dverdict="BLOCKER"; ddetail="missing-deploy-evidence"
+        fi
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$tag" "PASS" "$reported" "$sha" "$tag/$ASSET" \
+            "$dverdict" "$ddetail" >>"$results"
+        log "tag=$tag config=PASS deploy=$dverdict ($ddetail)"
     else
-        printf '%s\t%s\t%s\t%s\t%s\n' "$tag" "BLOCKER" "config-test-rc=$rc" "$sha" "$zip" >>"$results"
+        printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$tag" "BLOCKER" "config-test-rc=$rc" "$sha" "$tag/$ASSET" \
+            "NOT-RUN" "config-test-failed" >>"$results"
         log "tag=$tag BLOCKER config-test-rc=$rc"
     fi
 done
@@ -178,20 +246,27 @@ for line in open(rows, encoding="utf-8"):
     if len(parts) < 4:
         continue
     tag, verdict, detail, sha = parts[:4]
+    deploy_verdict = parts[5] if len(parts) > 5 else "NOT-RUN"
+    deploy_detail = parts[6] if len(parts) > 6 else ""
     items.append({"tag": tag, "verdict": verdict, "detail": detail,
-                  "sha256": sha, "asset": asset})
+                  "sha256": sha, "asset": asset,
+                  "deployVerdict": deploy_verdict,
+                  "deployDetail": deploy_detail})
 verdict = "PASS"
 if not items:
     verdict = "HARNESS-ERROR"
-elif any(x["verdict"] == "BLOCKER" for x in items):
+elif any(x["verdict"] == "BLOCKER" or x["deployVerdict"] == "BLOCKER" for x in items):
     verdict = "BLOCKER"
 elif all(x["verdict"] == "BLOCKED" for x in items):
     verdict = "BLOCKED"
+elif any(x["deployVerdict"] != "PASS" for x in items):
+    verdict = "BLOCKER"
 report = {
     "verdict": verdict,
     "configSource": "idleleo xray install --mode reality (pinned build)",
     "newestTag": newest,
-    "scope": "binary compatibility: every release must parse the installed config",
+    "scope": ("config compatibility plus a real data-plane deployment and "
+              "client business request for every release that parses the config"),
     "versions": items,
 }
 with open(out, "w", encoding="utf-8") as fh:

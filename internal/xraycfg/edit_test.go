@@ -310,7 +310,7 @@ func TestEditXHTTPPathAlwaysHasLeadingSlash(t *testing.T) {
 		{"/custom/", "/custom/"},
 	} {
 		g, _, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},
-			EditRequest{Transport: TransportXHTTP, XHTTPPath: tc.in})
+			EditRequest{Transport: TransportXHTTP, XHTTPPath: tc.in, XHTTPPathSet: true})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -324,6 +324,20 @@ func TestEditXHTTPPathAlwaysHasLeadingSlash(t *testing.T) {
 		}
 		if path != tc.want {
 			t.Fatalf("xhttp path %q rendered as %q, want %q", tc.in, path, tc.want)
+		}
+	}
+}
+
+// TestEditXHTTPPathRejectsBlankInput pins the security decision for the inputs
+// where the Bash menu and the Go CLI diverged: empty and whitespace-only paths
+// are refused instead of being silently ignored or rendered as "/ ".
+func TestEditXHTTPPathRejectsBlankInput(t *testing.T) {
+	raw := editBase(t)
+	for _, in := range []string{"", " ", "   ", "\t", " /custom "} {
+		_, _, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},
+			EditRequest{Transport: TransportXHTTP, XHTTPPath: in, XHTTPPathSet: true})
+		if err == nil {
+			t.Fatalf("xhttp path %q must be rejected", in)
 		}
 	}
 }

@@ -1,0 +1,80 @@
+PASS	M1 R1 bash install exits 0 (rc=0)
+PASS	M1 R1 traffic works before takeover (rc=0)
+PASS	M1 R1 go install --keep-config exits 0 (rc=0)
+PASS	M1 R1 runtime config is semantically unchanged
+PASS	M1 R1 runtime config bytes are unchanged
+PASS	M1 R1 xray config still validates
+PASS	M1 R1 xray stays active
+PASS	M1 R1 listening ports are unchanged
+PASS	M1 R1 cron table is unchanged
+PASS	M1 R1 traffic works after takeover (rc=0)
+PASS	M1 R1 status exits 0
+PASS	M1 R1 status reports an installed runtime
+PASS	M1 R1 status classification is Reality/raw
+PASS	M1 R2 bash install exits 0 (rc=0)
+PASS	M1 R2 disk-full prepare exits 13 (rc=13)
+PASS	M1 R2 disk-full leaves the runtime config untouched
+PASS	M1 R2 disk-full leaves config, certs and units untouched
+PASS	M1 R2 disk-full leaves no journal or plan
+PASS	M1 OPS-26 metadata import from a Bash tree (rc=0)
+PASS	M1 OPS-26 import creates the Go metadata store
+PASS	M1 OPS-26 import leaves the runtime config untouched
+PASS	M1 R2 bridge audit exits 0 (rc=0)
+PASS	M1 R2 bridge prepare exits 0 (rc=0)
+PASS	M1 R2 bridge validate exits 0 (rc=0)
+PASS	M1 R2 bridge activate exits 0 (rc=0)
+PASS	M1 R2 bridge status exits 0 (rc=0)
+PASS	M1 R2 runtime config is semantically unchanged
+PASS	M1 R2 listening ports are unchanged
+PASS	M1 R2 xray stays active
+PASS	M1 R2 bridge status reports a committed migration
+PASS	M1 R2 traffic works after activation (rc=0)
+PASS	M1 INJ bash install exits 0 (rc=0)
+PASS	M1 I1 corrupt config is refused (rc=1)
+PASS	M1 I1 error reports the rejected candidate
+PASS	M1 I1 error names the config file
+PASS	M1 I1 leaves units, certs and cron untouched
+PASS	M1 I1 the refused install does not overwrite the corrupt input
+PASS	M1 I1 restored config validates
+PASS	M1 I1 service recovers once the input is repaired (rc=0 state=active)
+PASS	M1 I4 read-only target is refused (rc=1)
+PASS	M1 I4 error names the write-refused path
+PASS	M1 I4 runtime config is byte-identical after the refusal
+PASS	M1 I4 the un-restorable rollback keeps a recovery journal
+PASS	M1 I4 xray recover clears the journal (rc=0)
+PASS	M1 I4 recovery journal is removed
+PASS	M1 I4 service stays active
+PASS	M1 I4 recovery leaves the runtime config unchanged
+PASS	M4 R1 bash install exits 0 (rc=0)
+PASS	M4 R1 traffic works before takeover (rc=0)
+PASS	M4 R1 go install --keep-config exits 0 (rc=0)
+PASS	M4 R1 runtime config is semantically unchanged
+PASS	M4 R1 runtime config bytes are unchanged
+PASS	M4 R1 certificate and key are untouched
+PASS	M4 R1 nginx config still validates
+PASS	M4 R1 xray config still validates
+PASS	M4 R1 xray stays active
+PASS	M4 R1 listening ports are unchanged
+PASS	M4 R1 cron table is unchanged
+PASS	M4 R1 traffic works after takeover (rc=0)
+PASS	M4 R1 status exits 0
+PASS	M4 R1 status reports an installed runtime
+PASS	M4 R1 status classification is TLS/ws
+PASS	M4 R2 bash install exits 0 (rc=0)
+PASS	M4 R2 disk-full prepare exits 13 (rc=13)
+PASS	M4 R2 disk-full leaves the runtime config untouched
+PASS	M4 R2 disk-full leaves config, certs and units untouched
+PASS	M4 R2 disk-full leaves no journal or plan
+PASS	M4 OPS-26 metadata import from a Bash tree (rc=0)
+PASS	M4 OPS-26 import creates the Go metadata store
+PASS	M4 OPS-26 import leaves the runtime config untouched
+PASS	M4 R2 bridge audit exits 0 (rc=0)
+PASS	M4 R2 bridge prepare exits 0 (rc=0)
+PASS	M4 R2 bridge validate exits 0 (rc=0)
+PASS	M4 R2 bridge activate exits 0 (rc=0)
+PASS	M4 R2 bridge status exits 0 (rc=0)
+PASS	M4 R2 runtime config is semantically unchanged
+PASS	M4 R2 listening ports are unchanged
+PASS	M4 R2 xray stays active
+PASS	M4 R2 bridge status reports a committed migration
+PASS	M4 R2 traffic works after activation (rc=0)

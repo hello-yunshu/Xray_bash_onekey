@@ -33,12 +33,16 @@ type EditDefaults struct {
 // numbers and empty strings keep the current value, which is what makes the
 // command a patch instead of a rewrite.
 type EditRequest struct {
-	Listen           string
-	Port             int
-	PublicPort       int
-	Transport        string
-	WSPath           string
-	XHTTPPath        string
+	Listen     string
+	Port       int
+	PublicPort int
+	Transport  string
+	WSPath     string
+	XHTTPPath  string
+	// XHTTPPathSet distinguishes `--xhttp-path ''` (reject) from an omitted
+	// flag. The Bash menu re-prompts on empty input; silently ignoring the flag
+	// or normalising whitespace to a different path is not equivalent.
+	XHTTPPathSet     bool
 	GRPCServiceName  string
 	Target           string
 	ServerNames      []string
@@ -373,7 +377,7 @@ type editScope struct {
 
 func editScopeFor(req EditRequest, inbounds int, block bool) (editScope, error) {
 	a := editScope{exact: map[string]bool{}, block: block}
-	if req.Transport != "" || req.WSPath != "" || req.XHTTPPath != "" || req.GRPCServiceName != "" {
+	if req.Transport != "" || req.WSPath != "" || req.XHTTPPathSet || req.GRPCServiceName != "" {
 		a.structural = true
 		// The generated routing rules reference inbound tags, so a transport
 		// change legitimately rewrites routing.rules[*].inboundTag.
@@ -484,12 +488,15 @@ func applyEditRequest(spec *Spec, base EditDefaults, req EditRequest) ([]string,
 		spec.Path = req.WSPath
 		changed = append(changed, "ws-path")
 	}
-	if req.XHTTPPath != "" {
+	if req.XHTTPPathSet {
 		if !usesXHTTP {
 			return nil, fmt.Errorf("--xhttp-path requires a transport with xhttp")
 		}
 		if spec.Transport == TransportMulti {
 			return nil, fmt.Errorf("the multi transport fixes the xhttp path; use a single xhttp transport to change it")
+		}
+		if req.XHTTPPath == "" || strings.ContainsAny(req.XHTTPPath, " \t\r\n") {
+			return nil, fmt.Errorf("--xhttp-path must be a non-empty path without whitespace")
 		}
 		spec.Path = normalizeXHTTPPath(req.XHTTPPath)
 		changed = append(changed, "xhttp-path")

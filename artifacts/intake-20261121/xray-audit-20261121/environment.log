@@ -1,0 +1,6 @@
+Independent execution: Linux x86_64; PID1 supervisord; root disposable sandbox.
+Go 1.23.2; project go.mod requires 1.27.4; nginx 1.26.3; OpenSSL available.
+Docker, Podman, Xray, Expect absent; Docker/Podman sockets absent.
+Git ls-remote: fatal: unable to access repository: Could not resolve host: github.com (rc=128).
+Repository source retrieved through GitHub connector; no complete checkout or project binary available.
+Only extracted source functions and real standalone Nginx configuration probes executed; no deploy or service manipulation outside temporary directory.

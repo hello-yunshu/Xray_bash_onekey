@@ -216,10 +216,17 @@ proc reinstall_reactive {} {
 }
 
 puts "SCENARIO=$scenario ROUND=$round ARG=$install_arg MENU=$menu_path"
+# Historical migration runs point this at a real older installer mounted in the
+# container; the default stays the tracked script.
+set install_src "/src/install.sh"
+if {[info exists env(E2E_INSTALL_SRC)] && $env(E2E_INSTALL_SRC) ne ""} {
+    set install_src $env(E2E_INSTALL_SRC)
+}
+puts "INSTALL_SRC=$install_src"
 if {$install_arg ne ""} {
-    spawn bash /src/install.sh $install_arg
+    spawn bash $install_src $install_arg
 } else {
-    spawn bash /src/install.sh
+    spawn bash $install_src
 }
 
 if {$round eq "2"} {

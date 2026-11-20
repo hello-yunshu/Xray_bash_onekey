@@ -224,6 +224,7 @@ func editRequestFromFlags(args []string) (xraycfg.EditRequest, error) {
 		Transport:        flagValue(args, "--transport"),
 		WSPath:           flagValue(args, "--ws-path"),
 		XHTTPPath:        flagValue(args, "--xhttp-path"),
+		XHTTPPathSet:     flagPresent(args, "--xhttp-path"),
 		GRPCServiceName:  flagValue(args, "--grpc-service-name"),
 		Target:           flagValue(args, "--target"),
 		UUID:             flagValue(args, "--uuid"),
@@ -272,7 +273,7 @@ func editRequestFromFlags(args []string) (xraycfg.EditRequest, error) {
 	}
 	realityFlag := req.ShortIDSet || req.ShortIDAuto || req.ShortIDRemove != "" ||
 		req.RotatePrivateKey || req.ListShortIDs || req.LinkFPChanged || req.LinkSpiderXSet
-	if req.Listen == "" && req.Transport == "" && req.WSPath == "" && req.XHTTPPath == "" &&
+	if req.Listen == "" && req.Transport == "" && req.WSPath == "" && !req.XHTTPPathSet &&
 		req.GRPCServiceName == "" && req.Target == "" && len(req.ServerNames) == 0 && req.UUID == "" &&
 		req.Domain == "" && req.CertFile == "" && req.KeyFile == "" &&
 		req.Port == 0 && req.PublicPort == 0 && req.WSPort == 0 && req.GRPCPort == 0 && req.XHTTPPort == 0 &&

@@ -221,6 +221,125 @@ func TestRecoverCertClearRestoresInterruptedRun(t *testing.T) {
 	}
 }
 
+// TestClearCertificatesDetectsInlineDirectives reproduces the audit P0 case:
+// a real Nginx accepts two certificate directives on the same physical line, so
+// a line-anchored regex missed the key and deleted it while the cert stayed.
+func TestClearCertificatesDetectsInlineDirectives(t *testing.T) {
+	root := sandbox(t)
+	certDir := filepath.Join(root, "etc/idleleo/cert")
+	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
+	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("key"))
+	confDir := filepath.Join(root, "etc/idleleo/conf/nginx")
+	writeGuardTestFile(t, filepath.Join(confDir, "00-site.conf"),
+		[]byte("server { listen 9443 ssl; ssl_certificate /etc/idleleo/cert/xray.crt; ssl_certificate_key /etc/idleleo/cert/xray.key; }\n"))
+
+	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rep.Removed) != 0 {
+		t.Fatalf("both inline directives are in use; nothing may be removed: %v", rep.Removed)
+	}
+	for _, name := range []string{"xray.crt", "xray.key"} {
+		if _, statErr := os.Stat(filepath.Join(certDir, name)); statErr != nil {
+			t.Fatalf("%s must be kept: %v", name, statErr)
+		}
+	}
+}
+
+// TestClearCertificatesFollowsExternalInclude proves the scanner follows the
+// real include chain outside the managed directory instead of trusting a
+// directory convention.
+func TestClearCertificatesFollowsExternalInclude(t *testing.T) {
+	root := sandbox(t)
+	certDir := filepath.Join(root, "etc/idleleo/cert")
+	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
+	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("key"))
+	writeGuardTestFile(t, filepath.Join(root, "usr/local/nginx/conf/nginx.conf"),
+		[]byte("http {\n    include /opt/third/site.conf;\n}\n"))
+	writeGuardTestFile(t, filepath.Join(root, "opt/third/site.conf"),
+		[]byte("server {\n    ssl_certificate /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key /etc/idleleo/cert/xray.key;\n}\n"))
+
+	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rep.Removed) != 0 {
+		t.Fatalf("a certificate referenced through an external include must be kept: %v", rep.Removed)
+	}
+}
+
+// TestClearCertificatesFollowsSymlinkAlias proves a reference through a symlink
+// protects the real managed file.
+func TestClearCertificatesFollowsSymlinkAlias(t *testing.T) {
+	root := sandbox(t)
+	certDir := filepath.Join(root, "etc/idleleo/cert")
+	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
+	aliasDir := filepath.Join(root, "etc/nginx")
+	if err := os.MkdirAll(aliasDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join(certDir, "xray.crt"), filepath.Join(aliasDir, "alias.crt")); err != nil {
+		t.Fatal(err)
+	}
+	writeGuardTestFile(t, filepath.Join(root, "etc/idleleo/conf/nginx/00-site.conf"),
+		[]byte("server {\n    ssl_certificate /etc/nginx/alias.crt;\n}\n"))
+
+	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, statErr := os.Stat(filepath.Join(certDir, "xray.crt")); statErr != nil {
+		t.Fatalf("the symlink target is in use and must survive: %v", statErr)
+	}
+	if len(rep.Removed) != 0 {
+		t.Fatalf("nothing may be removed while an alias references the file: %v", rep.Removed)
+	}
+}
+
+// TestClearCertificatesFailsClosedOnVariablePath proves an unprovable reference
+// keeps every project certificate instead of deleting a possibly live one.
+func TestClearCertificatesFailsClosedOnVariablePath(t *testing.T) {
+	root := sandbox(t)
+	certDir := filepath.Join(root, "etc/idleleo/cert")
+	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
+	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("key"))
+	writeGuardTestFile(t, filepath.Join(root, "etc/idleleo/conf/nginx/00-site.conf"),
+		[]byte("server {\n    ssl_certificate $ssl_server_name.crt;\n}\n"))
+
+	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rep.Removed) != 0 {
+		t.Fatalf("a variable certificate path must fail closed: %v", rep.Removed)
+	}
+	if len(rep.Warnings) == 0 {
+		t.Fatal("the operator must see why nothing was removed")
+	}
+}
+
+// TestClearCertificatesScansEveryXrayConfig proves a second managed Xray config
+// protects its certificate files.
+func TestClearCertificatesScansEveryXrayConfig(t *testing.T) {
+	root := sandbox(t)
+	certDir := filepath.Join(root, "etc/idleleo/cert")
+	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
+	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("key"))
+	writeGuardTestFile(t, filepath.Join(root, "etc/idleleo/conf/xray/config.json"),
+		[]byte(`{"inbounds":[]}`))
+	writeGuardTestFile(t, filepath.Join(root, "etc/idleleo/conf/xray/second.json"),
+		[]byte(`{"inbounds":[{"streamSettings":{"tlsSettings":{"certificates":[{"certificateFile":"/etc/idleleo/cert/xray.crt","keyFile":"/etc/idleleo/cert/xray.key"}]}}}]}`))
+
+	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rep.Removed) != 0 {
+		t.Fatalf("a second Xray config references the pair: %v", rep.Removed)
+	}
+}
+
 func assertPlanned(t *testing.T, rep ClearCertsReport, path, action string, inUse bool) {
 	t.Helper()
 	for _, entry := range rep.Planned {

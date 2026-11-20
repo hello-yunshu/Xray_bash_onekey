@@ -238,7 +238,9 @@ func TestInspectSNIGuardReportsDeployedPolicy(t *testing.T) {
 	if !st.Applicable || !st.ManagedFront || !st.MetadataSynced {
 		t.Fatalf("unexpected status: %+v", st)
 	}
-	if st.Status != "active" || !st.Enabled || st.Policy != SNIPolicyIsolate || st.DenyPort != GuardIsolatePort {
+	// No managed Nginx is running in the sandbox, so the truthful state is
+	// "configured": the files agree, but nothing proves they were loaded.
+	if st.Status != "configured" || !st.Enabled || st.Policy != SNIPolicyIsolate || st.DenyPort != GuardIsolatePort {
 		t.Fatalf("inspect must derive isolate from the deployed front: %+v", st)
 	}
 }
@@ -293,8 +295,47 @@ func TestInspectSNIGuardAcceptsGlobInclude(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if st.Status != "active" || st.Policy != SNIPolicyIsolate {
+	if st.Status != "configured" || st.Policy != SNIPolicyIsolate {
 		t.Fatalf("a glob include covers the fragment: %+v", st)
+	}
+}
+
+// TestInspectSNIGuardRefusesUnreadableMainConfig reproduces the audit defect:
+// the main config could not be read yet the status was still "active" because
+// the deny upstream alone was treated as proof of an isolate policy.
+func TestInspectSNIGuardRefusesUnreadableMainConfig(t *testing.T) {
+	root := seedGuardInstall(t)
+	if err := os.Remove(filepath.Join(root, nginx.InstallDirRel, "conf/nginx.conf")); err != nil {
+		t.Fatal(err)
+	}
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "inconsistent" {
+		t.Fatalf("an unreadable main config must not report an applied policy: %+v", st)
+	}
+	if len(st.Warnings) == 0 {
+		t.Fatal("the reason must be visible")
+	}
+}
+
+// TestInspectSNIGuardRefusesIsolatePortWithoutFragment reproduces the second
+// audit defect: deny 127.0.0.1:9403 without 03-isolate.conf was reported as an
+// active isolate policy even though nothing listens on that port.
+func TestInspectSNIGuardRefusesIsolatePortWithoutFragment(t *testing.T) {
+	root := seedGuardInstall(t)
+	if err := os.Remove(filepath.Join(root, nginxDirRel, "03-isolate.conf")); err != nil {
+		t.Fatal(err)
+	}
+	writeGuardTestFile(t, filepath.Join(root, nginx.InstallDirRel, "conf/nginx.conf"),
+		[]byte("http {\n    include /etc/idleleo/conf/nginx/*.conf;\n}\n"))
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "inconsistent" || st.Policy == SNIPolicyIsolate {
+		t.Fatalf("a missing isolate fragment must not be reported as active: %+v", st)
 	}
 }
 

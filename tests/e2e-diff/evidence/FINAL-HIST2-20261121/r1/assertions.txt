@@ -1,0 +1,13 @@
+PASS	M1 R1 bash install exits 0 (rc=0)
+PASS	M1 R1 traffic works before takeover (rc=0)
+PASS	M1 R1 go install --keep-config exits 0 (rc=0)
+PASS	M1 R1 runtime config is semantically unchanged
+PASS	M1 R1 runtime config bytes are unchanged
+PASS	M1 R1 xray config still validates
+PASS	M1 R1 xray stays active
+PASS	M1 R1 listening ports are unchanged
+PASS	M1 R1 cron table is unchanged
+PASS	M1 R1 traffic works after takeover (rc=0)
+PASS	M1 R1 status exits 0
+PASS	M1 R1 status reports an installed runtime
+PASS	M1 R1 status classification is Reality/raw
