@@ -103,6 +103,11 @@ PR #182 保持 **draft**，未合并 `develop/go-native`，未打 tag，未触�
 > `security-regression` 作业在 58s 后 `exit 1`，日志无失败断言输出；仓库内没有测试
 > 读取这三个文件，且相同代码在 `ce746d8c` 上该 workflow 为 success，判定为环境
 > 偶发。当前 token 无 `actions:write`，无法通过 API 重跑失败作业。
+>
+> 回填提交 `92590909` 只改本节与 `acceptance.json`/`summary.json`，同一
+> `security-regression` 作业在 45s 后再次静默 `exit 1`（无失败断言输出；
+> `test_nginx_security.sh` 处），其余 5 项 success。代码与 `c1b14832` 完全相同，
+> 仍判定为环境偶发，不作为代码回归。
 
 ## 5. 剩余问题
 
