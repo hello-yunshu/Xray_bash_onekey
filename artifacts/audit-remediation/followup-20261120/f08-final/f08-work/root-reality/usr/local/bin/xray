@@ -1,0 +1,3 @@
+#!/bin/sh
+printf '%s\n' "$*" >> '/src/artifacts/audit-remediation/followup-20261120/f08-final/f08-work/root-reality/var/xray-test.log'
+exit 0

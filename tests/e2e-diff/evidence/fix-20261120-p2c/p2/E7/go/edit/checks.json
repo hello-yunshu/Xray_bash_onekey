@@ -1,0 +1,105 @@
+{
+  "afterSha": "0fcc28549319eda4c558fabed50f01561a72f194cfa2fa26c5a652d56ba6f925",
+  "allPassed": true,
+  "beforeSha": "f111bd981ec96767e14db87d59f333e9b024ebc4a88879a4e2344b268acb0163",
+  "checks": {
+    "appendKeepsOldSid": true,
+    "appendRcZero": true,
+    "appendRestartedService": true,
+    "baselineLinkWorks": true,
+    "newLinkStillWorks": true,
+    "newLinkUsesNewSid": true,
+    "newLinkWorksAfterAppend": true,
+    "oldLinkFailsAfterRemove": true,
+    "oldLinkWorksAfterAppend": true,
+    "oldSidGone": true,
+    "removeRcZero": true,
+    "removeRestartedService": true,
+    "serviceActive": true
+  },
+  "count": 13,
+  "details": [
+    {
+      "detail": "a0f1293b",
+      "name": "baselineLinkWorks",
+      "ok": true
+    },
+    {
+      "detail": "rc=0",
+      "name": "appendRcZero",
+      "ok": true
+    },
+    {
+      "detail": "[\"a0f1293b\", \"8e6f4821\"]",
+      "name": "appendKeepsOldSid",
+      "ok": true
+    },
+    {
+      "detail": "8e6f4821",
+      "name": "newLinkUsesNewSid",
+      "ok": true
+    },
+    {
+      "detail": "113830036691 -> 113851084052",
+      "name": "appendRestartedService",
+      "ok": true
+    },
+    {
+      "detail": "sid=a0f1293b",
+      "name": "oldLinkWorksAfterAppend",
+      "ok": true
+    },
+    {
+      "detail": "sid=8e6f4821",
+      "name": "newLinkWorksAfterAppend",
+      "ok": true
+    },
+    {
+      "detail": "rc=0",
+      "name": "removeRcZero",
+      "ok": true
+    },
+    {
+      "detail": "[\"8e6f4821\"]",
+      "name": "oldSidGone",
+      "ok": true
+    },
+    {
+      "detail": "113851084052 -> 113869396082",
+      "name": "removeRestartedService",
+      "ok": true
+    },
+    {
+      "detail": "sid=a0f1293b",
+      "name": "oldLinkFailsAfterRemove",
+      "ok": true
+    },
+    {
+      "detail": "sid=8e6f4821",
+      "name": "newLinkStillWorks",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "name": "serviceActive",
+      "ok": true
+    }
+  ],
+  "editRc": 0,
+  "scenario": "E7",
+  "wanted": [
+    "baselineLinkWorks",
+    "appendRcZero",
+    "appendKeepsOldSid",
+    "newLinkUsesNewSid",
+    "appendRestartedService",
+    "oldLinkWorksAfterAppend",
+    "newLinkWorksAfterAppend",
+    "removeRcZero",
+    "oldSidGone",
+    "removeRestartedService",
+    "oldLinkFailsAfterRemove",
+    "newLinkStillWorks",
+    "serviceActive"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "changed": [
+    "target"
+  ],
+  "configPath": "/src/artifacts/audit-remediation/followup-20261120/f08-final/f08-work/root-reality/etc/idleleo/conf/xray/config.json",
+  "createdAt": "2026-11-20T01:51:14Z",
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.target"
+  ],
+  "oldShareUri": "",
+  "scheduleFile": "",
+  "scheduleSaved": false,
+  "tlsCertFile": "",
+  "tlsCertSaved": false,
+  "tlsDomain": "",
+  "tlsKeyFile": "",
+  "tlsKeySaved": false,
+  "tlsNewCertFile": "",
+  "tlsNewKeyFile": ""
+}

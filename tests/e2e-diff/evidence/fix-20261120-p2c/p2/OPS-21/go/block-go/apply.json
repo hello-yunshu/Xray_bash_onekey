@@ -1,0 +1,41 @@
+{
+  "configured": true,
+  "applied": true,
+  "drift": false,
+  "ads": true,
+  "privateIp": true,
+  "bittorrent": true,
+  "countries": [
+    "cn"
+  ],
+  "customDomains": {
+    "enabled": true,
+    "items": [
+      "ops21.example"
+    ]
+  },
+  "customIps": {
+    "enabled": false,
+    "items": []
+  },
+  "ownedRuleCount": 6,
+  "domainStrategy": "IPIfNonMatch",
+  "sniffingEnabled": true,
+  "geosite": {
+    "path": "/etc/idleleo/share/xray/geosite.dat",
+    "size": 7554929,
+    "mtime": "2026-11-20T01:53:44Z"
+  },
+  "geoip": {
+    "path": "/etc/idleleo/share/xray/geoip.dat",
+    "size": 3312784,
+    "mtime": "2026-11-20T01:53:44Z"
+  },
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "fe2974d124c73960c51656334ed703707d36c337ee83328c3cc1b64b0f2509db",
+  "newSha256": "d263a5708cd8ab1bd65b2edb035c6d826854f9c20cbaf3b81d28eb040d3991f4",
+  "backupDir": "/etc/idleleo/backup/block-20261120T015355Z",
+  "assetEnv": "created etc/systemd/system/xray.service.d/50-xray-geodata.conf",
+  "serviceRestarted": true,
+  "controlProbe": "skipped: --no-probe"
+}

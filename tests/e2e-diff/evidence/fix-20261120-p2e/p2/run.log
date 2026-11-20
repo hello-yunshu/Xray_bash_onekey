@@ -1,0 +1,10 @@
+10:15:52 run_id=fix-20261120-p2e
+10:15:53 image_id=sha256:d0883f69d5d4b3bf0b827d269ab0b8276d83b0e75fce2f7c8d7415a7ca865577
+10:15:53 building idleleo
+10:15:59 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=5f705fbad74b28def4a8625d2f99c2c606dfe2814138c1da58cc4c6405b02e4a
+10:15:59 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+10:15:59 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+10:16:01 argv-verify written
+10:16:02 [OPS-32] start upstream=ws
+10:22:53 [OPS-32/ws] verdict=HARNESS-ERROR
+10:22:53 [OPS-32] start upstream=reality

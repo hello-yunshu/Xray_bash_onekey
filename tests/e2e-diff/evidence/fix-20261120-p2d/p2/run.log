@@ -1,0 +1,18 @@
+09:57:17 run_id=fix-20261120-p2d
+09:57:18 image_id=sha256:778794dec4c9e7bc1cfaa00f47762872375f4f4d527e37f9f352cf7d56d0266c
+09:57:18 building idleleo
+09:57:23 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=5f705fbad74b28def4a8625d2f99c2c606dfe2814138c1da58cc4c6405b02e4a
+09:57:23 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+09:57:23 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+09:57:25 argv-verify written
+09:57:25 [OPS-19] start
+09:59:14 [OPS-19] verdict=PASS
+09:59:14 [OPS-31] start upstream=reality
+10:01:18 [OPS-31] verdict=PASS
+10:01:18 [OPS-32] start upstream=ws
+10:06:41 [OPS-32/ws] verdict=PASS
+10:06:42 [OPS-32] start upstream=reality
+10:12:43 [OPS-32/reality] verdict=BLOCKER
+10:12:43 [OPS-32] verdict=BLOCKER
+10:12:43 scope: installs=[] edits=[] ops=[OPS-19,OPS-31,OPS-32]
+10:12:43 P2 finished: tests/e2e-diff/evidence/fix-20261120-p2d/p2

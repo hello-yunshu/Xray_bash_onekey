@@ -1,0 +1,24 @@
+{
+  "authority": "127.0.0.1",
+  "inbounds": [
+    {
+      "index": 0,
+      "listen": "127.0.0.1",
+      "network": "tcp",
+      "port": "8443",
+      "protocol": "vless",
+      "security": "reality",
+      "tag": "vless-in"
+    }
+  ],
+  "info": {
+    "domain": "www.example.com",
+    "network": "tcp",
+    "port": "8443",
+    "tls": "Reality",
+    "uuid": "11111111-2222-4333-8444-555555555555"
+  },
+  "path": "/tmp/f28-readonly-root-g205jgmf/etc/idleleo/conf/xray/config.json",
+  "sha256": "3ed077bcdf095db2b70901719905e483cd360e3f7bde678bf4e5cb43e3211c61",
+  "warnings": []
+}
