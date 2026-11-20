@@ -303,6 +303,31 @@ func TestEditTransportRebuildsInbounds(t *testing.T) {
 	}
 }
 
+func TestEditXHTTPPathAlwaysHasLeadingSlash(t *testing.T) {
+	raw := editBase(t)
+	for _, tc := range []struct{ in, want string }{
+		{"custom", "/custom"},
+		{"/custom/", "/custom/"},
+	} {
+		g, _, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},
+			EditRequest{Transport: TransportXHTTP, XHTTPPath: tc.in})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var path string
+		for _, inbound := range editInbounds(t, g.Config) {
+			stream := asMap(inbound["streamSettings"])
+			if asString(stream["network"]) != TransportXHTTP {
+				continue
+			}
+			path = asString(asMap(stream["xhttpSettings"])["path"])
+		}
+		if path != tc.want {
+			t.Fatalf("xhttp path %q rendered as %q, want %q", tc.in, path, tc.want)
+		}
+	}
+}
+
 func TestEditTargetAndServerNames(t *testing.T) {
 	raw := editBase(t)
 	g, _, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},

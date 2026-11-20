@@ -226,6 +226,109 @@ func TestSetSNIGuardRefusesPortConflict(t *testing.T) {
 	}
 }
 
+func TestInspectSNIGuardReportsDeployedPolicy(t *testing.T) {
+	root := seedGuardInstall(t)
+	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
+		t.Fatal(err)
+	}
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !st.Applicable || !st.ManagedFront || !st.MetadataSynced {
+		t.Fatalf("unexpected status: %+v", st)
+	}
+	if st.Status != "active" || !st.Enabled || st.Policy != SNIPolicyIsolate || st.DenyPort != GuardIsolatePort {
+		t.Fatalf("inspect must derive isolate from the deployed front: %+v", st)
+	}
+}
+
+func TestInspectSNIGuardDetectsMetadataDrift(t *testing.T) {
+	root := seedGuardInstall(t)
+	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
+		t.Fatal(err)
+	}
+	meta := loadGuardTestMetadata(t, root)
+	meta.SNIGuard.Policy = SNIPolicyReject
+	writeGuardTestFile(t, filepath.Join(root, "etc/idleleo/v1/metadata.json"), mustJSON(t, meta))
+
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "drift" || st.Policy != SNIPolicyIsolate {
+		t.Fatalf("a metadata/artifact mismatch must be reported as drift: %+v", st)
+	}
+	if len(st.Warnings) == 0 {
+		t.Fatal("drift must explain itself")
+	}
+}
+
+func TestInspectSNIGuardDetectsFragmentNotIncluded(t *testing.T) {
+	root := seedGuardInstall(t)
+	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
+		t.Fatal(err)
+	}
+	// Simulate a broken hand edit: the fragment exists but the main config no
+	// longer includes it, so the policy is not actually deployed.
+	writeGuardTestFile(t, filepath.Join(root, "usr/local/nginx/conf/nginx.conf"),
+		[]byte("http {\n    # include removed\n}\n"))
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "inconsistent" {
+		t.Fatalf("an unreferenced fragment must not be reported as active: %+v", st)
+	}
+}
+
+func TestInspectSNIGuardAcceptsGlobInclude(t *testing.T) {
+	root := seedGuardInstall(t)
+	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
+		t.Fatal(err)
+	}
+	writeGuardTestFile(t, filepath.Join(root, "usr/local/nginx/conf/nginx.conf"),
+		[]byte("http {\n    include /etc/idleleo/conf/nginx/*.conf;\n}\n"))
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "active" || st.Policy != SNIPolicyIsolate {
+		t.Fatalf("a glob include covers the fragment: %+v", st)
+	}
+}
+
+func TestInspectSNIGuardDoesNotInventDefault(t *testing.T) {
+	root := sandbox(t)
+	meta := store.Metadata{
+		SchemaVersion: store.ManagerSchemaVersion, ActiveEngine: "xray", Role: "node",
+		TLS: "Vision", Transport: "tcp", RuntimeConfigPath: "etc/idleleo/conf/xray/config.json",
+		RuntimeSHA256: strings.Repeat("a", 64), OwnedResources: []string{},
+	}
+	writeGuardTestFile(t, filepath.Join(root, "etc/idleleo/v1/metadata.json"), mustJSON(t, meta))
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Applicable || st.Enabled || st.Policy != "" || st.Status != "not-applicable" {
+		t.Fatalf("a node without a Reality+Nginx front must not report an enabled policy: %+v", st)
+	}
+}
+
+func TestInspectSNIGuardReportsUnsyncedMetadata(t *testing.T) {
+	root := seedGuardInstall(t)
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.MetadataSynced {
+		t.Fatalf("metadata without sniGuard must not be reported as synced: %+v", st)
+	}
+	if !st.Applicable || st.Policy != SNIPolicyIsolate {
+		t.Fatalf("deployed artifacts must still be shown: %+v", st)
+	}
+}
+
 func loadGuardTestMetadata(t *testing.T, root string) store.Metadata {
 	t.Helper()
 	raw, err := os.ReadFile(filepath.Join(root, "etc/idleleo/v1/metadata.json"))

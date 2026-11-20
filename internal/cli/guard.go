@@ -7,8 +7,6 @@ import (
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/change"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/deploy"
-	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
-	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
 )
 
 // xrayGuard implements `xray guard show|set` for the online unknown-SNI policy
@@ -21,26 +19,28 @@ func xrayGuard(ctx context.Context, opts Options, cfg config, args []string) int
 	cfg.json = cfg.json || hasFlag(rest, "--json")
 	switch action {
 	case "show":
-		paths, err := host.NewPaths(cfg.root)
+		status, err := deploy.InspectSNIGuard(cfg.root)
 		if err != nil {
 			return fail(opts, cfg, err)
-		}
-		meta, _, err := store.LoadMetadata(paths)
-		if err != nil {
-			return fail(opts, cfg, err)
-		}
-		state := store.SNIGuardState{Enabled: true, Policy: deploy.SNIPolicyIsolate}
-		if meta.SNIGuard != nil {
-			state = *meta.SNIGuard
 		}
 		if cfg.json {
-			return writeJSON(opts, state)
+			return writeJSON(opts, status)
 		}
-		fmt.Fprintf(opts.Out, "tls=%s sniGuard=%t policy=%s", meta.TLS, state.Enabled, state.Policy)
-		if state.DecoyDomain != "" {
-			fmt.Fprintf(opts.Out, " decoyDomain=%s", state.DecoyDomain)
+		fmt.Fprintf(opts.Out, "tls=%s applicable=%t status=%s enabled=%t policy=%s",
+			status.TLS, status.Applicable, status.Status, status.Enabled, status.Policy)
+		if status.DecoyDomain != "" {
+			fmt.Fprintf(opts.Out, " decoyDomain=%s", status.DecoyDomain)
 		}
-		fmt.Fprintln(opts.Out)
+		if status.DenyPort != 0 {
+			fmt.Fprintf(opts.Out, " denyPort=%d", status.DenyPort)
+		}
+		fmt.Fprintf(opts.Out, " metadataSynced=%t\n", status.MetadataSynced)
+		for _, source := range status.Evidence {
+			fmt.Fprintf(opts.Out, "evidence=%s\n", source)
+		}
+		for _, warning := range status.Warnings {
+			fmt.Fprintf(opts.Out, "warning=%s\n", warning)
+		}
 		return 0
 	case "set":
 		policy := flagValue(rest, "--policy")

@@ -113,12 +113,16 @@ test ! -e /etc/idleleo/conf/nginx/03-decoy.conf
 test "$(grep -c '03-isolate.conf' /usr/local/nginx/conf/nginx.conf)" = "1"
 /usr/local/nginx/sbin/nginx -t -p /usr/local/nginx/ -c /usr/local/nginx/conf/nginx.conf 2>&1 | tee /tmp/nginx-isolate.log
 
-# Certificate clear on the real root removes managed material only.
-printf 'cert\n' >/etc/idleleo/cert/acme.crt
-printf 'key\n' >/etc/idleleo/cert/acme.key
+# Certificate clear on the real root removes only provably project-owned,
+# unreferenced material; an unknown file survives.
+printf 'cert\n' >/etc/idleleo/cert/xray.crt
+printf 'key\n' >/etc/idleleo/cert/xray.key
+printf 'third-party\n' >/etc/idleleo/cert/third-party.pem
 "${bin}" xray cert clear --yes --container --json | tee /tmp/cert-clear.json
-test ! -e /etc/idleleo/cert/acme.crt
-test ! -e /etc/idleleo/cert/acme.key
+test ! -e /etc/idleleo/cert/xray.crt
+test ! -e /etc/idleleo/cert/xray.key
 test ! -e /etc/idleleo/cert/decoy.key
+test -e /etc/idleleo/cert/third-party.pem
+grep -q '"owner": *"unknown"' /tmp/cert-clear.json
 
 echo "OPS-08/OPS-27 real nginx: PASS"

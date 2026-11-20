@@ -110,6 +110,28 @@ func SetSNIGuard(ctx context.Context, spec SNIGuardSpec) (SNIGuardReport, error)
 	if err != nil {
 		return rep, err
 	}
+	if !spec.DryRun {
+		if err := requireWriteAccess(paths, spec.AllowContainerWrites); err != nil {
+			return rep, err
+		}
+		lock, err := host.AcquireUpdate(paths.LockFile())
+		if err != nil {
+			return rep, err
+		}
+		defer lock.Release()
+		// The first read of metadata, artifacts and the plan must happen under
+		// the same lock a concurrent install/edit/certificate change takes.
+		if rec, recErr := recoverPendingLocked(ctx, paths); recErr != nil {
+			return rep, recErr
+		} else if rec.Action != "none" {
+			rep.Warnings = append(rep.Warnings, "converged a pending deploy transaction: "+rec.Action)
+			if serviceManaged(paths.Root) {
+				if testErr := balanceNginxTest(ctx, paths.Root); testErr == nil {
+					_ = balanceReloadWithReport(ctx, paths.Root, &rep.Reloaded, &rep.Warnings)
+				}
+			}
+		}
+	}
 	meta, _, err := store.LoadMetadata(paths)
 	if err != nil {
 		return rep, err
@@ -221,36 +243,217 @@ func SetSNIGuard(ctx context.Context, spec SNIGuardSpec) (SNIGuardReport, error)
 		rep.Changed = len(changes) > 0
 		return rep, nil
 	}
-	if err := requireWriteAccess(paths, spec.AllowContainerWrites); err != nil {
-		return rep, err
-	}
-	lock, err := host.AcquireUpdate(paths.LockFile())
-	if err != nil {
-		return rep, err
-	}
-	defer lock.Release()
 
 	backups, err := captureGuardFiles(changes)
 	if err != nil {
 		return rep, err
 	}
-	if err := applyGuardChanges(changes); err != nil {
-		restoreGuardFiles(backups)
+	// Persist the snapshot before mutating: a SIGKILL between two file writes is
+	// then converged by the next lock holder instead of leaving a half-applied
+	// policy on disk.
+	journal, err := newJournal(paths, backups, serviceState{}, nil, meta.TLS, meta.Transport)
+	if err != nil {
 		return rep, err
 	}
+	if err := applyGuardChanges(changes); err != nil {
+		return rep, guardRollback(paths, &journal, backups, err, "apply")
+	}
 	if err := balanceNginxTest(ctx, paths.Root); err != nil {
-		restoreGuardFiles(backups)
-		return rep, fmt.Errorf("%w; the previous SNI Guard policy was restored", err)
+		return rep, guardRollback(paths, &journal, backups, err, "nginx -t")
 	}
 	rep.Changed = true
 	if err := balanceReloadWithReport(ctx, paths.Root, &rep.Reloaded, &rep.Warnings); err != nil {
-		restoreGuardFiles(backups)
-		if testErr := balanceNginxTest(ctx, paths.Root); testErr == nil {
-			_ = balanceReloadWithReport(ctx, paths.Root, &rep.Reloaded, &rep.Warnings)
+		rbErr := guardRollback(paths, &journal, backups, err, "reload")
+		if rbErr == nil {
+			// The files are back; bring the running master in sync with them.
+			if testErr := balanceNginxTest(ctx, paths.Root); testErr == nil {
+				_ = balanceReloadWithReport(ctx, paths.Root, &rep.Reloaded, &rep.Warnings)
+			}
 		}
-		return rep, fmt.Errorf("%w; the previous SNI Guard policy was restored", err)
+		return rep, rbErr
+	}
+	if err := journalMarkCommitted(paths, &journal); err != nil {
+		return rep, err
 	}
 	return rep, nil
+}
+
+// guardRollback restores every guard file and records a terminal journal state.
+// It distinguishes a completed rollback from RECOVERY_NEEDED; a failed restore
+// is never reported as "the previous policy was restored".
+func guardRollback(paths host.Paths, j *deployJournal, backups []fileState, cause error, stage string) error {
+	if err := restoreGuardFiles(backups); err != nil {
+		journalMarkRecoveryRequired(paths, j, err)
+		return fmt.Errorf("%w; %s failed and the rollback did not complete: %v (RECOVERY_NEEDED, run 'idleleo recover')",
+			cause, stage, err)
+	}
+	_ = journalMarkRolledBack(paths, j, cause)
+	return fmt.Errorf("%w; the previous SNI Guard policy was restored", cause)
+}
+
+// SNIGuardStatus is the read-only view of the unknown-SNI policy. It is derived
+// from the deployed Nginx artifacts and reconciled with metadata; it never
+// invents "enabled/isolate" for a node that has no managed Reality front.
+type SNIGuardStatus struct {
+	Applicable     bool     `json:"applicable"`
+	TLS            string   `json:"tls,omitempty"`
+	ManagedFront   bool     `json:"managedFront"`
+	Enabled        bool     `json:"enabled"`
+	Policy         string   `json:"policy,omitempty"`
+	DecoyDomain    string   `json:"decoyDomain,omitempty"`
+	Status         string   `json:"status"`
+	MetadataSynced bool     `json:"metadataSynced"`
+	DenyPort       int      `json:"denyPort,omitempty"`
+	Evidence       []string `json:"evidence"`
+	Warnings       []string `json:"warnings"`
+}
+
+var (
+	guardDecoyServerName = regexp.MustCompile(`(?m)^[ \t]*server_name[ \t]+([^;]+);`)
+	guardIncludePolicy   = regexp.MustCompile(`(?m)^[ \t]*include[ \t]+/etc/idleleo/conf/nginx/(03-(?:isolate|decoy)\.conf);`)
+	guardIncludeGlob     = regexp.MustCompile(`(?m)^[ \t]*include[ \t]+/etc/idleleo/conf/nginx/\*\.conf;[ \t]*$`)
+)
+
+// InspectSNIGuard reports the actual policy and any disagreement between the
+// deployed files and the ownership metadata. It is strictly read-only.
+func InspectSNIGuard(root string) (SNIGuardStatus, error) {
+	st := SNIGuardStatus{Evidence: []string{}, Warnings: []string{}, Status: "not-applicable"}
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		return st, err
+	}
+	meta, _, metaErr := store.LoadMetadata(paths)
+	if metaErr == nil {
+		st.TLS = meta.TLS
+	} else {
+		st.Warnings = append(st.Warnings, "manager metadata is unavailable; runtime artifacts only")
+	}
+	if st.TLS != "" && st.TLS != "Reality" {
+		return st, nil
+	}
+	nginxDir, err := paths.Join(nginxDirRel, false)
+	if err != nil {
+		return st, nil
+	}
+	xrayConf := filepath.Join(nginxDir, nginx.MainConf)
+	body, err := os.ReadFile(xrayConf)
+	if err != nil {
+		return st, nil
+	}
+	text := string(body)
+	if !strings.Contains(text, "$ssl_preread_server_name") {
+		return st, nil
+	}
+	loc := guardDenyServer.FindStringSubmatchIndex(text)
+	if loc == nil {
+		return st, nil
+	}
+	st.Applicable = true
+	st.ManagedFront = true
+	port, _ := strconv.Atoi(text[loc[4]:loc[5]])
+	st.DenyPort = port
+	st.Evidence = append(st.Evidence, xrayConf)
+
+	mainConf, err := paths.Join(filepath.Join(nginx.InstallDirRel, "conf/nginx.conf"), false)
+	if err != nil {
+		return st, err
+	}
+	mainBody, readErr := os.ReadFile(mainConf)
+	if readErr == nil {
+		st.Evidence = append(st.Evidence, mainConf)
+	}
+	includes := map[string]bool{}
+	globInclude := false
+	if readErr == nil {
+		for _, m := range guardIncludePolicy.FindAllStringSubmatch(string(mainBody), -1) {
+			includes[m[1]] = true
+		}
+		globInclude = guardIncludeGlob.Match(mainBody)
+	}
+	decoyFrag := filepath.Join(nginxDir, guardDecoyFrag)
+	isolateFrag := filepath.Join(nginxDir, guardIsolateFrag)
+	hasDecoy := fileExists(decoyFrag)
+	hasIsolate := fileExists(isolateFrag)
+	if hasDecoy {
+		st.Evidence = append(st.Evidence, decoyFrag)
+		if raw, err := os.ReadFile(decoyFrag); err == nil {
+			if m := guardDecoyServerName.FindStringSubmatch(string(raw)); m != nil {
+				st.DecoyDomain = strings.TrimSpace(m[1])
+			}
+		}
+	}
+	if hasIsolate {
+		st.Evidence = append(st.Evidence, isolateFrag)
+	}
+
+	inconsistent := func(reason string) (SNIGuardStatus, error) {
+		st.Status = "inconsistent"
+		st.Warnings = append(st.Warnings, reason)
+		return st, nil
+	}
+	if hasDecoy && hasIsolate {
+		return inconsistent("both 03-isolate.conf and 03-decoy.conf exist")
+	}
+	if includes[guardIsolateFrag] && includes[guardDecoyFrag] {
+		return inconsistent("nginx.conf includes both isolate and decoy fragments")
+	}
+	if hasDecoy && !includes[guardDecoyFrag] && !globInclude {
+		return inconsistent("03-decoy.conf exists but nginx.conf does not include it")
+	}
+	if hasIsolate && !includes[guardIsolateFrag] && !globInclude {
+		return inconsistent("03-isolate.conf exists but nginx.conf does not include it")
+	}
+
+	switch {
+	case hasDecoy:
+		st.Policy = SNIPolicyDecoy
+		if port != GuardDecoyPort {
+			return inconsistent(fmt.Sprintf("decoy fragment present but the deny upstream is port %d", port))
+		}
+	case hasIsolate:
+		st.Policy = SNIPolicyIsolate
+		if port != GuardIsolatePort {
+			return inconsistent(fmt.Sprintf("isolate fragment present but the deny upstream is port %d", port))
+		}
+	case port == GuardDecoyPort:
+		return inconsistent("the deny upstream targets the decoy port but 03-decoy.conf is missing")
+	case port == GuardIsolatePort:
+		st.Policy = SNIPolicyIsolate
+	default:
+		st.Policy = SNIPolicyReject
+	}
+	st.Enabled = true
+	st.Status = "active"
+
+	if metaErr != nil {
+		st.MetadataSynced = false
+		return st, nil
+	}
+	if meta.SNIGuard == nil {
+		st.MetadataSynced = false
+		st.Warnings = append(st.Warnings, "metadata has no sniGuard record; showing deployed artifacts, nothing was rewritten")
+		return st, nil
+	}
+	st.MetadataSynced = true
+	if !meta.SNIGuard.Enabled {
+		if st.Enabled {
+			st.Status = "drift"
+			st.Warnings = append(st.Warnings, "metadata says sniGuard is disabled but the deployed front still applies a policy")
+			return st, nil
+		}
+		st.Enabled = false
+		return st, nil
+	}
+	if meta.SNIGuard.Policy != st.Policy {
+		st.Status = "drift"
+		st.Warnings = append(st.Warnings, fmt.Sprintf("metadata policy %q does not match deployed policy %q", meta.SNIGuard.Policy, st.Policy))
+		return st, nil
+	}
+	if st.DecoyDomain == "" {
+		st.DecoyDomain = meta.SNIGuard.DecoyDomain
+	}
+	st.Status = "active"
+	return st, nil
 }
 
 func normalizeSNIPolicy(policy string) (string, error) {
@@ -512,10 +715,17 @@ func applyGuardChanges(changes []guardChange) error {
 	return nil
 }
 
-func restoreGuardFiles(backups []fileState) {
+func restoreGuardFiles(backups []fileState) error {
+	var errs []string
 	for i := len(backups) - 1; i >= 0; i-- {
-		_ = backups[i].restore()
+		if err := backups[i].restore(); err != nil {
+			errs = append(errs, fmt.Sprintf("%s: %v", backups[i].path, err))
+		}
 	}
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "; "))
+	}
+	return nil
 }
 
 func guardFileMode(path string) os.FileMode {

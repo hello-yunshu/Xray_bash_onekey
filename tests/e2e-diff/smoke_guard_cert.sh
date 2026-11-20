@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# Smoke test for the new Go online SNI Guard and certificate-clear commands.
+# Smoke test for the Go online SNI Guard and the hardened certificate-clear.
 # Run inside a disposable container as root:
 #   smoke_guard_cert.sh /path/to/idleleo [/tmp/idleleo-guard-smoke]
+#
+# The certificate section is the regression for audit A1: a certificate that a
+# live Nginx site references must never be deleted, a file of unknown ownership
+# must survive, and only the unused project-owned pair is removed.
 set -euo pipefail
 
 bin="${1:?usage: smoke_guard_cert.sh /path/to/idleleo [root]}"
@@ -49,12 +53,34 @@ http {
 }
 CONF
 
+# A live HTTPS site references example.com.crt; it must survive the clear.
+cat >"${root}/etc/idleleo/conf/nginx/02-site.conf" <<'CONF'
+server {
+    listen 443 ssl;
+    ssl_certificate     /etc/idleleo/cert/example.com.crt;
+    ssl_certificate_key /etc/idleleo/cert/example.com.key;
+}
+CONF
+
 printf '%s\n' 'certificate' >"${root}/etc/idleleo/cert/example.com.crt"
 printf '%s\n' 'private-key' >"${root}/etc/idleleo/cert/example.com.key"
+printf '%s\n' 'unused-cert' >"${root}/etc/idleleo/cert/xray.crt"
+printf '%s\n' 'unused-key' >"${root}/etc/idleleo/cert/xray.key"
+printf '%s\n' 'third-party' >"${root}/etc/idleleo/cert/third-party.pem"
+# The renewal job proves example.com.* is project-owned without a directory-wide
+# marker, so third-party.pem stays "unknown ownership".
+mkdir -p "${root}/etc/idleleo/schedule"
+cat >"${root}/etc/idleleo/schedule/jobs.json" <<'JSON'
+{"certFile": "etc/idleleo/cert/example.com.crt", "certKeyFile": "etc/idleleo/cert/example.com.key"}
+JSON
 
-# Guard show defaults to isolate even before any online change.
+# Guard show derives the deployed policy from the artifacts. Metadata has no
+# sniGuard record yet, so the command must still show isolate but must not claim
+# the metadata is synced.
 "${bin}" --root "${root}" xray guard show --json | tee /tmp/guard-show.json
 grep -q '"policy": *"isolate"' /tmp/guard-show.json
+grep -q '"status": *"active"' /tmp/guard-show.json
+grep -q '"metadataSynced": *false' /tmp/guard-show.json
 
 # Reject preview: deny upstream switches to the dead port.
 "${bin}" --root "${root}" xray guard set --policy reject --dry-run --json | tee /tmp/guard-reject.json
@@ -73,15 +99,43 @@ fi
 grep -q '"policy": *"decoy"' /tmp/guard-decoy.json
 grep -q '"selfSigned": *true' /tmp/guard-decoy.json
 
-# Certificate clear: dry-run lists two, the real run removes them, the second
-# run is idempotent and lists nothing.
+# Certificate clear dry-run lists the in-use pair as kept and the unused project
+# pair as deletable; nothing is written.
 "${bin}" --root "${root}" xray cert clear --dry-run --json | tee /tmp/cert-dry.json
-grep -q 'example.com.crt' /tmp/cert-dry.json
-grep -q 'example.com.key' /tmp/cert-dry.json
+grep -q '"action": *"keep"' /tmp/cert-dry.json
+grep -q '"inUse": *true' /tmp/cert-dry.json
+grep -q '"action": *"delete"' /tmp/cert-dry.json
+test -e "${root}/etc/idleleo/cert/example.com.crt"
+test -e "${root}/etc/idleleo/cert/xray.crt"
+
+# A real clear keeps in-use, unknown and user material; removes only the unused
+# project pair.
 "${bin}" --root "${root}" xray cert clear --yes --json | tee /tmp/cert-clear.json
-test ! -e "${root}/etc/idleleo/cert/example.com.crt"
-test ! -e "${root}/etc/idleleo/cert/example.com.key"
+test -e "${root}/etc/idleleo/cert/example.com.crt"
+test -e "${root}/etc/idleleo/cert/example.com.key"
+test -e "${root}/etc/idleleo/cert/third-party.pem"
+test ! -e "${root}/etc/idleleo/cert/xray.crt"
+test ! -e "${root}/etc/idleleo/cert/xray.key"
+
+# Second run is idempotent and lists no removal.
 "${bin}" --root "${root}" xray cert clear --yes --json | tee /tmp/cert-clear-again.json
 grep -q '"removed": *\[\]' /tmp/cert-clear-again.json
+
+# With the site reference gone but the renewal job still naming the pair, the
+# pair stays in use.
+sed -i '/ssl_certificate/d' "${root}/etc/idleleo/conf/nginx/02-site.conf"
+"${bin}" --root "${root}" xray cert clear --yes --json | tee /tmp/cert-clear-final.json
+test -e "${root}/etc/idleleo/cert/example.com.crt"
+grep -q '"inUse": *true' /tmp/cert-clear-final.json
+
+# Once every reference and the renewal target are gone, ownership of a
+# non-default filename is no longer provable: the clearer must keep it and say
+# so instead of guessing. This is the A1 "evidence unclear => refuse" rule.
+rm -f "${root}/etc/idleleo/schedule/jobs.json"
+"${bin}" --root "${root}" xray cert clear --yes --json | tee /tmp/cert-clear-orphan.json
+test -e "${root}/etc/idleleo/cert/example.com.crt"
+test -e "${root}/etc/idleleo/cert/example.com.key"
+test -e "${root}/etc/idleleo/cert/third-party.pem"
+grep -q '"owner": *"unknown"' /tmp/cert-clear-orphan.json
 
 echo "OPS-08/OPS-27 smoke: PASS"

@@ -294,6 +294,20 @@ func hasChange(changed []string, names ...string) bool {
 	return false
 }
 
+// normalizeXHTTPPath mirrors the Bash installer, which always renders the path
+// as "/<path>". A trailing slash is preserved: a real Xray 26.10.31 client
+// normalizes it in both directions, so only the leading slash is required.
+func normalizeXHTTPPath(p string) string {
+	p = strings.TrimSpace(p)
+	if p == "" {
+		return p
+	}
+	if !strings.HasPrefix(p, "/") {
+		return "/" + p
+	}
+	return p
+}
+
 // shareHostFor mirrors the host Generate uses for the share link.
 func shareHostFor(spec Spec) string {
 	if spec.Domain != "" {
@@ -471,7 +485,7 @@ func applyEditRequest(spec *Spec, base EditDefaults, req EditRequest) ([]string,
 		if spec.Transport == TransportMulti {
 			return nil, fmt.Errorf("the multi transport fixes the xhttp path; use a single xhttp transport to change it")
 		}
-		spec.Path = req.XHTTPPath
+		spec.Path = normalizeXHTTPPath(req.XHTTPPath)
 		changed = append(changed, "xhttp-path")
 	}
 	if req.GRPCServiceName != "" {

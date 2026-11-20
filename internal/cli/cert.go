@@ -196,7 +196,9 @@ func xrayCert(ctx context.Context, opts Options, cfg config, args []string) int 
 	return 0
 }
 
-// xrayCertClear deletes every managed certificate (Bash menu 7 > 3).
+// xrayCertClear removes only certificates proven to belong to this project and
+// not referenced by an effective Nginx/Xray/schedule configuration. An unclear
+// owner is kept with a warning, never guessed away.
 func xrayCertClear(ctx context.Context, opts Options, cfg config, args []string) int {
 	cfg.json = cfg.json || hasFlag(args, "--json")
 	dryRun := hasFlag(args, "--dry-run")
@@ -220,8 +222,18 @@ func xrayCertClear(ctx context.Context, opts Options, cfg config, args []string)
 		fmt.Fprintf(opts.Out, "cert clear: %s does not exist; nothing to remove\n", report.Dir)
 		return 0
 	}
-	fmt.Fprintf(opts.Out, "cert clear: dir=%s dryRun=%t removed=%d skipped=%d\n",
-		report.Dir, report.DryRun, len(report.Removed), len(report.Skipped))
+	fmt.Fprintf(opts.Out, "cert clear: dir=%s dryRun=%t removed=%d kept=%d recovered=%t\n",
+		report.Dir, report.DryRun, len(report.Removed), len(report.Skipped), report.Recovered)
+	for _, entry := range report.Planned {
+		fmt.Fprintf(opts.Out, "plan action=%s owner=%s inUse=%t kind=%s path=%s\n",
+			entry.Action, entry.Owner, entry.InUse, entry.Kind, entry.Path)
+		if entry.Reason != "" {
+			fmt.Fprintf(opts.Out, "  reason=%s\n", entry.Reason)
+		}
+		for _, source := range entry.ReferencedBy {
+			fmt.Fprintf(opts.Out, "  referencedBy=%s\n", source)
+		}
+	}
 	for _, path := range report.Removed {
 		fmt.Fprintf(opts.Out, "removed=%s\n", path)
 	}
