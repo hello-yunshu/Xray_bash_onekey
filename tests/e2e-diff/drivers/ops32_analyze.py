@@ -6,7 +6,10 @@ Reads one upstream's evidence directory (bash/ and go/) and writes ops.json.
 Measurement rules (the "full window + stable recovery" revision):
   * the recovery probe runs its whole window instead of stopping at the first
     A. First-A is still recorded, but a side only counts as recovered when the
-    trailing run of the window is all A (>= --stable-min consecutive A).
+    trailing 2*fail_timeout of the window holds >= --stable-min A responses and
+    the A chain reaching the newest one never gaps more than fail_timeout. The
+    re-admitted peer starts at a decayed effective weight, so A returns
+    sparsely; demanding an all-A tail measured sampling luck, not recovery.
   * per-worker max_fails counters are reported as `perWorkerFails`, plus a
     summary and the jitter range of the quiet stretches. There is no shared
     zone, so one worker can remove the peer while another never reaches
@@ -180,23 +183,28 @@ def worker_violations(dead, window):
 
 
 def stable_recovery(rows, gap_cap, min_samples):
-    """Earliest A after which A keeps being selected for the rest of the window.
+    """Recovery = A is re-admitted late in the window, not that it takes over.
 
-    Both peers are healthy after recovery, so nginx round-robins A and B: an
-    all-A tail is not the definition of recovery. Instead, A is stable when the
-    chain of A responses that reaches the end of the window never has a gap
-    longer than `gap_cap` seconds and holds at least `min_samples` responses.
-    A single A followed by B-only traffic (some workers re-enabled A, others
-    did not) breaks the chain and is reported as first-A only.
+    Once fail_timeout elapses nginx re-admits the peer with a decayed effective
+    weight and ramps it back up by weight/max_fails per successful request, so A
+    returns sparsely (about one probe in five here) while B keeps carrying most
+    of the traffic. Requiring the A chain to reach the very end of the window
+    therefore measured worker sampling luck: the identical behaviour passed on
+    one side and failed on the other. A side counts as recovered when the
+    trailing 2*fail_timeout seconds of the complete window hold at least
+    `min_samples` A responses and the A chain that reaches the newest of them
+    never gaps longer than `gap_cap` seconds.
     """
     hits = [row["epoch"] for row in rows
             if row["body"] == "A" and row["rc"] == "0"]
     if not hits or not rows:
         return 0, None
-    if rows[-1]["epoch"] - hits[-1] > gap_cap:
-        return 1, None
-    chain = [hits[-1]]
-    for epoch in reversed(hits[:-1]):
+    tail_start = rows[-1]["epoch"] - 2 * gap_cap
+    tail = [epoch for epoch in hits if epoch >= tail_start]
+    if len(tail) < min_samples:
+        return len(tail), None
+    chain = [tail[-1]]
+    for epoch in reversed(tail[:-1]):
         if chain[-1] - epoch <= gap_cap:
             chain.append(epoch)
         else:
@@ -352,9 +360,9 @@ for side in sides:
     stable = chain_start is not None and window["complete"]
     report.setdefault("stableRecovery", {})[side] = {
         "reached": stable,
-        "rule": "A keeps being selected to the end of the window with no gap "
-                "longer than %ds and at least %d A responses in the chain"
-                % (fail_timeout, stable_min),
+        "rule": "the trailing %ds of the window holds at least %d A responses "
+                "and the A chain reaching the newest one never gaps more than "
+                "%ds" % (2 * fail_timeout, stable_min, fail_timeout),
         "chainLength": chain_len,
         "at": fmt_ts(chain_start) if stable else None,
         "latencySeconds": (
@@ -441,10 +449,11 @@ for side in sides:
                         "restart" % (side, a_host, recovery_cap))
     elif window["complete"] and not stable:
         problems.append(
-            "%s: %s answered again but the A chain reaching the end of the "
-            "window is only %d long (need %d, max gap %ds); first-A alone is "
+            "%s: %s answered again but the trailing %ds of the window only "
+            "holds an A chain of %d (need %d, max gap %ds); first-A alone is "
             "not a recovery"
-            % (side, a_host, chain_len, stable_min, fail_timeout))
+            % (side, a_host, 2 * fail_timeout, chain_len, stable_min,
+               fail_timeout))
     elif not window["complete"] and not truncated:
         harness.append("%s: recovery probe stopped after %d/%d requests"
                        % (side, len(recovery), expected))
@@ -481,10 +490,13 @@ report["config"] = {
     "recoveryProbe": "the recovery phase runs the whole window (%d probes every "
                      "%.1fs); it does not stop at the first A"
                      % (int(recovery_count), float(recovery_interval)),
-    "stableRecoveryRule": "a side counts as recovered only when A keeps being "
-                          "selected to the end of the complete window with no "
-                          "gap longer than %ds and at least %d A responses"
-                          % (fail_timeout, stable_min),
+    "stableRecoveryRule": "a side counts as recovered only when the trailing "
+                          "%ds of the complete window holds at least %d A "
+                          "responses and the A chain reaching the newest one "
+                          "never gaps more than %ds (re-admission, not takeover: "
+                          "nginx ramps the peer's decayed effective weight back "
+                          "up)"
+                          % (2 * fail_timeout, stable_min, fail_timeout),
     "loopbackRemovedBy": "harness rm + systemctl reload nginx on both sides",
 }
 if mode == "stream":

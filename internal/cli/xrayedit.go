@@ -241,6 +241,7 @@ func editRequestFromFlags(args []string) (xraycfg.EditRequest, error) {
 		LinkSpiderX:      flagValue(args, "--spx"),
 		RotatePrivateKey: hasFlag(args, "--rotate-reality-private-key"),
 		ListShortIDs:     hasFlag(args, "--short-id-list"),
+		Host:             flagValue(args, "--host"),
 	}
 	if raw := flagValue(args, "--server-names"); raw != "" {
 		for _, name := range strings.Split(raw, ",") {
@@ -276,7 +277,7 @@ func editRequestFromFlags(args []string) (xraycfg.EditRequest, error) {
 		req.Domain == "" && req.CertFile == "" && req.KeyFile == "" &&
 		req.Port == 0 && req.PublicPort == 0 && req.WSPort == 0 && req.GRPCPort == 0 && req.XHTTPPort == 0 &&
 		!realityFlag {
-		return xraycfg.EditRequest{}, fmt.Errorf("nothing to edit: pass at least one of --listen, --port, --public-port, --transport, --ws-path, --xhttp-path, --grpc-service-name, --target, --server-names, --uuid, --domain, --cert, --cert-key, --short-id, --short-id-auto, --short-id-remove, --short-id-list, --rotate-reality-private-key, --fp, --spx")
+		return xraycfg.EditRequest{}, fmt.Errorf("nothing to edit: pass at least one of --listen, --port, --public-port, --transport, --ws-path, --xhttp-path, --grpc-service-name, --target, --server-names, --uuid, --domain, --cert, --cert-key, --short-id, --short-id-auto, --short-id-remove, --short-id-list, --rotate-reality-private-key, --fp, --spx (--host only changes how share links are rendered)")
 	}
 	return req, nil
 }

@@ -123,7 +123,7 @@ var commandFlags = map[string]flagSpec{
 	"xray config edit": specOf(
 		[]string{"path", "listen", "port", "public-port", "transport", "ws-path", "xhttp-path",
 			"grpc-service-name", "target", "server-names", "uuid", "ws-port", "grpc-port", "xhttp-port",
-			"domain", "cert", "cert-key", "relay-target", "relay-listen-port",
+			"domain", "cert", "cert-key", "relay-target", "relay-listen-port", "host",
 			"short-id", "short-id-remove", "fp", "spx", "confirm-reality-rotation"},
 		"dry-run", "no-restart", "no-probe", "yes", "rewrite-config", "container", "allow-non-loopback",
 		"short-id-auto", "short-id-list", "rotate-reality-private-key"),

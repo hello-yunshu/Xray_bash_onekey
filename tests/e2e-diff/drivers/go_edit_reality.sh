@@ -74,13 +74,10 @@ print("allPassed=%s checks=%d" % (out["allPassed"], out["count"]))
 PY
 }
 
-# The edit report builds oldShareUri from the install domain, which Reality
-# keeps in realitySettings.serverNames. Use the same host here so E8 can compare
-# the two links; the probe still dials 127.0.0.1 regardless of the URI host.
+# Both the edit report and this probe use the same explicit dial host, so the
+# link comparison is about credentials, not about which address was rendered.
 share_uri() {
-    local host
-    host=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["inbounds"][0]["streamSettings"]["realitySettings"]["serverNames"][0])' "$CFG")
-    "$IDLELEO" xray share --path "$CFG" --host "$host" --public-port 443 --json 2>/dev/null |
+    "$IDLELEO" xray share --path "$CFG" --host 127.0.0.1 --public-port 443 --json 2>/dev/null |
         python3 -c 'import json,sys; print(json.load(sys.stdin)["shareUri"])'
 }
 

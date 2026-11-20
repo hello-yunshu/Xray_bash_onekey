@@ -295,7 +295,7 @@
       "name": "config-edit-shortid-transition",
       "base": "M1",
       "method": "M1 安装 -> 旧链接先探通 -> --short-id-auto 追加 sid -> 旧/新链接都探通 -> --short-id-remove 旧 sid -> 旧链接探失败、新链接探通",
-      "go": {"argv": ["idleleo", "xray", "config", "edit", "--short-id-auto", "--container", "--json"]},
+      "go": {"argv": ["idleleo", "xray", "config", "edit", "--short-id-auto", "--host", "127.0.0.1", "--container", "--json"]},
       "checks": ["baselineLinkWorks", "appendRcZero", "appendKeepsOldSid", "newLinkUsesNewSid", "appendRestartedService", "oldLinkWorksAfterAppend", "newLinkWorksAfterAppend", "removeRcZero", "oldSidGone", "removeRestartedService", "oldLinkFailsAfterRemove", "newLinkStillWorks", "serviceActive"],
       "l4": "reality",
       "notes": "推荐流程：追加新 id -> 客户端切换 -> 删除旧 id。追加与删除都会重启 Xray（秒级重连），但旧链接在旧 sid 仍被接受期间必须一直可用；探针用真实 xray 客户端 + 隧道内 TLS 握手 + 认证后的 HTTP 请求，避免 Reality 回退造成握手假通过。"
@@ -305,7 +305,7 @@
       "name": "config-edit-privatekey-rotate-rollback",
       "base": "M1",
       "method": "M1 安装 -> 键入确认串轮换 privateKey -> 新链接探通、旧链接失效、备份含 old-share-uri.txt -> 注入冻结配置的 systemd drop-in -> 再轮换：重启成功但新凭据未生效 -> 真实握手失败 -> failurePoint=reality-handshake -> 自动回滚 -> 旧链接探通",
-      "go": {"argv": ["idleleo", "xray", "config", "edit", "--rotate-reality-private-key", "--confirm-reality-rotation", "rotate-reality-key", "--container", "--json"]},
+      "go": {"argv": ["idleleo", "xray", "config", "edit", "--rotate-reality-private-key", "--confirm-reality-rotation", "rotate-reality-key", "--host", "127.0.0.1", "--container", "--json"]},
       "checks": ["baselineLinkWorks", "rotateRcZero", "rotationReported", "oldLinkCaptured", "backupHasOldShareUri", "newLinkWorksAfterRotate", "oldLinkFailsAfterRotate", "faultEditFails", "failurePointRecorded", "rollbackProbeOk", "configRestored", "oldLinkWorksAfterRollback", "serviceActiveAfterCleanup", "serviceActive"],
       "l4": "reality",
       "notes": "轮换的断线窗口不可避免，输出必须提前打印旧链接。故障注入让重启加载旧配置副本：服务 active 但新 key/sid 未生效，只有真实客户端能发现；回滚后必须用旧链接再探通，这条是断言而不是日志。"

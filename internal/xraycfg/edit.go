@@ -62,6 +62,10 @@ type EditRequest struct {
 	LinkSpiderX      string
 	LinkSpiderXSet   bool
 	RotatePrivateKey bool
+	// Host is the public address clients dial. It is a rendering input, never a
+	// config field: Reality keeps its SNI in serverNames, so without it the edit
+	// report can only fall back to the SNI, which is not what clients connect to.
+	Host string
 	// ListShortIDs is read-only: it reports the accepted sids with one link per
 	// sid so the operator can hand out the new link before removing the old one.
 	ListShortIDs bool
@@ -151,13 +155,22 @@ func EditRuntime(raw []byte, base EditDefaults, req EditRequest) (Generated, Edi
 			"inbounds use different UUIDs; use: idleleo xray user uuid --email <email> --new-uuid %s (it updates every inbound that carries that user)", req.UUID)
 	}
 	spec.LinkFingerprint, spec.LinkSpiderX = base.LinkFingerprint, base.LinkSpiderX
+	shareHost := strings.TrimSpace(req.Host)
+	if strings.Contains(shareHost, "/") || strings.Contains(shareHost, "://") {
+		return Generated{}, EditResult{}, fmt.Errorf("--host takes the address clients dial (for example 203.0.113.10 or node.example.com), not a URL")
+	}
+	if shareHost == "" {
+		// No dial address was supplied and none is stored, so the report keeps
+		// the legacy fallback (the SNI) and the caller warns about it.
+		shareHost = shareHostFor(spec)
+	}
 	reality := spec.Mode == ModeReality || spec.Mode == ModeRealityNginx || spec.Mode == ModeRealityBalance
 	oldShare := ""
 	if reality {
 		// The pre-edit link must carry the same link preferences the clients
 		// already hold, otherwise the rollback probe uses a link nobody has.
 		if pub, keyErr := DerivePublicKey(spec.PrivateKey); keyErr == nil {
-			oldShare = buildShareURI(spec, TransportRaw, shareHostFor(spec), pub,
+			oldShare = buildShareURI(spec, TransportRaw, shareHost, pub,
 				firstShortID(spec.ShortIDs), firstOf(spec.ServerNames, ""))
 		}
 	}
@@ -169,7 +182,7 @@ func EditRuntime(raw []byte, base EditDefaults, req EditRequest) (Generated, Edi
 		links := make([]ShortIDLink, 0, len(spec.ShortIDs))
 		for _, id := range spec.ShortIDs {
 			links = append(links, ShortIDLink{ShortID: id, ShareURI: buildShareURI(
-				spec, TransportRaw, shareHostFor(spec), pub, id, firstOf(spec.ServerNames, ""))})
+				spec, TransportRaw, shareHost, pub, id, firstOf(spec.ServerNames, ""))})
 		}
 		return Generated{}, EditResult{
 			Mode: spec.Mode, Transport: spec.Transport,
@@ -255,7 +268,7 @@ func EditRuntime(raw []byte, base EditDefaults, req EditRequest) (Generated, Edi
 			probeSID = lastOf(spec.ShortIDs, probeSID)
 		}
 		if pub, keyErr := DerivePublicKey(spec.PrivateKey); keyErr == nil {
-			res.NewShareURI = buildShareURI(spec, TransportRaw, shareHostFor(spec), pub,
+			res.NewShareURI = buildShareURI(spec, TransportRaw, shareHost, pub,
 				probeSID, firstOf(spec.ServerNames, ""))
 			g.ShareURI = res.NewShareURI
 		}
