@@ -4,9 +4,10 @@
 #
 # One process per OPS id (E2E_OPS_ID). Every answer is sent only after its own
 # prompt has been matched; an unmatched prompt, EOF or timeout exits 124 and is
-# reported as HARNESS-ERROR. A missing prerequisite (no managed Nginx, nested
-# file_manager menu) is exit 3 with a machine-readable reason, never a silent
-# pass.
+# reported as HARNESS-ERROR. A missing prerequisite (no managed Nginx) is exit 3
+# with a machine-readable reason, never a silent
+# pass. OPS-10 drives the nested file_manager menu; a nested.json BLOCKED is
+# only written when the menu cannot be reached at all.
 #
 # Environment:
 #   E2E_OPS_ID        OPS-04 | OPS-05 | OPS-06 | OPS-07 | OPS-10 | OPS-17c | OPS-30
@@ -28,6 +29,7 @@ set opsid $env(E2E_OPS_ID)
 set target [expr {[info exists env(E2E_TARGET)] ? $env(E2E_TARGET) : "www.cloudflare.com"}]
 set port_alt [expr {[info exists env(E2E_PORT_ALT)] ? $env(E2E_PORT_ALT) : "8443"}]
 set uuid_label [expr {[info exists env(E2E_UUID_LABEL)] ? $env(E2E_UUID_LABEL) : "e2e-uuid"}]
+set ops10_domain [expr {[info exists env(E2E_OPS10_DOMAIN)] ? $env(E2E_OPS10_DOMAIN) : "ops10.example.com"}]
 
 proc harness_error {msg} {
     puts "HARNESS-ERROR: $msg"
@@ -172,21 +174,25 @@ proc ops10 {} {
     if {![file exists "/usr/local/nginx/conf/nginx.conf"]} {
         blocked "managed-nginx-absent"
     }
+    global ops10_domain
     navigate "2>3>2"
     ask {是否变更} y nginxServerNames
+    # The nested file_manager menu creates one "<domain>.serverNames" fragment
+    # under a domain that is not the install target, so the before/after
+    # snapshot proves the write instead of re-observing the install default.
+    ask {请选择一个选项} 2 fmCreate
     expect {
-        -re {请选择一个选项} {
-            # file_manager.sh owns this menu; driving it is a separate flow with
-            # its own prompts. Exit it and report NOT-RUN instead of inventing a
-            # verdict from a half-driven nested menu.
-            send "5\r"
-            puts "NESTED-MENU: file_manager detected; exiting without driving it"
-            blocked "nested-file-manager-menu-not-driven" nested
-        }
-        -re {请输入选项} { send "0\r"; puts "STEP\[exit\]=0" }
-        eof { harness_error "ops10: eof before a serverNames outcome" }
-        timeout { harness_error "ops10: timeout before a serverNames outcome" }
+        -re {请输入网址} { }
+        eof { harness_error "ops10: eof before the serverNames URL prompt" }
+        timeout { harness_error "ops10: timeout before the serverNames URL prompt" }
     }
+    ask {请输入[:：]} $ops10_domain fmDomain
+    expect {
+        -re {已创建} { puts "STEP\[fmCreated\]=yes" }
+        eof { harness_error "ops10: eof before the creation confirmation" }
+        timeout { harness_error "ops10: timeout before the creation confirmation" }
+    }
+    ask {请选择一个选项} 5 fmExit
     close_menu
 }
 

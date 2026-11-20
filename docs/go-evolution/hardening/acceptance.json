@@ -150,7 +150,7 @@
       "codeSha": "1b519028",
       "testCommand": "E2E_RUN_ID=20261119-p2full bash tests/e2e-diff/run_p2_matrix.sh",
       "evidencePath": "tests/e2e-diff/matrix.json",
-      "reason": "34 rows classified; 10 dual-side PASS (5 existing + OPS-04/05/06/07/17c), OPS-30 BASH_ONLY, OPS-10 and 3 rows NOT_RUN"
+      "reason": "34 rows classified; 11 dual-side PASS (5 existing + OPS-04/05/06/07/10/17c), OPS-30 BASH_ONLY, OPS-16/17b/23/24 NOT_RUN"
     },
     {
       "id": "T11",
@@ -215,21 +215,28 @@
       "OPS-06",
       "OPS-07",
       "OPS-09",
+      "OPS-10",
       "OPS-17c",
       "OPS-19",
       "OPS-21",
       "OPS-31",
       "OPS-32"
     ],
-    "goOnly": 19,
+    "goOnly": 18,
     "fail": 0,
     "failIds": [],
     "bashOnly": [
       "OPS-30"
     ],
     "notRun": 4,
+    "notRunIds": [
+      "OPS-16",
+      "OPS-17b",
+      "OPS-23",
+      "OPS-24"
+    ],
     "blocked": [],
-    "evidence": "tests/e2e-diff/evidence/opsfix-3/p2; tests/e2e-diff/evidence/ops10-2/p2"
+    "evidence": "tests/e2e-diff/evidence/opsfix-3/p2; tests/e2e-diff/evidence/ops10-3/p2"
   },
   "summary": {
     "pass": 12,
@@ -405,13 +412,13 @@
     ],
     "ops": {
       "total": 34,
-      "dualSide": 10,
-      "goSweep": 17,
+      "dualSide": 11,
+      "goSweep": 16,
       "goCommand": 2,
       "bashOnly": 1,
       "notRun": 4,
       "fail": 0,
-      "evidence": "tests/e2e-diff/evidence/opsfix-3/p2; tests/e2e-diff/evidence/ops10-2/p2"
+      "evidence": "tests/e2e-diff/evidence/opsfix-3/p2; tests/e2e-diff/evidence/ops10-3/p2"
     },
     "subscripts": {
       "passed": [
@@ -429,7 +436,8 @@
         "S2",
         "S3"
       ],
-      "evidence": "tests/e2e-diff/evidence/s-6-1/s/assertions.txt"
+      "evidence": "tests/e2e-diff/evidence/s-6-1/s/assertions.txt",
+      "s6Retry": "s6-2: TLS restored but the 16.5MB asset stalls at 10.8MB within the script's 90s bound; remains BLOCKED"
     },
     "soak": {
       "status": "PASS",
@@ -453,8 +461,8 @@
       "evidence": "tests/e2e-diff/evidence/debian12-1/p2/"
     },
     "blockers": [
-      "OPS-10 and 3 OPS rows NOT_RUN",
-      "S6 geo_update BLOCKED: release-assets.githubusercontent.com unreachable",
+      "OPS-16/17b/23/24 remain without a dual-side execution path",
+      "S6 geo_update BLOCKED: release-assets.githubusercontent.com TLS recovered but the 16.5MB asset times out within the script's 90s bound",
       "pure Bash ACME BLOCKED",
       "external IPv6/public CA/VPS reboot VPS_DEFERRED"
     ],

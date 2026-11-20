@@ -518,23 +518,26 @@ A4 负例：把候选新增测试复制到父提交 `45666732` 仍然通过，�
 | OPS-05 | `MATCH (allowed-diff)` | 两侧 client id 均已变化；Bash UUIDv5 vs Go 字面量 UUID |
 | OPS-06 | `MATCH` | 两侧 target 与 serverNames 一致（去掉端口后比较） |
 | OPS-07 | `MATCH` | 两侧 Nginx 由 `#TLSv1.2 1;` 变为 `TLSv1.2 1;` |
+| OPS-10 | `MATCH` | 嵌套 `file_manager` 新建 `ops10.example.com` 片段；Go 生成同一片段（`ops10-3`） |
 | OPS-17c | `MATCH` | Bash cron `auto_update.sh`；Go systemd timer `idleleo-schedule` |
 | OPS-30 | `BASH_ONLY` | `language.conf` 由 absent → 新 SHA；Go 无语言命令，不计 dualSide |
 | OPS-09/19/21/31/32 | `PASS` | 既有 5 项本轮未退化 |
 
-OPS-10 单独运行（`ops10-2`）：Bash 进入二级 file_manager 后 driver 未驱动，
-`NOT_RUN`，不计 PASS。
+OPS-10 单独运行（`ops10-3`）：Bash 驱动嵌套菜单创建 `ops10.example.com.serverNames`，
+`nginx -T` 出现 `ops10.example.com reality;`；Go `config edit --server-names` 生成同一
+片段，双端 `PASS`。
 
 ### 13.2 子脚本（`s-6-1`）
 
 命令：`bash tests/e2e-diff/run_s_scripts.sh`；证据 `s-6-1/s/assertions.txt`、
-`run.json`。53 PASS / 5 FAIL。
+`run.json`。53 PASS / 5 FAIL。S6 在 `s6-2` 重试：TLS 已恢复，但下载在脚本
+90 秒上限内只完成 10.8/16.5 MB（`curl: (28)`），仍按 `BLOCKED` 记录，不改成产品 FAIL。
 
 | 子脚本 | 判定 | 依据 |
 | --- | --- | --- |
 | S4 | PASS | auto_update 正常/重复/坏元数据；重复不改配置 |
 | S5 | PASS | Pebble 真实签发/续期/失败保证书 |
-| S6 | `BLOCKED` | `curl: (35) SSL_ERROR_SYSCALL` 访问 `release-assets.githubusercontent.com`；5 条正常下载断言不成立，失败分支通过 |
+| S6 | `BLOCKED` | `s-6-1`：`curl: (35) SSL_ERROR_SYSCALL` 访问 `release-assets.githubusercontent.com`；`s6-2`：TLS 恢复后 90 秒内只到 10.8/16.5 MB（`curl: (28)`）。5 条正常下载断言不成立，失败分支通过 |
 | S7 | PASS | acme.sh 安装/版本/帮助/缺 state fail-closed |
 | S8 | PASS | 沙箱 tcp plan/apply/rollback；真实内核 apply `BLOCKED`（无 bbr） |
 | S9 | PASS | speedtest 正常/重复/不可达；历史脚本 `bash -n` |
@@ -558,5 +561,5 @@ OPS-10 单独运行（`ops10-2`）：Bash 进入二级 file_manager 后 driver �
 - subscripts 从“未逐项确认”更新为：S4/S5/S7/S8/S9 PASS，S6 `BLOCKED`，
   S1–S3 引用 OPS 证据。
 - 多版本、第二发行版、30 分钟 soak 从 `NOT_RUN` 更新为 PASS（边界见 13.3）。
-- Docker 候选仍为 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`：OPS-10 与 3 项未执行，
-  OPS-30 为 `BASH_ONLY`；正式发布仍 `NO_GO_NOT_AUTHORIZED`。
+- Docker 候选仍为 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`：OPS-16/17b/23/24 仍无双端
+  执行路径，OPS-30 为 `BASH_ONLY`；正式发布仍 `NO_GO_NOT_AUTHORIZED`。

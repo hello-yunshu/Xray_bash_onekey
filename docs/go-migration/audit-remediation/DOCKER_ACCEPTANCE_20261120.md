@@ -11,7 +11,7 @@
 
 | 结论 | 判定 | 一句话依据 |
 | --- | --- | --- |
-| Docker 开发候选 | **NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE** | 既有 5 项 OPS 未退化；新增 6 项中 5 项双端 PASS、1 项 `BASH_ONLY`；OPS-04 公网端口 no-op 缺陷已修复并复跑 PASS；OPS-10 与 3 项 OPS 仍 `NOT_RUN`；S4/S5/S7/S8/S9、30 分钟 soak、3 个真实 Xray 版本、Debian 12 smoke 均通过，S6 因外网资产不可达 `BLOCKED`。按 D4 仍不能给 GO |
+| Docker 开发候选 | **NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE** | 既有 5 项 OPS 未退化；新增 7 项中 6 项双端 PASS、1 项 `BASH_ONLY`；OPS-04 公网端口 no-op 缺陷已修复并复跑 PASS；OPS-10 嵌套 file_manager 已驱动并 PASS；OPS-16/17b/23/24 仍无双端路径；S4/S5/S7/S8/S9、30 分钟 soak、3 个真实 Xray 版本、Debian 12 smoke 均通过，S6 因外网资产不可达 `BLOCKED`。按 D4 仍不能给 GO |
 | 正式发布资格 | **尚未授权 / NO_GO** | 任务书禁止发布与合并；独立 VPS、公网 CA、外部公网 IPv6 仍 `VPS_DEFERRED`；旧 Bash 节点升级矩阵与纯 Bash ACME 未完成 |
 
 **没有合并、没有打 tag、没有发布、没有操作生产 VPS。** PR 保持 draft。
@@ -80,12 +80,13 @@ MATCH。
 | --- | --- | --- | --- |
 | OPS-09/19/21/31/32 | 5 | Bash 菜单等价路径 + Go CLI，真实 Nginx/Xray/数据面 | 双端 PASS（本轮全量回归未退化） |
 | OPS-04/05/06/07/17c/30（新增） | 6 | 同一次运行内 Bash `expect` 驱动真实 `install.sh` 菜单 + Go CLI，快照比对 | 04/05/06/07/17c 双端 PASS；30 `BASH_ONLY` |
-| OPS-10 | 1 | Go CLI 已改 serverNames；Bash 进入二级菜单后未驱动 | `NOT_RUN` |
+| OPS-10（新增） | 1 | Bash `expect` 驱动嵌套 `file_manager` 菜单（新建 `ops10.example.com` 片段）+ Go CLI | 双端 `PASS`（`ops10-3`） |
 | OPS Go sweep | 17 个 ID / 36 断言 | 仅 Go | 36 PASS / 0 FAIL |
 | OPS-08/27 | 2 | 仅 Go + 真实 `nginx -t` | PASS |
 | 其余 OPS | 3 | 未执行 | `NOT_RUN` |
 
-**新增 OPS 的证据与判定口径**（全部在 `tests/e2e-diff/evidence/opsfix-3/p2/`）：
+**新增 OPS 的证据与判定口径**（OPS-04/05/06/07/17c/30 在
+`tests/e2e-diff/evidence/opsfix-3/p2/`，OPS-10 在 `ops10-3/p2/`）：
 
 | ID | Bash 观测 | Go 观测 | 判定 |
 | --- | --- | --- | --- |
@@ -93,7 +94,7 @@ MATCH。
 | OPS-05 | `2>2>1` 自定义映射 → UUIDv5 | `config edit --uuid <literal> --no-probe` 写入同一格式 UUID | `MATCH (allowed-diff)`：取值算法不同、结构等价 |
 | OPS-06 | `2>2>3` 改 target + serverNames | `config edit --target <host>:443 --server-names <host>` 一致 | `MATCH` |
 | OPS-07 | `2>2>4` 启用 TLSv1.2 → Nginx `TLSv1.2 1;` 取消注释 | `xray tls --version 1.2+` 产生同一行 | `MATCH` |
-| OPS-10 | `2>3>2` 进入嵌套 file_manager，driver 未驱动 | CLI 修改 serverNames（Go 侧仅参考） | `NOT_RUN`（不计 PASS） |
+| OPS-10 | `2>3>2` 进入嵌套 `file_manager`，新建 `ops10.example.com.serverNames`，`nginx -T` 出现 `ops10.example.com reality;` | `config edit --server-names ops10.example.com --no-probe` 生成同一片段 | `MATCH`（`ops10-3`） |
 | OPS-17c | `5>4` 启用自动更新 → cron `auto_update.sh` | `schedule install --interval 3600` → systemd timer `idleleo-schedule` | `MATCH` |
 | OPS-30 | `8` 切换语言 → `language.conf` 变化 | 无 Go 等价命令 | `BASH_ONLY`（不计 dualSide） |
 
@@ -104,7 +105,8 @@ Reality+Nginx 下公网端口只改 Nginx 前端与分享链接，运行时 inbo
 `TestEditPublicPortOnNginxFrontIsNotANoOp`。修复后 `ops04-8` 与 `opsfix-3`
 均为双端 `PASS`，Nginx 两侧都监听 8443。
 
-**Docker 候选仍为 NO-GO**：OPS-10 与 3 项 OPS 未执行，OPS-30 无 Go 等价；
+**Docker 候选仍为 NO-GO**：OPS-16/17b/23/24 仍无双端执行路径（17b/24 无 Go 等价
+命令，16 需要 ACME 证书状态，23 依赖外部测速服务器），OPS-30 无 Go 等价；
 不能用 Go-only sweep 替代。
 
 ### 4.4 subscripts
@@ -116,7 +118,7 @@ Reality+Nginx 下公网端口只改 Nginx 前端与分享链接，运行时 inbo
 | --- | --- | --- |
 | S4 auto_update | PASS | 正常/重复/坏元数据三路径；重复不改 `install_config.json` |
 | S5 ssl_update + Pebble | PASS | 真实 ACME 签发/续期/失败保证书，Nginx/Xray 保持 active |
-| S6 geo_update | **BLOCKED** | 下载依赖 `release-assets.githubusercontent.com`，本网络 TLS 失败（`curl: (35)`）；失败分支与回滚断言通过，正常下载 5 条断言不成立，按 spec 记 `BLOCKED` 而非产品 FAIL |
+| S6 geo_update | **BLOCKED** | 下载依赖 `release-assets.githubusercontent.com`：`s-6-1` 为 TLS 失败（`curl: (35)`）；`s6-2` 重试时 TLS 已恢复，但 16.5 MB 资产在脚本 90 秒上限内只到 10.8 MB（`curl: (28)`）。失败分支与回滚断言通过，正常下载断言不成立，按 spec 记 `BLOCKED` 而非产品 FAIL |
 | S7 acme.sh legacy | PASS | 安装、`--version`/`--help`、缺 state 时 fail-closed；真实签发 `BLOCKED`（外部 CA） |
 | S8 tcp | PASS | 沙箱 plan/apply/rollback + 历史 `tcp.sh` 下载 `bash -n`；真实内核 apply `BLOCKED`（宿主无 bbr） |
 | S9 speedtest | PASS | 正常/重复/不可达服务器；历史 `superspeed.sh` 下载 `bash -n` |
@@ -255,8 +257,8 @@ E2E_RUN_ID=ops-full-3 \
   E2E_ONLY=OPS-04,OPS-05,OPS-06,OPS-07,OPS-17c,OPS-30,OPS-19,OPS-21,OPS-09,OPS-31,OPS-32 \
   bash tests/e2e-diff/run_p2_matrix.sh
 
-# OPS-10（嵌套菜单，预期 NOT-RUN）
-E2E_RUN_ID=ops10-2 E2E_ONLY=OPS-10 bash tests/e2e-diff/run_p2_matrix.sh
+# OPS-10（嵌套 file_manager，双端 PASS）
+E2E_RUN_ID=ops10-3 E2E_ONLY=OPS-10 bash tests/e2e-diff/run_p2_matrix.sh
 
 # 子脚本 S4–S9
 E2E_RUN_ID=s-6-1 bash tests/e2e-diff/run_s_scripts.sh
@@ -313,7 +315,7 @@ docker run --rm --network none -v "$PWD:/src:ro" -w /src \
   `tests/go-parity/evidence/matrix-20261120-final/`
 - 本轮新增证据：`tests/e2e-diff/evidence/ops-full-3/p2/`（OPS 全量回归）、
   `opsfix-3/p2/`（OPS-04 修复后 7 项复跑）、`ops04-8/p2/`（单行验证）、
-  `ops10-2/p2/`（OPS-10）、`s-6-1/s/`（S4–S9）、`soak-30m-1/soak/`、
+  `ops10-3/p2/`（OPS-10 嵌套菜单双端）、`s-6-1/s/`（S4–S9）、`soak-30m-1/soak/`、
   `versions-3/versions/`、`debian12-1/p2/`、`preflight-ops/`。
 - 既有审计文档：`AUDIT_ISSUES.md`、`REMEDIATION_PLAN.md`、`PARITY_MATRIX.csv`、
   `TEST_EVIDENCE.md`、`FINAL_AUDIT.md`

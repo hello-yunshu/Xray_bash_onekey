@@ -882,6 +882,10 @@ ops_go_cli() {
 OPS_PORT_ALT="${E2E_OPS_PORT_ALT:-8443}"
 OPS_UUID="${E2E_OPS_UUID:-99999999-8888-7777-6666-555555555555}"
 OPS_UUID_LABEL="${E2E_OPS_UUID_LABEL:-e2e-uuid}"
+# OPS-10 creates a serverNames fragment under a domain that is not the install
+# target, so the snapshot can prove the nested menu write instead of
+# re-observing the fragment install.sh already generated.
+OPS10_DOMAIN="${E2E_OPS10_DOMAIN:-ops10.example.com}"
 
 ops_bash_base() { # <server> <dir> <sid>
     local server=$1 dir=$2 sid=$3
@@ -910,6 +914,7 @@ ops_bash_menu() { # <server> <dir> <ops-id>
     docker exec -e E2E_OPS_ID="$oid" -e E2E_LOG=/out/ops.log \
         -e E2E_TIMEOUT="${E2E_TIMEOUT:-900}" -e E2E_TARGET="$TARGET" \
         -e E2E_PORT_ALT="$OPS_PORT_ALT" -e E2E_UUID_LABEL="$OPS_UUID_LABEL" \
+        -e E2E_OPS10_DOMAIN="$OPS10_DOMAIN" \
         -e XRAY_VERSIONS_FILE=/etc/idleleo/versions.json \
         "$server" expect -f /src/tests/e2e-diff/drivers/bash_ops.exp \
         >"$dir/ops.out" 2>&1
@@ -955,13 +960,13 @@ ops_snapshot() { # <server> <dir> <tag>
 
 ops_generic_verdict() { # <ops-id>
     local oid=$1 base="$EVID/$1"
-    python3 - "$base" "$oid" "$TARGET" <<'PY'
+    python3 - "$base" "$oid" "$TARGET" "$OPS10_DOMAIN" <<'PY'
 import json
 import os
 import re
 import sys
 
-base, oid, target_domain = sys.argv[1], sys.argv[2], sys.argv[3]
+base, oid, target_domain, ops10_domain = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 
 
 def read(path):
@@ -1125,26 +1130,35 @@ elif oid == "OPS-07":
     verdict = "BLOCKER" if reasons else "PASS"
 elif oid == "OPS-10":
     if bash_rc == 3:
-        report["verdict"] = "NOT-RUN"
-        report["reasons"] = ["nested file_manager menu was not driven (documented out of scope)"]
-        report["blockedFile"] = read(os.path.join(base, "bash", "nested.json"))
+        report["verdict"] = "BLOCKED"
+        report["reasons"] = ["bash nested menu prerequisite missing"]
+        report["blockedFile"] = read(os.path.join(base, "bash", "nested.json")) \
+            or read(os.path.join(base, "bash", "blocked.json"))
         with open(os.path.join(base, "ops.json"), "w", encoding="utf-8") as fh:
             json.dump(report, fh, indent=2, sort_keys=True)
             fh.write("\n")
-        print("NOT-RUN")
+        print("BLOCKED")
         raise SystemExit(0)
-    b_after = [x for x in nginx_config("bash", "after") if x.startswith("server_name")]
-    g_after = [x for x in nginx_config("go", "after")
-               if x.startswith("server_name") and target_domain in x]
+    # The observable is the map fragment that install.sh includes for every
+    # accepted SNI, not an nginx "server_name" directive.
+    fragment = ops10_domain + " reality;"
+    b_before = [x for x in nginx_config("bash", "before") if x == fragment]
+    g_before = [x for x in nginx_config("go", "before") if x == fragment]
+    b_after = [x for x in nginx_config("bash", "after") if x == fragment]
+    g_after = [x for x in nginx_config("go", "after") if x == fragment]
     if bash_rc != 0:
         reasons.append("bash serverNames change rc=%s" % bash_rc)
     if go_rc != 0:
         reasons.append("go serverNames change rc=%s" % go_rc)
-    if not any(target_domain in x for x in b_after):
-        reasons.append("bash nginx server_name lacks %s: %s" % (target_domain, b_after))
+    if b_before or g_before:
+        reasons.append("baseline already carried %s" % fragment)
+    if not b_after:
+        reasons.append("bash nested menu did not create %s" % fragment)
     if not g_after:
-        reasons.append("go nginx server_name lacks %s" % target_domain)
-    report["nginxServerNames"] = {"bash": b_after, "go": g_after}
+        reasons.append("go nginx fragment lacks %s" % fragment)
+    report["nginxServerNames"] = {"bashBefore": b_before, "goBefore": g_before,
+                                  "bash": b_after, "go": g_after,
+                                  "fragment": fragment}
     verdict = "BLOCKER" if reasons else "PASS"
 elif oid == "OPS-17c":
     b_cron = read(snap("bash", "after", "cron.txt")) or ""
@@ -1211,7 +1225,7 @@ ops_simple_job() { # <ops-id> <base-scenario> <go-mode>
             OPS-05) ops_go_cli "$gserver" "$gdir" 10-op xray config edit --uuid "$OPS_UUID" --yes --no-probe --container --json ;;
             OPS-06) ops_go_cli "$gserver" "$gdir" 10-op xray config edit --target "$TARGET:443" --server-names "$TARGET" --yes --no-probe --container --json ;;
             OPS-07) ops_go_cli "$gserver" "$gdir" 10-op xray tls --version 1.2+ --container ;;
-            OPS-10) ops_go_cli "$gserver" "$gdir" 10-op xray config edit --server-names "$TARGET" --yes --no-probe --container --json ;;
+            OPS-10) ops_go_cli "$gserver" "$gdir" 10-op xray config edit --server-names "$OPS10_DOMAIN" --yes --no-probe --container --json ;;
             OPS-17c)
                 ops_go_cli "$gserver" "$gdir" 10-op schedule install --interval 3600 --container
                 ops_go_cli "$gserver" "$gdir" 11-status schedule status
