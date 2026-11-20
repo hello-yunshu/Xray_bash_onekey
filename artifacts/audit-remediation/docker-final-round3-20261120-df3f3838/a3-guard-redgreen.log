@@ -1,0 +1,6 @@
+# A3 SNI Guard red/green probe (2026-11-20T11:03:06Z)
+# pre-fix 45666732 (metadata Reality, no nginx guard fragments) -> defaults to enabled/isolate
+pre-fix:
+tls=Reality sniGuard=true policy=isolate
+candidate df3f3838:
+tls=Reality applicable=false status=not-applicable enabled=false policy= metadataSynced=false

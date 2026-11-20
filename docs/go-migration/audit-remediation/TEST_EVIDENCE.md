@@ -269,8 +269,10 @@ idleleo xray cert clear [--yes] [--dry-run] [--json]
 `upstream deny` 的服务端口和 `03-isolate.conf`/`03-decoy.conf` 的 include，
 不重写整个 mesh；写前捕获文件、`nginx -t` 失败自动还原；decoy 会校验域名解析
 到本机（可用 `--decoy-ip` 补充 NAT 公网地址），未提供证书时生成 1 年自签
-RSA-2048 对。`xray cert clear` 只删 `/etc/idleleo/cert` 下的普通文件/目录，
-跳过符号链接，仅在真实 root 下清 `~/.acme.sh/*_ecc`。
+RSA-2048 对。`xray cert clear` 的**当前语义**（`df3f3838` 起）：只有在能证明
+证书属于本项目、且未被 Nginx/Xray/计划任务引用时才删除；`--dry-run` 零写，
+删除走 staging + journal，失败恢复；ACME 账户与第三方域名材料保留。§9.3 的
+旧描述“真实 root 删除 acme 与 decoy 证书”已被本轮 A1 用例取代。
 
 验证命令与结果：
 
@@ -302,7 +304,9 @@ docker run --rm -v /tmp/idleleo-linux:/usr/local/bin/idleleo:ro \
 结果：isolate → reject（deny 9404、删除 03-isolate）、reject → decoy（自签
 decoy.local、deny 9444、私钥 0600）、decoy → isolate（deny 9403、只保留一个
 include）均执行真实 `nginx -t` 并输出 `syntax is ok` / `test is successful`；
-`xray cert clear` 在真实 root 删除了 acme 与 decoy 证书，最后输出
+该轮 smoke 当时在真实 root 删除了 acme 与 decoy 证书；**这一行为在第三轮 A1
+被收紧**，现在只删除可证明归属且无在用的本项目证书，第三方与账户材料保留。
+OPS-08/27 的结论以 `ops08-27-real-nginx.log` 与 A1 新用例为准，最后输出
 `OPS-08/OPS-27 real nginx: PASS`。证据：
 `artifacts/audit-remediation/logs/ops08-27-nginx.log`、
 `tests/e2e-diff/smoke_guard_nginx.sh`。
@@ -446,3 +450,51 @@ Bash 与 Go 共享同一份缓存，并保留全部既有校验。
     bash tests/e2e-diff/run_p2_matrix.sh
   ```
 
+
+## 12. 第三轮候选验收（2026-11-20，`df3f3838`）
+
+完整报告见 [DOCKER_ACCEPTANCE_20261120.md](DOCKER_ACCEPTANCE_20261120.md)，证据目录
+`artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/`。
+
+### 12.1 A1–A5
+
+| ID | 结果 | 证据 |
+| --- | --- | --- |
+| A1 证书清理所有权/引用/事务 | PASS（Bash 旧风险为 `INTENTIONAL_SAFETY_DELTA`） | `artifacts/go-docker-20261120/a1-red-baseline.log`、`a1-acme-realroot-final.log` |
+| A2 分享拨号地址/SNI/归属 | PASS_IMPACT_SCOPED（候选未重跑 F28） | `internal/cli/share_metadata_test.go`；F28 57/0、F08 129/0、F18 178/0 |
+| A3 Guard show 不再默认 enabled/isolate | PASS | `.../a3-guard-redgreen.log`、`smoke-guard-cert-final.log` |
+| A4 XHTTP 路径 | 非缺陷，语义差异记录 | `.../a4-prefix-probe.log`、`artifacts/go-docker-20261120/a4-xhttp-path.log` |
+| A5 已修复项/缓存/OPS-32/Test Install | PARTIAL（Test Install `CI_PENDING`） | `.../p2/OPS-32`、`gate-final.log` |
+
+A3 红绿：父提交在“元数据 Reality、无 Nginx guard fragment”时输出
+`sniGuard=true policy=isolate`；候选输出 `applicable=false status=not-applicable`。
+A4 负例：把候选新增测试复制到父提交 `45666732` 仍然通过，证明 `Generate` 早已
+补前导 `/`，不存在可复现断连。
+
+### 12.2 双端与真实运行
+
+| 套件 | 结果 | 证据 |
+| --- | --- | --- |
+| M1–M10（fresh + 幂等 + L4/L6） | 双端 install rc=0；两轮 L4 ok；幂等 rc2=0 | `tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/` |
+| E1–E8（Go 编辑） | 67 项检查全满足 | 同上 `E1`…`E8` |
+| OPS-09/19/21/31/32 | 双端 PASS | 同上 |
+| OPS Go sweep | 36 PASS / 0 FAIL（17 ID） | `tests/e2e-diff/evidence/round3-ops-20261120-1818/` |
+| 98 项矩阵 | 54 MATCH + 40 CORE + 4 REFUSED + 6 A1，0 GAP | `tests/go-parity/evidence/matrix-20261120-final/` |
+| 冷恢复 | source 8/8、target 19/19 | `tests/e2e-diff/evidence/goevo-coldrestore-docker-final-cold-20261120-df3f3838/` |
+| R1/R2/INJ | 106 PASS / 0 FAIL | `tests/e2e-diff/evidence/docker-final-r1-20261120-df3f3838/r1/` |
+| P3 xhttp | 62/62 | `tests/e2e-diff/evidence/goevo-p3-docker-final-p3xhttp-20261120-df3f3838/` |
+| race（8 包） | rc=0 | `.../race-final.log` |
+
+### 12.3 未完成项
+
+- 34 个 OPS：双端 5、Go sweep 17、Go 命令 2、未执行 10。禁止用 Go-only sweep 替代。
+- 9 个 subscripts：未逐项确认。
+- 多版本 Xray/Bash、第二发行版 smoke：`NOT_RUN`。
+- 30 分钟 + 两个调度周期 soak：`NOT_RUN`。
+- M8 Bash 纯 ACME：`BASH_DELEGATES_GO`，纯 `acme.sh` `BLOCKED`。
+- 公网 CA、外部 IPv6、VPS 重启/掉电：`VPS_DEFERRED`。
+
+### 12.4 结论
+
+- Docker 开发候选：`NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`（D4：容器必需项未全部完成）。
+- 正式发布：`NO_GO_NOT_AUTHORIZED`（任务书禁止；VPS 项未验证）。

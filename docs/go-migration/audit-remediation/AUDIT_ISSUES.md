@@ -84,3 +84,31 @@
 FUP-08/09 的验证见 [REVIEW_20261120_FOLLOWUP.md](REVIEW_20261120_FOLLOWUP.md)
 §3、§5；FUP-08 只影响链接渲染，不写配置字段，`--host` 单独使用时提示
 “nothing to edit”（它不产生运行时变更）。
+
+## 6. 第三轮 Docker 实机验收（2026-11-20，候选 `df3f3838`）
+
+完整报告：[DOCKER_ACCEPTANCE_20261120.md](DOCKER_ACCEPTANCE_20261120.md)。
+覆盖账本：`artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/case-matrix.csv`。
+
+| ID | 第三轮结论 | 证据 | 说明 |
+| --- | --- | --- | --- |
+| A1 证书清理所有权/在用引用/第三方/事务 | `FIXED_VERIFIED` | `a1-red-baseline.log`、`a1-acme-realroot-final.log`、`certclear_test.go` | 真实 root；dry-run 零写；staging+journal；第三方与 ACME 账户保留；Bash 旧风险为 `INTENTIONAL_SAFETY_DELTA` |
+| A2 分享 Host/SNI 与元数据归属 | `PASS_IMPACT_SCOPED` | `internal/cli/share_metadata_test.go`；F28 57/0、F08 129/0、F18 178/0 | 候选未重跑 F28；`df3f3838` 只改 XHTTP 路径，未触及 share |
+| A3 Guard show 默认 enabled/isolate；set 锁/journal/回滚 | `FIXED_VERIFIED` | `a3-guard-redgreen.log`、`smoke-guard-cert-final.log`、`guard_test.go` | pre-fix `sniGuard=true/isolate` → candidate `not-applicable`；真实 nginx 三策略 PASS；Bash 交互 `NOT_RUN` |
+| A4 XHTTP `/xhttp` vs `/xhttp/` | `NO_DEFECT_SEMANTIC_DIFF` | `a4-prefix-probe.log`、`a4-xhttp-path.log` | 父提交负例测试通过；真实 Xray 四交叉 200/301；`normalizeXHTTPPath` 为防御性统一 |
+| A5 已修复项/缓存/OPS-32/Test Install | `PARTIAL` | `OPS-32`、`gate-final.log` | OPS-32 ws+reality PASS；Test Install 静默退出仍 `CI_PENDING` |
+
+### 6.1 §4 未闭环项的更新
+
+| 项 | 第三轮状态 |
+| --- | --- |
+| 独立 VPS / 公网 CA / 外部 IPv6 / 多版本 | 仍 `BLOCKED` / `VPS_DEFERRED` / `NOT_RUN` |
+| OPS 双端 | 5 个双端 PASS；17 个仅 Go sweep；2 个仅 Go 命令；10 个 `NOT_RUN`。**不满足任务书 B4** |
+| 9 个 subscripts | `NOT_RUN` |
+| 30 分钟 soak | `NOT_RUN` |
+| Test Install 静默退出 | `CI_PENDING` |
+
+### 6.2 结论
+
+- Docker 开发候选：`NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`（B4/C3/C4 未完成）。
+- 正式发布：`NO_GO_NOT_AUTHORIZED`；PR 保持 draft，不合并、不发版。

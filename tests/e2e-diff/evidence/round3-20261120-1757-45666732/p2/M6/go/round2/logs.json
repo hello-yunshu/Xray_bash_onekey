@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "units": {
+    "nginx": {
+      "errorLines": 0,
+      "lines": 15,
+      "sampleErrors": [],
+      "sha256": "9dccb1549d11cb188a4001c9af21012a0998805e8463743c2a1a69f9d1b876b4",
+      "warningLines": 0
+    },
+    "xray": {
+      "errorLines": 1,
+      "lines": 16,
+      "sampleErrors": [
+        "2026/11/20 10:00:38.230054 [Error] app/dns: failed to retrieve response for example.com. > Post \"https://dns.google/dns-query\": EOF"
+      ],
+      "sha256": "97de321832d32154b59420ad49dbf2013874449791134145bc224c2b4df43f83",
+      "warningLines": 4
+    }
+  }
+}

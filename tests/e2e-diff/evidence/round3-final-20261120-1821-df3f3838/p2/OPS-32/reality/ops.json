@@ -1,0 +1,454 @@
+{
+  "backendRestartCheck": {
+    "bash": "A",
+    "go": "A"
+  },
+  "backends": {
+    "bash": [
+      "backend-a.realityServers: server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;",
+      "backend-b.realityServers: server backend-b:9002 weight=50 max_fails=2 fail_timeout=10;"
+    ],
+    "go": [
+      "backend-a.realityServers: server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;",
+      "backend-b.realityServers: server backend-b:9002 weight=50 max_fails=2 fail_timeout=10;"
+    ]
+  },
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "config": {
+    "effectiveWeightDecay": "nginx also decays a failed peer's effective weight by weight/max_fails, so re-entry after fail_timeout ramps back in over a few requests",
+    "failTimeout": 10,
+    "failureMetric": "connection failures (rc!=0 / empty reply) instead of HTTP 5xx",
+    "loopbackRemovedBy": "harness rm + systemctl reload nginx on both sides",
+    "maxFails": 2,
+    "probe": "raw TLS 1.3 ClientHello with the configured SNI over the stream listener; ssl_preread selects the reality upstream",
+    "recoveryPollSeconds": 60.0,
+    "recoveryProbe": "the recovery phase runs the whole window (120 probes every 0.5s); it does not stop at the first A",
+    "stableRecoveryRule": "a side counts as recovered only when the trailing 20s of the complete window holds at least 3 A responses and the A chain reaching the newest one never gaps more than 10s (re-admission, not takeover: nginx ramps the peer's decayed effective weight back up)",
+    "upstreamCounters": "per nginx worker; the upstream has no shared zone, so each worker removes the peer on its own",
+    "weight": 50
+  },
+  "configLine": {
+    "bash": "server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;",
+    "go": "server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;"
+  },
+  "deadAttempts": {
+    "bash": [
+      {
+        "at": "2026/11/20 10:38:39",
+        "epoch": 1795171119,
+        "line": "2026/11/20 10:38:39 [error] 9447#0: *50 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9447"
+      },
+      {
+        "at": "2026/11/20 10:38:39",
+        "epoch": 1795171119,
+        "line": "2026/11/20 10:38:39 [error] 9450#0: *53 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9450"
+      },
+      {
+        "at": "2026/11/20 10:38:39",
+        "epoch": 1795171119,
+        "line": "2026/11/20 10:38:39 [error] 9442#0: *79 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9442"
+      },
+      {
+        "at": "2026/11/20 10:38:39",
+        "epoch": 1795171119,
+        "line": "2026/11/20 10:38:39 [error] 9444#0: *96 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9444"
+      },
+      {
+        "at": "2026/11/20 10:38:39",
+        "epoch": 1795171119,
+        "line": "2026/11/20 10:38:39 [error] 9446#0: *99 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9446"
+      },
+      {
+        "at": "2026/11/20 10:38:39",
+        "epoch": 1795171119,
+        "line": "2026/11/20 10:38:39 [error] 9441#0: *127 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9441"
+      },
+      {
+        "at": "2026/11/20 10:38:39",
+        "epoch": 1795171119,
+        "line": "2026/11/20 10:38:39 [error] 9449#0: *146 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9449"
+      },
+      {
+        "at": "2026/11/20 10:38:39",
+        "epoch": 1795171119,
+        "line": "2026/11/20 10:38:39 [error] 9447#0: *157 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9447"
+      },
+      {
+        "at": "2026/11/20 10:38:39",
+        "epoch": 1795171119,
+        "line": "2026/11/20 10:38:39 [error] 9448#0: *177 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9448"
+      },
+      {
+        "at": "2026/11/20 10:38:44",
+        "epoch": 1795171124,
+        "line": "2026/11/20 10:38:44 [error] 9443#0: *198 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9443"
+      },
+      {
+        "at": "2026/11/20 10:38:47",
+        "epoch": 1795171127,
+        "line": "2026/11/20 10:38:47 [error] 9444#0: *211 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "9444"
+      }
+    ],
+    "go": [
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 535#0: *41 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "535"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 536#0: *58 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "536"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 540#0: *61 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "540"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 534#0: *64 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "534"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 538#0: *67 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "538"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 542#0: *72 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "542"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 539#0: *92 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "539"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 543#0: *115 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "543"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 534#0: *128 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "534"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 542#0: *131 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "542"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 540#0: *138 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "540"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 536#0: *147 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "536"
+      },
+      {
+        "at": "2026/11/20 10:39:56",
+        "epoch": 1795171196,
+        "line": "2026/11/20 10:39:56 [error] 541#0: *168 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "541"
+      },
+      {
+        "at": "2026/11/20 10:39:58",
+        "epoch": 1795171198,
+        "line": "2026/11/20 10:39:58 [error] 535#0: *186 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "535"
+      },
+      {
+        "at": "2026/11/20 10:39:59",
+        "epoch": 1795171199,
+        "line": "2026/11/20 10:39:59 [error] 538#0: *191 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "538"
+      },
+      {
+        "at": "2026/11/20 10:40:04",
+        "epoch": 1795171204,
+        "line": "2026/11/20 10:40:04 [error] 544#0: *212 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+        "worker": "544"
+      }
+    ]
+  },
+  "duringOutage": {
+    "bash": {
+      "bodies": {
+        "B": 84
+      },
+      "connectionFailures": 0,
+      "fivexx": 0,
+      "requests": 84
+    },
+    "go": {
+      "bodies": {
+        "B": 84
+      },
+      "connectionFailures": 0,
+      "fivexx": 0,
+      "requests": 84
+    }
+  },
+  "files": {
+    "bash": {
+      "afterRemove": [
+        "backend-a.realityServers",
+        "backend-b.realityServers"
+      ],
+      "content": {
+        "backend-a.realityServers": "server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;",
+        "backend-b.realityServers": "server backend-b:9002 weight=50 max_fails=2 fail_timeout=10;"
+      },
+      "created": [
+        "127.0.0.1.realityServers",
+        "backend-a.realityServers",
+        "backend-b.realityServers"
+      ],
+      "dir": "/etc/idleleo/conf/nginx",
+      "location": "www.cloudflare.com",
+      "loopbackFragment": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;",
+      "suffix": "realityServers"
+    },
+    "go": {
+      "afterRemove": [
+        "backend-a.realityServers",
+        "backend-b.realityServers"
+      ],
+      "content": {
+        "backend-a.realityServers": "server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;",
+        "backend-b.realityServers": "server backend-b:9002 weight=50 max_fails=2 fail_timeout=10;"
+      },
+      "created": [
+        "127.0.0.1.realityServers",
+        "backend-a.realityServers",
+        "backend-b.realityServers"
+      ],
+      "dir": "/etc/idleleo/conf/nginx",
+      "location": "www.cloudflare.com",
+      "loopbackFragment": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;",
+      "suffix": "realityServers"
+    }
+  },
+  "firstRecoveryLatencySeconds": {
+    "bash": 14.388,
+    "go": 22.148
+  },
+  "id": "OPS-32",
+  "lastAAt": {
+    "bash": "2026/11/20 10:39:50",
+    "go": "2026/11/20 10:41:09"
+  },
+  "lastDeadAttemptAt": {
+    "bash": "2026/11/20 10:38:47",
+    "go": "2026/11/20 10:40:04"
+  },
+  "limitations": [
+    "the marker peers do not implement the Reality handshake; this proves nginx stream peer selection and passive removal, not an end-to-end Reality/VLESS session",
+    "nginx retries on connect failure before any payload reaches the peer, so a client-visible failure during the outage is a real blocker"
+  ],
+  "mode": "stream",
+  "name": "\u540e\u7aef\u6545\u969c\u6458\u9664",
+  "nginxVersion": {
+    "bash": "nginx version: nginx/1.30.6",
+    "go": "nginx version: nginx/1.30.6"
+  },
+  "perWorkerFailSummary": {
+    "bash": {
+      "belowMaxFails": {
+        "9441": 1,
+        "9442": 1,
+        "9443": 1,
+        "9446": 1,
+        "9448": 1,
+        "9449": 1,
+        "9450": 1
+      },
+      "max": 2,
+      "min": 1,
+      "reachedMaxFails": [
+        "9444",
+        "9447"
+      ],
+      "workers": 9
+    },
+    "go": {
+      "belowMaxFails": {
+        "539": 1,
+        "541": 1,
+        "543": 1,
+        "544": 1
+      },
+      "max": 2,
+      "min": 1,
+      "reachedMaxFails": [
+        "534",
+        "535",
+        "536",
+        "538",
+        "540",
+        "542"
+      ],
+      "workers": 10
+    }
+  },
+  "perWorkerFails": {
+    "bash": {
+      "9441": 1,
+      "9442": 1,
+      "9443": 1,
+      "9444": 2,
+      "9446": 1,
+      "9447": 2,
+      "9448": 1,
+      "9449": 1,
+      "9450": 1
+    },
+    "go": {
+      "534": 2,
+      "535": 2,
+      "536": 2,
+      "538": 2,
+      "539": 1,
+      "540": 2,
+      "541": 1,
+      "542": 2,
+      "543": 1,
+      "544": 1
+    }
+  },
+  "perWorkerJitter": {
+    "bash": {
+      "quietMax": 12.2,
+      "quietMin": 4.2,
+      "quietSpread": 8.0
+    },
+    "go": {
+      "quietMax": 12.4,
+      "quietMin": 9.4,
+      "quietSpread": 3.0
+    }
+  },
+  "perWorkerQuietSeconds": {
+    "bash": {
+      "9444": 4.2,
+      "9447": 12.2
+    },
+    "go": {
+      "534": 12.4,
+      "535": 10.4,
+      "536": 12.4,
+      "538": 9.4,
+      "540": 12.4,
+      "542": 12.4
+    }
+  },
+  "reasons": [],
+  "recoveredAt": {
+    "bash": "2026/11/20 10:39:06",
+    "go": "2026/11/20 10:40:31"
+  },
+  "recoveryFailuresAfterFirstA": {
+    "bash": 0,
+    "go": 0
+  },
+  "recoveryWindow": {
+    "bash": {
+      "capSeconds": 60.0,
+      "complete": true,
+      "expected": 120,
+      "requests": 120,
+      "stopReason": "full window"
+    },
+    "go": {
+      "capSeconds": 60.0,
+      "complete": true,
+      "expected": 120,
+      "requests": 120,
+      "stopReason": "full window"
+    }
+  },
+  "removedAt": {
+    "bash": "2026/11/20 10:38:39",
+    "go": "2026/11/20 10:39:56"
+  },
+  "removedAtBasis": {
+    "bash": "2026/11/20 10:38:39 [error] 9447#0: *50 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0",
+    "go": "2026/11/20 10:39:56 [error] 534#0: *64 connect() failed (111: Connection refused) while connecting to upstream, client: 127.0.0.1, server: 0.0.0.0:443, upstream: \"127.0.0.1:9001\", bytes from/to client:0/0, bytes from/to upstream:0/0"
+  },
+  "scenarioNote": {
+    "perWorkerJitter": "max_fails counters are per nginx worker (the upstream has no zone), so failure counts, removal instants and quiet stretches differ per worker. perWorkerJitter reports that spread; a single probe is one sample, not a global recovery time.",
+    "recovery": "first-A and stable-A are both recorded. The verdict uses stable-A; first-A is sampling bias when only some workers removed the peer."
+  },
+  "sidesMatch": true,
+  "stableRecovery": {
+    "bash": {
+      "at": "2026/11/20 10:39:37",
+      "chainLength": 7,
+      "latencySeconds": 45.89,
+      "observable": true,
+      "reached": true,
+      "rule": "the trailing 20s of the window holds at least 3 A responses and the A chain reaching the newest one never gaps more than 10s"
+    },
+    "go": {
+      "at": "2026/11/20 10:40:49",
+      "chainLength": 9,
+      "latencySeconds": 40.927,
+      "observable": true,
+      "reached": true,
+      "rule": "the trailing 20s of the window holds at least 3 A responses and the A chain reaching the newest one never gaps more than 10s"
+    }
+  },
+  "suffix": "realityServers",
+  "verdict": "PASS",
+  "warmup": {
+    "bash": {
+      "bodies": {
+        "A": 13,
+        "B": 7
+      },
+      "connectionFailures": 0,
+      "fivexx": 0,
+      "requests": 20
+    },
+    "go": {
+      "bodies": {
+        "A": 12,
+        "B": 8
+      },
+      "connectionFailures": 0,
+      "fivexx": 0,
+      "requests": 20
+    }
+  }
+}

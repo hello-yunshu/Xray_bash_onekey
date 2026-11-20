@@ -23,8 +23,14 @@
       "title": "relay listen binding and public exposure",
       "status": "ALREADY_FIXED_VERIFIED",
       "commands": [
-        { "cmd": "bash artifacts/audit-remediation/p0a_relay_exposure.sh", "exitCode": 0 },
-        { "cmd": "nginx -t (managed, 4 listen forms, inside node container)", "exitCode": 0 }
+        {
+          "cmd": "bash artifacts/audit-remediation/p0a_relay_exposure.sh",
+          "exitCode": 0
+        },
+        {
+          "cmd": "nginx -t (managed, 4 listen forms, inside node container)",
+          "exitCode": 0
+        }
       ],
       "evidence": [
         "artifacts/audit-remediation/p0a/summary.json",
@@ -42,8 +48,14 @@
       "title": "TLS share topology derived from manager metadata",
       "status": "FIXED_VERIFIED",
       "commands": [
-        { "cmd": "go test -count=1 -run TestXrayShare -v ./internal/cli (in golang:1.27.4)", "exitCode": 0 },
-        { "cmd": "red test: commented applyShareMetadataDefaults call, rerun TLS case", "exitCode": 1 }
+        {
+          "cmd": "go test -count=1 -run TestXrayShare -v ./internal/cli (in golang:1.27.4)",
+          "exitCode": 0
+        },
+        {
+          "cmd": "red test: commented applyShareMetadataDefaults call, rerun TLS case",
+          "exitCode": 1
+        }
       ],
       "evidence": [
         "internal/cli/share_metadata_test.go",
@@ -57,8 +69,14 @@
       "title": "migration/restore must not destroy real resources",
       "status": "ALREADY_FIXED_VERIFIED",
       "commands": [
-        { "cmd": "bash artifacts/audit-remediation/p0c_migration_restore.sh", "exitCode": 0 },
-        { "cmd": "go test ./internal/legacybridge ./internal/backup ./internal/repair", "exitCode": 0 }
+        {
+          "cmd": "bash artifacts/audit-remediation/p0c_migration_restore.sh",
+          "exitCode": 0
+        },
+        {
+          "cmd": "go test ./internal/legacybridge ./internal/backup ./internal/repair",
+          "exitCode": 0
+        }
       ],
       "evidence": [
         "artifacts/audit-remediation/p0c/summary.json",
@@ -73,10 +91,22 @@
       "title": "transport/metadata parity coverage",
       "status": "FIXED_VERIFIED",
       "commands": [
-        { "cmd": "E2E_RUN_ID=audit-final-20261119 bash tests/e2e-diff/run_p2_matrix.sh", "exitCode": 0 },
-        { "cmd": "E2E_RUN_ID=audit-final-m7-20261119 E2E_ONLY=M7 bash tests/e2e-diff/run_p2_matrix.sh", "exitCode": 0 },
-        { "cmd": "MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh \"$PWD\" \"$PWD/tests/go-parity/evidence/matrix-20261120-final\"", "exitCode": 0 },
-        { "cmd": "E2E_RUN_ID=audit-ops-20261120 bash tests/e2e-diff/run_ops_sweep.sh", "exitCode": 0 }
+        {
+          "cmd": "E2E_RUN_ID=audit-final-20261119 bash tests/e2e-diff/run_p2_matrix.sh",
+          "exitCode": 0
+        },
+        {
+          "cmd": "E2E_RUN_ID=audit-final-m7-20261119 E2E_ONLY=M7 bash tests/e2e-diff/run_p2_matrix.sh",
+          "exitCode": 0
+        },
+        {
+          "cmd": "MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh \"$PWD\" \"$PWD/tests/go-parity/evidence/matrix-20261120-final\"",
+          "exitCode": 0
+        },
+        {
+          "cmd": "E2E_RUN_ID=audit-ops-20261120 bash tests/e2e-diff/run_ops_sweep.sh",
+          "exitCode": 0
+        }
       ],
       "evidence": [
         "tests/e2e-diff/evidence/audit-final-20261119/p2/",
@@ -93,7 +123,10 @@
       "title": "transactional deployment",
       "status": "ALREADY_FIXED_VERIFIED",
       "commands": [
-        { "cmd": "go test -count=1 -v ./internal/deploy (rollback cases)", "exitCode": 0 }
+        {
+          "cmd": "go test -count=1 -v ./internal/deploy (rollback cases)",
+          "exitCode": 0
+        }
       ],
       "evidence": [
         "artifacts/audit-remediation/logs/p1b-deploy-rollback.log",
@@ -107,7 +140,10 @@
       "title": "DNS/network reproducibility",
       "status": "ALREADY_FIXED_VERIFIED",
       "commands": [
-        { "cmd": "go test -count=1 ./... (docker --network none, GOPROXY=off)", "exitCode": 0 }
+        {
+          "cmd": "go test -count=1 ./... (docker --network none, GOPROXY=off)",
+          "exitCode": 0
+        }
       ],
       "evidence": [
         "artifacts/audit-remediation/logs/go-test-offline.log"
@@ -120,8 +156,14 @@
       "title": "long-running behavior and resource ownership",
       "status": "ALREADY_FIXED_VERIFIED",
       "commands": [
-        { "cmd": "go test -race ./internal/backup ./internal/repair ./internal/legacybridge ./internal/schedule ./internal/store ./internal/change", "exitCode": 0 },
-        { "cmd": "go test (fail2ban/log ownership cases)", "exitCode": 0 }
+        {
+          "cmd": "go test -race ./internal/backup ./internal/repair ./internal/legacybridge ./internal/schedule ./internal/store ./internal/change",
+          "exitCode": 0
+        },
+        {
+          "cmd": "go test (fail2ban/log ownership cases)",
+          "exitCode": 0
+        }
       ],
       "evidence": [
         "artifacts/audit-remediation/logs/p1d-race.log",
@@ -137,33 +179,127 @@
     "pass": 31,
     "fail": 0,
     "skip": 0,
-    "covered": ["no-root/write-gate","read-only-dir","ENOSPC","EROFS","EACCES","offline","expired-certificate","corrupt-config/journal","port-occupied","repeat-run","concurrency","SIGKILL-durable-points","stale-pid/lock","rollback-failure","invalid-input","migration-activate/validate/recover"],
+    "covered": [
+      "no-root/write-gate",
+      "read-only-dir",
+      "ENOSPC",
+      "EROFS",
+      "EACCES",
+      "offline",
+      "expired-certificate",
+      "corrupt-config/journal",
+      "port-occupied",
+      "repeat-run",
+      "concurrency",
+      "SIGKILL-durable-points",
+      "stale-pid/lock",
+      "rollback-failure",
+      "invalid-input",
+      "migration-activate/validate/recover"
+    ],
     "evidence": "artifacts/audit-remediation/logs/p1e-fault-injection.log"
   },
   "staticGates": [
-    { "check": "gofmt -l cmd internal tests", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/go-static.log" },
-    { "check": "go vet ./...", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/go-static.log" },
-    { "check": "go build ./...", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/go-static.log" },
-    { "check": "go test -count=1 ./... (--network none)", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/go-test-offline.log" },
-    { "check": "bash -n install.sh scripts/*.sh .github/test/*.sh tests/e2e-diff/*.sh artifacts/audit-remediation/*.sh", "exitCode": 0, "evidence": "artifacts/audit-remediation/logs/bash-syntax.log" }
+    {
+      "check": "gofmt -l cmd internal tests",
+      "exitCode": 0,
+      "evidence": "artifacts/audit-remediation/logs/go-static.log"
+    },
+    {
+      "check": "go vet ./...",
+      "exitCode": 0,
+      "evidence": "artifacts/audit-remediation/logs/go-static.log"
+    },
+    {
+      "check": "go build ./...",
+      "exitCode": 0,
+      "evidence": "artifacts/audit-remediation/logs/go-static.log"
+    },
+    {
+      "check": "go test -count=1 ./... (--network none)",
+      "exitCode": 0,
+      "evidence": "artifacts/audit-remediation/logs/go-test-offline.log"
+    },
+    {
+      "check": "bash -n install.sh scripts/*.sh .github/test/*.sh tests/e2e-diff/*.sh artifacts/audit-remediation/*.sh",
+      "exitCode": 0,
+      "evidence": "artifacts/audit-remediation/logs/bash-syntax.log"
+    }
   ],
   "parityMatrix": [
-    { "id": "M1", "scenario": "reality-standard", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M1" },
-    { "id": "M2", "scenario": "reality-nginx", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M2" },
-    { "id": "M3", "scenario": "reality-transport", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M3" },
-    { "id": "M4", "scenario": "tls-ws", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M4" },
-    { "id": "M5", "scenario": "tls-grpc", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M5" },
-    { "id": "M6", "scenario": "tls-xhttp", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M6" },
-    { "id": "M7", "scenario": "tls-ws-grpc-xhttp", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-m7-20261119/p2/M7" },
-    { "id": "M8", "scenario": "tls-acme", "verdict": "NOT_RUN", "evidence": "requires public domain and CA; see TEST_EVIDENCE.md" },
-    { "id": "M9", "scenario": "none-ws", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M9" },
-    { "id": "M10", "scenario": "relay-stream", "verdict": "MATCH", "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M10" }
+    {
+      "id": "M1",
+      "scenario": "reality-standard",
+      "verdict": "MATCH",
+      "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M1"
+    },
+    {
+      "id": "M2",
+      "scenario": "reality-nginx",
+      "verdict": "MATCH",
+      "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M2"
+    },
+    {
+      "id": "M3",
+      "scenario": "reality-transport",
+      "verdict": "MATCH",
+      "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M3"
+    },
+    {
+      "id": "M4",
+      "scenario": "tls-ws",
+      "verdict": "MATCH",
+      "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M4"
+    },
+    {
+      "id": "M5",
+      "scenario": "tls-grpc",
+      "verdict": "MATCH",
+      "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M5"
+    },
+    {
+      "id": "M6",
+      "scenario": "tls-xhttp",
+      "verdict": "MATCH",
+      "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M6"
+    },
+    {
+      "id": "M7",
+      "scenario": "tls-ws-grpc-xhttp",
+      "verdict": "MATCH",
+      "evidence": "tests/e2e-diff/evidence/audit-final-m7-20261119/p2/M7"
+    },
+    {
+      "id": "M8",
+      "scenario": "tls-acme",
+      "verdict": "NOT_RUN",
+      "evidence": "requires public domain and CA; see TEST_EVIDENCE.md"
+    },
+    {
+      "id": "M9",
+      "scenario": "none-ws",
+      "verdict": "MATCH",
+      "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M9"
+    },
+    {
+      "id": "M10",
+      "scenario": "relay-stream",
+      "verdict": "MATCH",
+      "evidence": "tests/e2e-diff/evidence/audit-final-20261119/p2/M10"
+    }
   ],
   "historicalMatrix": {
     "source": "docs/go/BASH_GO_REAL_RUNTIME_PARITY_REPORT.md (commit ace4a16, 2026-11-08)",
     "rerunCommand": "MATRIX_BASE_IMAGE=audit-matrix-base:local bash tests/go-parity/matrix/run_matrix_container.sh \"$PWD\" \"$PWD/tests/go-parity/evidence/matrix-fix-20261120-clean\"",
     "exitCode": 0,
-    "counts": { "match": 54, "matchCoreFields": 40, "gap": 0, "refused": 4, "a1Pass": 6, "bashCases": 98 },
+    "counts": {
+      "match": 54,
+      "matchCoreFields": 40,
+      "gap": 0,
+      "refused": 4,
+      "a1Pass": 6,
+      "bashCases": 98
+    },
     "assertionCorrected": "Fronted modes now pass --public-port and check the generated Nginx listen port; the previous check compared the loopback backend port and encoded the pre-fix port collision.",
     "evidence": "tests/go-parity/evidence/matrix-fix-20261120-clean/summary.json",
     "repoDirty": 0
@@ -174,7 +310,26 @@
     "pass": 36,
     "fail": 0,
     "scope": "Go-side sweep for 18 IDs plus Go/Bash dual-side rerun for 5 IDs",
-    "coveredIds": ["OPS-01","OPS-02","OPS-03","OPS-11","OPS-12","OPS-13","OPS-14","OPS-14a","OPS-15","OPS-17a","OPS-18","OPS-20","OPS-22","OPS-25","OPS-26","OPS-28","OPS-29","OPSS-01"],
+    "coveredIds": [
+      "OPS-01",
+      "OPS-02",
+      "OPS-03",
+      "OPS-11",
+      "OPS-12",
+      "OPS-13",
+      "OPS-14",
+      "OPS-14a",
+      "OPS-15",
+      "OPS-17a",
+      "OPS-18",
+      "OPS-20",
+      "OPS-22",
+      "OPS-25",
+      "OPS-26",
+      "OPS-28",
+      "OPS-29",
+      "OPSS-01"
+    ],
     "dualSide": {
       "command": "E2E_RUN_ID=audit-ops-dual-20261120 E2E_ONLY=OPS-19,OPS-21,OPS-09,OPS-31,OPS-32 bash tests/e2e-diff/run_p2_matrix.sh",
       "runId": "audit-ops-dual-20261120",
@@ -182,34 +337,103 @@
       "exitCode": 0,
       "pass": 5,
       "fail": 0,
-      "ids": ["OPS-09","OPS-19","OPS-21","OPS-31","OPS-32"],
+      "ids": [
+        "OPS-09",
+        "OPS-19",
+        "OPS-21",
+        "OPS-31",
+        "OPS-32"
+      ],
       "ops21": "Bash 14 required checks and Go 26 required checks all true; customRuleApplied is Go-only",
       "evidence": "tests/e2e-diff/evidence/audit-ops-dual-20261120/p2/",
       "redacted": true
     },
-    "priorDualSide": { "commit": "be141822", "ids": ["OPS-09","OPS-19","OPS-21","OPS-31","OPS-32"], "evidence": "tests/e2e-diff/evidence/goevo-p3-matrix-0242-a9875aff/p2/", "supersededBy": "audit-ops-dual-20261120" },
+    "priorDualSide": {
+      "commit": "be141822",
+      "ids": [
+        "OPS-09",
+        "OPS-19",
+        "OPS-21",
+        "OPS-31",
+        "OPS-32"
+      ],
+      "evidence": "tests/e2e-diff/evidence/goevo-p3-matrix-0242-a9875aff/p2/",
+      "supersededBy": "audit-ops-dual-20261120"
+    },
     "goMissingIds": [],
     "implementedInRound": {
       "commit": "241cc99f",
-      "ids": ["OPS-08","OPS-27"],
-      "commands": ["xray guard show/set --policy isolate|reject|decoy","xray cert clear --yes"],
+      "ids": [
+        "OPS-08",
+        "OPS-27"
+      ],
+      "commands": [
+        "xray guard show/set --policy isolate|reject|decoy",
+        "xray cert clear --yes"
+      ],
       "verification": "Go unit tests (9 new) + sandbox CLI smoke + real nginx -t in nginx:1.27-alpine for isolate/reject/decoy",
       "notRun": "Bash dual-side interaction; reload used a systemctl stub because the container has no init",
-      "evidence": ["artifacts/audit-remediation/logs/ops08-27-smoke.log","artifacts/audit-remediation/logs/ops08-27-nginx.log","tests/e2e-diff/smoke_guard_cert.sh","tests/e2e-diff/smoke_guard_nginx.sh"]
+      "evidence": [
+        "artifacts/audit-remediation/logs/ops08-27-smoke.log",
+        "artifacts/audit-remediation/logs/ops08-27-nginx.log",
+        "tests/e2e-diff/smoke_guard_cert.sh",
+        "tests/e2e-diff/smoke_guard_nginx.sh"
+      ]
     },
-    "intentionalDelta": ["OPS-30 (language switch allowed-diff)"],
-    "editEquivalentsWithoutOpsRow": ["OPS-05 (xray edit --uuid)","OPS-06 (xray edit --target)","OPS-07 (xray edit)","OPS-10 (xray edit --server-names)","OPS-17b (xray tls)","OPS-24 (update nginx / schedule run)"],
+    "intentionalDelta": [
+      "OPS-30 (language switch allowed-diff)"
+    ],
+    "editEquivalentsWithoutOpsRow": [
+      "OPS-05 (xray edit --uuid)",
+      "OPS-06 (xray edit --target)",
+      "OPS-07 (xray edit)",
+      "OPS-10 (xray edit --server-names)",
+      "OPS-17b (xray tls)",
+      "OPS-24 (update nginx / schedule run)"
+    ],
     "evidence": "tests/e2e-diff/evidence/audit-ops-20261120/assertions.txt"
   },
   "notRunOrBlocked": [
-    { "item": "standalone VPS (systemd restart, real cron)", "status": "BLOCKED", "reason": "task forbids operating production VPS; no dedicated test host" },
-    { "item": "public CA / DNS-01 / EAB pure-Bash ACME", "status": "BLOCKED", "reason": "requires public domain and CA" },
-    { "item": "external IPv6 data plane", "status": "NOT_RUN", "reason": "default Docker bridge has no IPv6" },
-    { "item": "multi-version Xray/Bash config matrix", "status": "NOT_RUN", "reason": "requires pinned historical releases" },
-    { "item": "OPS dual-side rerun for the other 18 IDs", "status": "NOT_RUN", "reason": "OPS-09/19/21/31/32 rerun on both sides at 1cd8b98c; the remaining 18 IDs only have the Go-side sweep in this round" },
-    { "item": "OPS-08 / OPS-27 dual-side integration", "status": "NOT_RUN", "reason": "Go commands implemented at 241cc99f; unit tests, sandbox CLI smoke and real nginx -t pass, but Bash interactive answers are not wired into run_p2_matrix.sh yet" },
-    { "item": "OPS-30", "status": "INTENTIONAL_DELTA_APPROVED", "reason": "language switch is allowed-diff" },
-    { "item": "merge to main / formal release", "status": "INTENTIONAL_DELTA_APPROVED", "reason": "forbidden by the task" }
+    {
+      "item": "standalone VPS (systemd restart, real cron)",
+      "status": "BLOCKED",
+      "reason": "task forbids operating production VPS; no dedicated test host"
+    },
+    {
+      "item": "public CA / DNS-01 / EAB pure-Bash ACME",
+      "status": "BLOCKED",
+      "reason": "requires public domain and CA"
+    },
+    {
+      "item": "external IPv6 data plane",
+      "status": "NOT_RUN",
+      "reason": "default Docker bridge has no IPv6"
+    },
+    {
+      "item": "multi-version Xray/Bash config matrix",
+      "status": "NOT_RUN",
+      "reason": "requires pinned historical releases"
+    },
+    {
+      "item": "OPS dual-side rerun for the other 18 IDs",
+      "status": "NOT_RUN",
+      "reason": "OPS-09/19/21/31/32 rerun on both sides at 1cd8b98c; the remaining 18 IDs only have the Go-side sweep in this round"
+    },
+    {
+      "item": "OPS-08 / OPS-27 dual-side integration",
+      "status": "NOT_RUN",
+      "reason": "Go commands implemented at 241cc99f; unit tests, sandbox CLI smoke and real nginx -t pass, but Bash interactive answers are not wired into run_p2_matrix.sh yet"
+    },
+    {
+      "item": "OPS-30",
+      "status": "INTENTIONAL_DELTA_APPROVED",
+      "reason": "language switch is allowed-diff"
+    },
+    {
+      "item": "merge to main / formal release",
+      "status": "INTENTIONAL_DELTA_APPROVED",
+      "reason": "forbidden by the task"
+    }
   ],
   "decisions": {
     "pr": "eligible to continue as draft review",
@@ -218,61 +442,300 @@
   },
   "followup20261120": {
     "reviewBaseline": "d13fca44",
-    "fixCommits": ["9f66b22a", "f217a2fa", "b212f1cf", "c65dbd04", "102f52e1", "1cd248e6", "ce746d8c", "c1b14832"],
+    "fixCommits": [
+      "9f66b22a",
+      "f217a2fa",
+      "b212f1cf",
+      "c65dbd04",
+      "102f52e1",
+      "1cd248e6",
+      "ce746d8c",
+      "c1b14832"
+    ],
     "report": "docs/go-migration/audit-remediation/REVIEW_20261120_FOLLOWUP.md",
-    "fixes": {"FUP-01": "share metadata is used only for its own canonical runtime path with a matching runtimeSha256", "FUP-02": "Reality share requires an explicit --host; serverNames stay the SNI", "FUP-03": "environment.txt carries hashes and repository-relative paths only", "FUP-04": "F28 redacts argv/stdout/stderr; the x25519 private key is no longer passed in", "FUP-05": "F28 uses --root and every probe passes an explicit --host", "FUP-06": "the matrix snapshots the dirty flag before creating its output directory", "FUP-07": "stale metadata degrades to a warning; the runtime config still renders", "FUP-08": "config edit takes --host; old/new/short-id links all dial it, URL values are rejected and a Reality edit without --host warns", "FUP-09": "OPS-32 judges recovery in the trailing 2*fail_timeout of the window with the same gap cap and sample minimum", "FUP-10": "OPS-19/31/32 read the Nginx release artifact and config templates from a verified offline cache; the Go side never falls back to the network", "FUP-11": "OPS-19 bash install reads a seeded apt .deb closure (IDLELEO_APT_CACHE): apt update is skipped, dpkg installs the whole closure and a missing package fails closed instead of falling back to the archive network"},
+    "fixes": {
+      "FUP-01": "share metadata is used only for its own canonical runtime path with a matching runtimeSha256",
+      "FUP-02": "Reality share requires an explicit --host; serverNames stay the SNI",
+      "FUP-03": "environment.txt carries hashes and repository-relative paths only",
+      "FUP-04": "F28 redacts argv/stdout/stderr; the x25519 private key is no longer passed in",
+      "FUP-05": "F28 uses --root and every probe passes an explicit --host",
+      "FUP-06": "the matrix snapshots the dirty flag before creating its output directory",
+      "FUP-07": "stale metadata degrades to a warning; the runtime config still renders",
+      "FUP-08": "config edit takes --host; old/new/short-id links all dial it, URL values are rejected and a Reality edit without --host warns",
+      "FUP-09": "OPS-32 judges recovery in the trailing 2*fail_timeout of the window with the same gap cap and sample minimum",
+      "FUP-10": "OPS-19/31/32 read the Nginx release artifact and config templates from a verified offline cache; the Go side never falls back to the network",
+      "FUP-11": "OPS-19 bash install reads a seeded apt .deb closure (IDLELEO_APT_CACHE): apt update is skipped, dpkg installs the whole closure and a missing package fails closed instead of falling back to the archive network"
+    },
     "tests": {
-      "goGate": {"status": "PASS", "evidence": "artifacts/audit-remediation/followup-20261120/c3/gate.rc"},
-      "F28": {"passed": 57, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/c3/f28"},
-      "F08": {"passed": 129, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/c3/f08"},
-      "F18": {"passed": 178, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/c3/f18"},
-      "F28PreFix": {"passed": 35, "failed": 2, "evidence": "artifacts/audit-remediation/followup-20261120/f28-prefix-excerpt.txt"},
-      "matrix": {"rows": 104, "gap": 0, "repoDirty": 0, "evidence": "tests/go-parity/evidence/matrix-fix-20261120-clean2"},
+      "goGate": {
+        "status": "PASS",
+        "evidence": "artifacts/audit-remediation/followup-20261120/c3/gate.rc"
+      },
+      "F28": {
+        "passed": 57,
+        "failed": 0,
+        "evidence": "artifacts/audit-remediation/followup-20261120/c3/f28"
+      },
+      "F08": {
+        "passed": 129,
+        "failed": 0,
+        "evidence": "artifacts/audit-remediation/followup-20261120/c3/f08"
+      },
+      "F18": {
+        "passed": 178,
+        "failed": 0,
+        "evidence": "artifacts/audit-remediation/followup-20261120/c3/f18"
+      },
+      "F28PreFix": {
+        "passed": 35,
+        "failed": 2,
+        "evidence": "artifacts/audit-remediation/followup-20261120/f28-prefix-excerpt.txt"
+      },
+      "matrix": {
+        "rows": 104,
+        "gap": 0,
+        "repoDirty": 0,
+        "evidence": "tests/go-parity/evidence/matrix-fix-20261120-clean2"
+      },
       "p2Full": {
         "run": "fix-20261120-p2b",
         "commit": "f217a2fa",
-        "passed": ["M1-M10", "E1-E7", "OPS-09"],
-        "invalidatedByNetwork": ["OPS-19", "OPS-31", "OPS-32"]
+        "passed": [
+          "M1-M10",
+          "E1-E7",
+          "OPS-09"
+        ],
+        "invalidatedByNetwork": [
+          "OPS-19",
+          "OPS-31",
+          "OPS-32"
+        ]
       },
       "p2Final": {
-        "runs": ["fix-20261120-p2c", "fix-20261120-p2d", "fix-20261120-p2h", "fix-20261120-p2i", "fix-20261120-p2j"],
+        "runs": [
+          "fix-20261120-p2c",
+          "fix-20261120-p2d",
+          "fix-20261120-p2h",
+          "fix-20261120-p2i",
+          "fix-20261120-p2j"
+        ],
         "commit": "1cd248e6",
-        "passed": ["E1-E6", "E7", "E8", "OPS-21", "OPS-19", "OPS-31", "OPS-32/ws", "OPS-32/reality"],
+        "passed": [
+          "E1-E6",
+          "E7",
+          "E8",
+          "OPS-21",
+          "OPS-19",
+          "OPS-31",
+          "OPS-32/ws",
+          "OPS-32/reality"
+        ],
         "blocked": [],
-        "ops32Reanalysis": {"rule": "trailing 2*fail_timeout, max gap fail_timeout, min 3 A responses", "evidence": "artifacts/audit-remediation/followup-20261120/ops32-reanalysis"}
+        "ops32Reanalysis": {
+          "rule": "trailing 2*fail_timeout, max gap fail_timeout, min 3 A responses",
+          "evidence": "artifacts/audit-remediation/followup-20261120/ops32-reanalysis"
+        }
       },
       "nginxCache": {
         "status": "PASS",
         "run": "fix-20261120-cache2",
-        "scenarios": ["OPS-19", "OPS-31", "OPS-32/ws", "OPS-32/reality"],
+        "scenarios": [
+          "OPS-19",
+          "OPS-31",
+          "OPS-32/ws",
+          "OPS-32/reality"
+        ],
         "build": "2026.10.15.7679",
         "arch": "arm",
         "tarballSha256": "dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79",
         "evidence": "tests/e2e-diff/evidence/fix-20261120-cache2/p2/nginx-cache.json",
-        "offlineProof": {"run": "fix-20261120-cache4", "blockedHosts": ["github.com", "raw.githubusercontent.com", "cdn.jsdelivr.net", "objects.githubusercontent.com", "release-assets.githubusercontent.com"], "result": "OPS-32 ws PASS, reality PASS", "evidence": "tests/e2e-diff/evidence/fix-20261120-cache4/p2"}
+        "offlineProof": {
+          "run": "fix-20261120-cache4",
+          "blockedHosts": [
+            "github.com",
+            "raw.githubusercontent.com",
+            "cdn.jsdelivr.net",
+            "objects.githubusercontent.com",
+            "release-assets.githubusercontent.com"
+          ],
+          "result": "OPS-32 ws PASS, reality PASS",
+          "evidence": "tests/e2e-diff/evidence/fix-20261120-cache4/p2"
+        }
       },
       "aptCache": {
         "status": "PASS",
         "run": "fix-20261120-apt1",
         "scenario": "OPS-19",
-        "packages": ["bc", "curl", "dbus", "git", "jq", "lsof", "python3", "qrencode", "cron", "fail2ban"],
+        "packages": [
+          "bc",
+          "curl",
+          "dbus",
+          "git",
+          "jq",
+          "lsof",
+          "python3",
+          "qrencode",
+          "cron",
+          "fail2ban"
+        ],
         "debCount": 75,
         "source": "download",
         "aptCacheEnv": "IDLELEO_APT_CACHE=/seed/apt",
         "evidence": "tests/e2e-diff/evidence/fix-20261120-apt1/p2/apt-cache.json",
-        "offlineProof": {"run": "fix-20261120-apt2", "blockedHosts": ["ports.ubuntu.com", "archive.ubuntu.com", "security.ubuntu.com", "deb.debian.org", "github.com", "raw.githubusercontent.com", "cdn.jsdelivr.net", "objects.githubusercontent.com", "release-assets.githubusercontent.com"], "result": "OPS-19 PASS with zero Get:/apt-get update lines", "evidence": "tests/e2e-diff/evidence/fix-20261120-apt2/p2"}
+        "offlineProof": {
+          "run": "fix-20261120-apt2",
+          "blockedHosts": [
+            "ports.ubuntu.com",
+            "archive.ubuntu.com",
+            "security.ubuntu.com",
+            "deb.debian.org",
+            "github.com",
+            "raw.githubusercontent.com",
+            "cdn.jsdelivr.net",
+            "objects.githubusercontent.com",
+            "release-assets.githubusercontent.com"
+          ],
+          "result": "OPS-19 PASS with zero Get:/apt-get update lines",
+          "evidence": "tests/e2e-diff/evidence/fix-20261120-apt2/p2"
+        }
       },
-      "privacyHygiene": {"findings": 0, "files": 34624},
+      "privacyHygiene": {
+        "findings": 0,
+        "files": 34624
+      },
       "ci": {
         "sha": "c1b14832",
-        "workflows": {"stageGate": 44684614465, "privacy": 44684614495, "releaseQualification": 44684614437, "preview": 44684614456, "realRoot": 44684614461, "testInstall": 44684614474},
+        "workflows": {
+          "stageGate": 44684614465,
+          "privacy": 44684614495,
+          "releaseQualification": 44684614437,
+          "preview": 44684614456,
+          "realRoot": 44684614461,
+          "testInstall": 44684614474
+        },
         "previousSha": "ce746d8c",
-        "previousWorkflows": {"stageGate": 44680509165, "privacy": 44680508152, "releaseQualification": 44680507886, "preview": 44680507803, "realRoot": 44680507913, "testInstall": 44680507985},
+        "previousWorkflows": {
+          "stageGate": 44680509165,
+          "privacy": 44680508152,
+          "releaseQualification": 44680507886,
+          "preview": 44680507803,
+          "realRoot": 44680507913,
+          "testInstall": 44680507985
+        },
         "conclusion": "all success"
       },
-      "notRun": ["F01 (needs a real root/systemd environment)"]
+      "notRun": [
+        "F01 (needs a real root/systemd environment)"
+      ]
     },
-    "boundaries": ["standalone VPS ACME and IPv6: no test host; production VPS is forbidden", "multi-version Xray/Bash matrix: NOT_RUN"],
+    "boundaries": [
+      "standalone VPS ACME and IPv6: no test host; production VPS is forbidden",
+      "multi-version Xray/Bash matrix: NOT_RUN"
+    ],
     "conclusion": "NO-GO"
+  },
+  "thirdRound20261120": {
+    "generatedAt": "2026-11-20T19:45:00+08:00",
+    "candidateSha": "df3f38381a8d3c4f8c8bc9681d589c891f5133f6",
+    "auditBaseline": "4566673290453a3b9e840b4f6206dadd0dfd763f",
+    "report": "docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261120.md",
+    "evidenceDir": "artifacts/audit-remediation/docker-final-round3-20261120-df3f3838",
+    "a1a5": {
+      "A1": "LOCAL_RUN_PASS (real root, red/green, staging+journal)",
+      "A2": "PASS_IMPACT_SCOPED (candidate did not rerun F28)",
+      "A3": "LOCAL_RUN_PASS (pre-fix enabled/isolate -> not-applicable, real nginx)",
+      "A4": "NO_DEFECT_SEMANTIC_DIFF (parent negative test passes, real client 4 crosses)",
+      "A5": "PARTIAL (OPS-32 PASS; Test Install CI_PENDING)"
+    },
+    "execution": {
+      "M1-M10": {
+        "sides": 2,
+        "rounds": 2,
+        "installRc": 0,
+        "idempotencyRc2": 0,
+        "l4": "ok",
+        "l6": "ok",
+        "evidence": "tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/"
+      },
+      "E1-E8": {
+        "status": "GO_ONLY_PASS",
+        "checks": 67,
+        "evidence": "same"
+      },
+      "OPSdual": {
+        "ids": [
+          "OPS-09",
+          "OPS-19",
+          "OPS-21",
+          "OPS-31",
+          "OPS-32"
+        ],
+        "status": "PASS"
+      },
+      "OPSgoSweep": {
+        "assertions": 36,
+        "failed": 0,
+        "ids": 17,
+        "evidence": "tests/e2e-diff/evidence/round3-ops-20261120-1818/"
+      },
+      "coldRestore": {
+        "source": "8/8",
+        "target": "19/19",
+        "evidence": "tests/e2e-diff/evidence/goevo-coldrestore-docker-final-cold-20261120-df3f3838/"
+      },
+      "r1r2inj": {
+        "pass": 106,
+        "fail": 0,
+        "evidence": "tests/e2e-diff/evidence/docker-final-r1-20261120-df3f3838/r1/assertions.txt"
+      },
+      "p3xhttp": {
+        "pass": 62,
+        "fail": 0,
+        "evidence": "tests/e2e-diff/evidence/goevo-p3-docker-final-p3xhttp-20261120-df3f3838/"
+      },
+      "matrix98": {
+        "rows": 104,
+        "match": 54,
+        "core": 40,
+        "refused": 4,
+        "a1": 6,
+        "gap": 0,
+        "evidence": "tests/go-parity/evidence/matrix-20261120-final/summary.json"
+      },
+      "race": {
+        "packages": 8,
+        "rc": 0,
+        "evidence": "artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/race-final.log"
+      }
+    },
+    "opsLedger": {
+      "total": 34,
+      "dualSide": 5,
+      "goSweep": 17,
+      "goCommand": 2,
+      "notRun": 10
+    },
+    "blockers": [
+      "B4 OPS 34 not all dual-side",
+      "9 subscripts NOT_RUN",
+      "multi-version Xray/Bash and second distro NOT_RUN",
+      "30min soak NOT_RUN",
+      "pure Bash ACME BLOCKED / BASH_DELEGATES_GO",
+      "A2/A3 Bash interactions and F28 not rerun at candidate",
+      "Test Install silent exit CI_PENDING"
+    ],
+    "conclusions": {
+      "dockerDevelopmentCandidate": "NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
+      "formalRelease": "NO_GO_NOT_AUTHORIZED"
+    },
+    "notRunOrDeferred": [
+      "standalone VPS restart/power loss",
+      "public CA/DNS-01",
+      "external IPv6",
+      "multi-version matrix",
+      "second distro",
+      "30min soak",
+      "9 subscripts"
+    ]
   }
 }

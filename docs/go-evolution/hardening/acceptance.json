@@ -319,5 +319,93 @@
     "29 OPS rows without dual-side data plane: GO_ONLY_PASS or NOT_RUN",
     "real multi-version Xray binary matrix: NOT_RUN",
     "production VPS: forbidden by the task"
-  ]
+  ],
+  "thirdRound20261120": {
+    "candidateSha": "df3f38381a8d3c4f8c8bc9681d589c891f5133f6",
+    "auditBaseline": "4566673290453a3b9e840b4f6206dadd0dfd763f",
+    "report": "docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261120.md",
+    "evidence": "artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/",
+    "items": [
+      {
+        "id": "A1",
+        "title": "cert clear ownership/references/transaction",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "artifacts/go-docker-20261120/a1-red-baseline.log; a1-acme-realroot-final.log"
+      },
+      {
+        "id": "A2",
+        "title": "share host/SNI/metadata scope",
+        "status": "PASS_IMPACT_SCOPED",
+        "evidencePath": "internal/cli/share_metadata_test.go",
+        "reason": "candidate did not rerun F28"
+      },
+      {
+        "id": "A3",
+        "title": "guard show from actual nginx",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/a3-guard-redgreen.log"
+      },
+      {
+        "id": "A4",
+        "title": "xhttp leading slash",
+        "status": "NO_DEFECT_SEMANTIC_DIFF",
+        "evidencePath": "artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/a4-prefix-probe.log"
+      },
+      {
+        "id": "A5",
+        "title": "fixed items/cache/OPS-32",
+        "status": "PARTIAL",
+        "evidencePath": "tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/OPS-32",
+        "reason": "Test Install CI_PENDING"
+      },
+      {
+        "id": "M1-M10",
+        "title": "dual-side install/idempotency/L4/L6",
+        "status": "DUAL_SIDE_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/"
+      },
+      {
+        "id": "E1-E8",
+        "title": "Go edit scenarios",
+        "status": "GO_ONLY_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/"
+      },
+      {
+        "id": "C2",
+        "title": "cold restore + R1/R2/INJ",
+        "status": "PASS",
+        "evidencePath": "tests/e2e-diff/evidence/goevo-coldrestore-docker-final-cold-20261120-df3f3838; tests/e2e-diff/evidence/docker-final-r1-20261120-df3f3838"
+      },
+      {
+        "id": "P3",
+        "title": "xhttp hot-user",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/goevo-p3-docker-final-p3xhttp-20261120-df3f3838"
+      },
+      {
+        "id": "D1",
+        "title": "98 matrix + race + gate",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/go-parity/evidence/matrix-20261120-final; artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/race-final.log"
+      }
+    ],
+    "ops": {
+      "total": 34,
+      "dualSide": 5,
+      "goSweep": 17,
+      "goCommand": 2,
+      "notRun": 10
+    },
+    "blockers": [
+      "B4 OPS 34 not all dual-side",
+      "9 subscripts NOT_RUN",
+      "multi-version/distro NOT_RUN",
+      "30min soak NOT_RUN",
+      "pure Bash ACME BLOCKED",
+      "A2/A3 Bash interactions and F28 not rerun at candidate",
+      "Test Install CI_PENDING"
+    ],
+    "dockerDevelopmentCandidate": "NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
+    "formalRelease": "NO_GO_NOT_AUTHORIZED"
+  }
 }

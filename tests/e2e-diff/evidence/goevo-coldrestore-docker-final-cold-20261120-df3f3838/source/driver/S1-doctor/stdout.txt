@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "generatedAt": "2026-11-20T10:42:07Z",
+  "checks": [
+    {
+      "id": "layout",
+      "status": "ok",
+      "message": "managed directories are present",
+      "method": "read-only inspection",
+      "evidence": "ok"
+    },
+    {
+      "id": "metadata",
+      "status": "ok",
+      "message": "manager metadata is readable",
+      "method": "read-only inspection",
+      "evidence": "ok"
+    },
+    {
+      "id": "validator",
+      "status": "ok",
+      "message": "xray accepted the runtime config",
+      "method": "xray run -test",
+      "evidence": "ok"
+    },
+    {
+      "id": "permissions",
+      "status": "ok",
+      "message": "config and key permissions are restrictive",
+      "method": "mode bits",
+      "evidence": "ok"
+    },
+    {
+      "id": "service-access",
+      "status": "ok",
+      "message": "service account can read the committed config",
+      "method": "read-only inspection",
+      "evidence": "ok"
+    },
+    {
+      "id": "certificate",
+      "status": "skip",
+      "message": "no managed certificate to check",
+      "method": "x509 parse",
+      "evidence": "skip"
+    },
+    {
+      "id": "nginx",
+      "status": "skip",
+      "message": "managed nginx is not installed",
+      "method": "nginx -t",
+      "evidence": "skip"
+    },
+    {
+      "id": "services",
+      "status": "ok",
+      "message": "owned units are active",
+      "method": "systemctl is-active",
+      "evidence": "ok"
+    },
+    {
+      "id": "backup",
+      "status": "warn",
+      "message": "no backup is available",
+      "method": "read-only inspection",
+      "evidence": "warn",
+      "suggestion": "run idleleo backup create"
+    },
+    {
+      "id": "disk",
+      "status": "ok",
+      "message": "enough free disk space",
+      "detail": "214566 MiB",
+      "method": "statfs",
+      "evidence": "ok"
+    },
+    {
+      "id": "lock",
+      "status": "ok",
+      "message": "no update lock is held",
+      "method": "lstat",
+      "evidence": "ok"
+    },
+    {
+      "id": "geodata",
+      "status": "warn",
+      "message": "geo assets are missing",
+      "detail": "[geoip.dat geosite.dat]",
+      "method": "read-only inspection",
+      "evidence": "warn",
+      "suggestion": "inspect the detail; this check never writes"
+    }
+  ],
+  "summary": {
+    "ok": 8,
+    "warn": 2,
+    "fail": 0,
+    "skip": 2,
+    "unknown": 0
+  },
+  "healthy": true,
+  "evidenceLevel": "FILE_AND_SERVICE",
+  "limitations": [
+    "certificate chain, SAN matching and expiry are read from the managed PEM; no public CA trust store is consulted",
+    "an external origin, DNS and cloud security groups are outside this process; only what this host can reach is tested",
+    "a TCP connect or TLS handshake through a Reality inbound is not a user session; only --client-probe proves one",
+    "a TLS listener probe proves the tunnel, not the public certificate chain",
+    "a relay node has no Xray inbound or user credential; its --client-probe is a real HTTP request through the Nginx stream and proves forwarding, not a VLESS session"
+  ]
+}

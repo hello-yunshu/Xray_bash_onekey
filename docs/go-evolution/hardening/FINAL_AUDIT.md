@@ -139,3 +139,21 @@ E2E_RUN_ID=<run-id> E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.sh
 
 **口径要求**：本文件与 `docs/go-migration/audit-remediation/FINAL_AUDIT.md` 必须
 同时保持“NO-GO / 不合并”；不得引用旧 SHA 的绿灯替代当前 HEAD 的 CI。
+
+## 9. 2026-11-20 第三轮 Docker 候选（`df3f3838`）
+
+| 项 | 结论 | 证据 |
+| --- | --- | --- |
+| A1 证书清理 | `FIXED_VERIFIED`：所有权/引用/dry-run/staging+journal；真实 root | `artifacts/go-docker-20261120/a1-*.log`、`certclear_test.go` |
+| A2 分享 Host/SNI | `PASS_IMPACT_SCOPED`：候选未触及 share；F28 57/0 为最近绿证 | `share_metadata_test.go` |
+| A3 Guard | `FIXED_VERIFIED`：pre-fix `enabled/isolate` → candidate `not-applicable`；真实 nginx 三策略 | `.../a3-guard-redgreen.log`、`smoke-guard-cert-final.log` |
+| A4 XHTTP | `NO_DEFECT_SEMANTIC_DIFF`：父提交负例测试通过；真实四交叉 200/301 | `.../a4-prefix-probe.log`、`a4-xhttp-path.log` |
+| A5 缓存/OPS-32 | PASS；Test Install `CI_PENDING` | `OPS-32`、`gate-final.log` |
+| M1–M10 | `DUAL_SIDE_PASS`；M8 `DOCKER_EQUIVALENT_WITH_LIMITS` | `round3-final-20261120-1821-df3f3838/p2/` |
+| 冷恢复/R1/P3 | cold 27/27、R1 106/0、P3 62/62 | 对应 evidence 目录 |
+| 98 项矩阵 / race | 0 GAP；8 包 race rc=0 | `matrix-20261120-final/`、`race-final.log` |
+| OPS 34 / subscripts | INCOMPLETE / NOT_RUN | `case-matrix.csv` |
+| 多版本/第二发行版/soak | NOT_RUN | `DOCKER_ACCEPTANCE_20261120.md` |
+
+**结论**：Docker 开发候选 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；正式发布
+`NO_GO_NOT_AUTHORIZED`。保持 draft PR；不合并、不打 tag、不发布。

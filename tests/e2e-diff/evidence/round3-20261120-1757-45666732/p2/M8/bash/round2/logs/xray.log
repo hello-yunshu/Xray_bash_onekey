@@ -1,0 +1,28 @@
+<TS> e2e-round3-20261120-1757-45666732-M8-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: 2026/11/20 09:59:33.030654 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: 2026/11/20 09:59:33.030711 [Warning] core: Xray 26.10.31 started
+<TS> e2e-round3-20261120-1757-45666732-M8-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-round3-20261120-1757-45666732-M8-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: 2026/11/20 09:59:38.485831 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: 2026/11/20 09:59:38.490158 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-round3-20261120-1757-45666732-M8-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: 2026/11/20 10:00:05.034057 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-20261120-1757-45666732-M8-bash xray[<PID>]: 2026/11/20 10:00:05.038040 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/20 09:59:38.495914 [Warning] core: Xray 26.10.31 started
+2026/11/20 09:59:42.286564 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:46112 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 09:59:45.899565 [Error] app/dns: failed to retrieve response for example.com. > Post "https://dns.google/dns-query": EOF
+2026/11/20 09:59:47.207878 [Error] app/dns: failed to retrieve response for example.com. > Post "https://cloudflare-dns.com/dns-query": EOF
+2026/11/20 09:59:49.075022 [Error] app/dns: failed to retrieve response for example.com. > Post "https://doh.opendns.com/dns-query": EOF
+2026/11/20 09:59:53.414340 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:51068 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 10:00:05.040129 [Warning] core: Xray 26.10.31 started

@@ -1,0 +1,51 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "uuid"
+  ],
+  "diff": [
+    "inbounds[0].settings.clients[0].id"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "95ac24334b5980ac53fba4258079e8074c987412864d35c90e2e3d0e04b6d7e9",
+  "newSha256": "508e316d600905def0bed8a18c993d151721ac378c5791d0792aa7cdc5cb7df0",
+  "backupDir": "/etc/idleleo/backup/edit-20261120T100724",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://5198997f-4def-414e-a99a-b2a923ae42e4@local.test:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=local.test&fp=chrome&pbk=qC6UglOCVjd3XW1TpLI_7rSlQ4hqLxPg8Tj2T96Y3yw&sid=c7007eb5&type=raw#idleleo-reality",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": [
+    "share links use the Reality SNI as the dial host because --host was not given; pass --host <address clients dial> to hand out a usable link"
+  ],
+  "shortIds": [
+    "c7007eb5"
+  ],
+  "oldShareUri": "vless://e5604579-892f-41ca-8916-a49400984fb9@local.test:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=local.test&fp=chrome&pbk=qC6UglOCVjd3XW1TpLI_7rSlQ4hqLxPg8Tj2T96Y3yw&sid=c7007eb5&type=raw#idleleo-reality",
+  "upstreamUnchanged": true,
+  "blockPreserved": true,
+  "blockRuleCount": 6,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "95ac24334b5980ac53fba4258079e8074c987412864d35c90e2e3d0e04b6d7e9",
+    "newSha256": "508e316d600905def0bed8a18c993d151721ac378c5791d0792aa7cdc5cb7df0",
+    "changed": [
+      "uuid"
+    ],
+    "affectedServices": [
+      "xray"
+    ],
+    "disconnectRisk": "drops live client sessions until clients reconnect",
+    "validationSteps": [
+      "xray -test"
+    ],
+    "rollbackScope": "runtime config",
+    "ownership": "idleleo-managed",
+    "fingerprint": "7f9b07b171a5bbcb"
+  }
+}

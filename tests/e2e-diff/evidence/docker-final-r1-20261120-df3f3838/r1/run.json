@@ -1,0 +1,7 @@
+{
+  "branch": "work/go-hardening-parity-20261119",
+  "commit": "df3f38381a8d3c4f8c8bc9681d589c891f5133f6",
+  "imageTag": "idleleo-e2e:24.04",
+  "runId": "docker-final-r1-20261120-df3f3838",
+  "scenarios": "M1,M4"
+}

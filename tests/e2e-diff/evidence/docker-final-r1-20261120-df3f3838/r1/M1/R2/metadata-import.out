@@ -1,0 +1,4 @@
+state=IMPORTED provenance=legacy role=node tls=Reality transport=raw
+metadata=/etc/idleleo/v1/metadata.json sha256=ad3668057a19e6208b626f63703233f87877896d01bbd0da5d44e709fc10fa6b
+source=/etc/idleleo/conf/install_config.json sha256=d18ef637b2041545fe60e39d23e0223baed2cb2ec12e077664574c2af2a3ab1c (unchanged)
+warning=install_config.json 无 role 字段，按 legacy 语义视为 node

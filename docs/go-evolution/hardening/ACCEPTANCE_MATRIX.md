@@ -83,3 +83,24 @@
 **结论**：复审项全部为容器内验证；F09/F10 在 `1cd248e6` 上复验，F08 在
 `5f382902` 上 6 条 CI 全绿。发布/合并判断仍 **NO-GO**（独立 VM、公网 ACME、
 IPv6、多版本矩阵未验证）。
+
+## 6. 第三轮 Docker 候选（2026-11-20，`df3f3838`）
+
+> 本节证据独立于 §1–§5 的历史 SHA；未在候选 SHA 复跑的项不提升为 PASS。
+> 完整报告：`docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261120.md`。
+
+| ID | 验收项 | 状态 | 候选证据 | 边界 |
+| --- | --- | --- | --- | --- |
+| G01 | A1 证书清理所有权/引用/事务 | `LOCAL_RUN` PASS | `a1-red-baseline.log`、`a1-acme-realroot-final.log`、`certclear_test.go` | Bash 旧行为为安全差异 |
+| G02 | A2 分享 Host/SNI/归属 | `PASS_IMPACT_SCOPED` | `share_metadata_test.go`；F28 57/0 等 | 候选未重跑 F28 |
+| G03 | A3 Guard 状态推导与回滚 | `LOCAL_RUN` PASS | `a3-guard-redgreen.log`、`smoke-guard-cert-final.log` | Bash 交互 `NOT_RUN` |
+| G04 | A4 XHTTP 路径 | `NO_DEFECT_SEMANTIC_DIFF` | `a4-prefix-probe.log`、`a4-xhttp-path.log` | 不做全量重写 |
+| G05 | M1–M10 双端 fresh/幂等/L4/L6 | `DUAL_SIDE_PASS` | `round3-final-20261120-1821-df3f3838/p2/` | M8 为 `DOCKER_EQUIVALENT_WITH_LIMITS` |
+| G06 | E1–E8 编辑 | `GO_ONLY_PASS` | 同上 E1–E8，67 项检查 | Bash 无非交互等价入口 |
+| G07 | OPS 双端 5 行 + Go sweep 36/0 | `PARTIAL` | `round3-final…/p2/`、`round3-ops-20261120-1818/` | 34 行未全部双端，不满足 B4 |
+| G08 | 冷恢复 + R1/R2/INJ + P3 | `DUAL_SIDE_PASS`/`LOCAL_RUN` PASS | cold 27/27、R1 106/0、P3 62/62 | 容器内，非独立 VM |
+| G09 | 98 项矩阵 + race + 门禁 | `LOCAL_RUN` PASS | 54/40/0/4/6；8 包 race rc=0；gate rc=0 | 配置矩阵非真实部署 |
+| G10 | Test Install 静默退出 | `CI_PENDING` | 历史 flake 记录 | 未复现、未修复 |
+
+**候选结论**：`NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`。阻断项是 B4 的 34 OPS 与
+9 subscripts、C3 多版本/第二发行版、C4 soak；不是 A1–A5 的安全整改。

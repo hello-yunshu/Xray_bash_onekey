@@ -123,3 +123,36 @@
   详见 [REVIEW_20261120_FOLLOWUP.md](REVIEW_20261120_FOLLOWUP.md) §3。
 - **结论不变：NO-GO / 不合并。** 独立 VPS、公网 ACME、多版本矩阵、外部 IPv6、
   剩余 OPS 双端仍未验证；本轮只允许整改分支提交与推送。
+
+## 7. 第三轮 Docker 验收结论（2026-11-20，`df3f3838`）
+
+完整报告：[DOCKER_ACCEPTANCE_20261120.md](DOCKER_ACCEPTANCE_20261120.md)。
+
+### 7.1 已闭环
+
+- **A1 证书清理**：所有权 + 在用引用 + 第三方/账户保留 + dry-run 零写 +
+  staging/journal 恢复；真实 root 红绿。
+- **A3 Guard**：pre-fix 在无 Nginx guard 时默认 `enabled/isolate`，候选从实际
+  Nginx 推导 `not-applicable`；set 先锁后读、journal、聚合回滚错误。
+- **A4 XHTTP**：父提交负例测试通过，判定非缺陷；真实 Xray 四交叉 200/301。
+- **核心运行**：M1–M10 双端 fresh/幂等/L4/L6；E1–E8 67 项 Go 检查；
+  OPS-09/19/21/31/32 双端；冷恢复 27/27；R1/R2/INJ 106/0；P3 62/62；
+  98 项矩阵 0 GAP；8 包 race rc=0。
+
+### 7.2 未闭环（阻断 Docker 候选）
+
+1. 34 个 OPS 仅 5 个双端；17 个 Go sweep、2 个 Go 命令、10 个未执行。
+2. 9 个 subscripts 未确认。
+3. 多版本 Xray/Bash、第二发行版 smoke 未执行。
+4. 30 分钟 + 两个调度周期 soak 未执行。
+5. M8 Bash 侧为 `BASH_DELEGATES_GO`，纯 `acme.sh` `BLOCKED`。
+6. A2/A3 的 Bash 交互与 F28 未在候选 SHA 重跑；Test Install `CI_PENDING`。
+
+### 7.3 双结论
+
+| 范围 | 结论 |
+| --- | --- |
+| Docker 开发候选 | **NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE**：按 D4，容器必需项未全部完成 |
+| 正式发布 | **NO_GO_NOT_AUTHORIZED**：任务书禁止；VPS/公网 CA/外部 IPv6/多版本/soak 未验证 |
+
+不合并 `main` 或 `develop/go-native`，不打 tag，不发布，不操作生产 VPS。
