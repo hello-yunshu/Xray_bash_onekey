@@ -233,6 +233,12 @@ func EditRuntime(raw []byte, base EditDefaults, req EditRequest) (Generated, Edi
 		}
 	}
 	linkChanged := hasChange(changed, "link-fingerprint", "link-spiderx")
+	// A public-port edit on an Nginx front moves only the generated front and
+	// the share link; the Xray inbound keeps its loopback port, so the runtime
+	// diff is empty by design. Compare against the live front instead of
+	// treating the empty diff as a no-op.
+	frontPortChanged := (spec.Mode == ModeRealityNginx || spec.Mode == ModeTLS) &&
+		spec.PublicPort > 0 && spec.PublicPort != base.PublicPort
 	res := EditResult{
 		Changed:           changed,
 		Mode:              spec.Mode,
@@ -257,7 +263,7 @@ func EditRuntime(raw []byte, base EditDefaults, req EditRequest) (Generated, Edi
 		// A link-preference change produces no runtime diff and must still count
 		// as a change: the share link the operator copies is the product.
 		NoChanges: len(changed) == 0 ||
-			(len(diffs) == 0 && !nginxOnlyChange(changed) && !linkChanged),
+			(len(diffs) == 0 && !nginxOnlyChange(changed) && !linkChanged && !frontPortChanged),
 		Diff:           diffs,
 		BlockPreserved: base.RoutingBlock != nil,
 		BlockRuleCount: blockApplied.BlockRuleCount(),

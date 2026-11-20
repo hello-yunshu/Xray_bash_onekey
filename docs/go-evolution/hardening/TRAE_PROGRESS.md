@@ -92,7 +92,7 @@
 
 | 项 | 结果 | 证据 |
 | --- | --- | --- |
-| OPS 新增 04/05/06/07/17c/30 | 04 `BLOCKER`；05/06/07/17c 双端 PASS；30 `BASH_ONLY` | `tests/e2e-diff/evidence/ops-full-3/p2/` |
+| OPS 新增 04/05/06/07/17c/30 | 04/05/06/07/17c 双端 PASS；30 `BASH_ONLY`；OPS-04 的 Go no-op 已修复 | `tests/e2e-diff/evidence/opsfix-3/p2/` |
 | OPS-10 | `NOT_RUN`（嵌套 file_manager 未驱动） | `tests/e2e-diff/evidence/ops10-2/p2/` |
 | OPS 既有 09/19/21/31/32 | 全量回归 PASS，未退化 | `ops-full-3/p2/` |
 | subscripts S4–S9 | S4/S5/S7/S8/S9 PASS；S6 `BLOCKED`（外网资产不可达） | `tests/e2e-diff/evidence/s-6-1/s/` |
@@ -101,8 +101,8 @@
 | 第二发行版 | PASS（Debian 12.15 M1 + OPS-19） | `tests/e2e-diff/evidence/debian12-1/p2/` |
 | preflight | Go `xray tls`/`config edit`/`schedule`/`update` 能力确认 | `tests/e2e-diff/evidence/preflight-ops/` |
 
-未完成（补齐后）：OPS-04 真实 Go 缺陷（未改 `internal/` 业务代码）、OPS-10 与 3 项 OPS
-未执行、S6 需外网 GitHub 资产、纯 Bash ACME、公网 CA、外部公网 IPv6、生产 VPS。
+未完成（补齐后）：OPS-10 与 3 项 OPS 未执行、S6 需外网 GitHub 资产、纯 Bash ACME、
+公网 CA、外部公网 IPv6、生产 VPS。OPS-04 的 Go `NoChanges` 误判已修复并有回归测试。
 
 **结论不变**：Docker 开发候选 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；
 正式发布 `NO_GO_NOT_AUTHORIZED`。PR #182 保持 draft。

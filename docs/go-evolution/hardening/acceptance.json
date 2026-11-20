@@ -149,7 +149,7 @@
       "codeSha": "1b519028",
       "testCommand": "E2E_RUN_ID=20261119-p2full bash tests/e2e-diff/run_p2_matrix.sh",
       "evidencePath": "tests/e2e-diff/matrix.json",
-      "reason": "34 rows classified; 9 dual-side PASS (5 existing + OPS-05/06/07/17c), OPS-04 observed BLOCKER, OPS-30 BASH_ONLY, OPS-10 and 3 rows NOT_RUN"
+      "reason": "34 rows classified; 10 dual-side PASS (5 existing + OPS-04/05/06/07/17c), OPS-30 BASH_ONLY, OPS-10 and 3 rows NOT_RUN"
     },
     {
       "id": "T11",
@@ -209,6 +209,7 @@
   "ops": {
     "total": 34,
     "dualSideVerified": [
+      "OPS-04",
       "OPS-05",
       "OPS-06",
       "OPS-07",
@@ -219,20 +220,15 @@
       "OPS-31",
       "OPS-32"
     ],
-    "dualSideObservedBlocker": [
-      "OPS-04"
-    ],
     "goOnly": 19,
-    "fail": 1,
-    "failIds": [
-      "OPS-04"
-    ],
+    "fail": 0,
+    "failIds": [],
     "bashOnly": [
       "OPS-30"
     ],
     "notRun": 4,
     "blocked": [],
-    "evidence": "tests/e2e-diff/evidence/ops-full-3/p2; tests/e2e-diff/evidence/ops10-2/p2"
+    "evidence": "tests/e2e-diff/evidence/opsfix-3/p2; tests/e2e-diff/evidence/ops10-2/p2"
   },
   "summary": {
     "pass": 12,
@@ -408,14 +404,13 @@
     ],
     "ops": {
       "total": 34,
-      "dualSide": 9,
-      "dualSideObservedBlocker": 1,
+      "dualSide": 10,
       "goSweep": 17,
       "goCommand": 2,
       "bashOnly": 1,
       "notRun": 4,
-      "fail": 1,
-      "evidence": "tests/e2e-diff/evidence/ops-full-3/p2; tests/e2e-diff/evidence/ops10-2/p2"
+      "fail": 0,
+      "evidence": "tests/e2e-diff/evidence/opsfix-3/p2; tests/e2e-diff/evidence/ops10-2/p2"
     },
     "subscripts": {
       "passed": [
@@ -457,7 +452,6 @@
       "evidence": "tests/e2e-diff/evidence/debian12-1/p2/"
     },
     "blockers": [
-      "OPS-04 Go config edit --public-port is a no-op (BLOCKER)",
       "OPS-10 and 3 OPS rows NOT_RUN",
       "S6 geo_update BLOCKED: release-assets.githubusercontent.com unreachable",
       "pure Bash ACME BLOCKED",

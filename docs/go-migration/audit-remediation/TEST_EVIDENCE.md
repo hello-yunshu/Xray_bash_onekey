@@ -509,11 +509,12 @@ A4 负例：把候选新增测试复制到父提交 `45666732` 仍然通过，�
 ### 13.1 OPS 全量回归（`ops-full-3`）
 
 命令：`E2E_ONLY=OPS-04,OPS-05,OPS-06,OPS-07,OPS-17c,OPS-30,OPS-19,OPS-21,OPS-09,OPS-31,OPS-32`。
-证据：`tests/e2e-diff/evidence/ops-full-3/p2/`。全部为同一次运行内双侧观测。
+证据：`tests/e2e-diff/evidence/ops-full-3/p2/`；OPS-04 修复后复跑
+`tests/e2e-diff/evidence/ops04-8/p2/` 与 `opsfix-3/p2/`。全部为同一次运行内双侧观测。
 
 | ID | 判定 | 关键事实 |
 | --- | --- | --- |
-| OPS-04 | `BLOCKER` | Go `config edit --port/--public-port` 返回 `noChanges=true`、`dryRun=true`，Nginx 仍 `listen 443`；同一运行 Bash 已把 Nginx 改为 8443 |
+| OPS-04 | `PASS`（修复后） | 首轮暴露 Go `config edit --port/--public-port` 的 `NoChanges` 误判：Nginx 仍 `listen 443`；修复 `frontPortChanged` 后 `ops04-8`/`opsfix-3` 两侧均 `listen 8443` |
 | OPS-05 | `MATCH (allowed-diff)` | 两侧 client id 均已变化；Bash UUIDv5 vs Go 字面量 UUID |
 | OPS-06 | `MATCH` | 两侧 target 与 serverNames 一致（去掉端口后比较） |
 | OPS-07 | `MATCH` | 两侧 Nginx 由 `#TLSv1.2 1;` 变为 `TLSv1.2 1;` |
@@ -549,10 +550,13 @@ OPS-10 单独运行（`ops10-2`）：Bash 进入二级 file_manager 后 driver �
 
 ### 13.4 结论修正
 
-- OPS 覆盖从“5 双端 + 10 未执行”更新为：9 双端 PASS（含 1 allowed-diff）、
-  OPS-04 双侧观测 `BLOCKER`、19 Go-only、1 BASH_ONLY、4 NOT_RUN。
+- OPS 覆盖从“5 双端 + 10 未执行”更新为：10 双端 PASS（含 1 allowed-diff）、
+  19 Go-only、1 BASH_ONLY、4 NOT_RUN。
+- OPS-04 的 Go `NoChanges` 误判已修复：`frontPortChanged` 让 Nginx 前端公网端口
+  变更进入应用阶段；新增回归测试 `TestEditPublicPortOnNginxFrontIsNotANoOp`，
+  `ops04-8` 与 `opsfix-3` 双端 PASS。
 - subscripts 从“未逐项确认”更新为：S4/S5/S7/S8/S9 PASS，S6 `BLOCKED`，
   S1–S3 引用 OPS 证据。
 - 多版本、第二发行版、30 分钟 soak 从 `NOT_RUN` 更新为 PASS（边界见 13.3）。
-- Docker 候选仍为 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`：OPS-04 是真实 Go 缺陷，
-  另有 OPS-10/3 项未执行；正式发布仍 `NO_GO_NOT_AUTHORIZED`。
+- Docker 候选仍为 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`：OPS-10 与 3 项未执行，
+  OPS-30 为 `BASH_ONLY`；正式发布仍 `NO_GO_NOT_AUTHORIZED`。

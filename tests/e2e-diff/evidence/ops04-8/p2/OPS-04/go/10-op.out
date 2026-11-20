@@ -1,0 +1,50 @@
+{
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "changed": [
+    "port",
+    "public-port"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "bdc5a9e356c73d1a0a2a26e2409edfad757b2b0cbae04b2d67fdfb6f68ebf575",
+  "newSha256": "bdc5a9e356c73d1a0a2a26e2409edfad757b2b0cbae04b2d67fdfb6f68ebf575",
+  "backupDir": "/etc/idleleo/backup/edit-20261120T160718",
+  "noChanges": false,
+  "noRestart": false,
+  "noProbe": true,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://4be916da-b1c5-48c6-ba2b-cd89713b8744@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=1cL3u3w9X9wrSiy3toerSvUF6ozgaVSDM3fbqexiZHs&sid=7af5f04e&type=raw#idleleo-reality-nginx",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": null,
+  "shortIds": [
+    "7af5f04e"
+  ],
+  "oldShareUri": "vless://4be916da-b1c5-48c6-ba2b-cd89713b8744@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=1cL3u3w9X9wrSiy3toerSvUF6ozgaVSDM3fbqexiZHs&sid=7af5f04e&type=raw#idleleo-reality-nginx",
+  "upstreamSha256": "29b6208b18d3713bbd23e4b3ce6f7e9200abb2748ff821d9219c7b3b6e76b75f",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "bdc5a9e356c73d1a0a2a26e2409edfad757b2b0cbae04b2d67fdfb6f68ebf575",
+    "newSha256": "bdc5a9e356c73d1a0a2a26e2409edfad757b2b0cbae04b2d67fdfb6f68ebf575",
+    "changed": [
+      "port",
+      "public-port"
+    ],
+    "affectedServices": [
+      "nginx",
+      "xray"
+    ],
+    "disconnectRisk": "drops live client sessions until clients reconnect",
+    "validationSteps": [
+      "xray -test",
+      "nginx -t"
+    ],
+    "rollbackScope": "runtime config + nginx front",
+    "ownership": "idleleo-managed",
+    "fingerprint": "101e46d45d489cbb"
+  }
+}

@@ -446,6 +446,37 @@ func TestEditNoOpWhenNothingRequested(t *testing.T) {
 	}
 }
 
+func TestEditPublicPortOnNginxFrontIsNotANoOp(t *testing.T) {
+	stubCanBind(t, func(string, int) bool { return true })
+	base, err := Generate(Spec{Mode: ModeRealityNginx, Domain: "example.com", Port: 443})
+	if err != nil {
+		t.Fatal(err)
+	}
+	patched, res, err := EditRuntime(base.Config,
+		EditDefaults{Mode: ModeRealityNginx, PublicPort: 443}, EditRequest{PublicPort: 8443})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.NoChanges {
+		t.Fatalf("public-port edit on a front must not be reported as a no-op: %+v", res)
+	}
+	if res.PublicPort != 8443 || patched.PublicPort != 8443 {
+		t.Fatalf("public port not applied: result=%d generated=%d", res.PublicPort, patched.PublicPort)
+	}
+	if !strings.Contains(patched.NginxConf, "listen 8443") {
+		t.Fatalf("generated front does not listen on 8443:\n%s", patched.NginxConf)
+	}
+	// Passing the live value back must still be a no-op, not a needless reload.
+	_, same, err := EditRuntime(base.Config,
+		EditDefaults{Mode: ModeRealityNginx, PublicPort: 443}, EditRequest{PublicPort: 443})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !same.NoChanges {
+		t.Fatalf("unchanged public port must stay a no-op: %+v", same)
+	}
+}
+
 func mustMarshal(v any) []byte {
 	b, _ := json.Marshal(v)
 	return b

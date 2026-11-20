@@ -31,7 +31,9 @@
 
 ## T6. OPS-04/05 分组实跑
 - [x] `E2E_ONLY=OPS-04,OPS-05 bash tests/e2e-diff/run_p2_matrix.sh`。
-- [x] 复核缺陷归属：Go 侧 `config edit --port/--public-port` 为 no-op；按 spec §7 不改 `internal/` 业务代码，OPS-04 记 `BLOCKER`。
+- [x] 复核缺陷归属：Go 侧 `config edit --port/--public-port` 在 Reality+Nginx 前端下因空运行时 diff 被误判 no-op。
+- [x] 修复 `internal/xraycfg`：Nginx 前端模式比较 `spec.PublicPort` 与实时前端端口（`frontPortChanged`），并补回归测试 `TestEditPublicPortOnNginxFrontIsNotANoOp`。
+- [x] 复跑：`ops04-8` 与 `opsfix-3` 均为双端 `PASS`（两侧 Nginx 都 `listen 8443`），OPS-04 不再记 `BLOCKER`。
 - 验证：两份 `ops.json` 无 HARNESS-ERROR，Bash/Go rc=0。
 
 ## T7. OPS-06/07 分组实跑

@@ -15,7 +15,7 @@ OPS-19,fail2ban,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/fix-202611
 OPS-21,traffic-block,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/fix-20261120-p2c/p2/OPS-21
 OPS-31,reality-load-balance,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/fix-20261120-p2d/p2/OPS-31
 OPS-32,backend-health-eviction,0,ws PASS / reality PASS（尾部 20s 规则）,0,ws PASS / reality PASS,L0-L5,MATCH,tests/e2e-diff/evidence/fix-20261120-p2i/p2/OPS-32
-OPS-04,nginx-public-port-edit,0,"no-op: noChanges/dryRun, nginx 仍 :443",0,"nginx listen 8443；xray active",L0-L5,BLOCKER,tests/e2e-diff/evidence/ops-full-3/p2/OPS-04
+OPS-04,nginx-public-port-edit,0,"nginx listen 8443；shareUri 同步",0,"nginx listen 8443；xray active",L0-L5,MATCH,tests/e2e-diff/evidence/opsfix-3/p2/OPS-04
 OPS-05,reality-uuid-edit,0,"client id 替换为字面量 UUID",0,"client id 替换为 UUIDv5",L0-L5,MATCH_ALLOWED_DIFF,tests/e2e-diff/evidence/ops-full-3/p2/OPS-05
 OPS-06,reality-target-and-server-names,0,"target 与 serverNames 一致",0,"target 与 serverNames 一致",L0-L5,MATCH,tests/e2e-diff/evidence/ops-full-3/p2/OPS-06
 OPS-07,reality-tls-version,0,"nginx 启用 TLSv1.2",0,"nginx 启用 TLSv1.2",L0-L5,MATCH,tests/e2e-diff/evidence/ops-full-3/p2/OPS-07
@@ -34,7 +34,7 @@ A3,guard-show-from-nginx,0,isolate/reject/decoy + drift/missing,—,Bash menu NO
 A4,xhttp-leading-slash,0,4 path crosses 200/301,0,Bash /xhttp real client,real,NO_DEFECT_SEMANTIC_DIFF,artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/a4-prefix-probe.log
 A5,fixed-items-cache-ops32,0,OPS-32 ws+reality PASS,—,Test Install CI_PENDING,mixed,PARTIAL,tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/OPS-32
 OPS-R3,ops-dual-09-19-21-31-32,0,real nginx/xray/client,0,real nginx/xray/client,L1-L4,MATCH,tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2
-OPS-34-LEDGER,ops-34-coverage,0,"9 dual PASS（含 OPS-05 allowed-diff）+ OPS-04 双侧观测 BLOCKER + 19 Go-only + 1 BASH_ONLY + 4 NOT_RUN",0,"同批次双侧观测",L0-L5,PARTIAL,tests/e2e-diff/evidence/ops-full-3/p2; tests/e2e-diff/evidence/ops10-2/p2
+OPS-34-LEDGER,ops-34-coverage,0,"10 dual PASS（含 OPS-05 allowed-diff）+ 19 Go-only + 1 BASH_ONLY + 4 NOT_RUN",0,"同批次双侧观测",L0-L5,PARTIAL,tests/e2e-diff/evidence/opsfix-3/p2; tests/e2e-diff/evidence/ops10-2/p2
 C2-R3,cold-restore-r1-inj,0,source 8/8 target 19/19; R1 106/0,—,legacy install,real,PASS,tests/e2e-diff/evidence/goevo-coldrestore-docker-final-cold-20261120-df3f3838
 C3-R3,multi-version-distro-ipv6,0,"3 个真实 Xray tag xray -test PASS（v26.11.9/v26.10.31/v26.10.21）",0,"Debian 12 M1+OPS-19 PASS；外部公网 IPv6 VPS_DEFERRED",L0-L4,PARTIAL,tests/e2e-diff/evidence/versions-3/versions; tests/e2e-diff/evidence/debian12-1/p2
 C4-R3,soak-30min,0,"30/30 iterations active, xray -test rc=0, :443 listen, NRestarts=0, RSS<512MiB",—,—,L0-L4,PASS,tests/e2e-diff/evidence/soak-30m-1/soak
