@@ -82,7 +82,7 @@ spawn bash /src/install.sh
 [警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
 
  —————————————— Xray 配置信息 —————————————— 
- 主机 (host): 121.231.37.200 
+ 主机 (host): 198.51.100.10 
  端口 (port): 8443 
  UUIDv5 映射字符串: 9a668
  用户id (UUID): 02f4008f-a901-5900-ba41-fa962fc37c11
@@ -98,7 +98,7 @@ spawn bash /src/install.sh
  spiderX: /assets/xcmd3185.css 
 
  —————————————— Xray 链接分享 —————————————— 
- URL 分享链接: vless://02f4008f-a901-5900-ba41-fa962fc37c11@121.231.37.200:8443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=y7QtD6iIs7CxsSLiCExZxfYUoyeqnMKoOkkVA422n04&sni=www.cloudflare.com&target=www.cloudflare.com&sid=7a6a2e0fb4743f77&spx=/assets/xcmd3185.css#121.231.37.200+Reality%E5%8D%8F%E8%AE%AE
+ URL 分享链接: vless://02f4008f-a901-5900-ba41-fa962fc37c11@198.51.100.10:8443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=y7QtD6iIs7CxsSLiCExZxfYUoyeqnMKoOkkVA422n04&sni=www.cloudflare.com&target=www.cloudflare.com&sid=7a6a2e0fb4743f77&spx=/assets/xcmd3185.css#198.51.100.10+Reality%E5%8D%8F%E8%AE%AE
  二维码: 
 █████████████████████████████████████████████████████████████████████
 █████████████████████████████████████████████████████████████████████
@@ -140,9 +140,9 @@ spawn bash /src/install.sh
  Clash 配置分享: 
 proxies:
 
-  - name: VLESS-121.231.37.200-tcp
+  - name: VLESS-198.51.100.10-tcp
     type: vless
-    server: 121.231.37.200
+    server: 198.51.100.10
     port: 8443
     uuid: 02f4008f-a901-5900-ba41-fa962fc37c11
     client-fingerprint: chrome

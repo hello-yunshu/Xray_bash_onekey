@@ -84,7 +84,7 @@ e2e-uuid
 [警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
 
  —————————————— Xray 配置信息 —————————————— 
- 主机 (host): 121.231.37.200 
+ 主机 (host): 198.51.100.10 
  端口 (port): 443 
  UUIDv5 映射字符串: e2e-uuid
  用户id (UUID): a59ba94a-593c-51d9-b8b2-28cba713e333
@@ -100,7 +100,7 @@ e2e-uuid
  spiderX: /api/status/gksaejwk 
 
  —————————————— Xray 链接分享 —————————————— 
- URL 分享链接: vless://a59ba94a-593c-51d9-b8b2-28cba713e333@121.231.37.200:443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=6Litnfu3OM8ugTFRqhx3D_fq4CpK9hq1Y1l-lW2mQnk&sni=www.cloudflare.com&target=www.cloudflare.com&sid=f9dac1eaa81bf169&spx=/api/status/gksaejwk#121.231.37.200+Reality%E5%8D%8F%E8%AE%AE
+ URL 分享链接: vless://a59ba94a-593c-51d9-b8b2-28cba713e333@198.51.100.10:443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=6Litnfu3OM8ugTFRqhx3D_fq4CpK9hq1Y1l-lW2mQnk&sni=www.cloudflare.com&target=www.cloudflare.com&sid=f9dac1eaa81bf169&spx=/api/status/gksaejwk#198.51.100.10+Reality%E5%8D%8F%E8%AE%AE
  二维码: 
 █████████████████████████████████████████████████████████████████████
 █████████████████████████████████████████████████████████████████████
@@ -142,9 +142,9 @@ e2e-uuid
  Clash 配置分享: 
 proxies:
 
-  - name: VLESS-121.231.37.200-tcp
+  - name: VLESS-198.51.100.10-tcp
     type: vless
-    server: 121.231.37.200
+    server: 198.51.100.10
     port: 443
     uuid: a59ba94a-593c-51d9-b8b2-28cba713e333
     client-fingerprint: chrome

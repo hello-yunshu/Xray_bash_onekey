@@ -82,7 +82,7 @@ spawn bash /src/install.sh
 [警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
 
  —————————————— Xray 配置信息 —————————————— 
- 主机 (host): 240e:3a0:4050:3111:ad87:3661:dbc3:b675 
+ 主机 (host): 2001:db8::1 
  端口 (port): 8443 
  UUIDv5 映射字符串: ca971fcc3fd
  用户id (UUID): 88222a33-381a-5957-8921-b4d011a2d8fa
@@ -98,7 +98,7 @@ spawn bash /src/install.sh
  spiderX: /static/wewt0vwa.js 
 
  —————————————— Xray 链接分享 —————————————— 
- URL 分享链接: vless://88222a33-381a-5957-8921-b4d011a2d8fa@[240e:3a0:4050:3111:ad87:3661:dbc3:b675]:8443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=zHQzWoHrsogeWPIcEiiX0MRnFWZFm05Vi4CDdaqbfSY&sni=www.cloudflare.com&target=www.cloudflare.com&sid=0911d2ffca5077b2&spx=/static/wewt0vwa.js#240e%3A3a0%3A4050%3A3111%3Aad87%3A3661%3Adbc3%3Ab675+Reality%E5%8D%8F%E8%AE%AE
+ URL 分享链接: vless://88222a33-381a-5957-8921-b4d011a2d8fa@[2001:db8::1]:8443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=zHQzWoHrsogeWPIcEiiX0MRnFWZFm05Vi4CDdaqbfSY&sni=www.cloudflare.com&target=www.cloudflare.com&sid=0911d2ffca5077b2&spx=/static/wewt0vwa.js#240e%3A3a0%3A4050%3A3111%3Aad87%3A3661%3Adbc3%3Ab675+Reality%E5%8D%8F%E8%AE%AE
  二维码: 
 █████████████████████████████████████████████████████████████████████████
 █████████████████████████████████████████████████████████████████████████
@@ -142,9 +142,9 @@ spawn bash /src/install.sh
  Clash 配置分享: 
 proxies:
 
-  - name: VLESS-240e:3a0:4050:3111:ad87:3661:dbc3:b675-tcp
+  - name: VLESS-2001:db8::1-tcp
     type: vless
-    server: '240e:3a0:4050:3111:ad87:3661:dbc3:b675'
+    server: '2001:db8::1'
     port: 8443
     uuid: 88222a33-381a-5957-8921-b4d011a2d8fa
     client-fingerprint: chrome

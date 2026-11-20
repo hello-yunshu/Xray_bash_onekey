@@ -88,7 +88,7 @@ n
 [警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
 
  —————————————— Xray 配置信息 —————————————— 
- 主机 (host): 121.231.37.200 
+ 主机 (host): 198.51.100.10 
  端口 (port): 443 
  UUIDv5 映射字符串: 30d008812bb
  用户id (UUID): a41a7aa4-2c09-5215-a608-d914564e48a1
@@ -104,7 +104,7 @@ n
  spiderX: /docs/rbqfy1iq/index.html 
 
  —————————————— Xray 链接分享 —————————————— 
- URL 分享链接: vless://a41a7aa4-2c09-5215-a608-d914564e48a1@121.231.37.200:443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=SfNpzzwF9ADPErzm_HHydwQVhb87TgAy9kLs9Ug-fEU&sni=www.cloudflare.com&target=www.cloudflare.com&sid=52402f1ca6d43f22&spx=/docs/rbqfy1iq/index.html#121.231.37.200+Reality%E5%8D%8F%E8%AE%AE
+ URL 分享链接: vless://a41a7aa4-2c09-5215-a608-d914564e48a1@198.51.100.10:443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=SfNpzzwF9ADPErzm_HHydwQVhb87TgAy9kLs9Ug-fEU&sni=www.cloudflare.com&target=www.cloudflare.com&sid=52402f1ca6d43f22&spx=/docs/rbqfy1iq/index.html#198.51.100.10+Reality%E5%8D%8F%E8%AE%AE
  二维码: 
 █████████████████████████████████████████████████████████████████████
 █████████████████████████████████████████████████████████████████████
@@ -146,9 +146,9 @@ n
  Clash 配置分享: 
 proxies:
 
-  - name: VLESS-121.231.37.200-tcp
+  - name: VLESS-198.51.100.10-tcp
     type: vless
-    server: 121.231.37.200
+    server: 198.51.100.10
     port: 443
     uuid: a41a7aa4-2c09-5215-a608-d914564e48a1
     client-fingerprint: chrome

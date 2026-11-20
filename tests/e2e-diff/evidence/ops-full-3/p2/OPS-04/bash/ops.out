@@ -82,7 +82,7 @@ spawn bash /src/install.sh
 [警告]  VLESS 目前分享链接规范为实验阶段, 请自行判断是否适用 
 
  —————————————— Xray 配置信息 —————————————— 
- 主机 (host): 121.231.37.200 
+ 主机 (host): 198.51.100.10 
  端口 (port): 8443 
  UUIDv5 映射字符串: 6aa5e225bbdfe4
  用户id (UUID): c9d039f3-ce49-517d-ba79-2f070b82e1b1
@@ -98,7 +98,7 @@ spawn bash /src/install.sh
  spiderX: /assets/puusmehw.css 
 
  —————————————— Xray 链接分享 —————————————— 
- URL 分享链接: vless://c9d039f3-ce49-517d-ba79-2f070b82e1b1@121.231.37.200:8443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=Gazi2H3C_zMWSUd7nF8sag0xqsd33Neuur1HYYFvtTk&sni=www.cloudflare.com&target=www.cloudflare.com&sid=3da1b02efc55c771&spx=/assets/puusmehw.css#121.231.37.200+Reality%E5%8D%8F%E8%AE%AE
+ URL 分享链接: vless://c9d039f3-ce49-517d-ba79-2f070b82e1b1@198.51.100.10:8443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=Gazi2H3C_zMWSUd7nF8sag0xqsd33Neuur1HYYFvtTk&sni=www.cloudflare.com&target=www.cloudflare.com&sid=3da1b02efc55c771&spx=/assets/puusmehw.css#198.51.100.10+Reality%E5%8D%8F%E8%AE%AE
  二维码: 
 █████████████████████████████████████████████████████████████████████
 █████████████████████████████████████████████████████████████████████
@@ -140,9 +140,9 @@ spawn bash /src/install.sh
  Clash 配置分享: 
 proxies:
 
-  - name: VLESS-121.231.37.200-tcp
+  - name: VLESS-198.51.100.10-tcp
     type: vless
-    server: 121.231.37.200
+    server: 198.51.100.10
     port: 8443
     uuid: c9d039f3-ce49-517d-ba79-2f070b82e1b1
     client-fingerprint: chrome
