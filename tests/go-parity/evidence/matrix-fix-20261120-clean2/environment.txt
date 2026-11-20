@@ -1,0 +1,8 @@
+repo_commit=d56e1dac22b6ca91641bf110f9b55b010489420a
+repo_dirty=0
+base_image=audit-matrix-base:local
+test_image=sha256:d8fab038520b63bb9b47ab2ec367a07b70ae369368eec69b8e2924476ff4923d
+docker_arch=arm64
+docker_version=29.8.2
+bash_install_sha256=d76b3181a198e8aab225564d36f89ec46c6267e0c115ca354f5db4e86b1f5b68
+bash_install_path=install.sh
