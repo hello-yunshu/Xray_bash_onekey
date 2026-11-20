@@ -215,6 +215,21 @@ A4 父提交负例通过、M8 Bash 委托 Go 均保留在仓库中。
 Test Install 本次通过，但历史“静默退出”的根因未定位，因此 A5 仍记 `PARTIAL`；
 不用一次绿色 CI 反推问题已修复。
 
+### OPS-04 修复提交 `1e73c19b`
+
+| Workflow | run id | 结论 |
+| --- | --- | --- |
+| Go parity stage gate | 44772637951 | success |
+| Privacy Guard | 44772638262 | success |
+| Rill Xray Agent | 44772637991 | success |
+| Go preview qualification (NOT FOR RELEASE) | 44772637947 | success |
+| Go real-root change acceptance (container) | 44772637993 | success |
+| Test Install | 44772637944 | success |
+| Go production parity release qualification | 44772638045 | success |
+
+该提交包含 `internal/xraycfg` 修复、回归测试、`ops04-8`/`opsfix-3` 证据与文档更新；
+7/7 全绿，后续文档提交只重复同一组 workflow。
+
 ## 7. 证据卫生
 
 - 私钥、真实 UUID/shortId、真实域名、宿主绝对路径未写入证据；敏感值用
