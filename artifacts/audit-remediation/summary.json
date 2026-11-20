@@ -235,13 +235,13 @@
         "invalidatedByNetwork": ["OPS-19", "OPS-31", "OPS-32"]
       },
       "p2Final": {
-        "runs": ["fix-20261120-p2c", "fix-20261120-p2d", "fix-20261120-p2h", "fix-20261120-p2i"],
+        "runs": ["fix-20261120-p2c", "fix-20261120-p2d", "fix-20261120-p2h", "fix-20261120-p2i", "fix-20261120-p2j"],
         "commit": "1cd248e6",
-        "passed": ["E7", "E8", "OPS-21", "OPS-19", "OPS-31", "OPS-32/ws", "OPS-32/reality"],
+        "passed": ["E1-E6", "E7", "E8", "OPS-21", "OPS-19", "OPS-31", "OPS-32/ws", "OPS-32/reality"],
         "blocked": [],
         "ops32Reanalysis": {"rule": "trailing 2*fail_timeout, max gap fail_timeout, min 3 A responses", "evidence": "artifacts/audit-remediation/followup-20261120/ops32-reanalysis"}
       },
-      "privacyHygiene": {"findings": 0, "files": 33667},
+      "privacyHygiene": {"findings": 0, "files": 33993},
       "ci": {
         "sha": "5f382902",
         "workflows": {"stageGate": 44671935449, "privacy": 44671935247, "releaseQualification": 44671935222, "preview": 44671935256, "realRoot": 44671935218, "testInstall": 44671935238},

@@ -73,7 +73,7 @@
 | F04 | F28 临时私钥泄漏 | `LOCAL_RUN` PASS | `commands.log` 仅 `<redacted>`；fixture root 移出 evidence | 历史工件未逐个重写，仅本次新增证据 |
 | F05 | Go 全量门禁 | `LOCAL_RUN` PASS | `.../c3/gate.rc`（gofmt/vet/build/test 均 `rc=0`） | — |
 | F06 | 98 项矩阵 | `LOCAL_RUN` PASS | 104 行 0 GAP、`repo_dirty=0`；`tests/go-parity/evidence/matrix-fix-20261120-clean2/` | 容器内，无真实部署 |
-| F07 | P2 编辑与 OPS | `LOCAL_RUN` PASS | E7 13/13、E8 14/14；OPS-32 ws/reality PASS；`.../fix-20261120-p2h`、`.../fix-20261120-p2i` | 容器内 systemd/Xray/Nginx |
+| F07 | P2 编辑与 OPS | `LOCAL_RUN` PASS | E1-E6 全绿；E7 13/13、E8 14/14；OPS-32 ws/reality PASS；`.../fix-20261120-p2j`、`.../fix-20261120-p2h`、`.../fix-20261120-p2i` | 容器内 systemd/Xray/Nginx |
 | F08 | 真实 CI | `CI_PASS` | `5f382902` 上 6 条 workflow 全 success：stage 44671935449、privacy 44671935247、release 44671935222、preview 44671935256、real-root 44671935218、test-install 44671935238 | 不能用本地结果替代 |
 | F09 | `config edit --host`（FUP-08） | `LOCAL_RUN` PASS | `reality_edit_test.go` 3 例；E7/E8 双侧 `--host 127.0.0.1` 全绿 | `--host` 只影响链接渲染，不写配置字段 |
 | F10 | OPS-32 恢复判定（FUP-09） | `LOCAL_RUN` PASS | 尾部 `2*fail_timeout` 规则；p2i ws/reality PASS；p2d 重算 PASS | 判定口径修正，探测数据未改 |

@@ -258,8 +258,8 @@
         "id": "F07",
         "title": "P2 edit and OPS scenarios",
         "status": "LOCAL_RUN_PASS",
-        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-p2h/p2/, fix-20261120-p2i/p2/OPS-32",
-        "reason": "E7 13/13 and E8 14/14 with --host 127.0.0.1 on both sides; OPS-32 ws and reality PASS; M1-M10/E1-E7/OPS-09/19/21/31 remain PASS from p2b-p2d"
+        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-p2j/p2/, fix-20261120-p2h/p2/, fix-20261120-p2i/p2/OPS-32",
+        "reason": "E1-E6 allPassed at 1cd248e6; E7 13/13 and E8 14/14 with --host 127.0.0.1 on both sides; OPS-32 ws and reality PASS; M1-M10/OPS-09/19/21/31 remain PASS from p2b-p2d"
       },
       {
         "id": "F08",

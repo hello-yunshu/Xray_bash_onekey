@@ -394,6 +394,7 @@ python3 tests/go-parity/matrix/test_environment_contract.py
 | `gofmt` / `go vet` / `go build` / `go test ./...` | `rc=0`，0 FAIL | `artifacts/audit-remediation/followup-20261120/c3/{gate.rc,go-test.log}` |
 | 二进制固定 | `idleleo` `42f2de09…`（`-buildvcs=false -trimpath`）、Xray `26.10.31` `59396499…` | `.../c3/binaries.sha256` |
 | F28 / F08 / F18 | **57/0**、**129/0**、**178/0** | `.../c3/{f28,f08,f18}/fixture-result.json` |
+| E1-E6（config edit 全场景） | 全部 `allPassed`（E1 6/6、E2 4/4、E3 4/4、E4 5/5、E5 11/11、E6 10/10 checks） | `tests/e2e-diff/evidence/fix-20261120-p2j/p2/` |
 | E7 / E8（两侧 `--host 127.0.0.1`） | **13/13**、**14/14** `allPassed`，`run.json.commit=1cd248e6` | `tests/e2e-diff/evidence/fix-20261120-p2h/p2/` |
 | 98 项矩阵 | 104 行 = 54 `MATCH` + 40 `MATCH_CORE_FIELDS` + 4 `REFUSED` + 6 `A1_PASS`，0 GAP，`repo_dirty=0` | `tests/go-parity/evidence/matrix-fix-20261120-clean2/` |
 | OPS-32（ws / reality） | **PASS / PASS**，`run.json.commit=1cd248e6` | `tests/e2e-diff/evidence/fix-20261120-p2i/p2/OPS-32/` |

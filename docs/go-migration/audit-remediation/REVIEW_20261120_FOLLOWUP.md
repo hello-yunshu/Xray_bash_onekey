@@ -40,9 +40,10 @@
 | F08（Reality / Nginx 生成） | **129 / 0** | `.../c3/f08/` |
 | F18（QR / 分享输出） | **178 / 0** | `.../c3/f18/` |
 | 98 项 Bash/Go 矩阵 | 104 行 = 54 `MATCH` + 40 `MATCH_CORE_FIELDS` + 4 `REFUSED` + 6 `A1_PASS`，**0 GAP**，`repo_dirty=0` | `tests/go-parity/evidence/matrix-fix-20261120-clean2/` |
+| P2 E1-E6 | 全部 `allPassed`（E1 6/6、E2 4/4、E3 4/4、E4 5/5、E5 11/11、E6 10/10 checks） | `tests/e2e-diff/evidence/fix-20261120-p2j/p2/` |
 | P2 E7 / E8 | **13/13**、**14/14** `allPassed`（两侧 `--host 127.0.0.1`） | `tests/e2e-diff/evidence/fix-20261120-p2h/p2/` |
 | P2 OPS-32（ws / reality） | **PASS / PASS** | `tests/e2e-diff/evidence/fix-20261120-p2i/p2/OPS-32/` |
-| 证据卫生 | `0 finding(s) in 33667 file(s)` | 本轮全仓扫描 |
+| 证据卫生 | `0 finding(s) in 33993 file(s)` | 本轮全仓扫描 |
 | `environment.txt` 契约 | 2 tests OK | `tests/go-parity/matrix/test_environment_contract.py` |
 
 ### 3.2 前序轮次（保留，用于对照）
@@ -51,7 +52,7 @@
 | --- | --- | --- |
 | F28 pre-fix 红测对照 | 35 passed / 2 failed → 57 / 0 | `.../followup-20261120/f28-prefix-excerpt.txt`、`.../f28/` |
 | P2 M1-M10 | 全部 `allPassed` | `tests/e2e-diff/evidence/fix-20261120-p2b/p2/`（`f217a2fa`） |
-| P2 E1-E7 | 全部 `allPassed` | 同上 |
+| P2 E1-E7（`f217a2fa`） | 全部 `allPassed`（E1-E6 已在 `1cd248e6` 重跑，见 §3.1） | `tests/e2e-diff/evidence/fix-20261120-p2b/p2/` |
 | P2 E8（`102f52e1`） | 14/14（`oldLinkCaptured`、`backupHasOldShareUri` 转绿） | `.../fix-20261120-p2c/p2/E8/` |
 | P2 OPS-21 | **PASS**（修复前 `HARNESS-ERROR`，`shareUri=false`） | `.../fix-20261120-p2c/p2/OPS-21/` |
 | P2 OPS-09 | PASS | `.../fix-20261120-p2b/p2/OPS-09/` |
@@ -107,8 +108,8 @@ PR #182 保持 **draft**，未合并 `develop/go-native`，未打 tag，未触�
 Host/SNI 混用、证据隐私、矩阵自污染，以及本轮新增的
 `config edit --host`（FUP-08）与 OPS-32 恢复判定（FUP-09）。最终代码
 `1cd248e6` 上：本地全量门禁、F28 57/0、F08 129/0、F18 178/0、98 项矩阵 0 GAP
-（`repo_dirty=0`）、E7 13/13、E8 14/14、OPS-32 ws/reality 均 PASS、证据卫生 0
-findings。
+（`repo_dirty=0`）、E1-E6 全绿、E7 13/13、E8 14/14、OPS-32 ws/reality 均 PASS、
+证据卫生 0 findings。
 
 仍判 NO-GO 的唯一原因是外部环境项：独立 VPS 的公网 ACME、IPv6 与多版本
 Xray/Bash 矩阵没有证据，而目标书禁止操作生产 VPS。按目标书“NOT_RUN/BLOCKED
