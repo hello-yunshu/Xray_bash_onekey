@@ -10,7 +10,7 @@
 | 分支 | `work/go-hardening-parity-20261119` |
 | 目标书基线 | `a1056a14` |
 | 复审起点 | `d13fca44`（含 OPS-08/27 与证据） |
-| 修复提交 | `9f66b22a`（分享归属、Reality Host、隐私、F28）、`f217a2fa`（E2E 显式 Host）、`b212f1cf`（矩阵快照顺序）、`c65dbd04`（矩阵证据）、`102f52e1`（陈旧元数据降级）、`1cd248e6`（`config edit --host`、OPS-32 恢复判定）。 |
+| 修复提交 | `9f66b22a`（分享归属、Reality Host、隐私、F28）、`f217a2fa`（E2E 显式 Host）、`b212f1cf`（矩阵快照顺序）、`c65dbd04`（矩阵证据）、`102f52e1`（陈旧元数据降级）、`1cd248e6`（`config edit --host`、OPS-32 恢复判定）、`ce746d8c`（OPS-19/31/32 离线包缓存）。 |
 | 证据提交 | `d56e1dac`（门禁/Fixture/E7-E8）、`afe677a3`（矩阵 clean2）、紧随其后的 OPS-32 与文档提交，见 `git log`。 |
 | 二进制 | `idleleo 0.2.0-phase04`，`-buildvcs=false -trimpath`，`sha256 42f2de09…`；Xray `26.10.31`，`sha256 59396499…`（`artifacts/audit-remediation/followup-20261120/c3/binaries.sha256`）。 |
 | 允许范围 | 仅整改分支提交/推送；**未**合并 `main`/`develop/go-native`，**未**打 tag 发版，**未**操作生产 VPS，**未**强推共享历史。 |
@@ -32,7 +32,10 @@
 
 ## 3. 测试结果
 
-### 3.1 最终复验（代码 `1cd248e6`）
+### 3.1 最终复验（代码 `1cd248e6` + 缓存提交 `ce746d8c`）
+
+> 下表 F28/F08/F18/矩阵/E1-E8 在 `1cd248e6` 上运行；`ce746d8c` 只新增缓存路径与
+> 证据，缓存相关的两行是它的验证结果。
 
 | 套件 | 结果 | 证据 |
 | --- | --- | --- |
@@ -45,6 +48,8 @@
 | P2 E7 / E8 | **13/13**、**14/14** `allPassed`（两侧 `--host 127.0.0.1`） | `tests/e2e-diff/evidence/fix-20261120-p2h/p2/` |
 | P2 OPS-32（ws / reality） | **PASS / PASS** | `tests/e2e-diff/evidence/fix-20261120-p2i/p2/OPS-32/` |
 | 证据卫生 | `0 finding(s) in 34516 file(s)` | 本轮全仓扫描（含 cache2/cache4） |
+| Go 缓存单测 | 4 tests PASS（命中零网络请求；损坏/缺失/build 不符均失败） | `internal/nginx/artifact_test.go` |
+| OPS-19/31/32 离线缓存 | **PASS**（ws + reality，0 下载错误）；GitHub/raw 指向 `127.0.0.1` 后 OPS-32 仍 **ws PASS / reality PASS** | `tests/e2e-diff/evidence/fix-20261120-cache2/p2/`、`.../cache4/p2/` |
 | `environment.txt` 契约 | 2 tests OK | `tests/go-parity/matrix/test_environment_contract.py` |
 
 ### 3.2 前序轮次（保留，用于对照）
@@ -61,18 +66,20 @@
 | P2 OPS-31 | **PASS**（reality-balance 增删） | `.../fix-20261120-p2d/p2/OPS-31/` |
 | P2 OPS-32（旧判定） | ws PASS；reality `BLOCKER`（判定口径，非行为差异；新分析器重算 PASS） | `.../fix-20261120-p2d/p2/OPS-32/`、`artifacts/audit-remediation/followup-20261120/ops32-reanalysis/` |
 
-## 4. 同 HEAD CI（文档提交 `5f382902`，草稿 PR #182）
+## 4. 同 HEAD CI（代码 `ce746d8c`，草稿 PR #182）
 
-> 推送后在 `5f382902` 上触发；代码内容与 `1cd248e6` 相同，后续如需再改代码必须重跑。
+> 推送后在 `ce746d8c` 上触发；其后的文档提交只改文档，代码与 `ce746d8c` 相同，
+> 后续如需再改代码必须重跑。
 
 | Workflow | Run | 结论 |
 | --- | --- | --- |
-| Go parity stage gate | [44671935449](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935449) | success |
-| Privacy Guard | [44671935247](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935247) | success |
-| Go production parity release qualification | [44671935222](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935222) | success |
-| Go preview qualification (not for release) | [44671935256](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935256) | success |
-| Go real-root change acceptance (container) | [44671935218](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935218) | success |
-| Test Install | [44671935238](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935238) | success |
+| Go parity stage gate | [44680509165](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680509165) | success |
+| Privacy Guard | [44680508152](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680508152) | success |
+| Go production parity release qualification | [44680507886](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507886) | success |
+| Go preview qualification (not for release) | [44680507803](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507803) | success |
+| Go real-root change acceptance (container) | [44680507913](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507913) | success |
+| Test Install | [44680507985](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507985) | success |
+| Rill Xray Agent | [44680507787](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507787) | success |
 
 PR #182 保持 **draft**，未合并 `develop/go-native`，未打 tag，未触碰生产 VPS。
 
