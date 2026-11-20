@@ -413,3 +413,30 @@ python3 tests/go-parity/matrix/test_environment_contract.py
 - E7/E8 的驱动与命令行两侧统一用 `--host 127.0.0.1`，`oldLinkCaptured` /
   `backupHasOldShareUri` 不再依赖“SNI 恰好等于探测地址”。
 
+### 11.7 离线包缓存（OPS-19/31/32，FUP-10）
+
+网络抖动不再进入这三项的 verdict：Nginx 发布包与 Xray 配置模板由 runner 预置，
+Bash 与 Go 共享同一份缓存，并保留全部既有校验。
+
+| 项 | 结果 | 证据 |
+| --- | --- | --- |
+| Go 单元 | 4 个 `ResolveFromCache` 测试通过：命中不发任何网络请求；损坏/缺失/build 不符全部失败 | `internal/nginx/artifact_test.go` |
+| OPS-19 / OPS-31 / OPS-32（ws + reality） | **PASS**；4 份 bash 安装日志均出现 `Nginx 使用离线缓存` + `使用缓存产物` 与模板 `使用离线缓存: config/...`，0 下载错误 | `tests/e2e-diff/evidence/fix-20261120-cache2/p2/` |
+| 离线证明（GitHub/raw 全部指向 `127.0.0.1`） | OPS-32 **ws PASS / reality PASS** | `tests/e2e-diff/evidence/fix-20261120-cache4/p2/` |
+| 缓存清单 | build `2026.10.15.7679`、arch `arm`、tarball `dc78117f…`、manifest `d9f6e162…` | `.../cache2/p2/nginx-cache.json` |
+
+- Nginx 包缓存：runner 先校验 `release-manifest.json` 的
+  `versions.nginx_build`、`assets[arch].filename/sha256/size_bytes` 与宿主文件一致，
+  才注入 `IDLELEO_NGINX_CACHE=/seed/nginx`。Go 的 `Options.CacheDir` 一旦设置就
+  **不访问网络**，缺文件/损坏直接失败（`Nginx cache is incomplete`、
+  `sha256 mismatch`），避免“缓存失败被在线下载悄悄替代”。
+- 模板缓存：runner 把 `config/vless_reality.json`、`config/vless_tls.json` 播种到
+  `/seed/release`；`download_json_file` 命中后仍执行 `jq empty` 校验，损坏即失败。
+- 离线证明命令：
+
+  ```bash
+  E2E_RUN_ID=<id> E2E_ONLY=OPS-32 E2E_CONCURRENCY=1 \
+    E2E_BLOCK_HOSTS=github.com,raw.githubusercontent.com,cdn.jsdelivr.net,objects.githubusercontent.com,release-assets.githubusercontent.com \
+    bash tests/e2e-diff/run_p2_matrix.sh
+  ```
+

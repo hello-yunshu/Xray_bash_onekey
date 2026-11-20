@@ -338,3 +338,100 @@ func TestArchMapping(t *testing.T) {
 		t.Fatalf("unexpected arch %q", got)
 	}
 }
+
+func writeArtifactCache(t *testing.T, dir, arch string, m Manifest, artifact []byte) {
+	t.Helper()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	versions, _ := json.Marshal(BuildVersion{NginxBuildOnlineVersion: m.Versions.NginxBuild})
+	manifest, _ := json.Marshal(m)
+	files := map[string][]byte{
+		"versions.json":         versions,
+		"release-manifest.json": manifest,
+	}
+	asset, err := m.AssetForArch(arch)
+	if err != nil {
+		t.Fatal(err)
+	}
+	files[asset.Filename] = artifact
+	for name, body := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), body, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestResolveFromCacheNeverTouchesTheNetwork(t *testing.T) {
+	bin := fakeELF("arm")
+	artifact := tarGz(t, []tarEntry{
+		{name: "nginx/sbin/", typ: tar.TypeDir, mode: 0o755},
+		{name: "nginx/sbin/nginx", typ: tar.TypeReg, mode: 0o755, body: bin},
+	})
+	m := manifestFor(t, "arm", artifact, bin)
+	dir := t.TempDir()
+	writeArtifactCache(t, dir, "arm", m, artifact)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Errorf("cache hit still requested %s", r.URL.Path)
+		http.NotFound(w, r)
+	}))
+	defer srv.Close()
+
+	art, err := Resolve(context.Background(), Options{
+		CacheDir:       dir,
+		Arch:           "arm",
+		VersionsURLs:   []string{srv.URL + "/versions.json"},
+		ReleaseBaseURL: srv.URL,
+		Client:         srv.Client(),
+	})
+	if err != nil {
+		t.Fatalf("Resolve from cache: %v", err)
+	}
+	if art.Build != "2026.10.15.7679" || !bytes.Equal(art.Data, artifact) {
+		t.Fatalf("unexpected artifact: build=%q len=%d", art.Build, len(art.Data))
+	}
+	if !strings.HasPrefix(art.AssetURL, dir) || !strings.HasPrefix(art.ManifestURL, dir) {
+		t.Fatalf("cache URLs must point into %s: %+v", dir, art)
+	}
+}
+
+func TestResolveFromCacheRejectsCorruptArtifact(t *testing.T) {
+	bin := fakeELF("arm")
+	artifact := tarGz(t, []tarEntry{{name: "nginx/sbin/nginx", typ: tar.TypeReg, mode: 0o755, body: bin}})
+	m := manifestFor(t, "arm", artifact, bin)
+	m.Assets[0].SHA256 = strings.Repeat("0", 64)
+	dir := t.TempDir()
+	writeArtifactCache(t, dir, "arm", m, artifact)
+
+	_, err := Resolve(context.Background(), Options{CacheDir: dir, Arch: "arm"})
+	if err == nil || !strings.Contains(err.Error(), "sha256 mismatch") {
+		t.Fatalf("expected sha256 mismatch from the cache, got %v", err)
+	}
+}
+
+func TestResolveFromCacheRejectsPartialCache(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "release-manifest.json"), []byte("{}"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, err := Resolve(context.Background(), Options{CacheDir: dir, Arch: "arm"})
+	if err == nil || !strings.Contains(err.Error(), "incomplete") {
+		t.Fatalf("expected an incomplete-cache error, got %v", err)
+	}
+}
+
+func TestResolveFromCacheRejectsBuildMismatch(t *testing.T) {
+	bin := fakeELF("arm")
+	artifact := tarGz(t, []tarEntry{{name: "nginx/sbin/nginx", typ: tar.TypeReg, mode: 0o755, body: bin}})
+	m := manifestFor(t, "arm", artifact, bin)
+	dir := t.TempDir()
+	writeArtifactCache(t, dir, "arm", m, artifact)
+	versions, _ := json.Marshal(BuildVersion{NginxBuildOnlineVersion: "2026.10.15.1"})
+	if err := os.WriteFile(filepath.Join(dir, "versions.json"), versions, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Resolve(context.Background(), Options{CacheDir: dir, Arch: "arm"}); err == nil {
+		t.Fatal("versions.json and manifest builds must agree")
+	}
+}

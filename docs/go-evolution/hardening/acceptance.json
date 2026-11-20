@@ -281,6 +281,13 @@
         "status": "LOCAL_RUN_PASS",
         "evidencePath": "tests/e2e-diff/evidence/fix-20261120-p2i/p2/OPS-32",
         "reason": "trailing 2*fail_timeout rule; ws and reality PASS; p2d probes re-analyzed to PASS under the same rule"
+      },
+      {
+        "id": "F11",
+        "title": "offline cache for OPS-19/31/32 installs",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-cache2/p2/, fix-20261120-cache4/p2/",
+        "reason": "Nginx release artifact and config templates come from a verified local cache; OPS-19/31/32 PASS with zero download errors and OPS-32 still PASSes with github.com/raw.githubusercontent.com pinned to 127.0.0.1"
       }
     ],
     "conclusion": "NO-GO for release and merge"

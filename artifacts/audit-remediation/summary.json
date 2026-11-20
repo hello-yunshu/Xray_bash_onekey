@@ -220,7 +220,7 @@
     "reviewBaseline": "d13fca44",
     "fixCommits": ["9f66b22a", "f217a2fa", "b212f1cf", "c65dbd04", "102f52e1", "1cd248e6"],
     "report": "docs/go-migration/audit-remediation/REVIEW_20261120_FOLLOWUP.md",
-    "fixes": {"FUP-01": "share metadata is used only for its own canonical runtime path with a matching runtimeSha256", "FUP-02": "Reality share requires an explicit --host; serverNames stay the SNI", "FUP-03": "environment.txt carries hashes and repository-relative paths only", "FUP-04": "F28 redacts argv/stdout/stderr; the x25519 private key is no longer passed in", "FUP-05": "F28 uses --root and every probe passes an explicit --host", "FUP-06": "the matrix snapshots the dirty flag before creating its output directory", "FUP-07": "stale metadata degrades to a warning; the runtime config still renders", "FUP-08": "config edit takes --host; old/new/short-id links all dial it, URL values are rejected and a Reality edit without --host warns", "FUP-09": "OPS-32 judges recovery in the trailing 2*fail_timeout of the window with the same gap cap and sample minimum"},
+    "fixes": {"FUP-01": "share metadata is used only for its own canonical runtime path with a matching runtimeSha256", "FUP-02": "Reality share requires an explicit --host; serverNames stay the SNI", "FUP-03": "environment.txt carries hashes and repository-relative paths only", "FUP-04": "F28 redacts argv/stdout/stderr; the x25519 private key is no longer passed in", "FUP-05": "F28 uses --root and every probe passes an explicit --host", "FUP-06": "the matrix snapshots the dirty flag before creating its output directory", "FUP-07": "stale metadata degrades to a warning; the runtime config still renders", "FUP-08": "config edit takes --host; old/new/short-id links all dial it, URL values are rejected and a Reality edit without --host warns", "FUP-09": "OPS-32 judges recovery in the trailing 2*fail_timeout of the window with the same gap cap and sample minimum", "FUP-10": "OPS-19/31/32 read the Nginx release artifact and config templates from a verified offline cache; the Go side never falls back to the network"},
     "tests": {
       "goGate": {"status": "PASS", "evidence": "artifacts/audit-remediation/followup-20261120/c3/gate.rc"},
       "F28": {"passed": 57, "failed": 0, "evidence": "artifacts/audit-remediation/followup-20261120/c3/f28"},
@@ -241,7 +241,17 @@
         "blocked": [],
         "ops32Reanalysis": {"rule": "trailing 2*fail_timeout, max gap fail_timeout, min 3 A responses", "evidence": "artifacts/audit-remediation/followup-20261120/ops32-reanalysis"}
       },
-      "privacyHygiene": {"findings": 0, "files": 33993},
+      "nginxCache": {
+        "status": "PASS",
+        "run": "fix-20261120-cache2",
+        "scenarios": ["OPS-19", "OPS-31", "OPS-32/ws", "OPS-32/reality"],
+        "build": "2026.10.15.7679",
+        "arch": "arm",
+        "tarballSha256": "dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79",
+        "evidence": "tests/e2e-diff/evidence/fix-20261120-cache2/p2/nginx-cache.json",
+        "offlineProof": {"run": "fix-20261120-cache4", "blockedHosts": ["github.com", "raw.githubusercontent.com", "cdn.jsdelivr.net", "objects.githubusercontent.com", "release-assets.githubusercontent.com"], "result": "OPS-32 ws PASS, reality PASS", "evidence": "tests/e2e-diff/evidence/fix-20261120-cache4/p2"}
+      },
+      "privacyHygiene": {"findings": 0, "files": 34516},
       "ci": {
         "sha": "5f382902",
         "workflows": {"stageGate": 44671935449, "privacy": 44671935247, "releaseQualification": 44671935222, "preview": 44671935256, "realRoot": 44671935218, "testInstall": 44671935238},

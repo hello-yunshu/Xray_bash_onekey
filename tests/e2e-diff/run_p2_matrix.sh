@@ -39,8 +39,26 @@ mkdir -p "$EVID" "$WORK/seed/cert" "$WORK/secret"
 log() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$EVID/run.log"; }
 
 PIN_ARGS=()
+# E2E_BLOCK_HOSTS pins the named hosts to loopback so a scenario can prove it
+# never needs them (offline-cache evidence). Names still resolve, so a code
+# path that ignores the cache fails fast instead of hanging.
+BLOCK_HOSTS=()
+if [[ -n "${E2E_BLOCK_HOSTS:-}" ]]; then
+    IFS=',' read -r -a BLOCK_HOSTS <<<"$E2E_BLOCK_HOSTS"
+fi
+host_blocked() {
+    local want="$1" h
+    for h in "${BLOCK_HOSTS[@]}"; do
+        [[ "${h// /}" == "$want" ]] && return 0
+    done
+    return 1
+}
 pin_host() {
     local h=$1 ip
+    if host_blocked "$h"; then
+        PIN_ARGS+=(--add-host "$h:127.0.0.1")
+        return
+    fi
     while read -r ip; do
         [[ -n "$ip" ]] && PIN_ARGS+=(--add-host "$h:$ip")
     done < <(dscacheutil -q host -a name "$h" 2>/dev/null | awk '/^ip_address:/{print $2}')
@@ -51,6 +69,8 @@ for h in raw.githubusercontent.com cdn.jsdelivr.net \
 done
 if [[ -n "${E2E_GITHUB_IP:-}" ]]; then
     PIN_ARGS+=(--add-host "github.com:$E2E_GITHUB_IP")
+elif host_blocked github.com; then
+    PIN_ARGS+=(--add-host "github.com:127.0.0.1")
 else
     pin_host github.com
 fi
@@ -114,6 +134,9 @@ if [[ -d "$EVID" && -n "$(ls -A "$EVID" 2>/dev/null)" ]]; then
     exit 2
 fi
 log "run_id=$RUN_ID"
+if [[ ${#BLOCK_HOSTS[@]} -gt 0 ]]; then
+    log "blocked_hosts=${E2E_BLOCK_HOSTS} (pinned to 127.0.0.1 for offline proof)"
+fi
 docker build -q -t "$IMAGE_TAG" -f "$SUITE/image/Dockerfile" "$SUITE/image" >/dev/null || {
     log "FATAL: image build failed"; exit 2
 }
@@ -136,6 +159,131 @@ fi
 cp "$XRAY_BIN" "$WORK/seed/xray"
 chmod 0755 "$WORK/seed/xray"
 log "xray_sha256=$(host_sha256 "$WORK/seed/xray") idleleo_sha256=$(host_sha256 "$WORK/seed/idleleo")"
+
+# --- offline Nginx artifact cache ------------------------------------------
+# OPS-19/31/32 install a managed Nginx front from a GitHub release. A flaky
+# download must not decide those verdicts, so seed one verified cache that both
+# sides read locally (Bash: IDLELEO_NGINX_CACHE, Go: Options.CacheDir). Missing
+# cache files are fetched once on the host and verified against the manifest; a
+# failed seed is non-fatal and falls back to the historical online path.
+NGINX_BUILD="${E2E_NGINX_BUILD:-2026.10.15.7679}"
+case "$ARCH" in
+    amd64) NGINX_ARCH=x86 ;;
+    arm64) NGINX_ARCH=arm ;;
+    *) NGINX_ARCH="" ;;
+esac
+NGINX_ASSET="xray-nginx-custom-${NGINX_ARCH}.tar.gz"
+NGINX_CACHE="${E2E_NGINX_CACHE:-$HOME/.cache/xray-audit/nginx/$NGINX_BUILD}"
+NGINX_CACHE_ENVS=()
+
+# nginx_cache_asset_info prints build/filename/sha256/size for one arch.
+nginx_cache_asset_info() {
+    python3 - "$1" "$2" <<'PY'
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+except Exception:
+    print("\t\t\t")
+    raise SystemExit(0)
+build = ((data.get("versions") or {}).get("nginx_build") or "")
+entry = next((a for a in data.get("assets") or [] if a.get("arch") == sys.argv[2]), None)
+if entry is None:
+    print("%s\t\t\t" % build)
+else:
+    print("%s\t%s\t%s\t%s" % (build, entry.get("filename") or "",
+                              entry.get("sha256") or "", entry.get("size_bytes") or ""))
+PY
+}
+
+seed_nginx_cache() {
+    local dest="$WORK/seed/nginx"
+    local manifest="$NGINX_CACHE/release-manifest.json"
+    local tarball="$NGINX_CACHE/$NGINX_ASSET"
+    local cache_source="host-cache"
+    if [[ -z "$NGINX_ARCH" ]]; then
+        log "nginx_cache=miss reason=unsupported-arch arch=$ARCH"
+        return 1
+    fi
+    mkdir -p "$dest" "$NGINX_CACHE"
+    if [[ ! -f "$manifest" || ! -f "$tarball" ]]; then
+        cache_source="download"
+        local base="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v$NGINX_BUILD"
+        if ! curl -fsSL --retry 3 --connect-timeout 15 --max-time 120 \
+                -o "$manifest.tmp" "$base/release-manifest.json" ||
+           ! mv "$manifest.tmp" "$manifest"; then
+            rm -f "$manifest.tmp"
+            log "nginx_cache=miss reason=manifest-download-failed build=$NGINX_BUILD"
+            return 1
+        fi
+        if ! curl -fsSL --retry 3 --connect-timeout 15 --max-time 600 \
+                -o "$tarball.tmp" "$base/$NGINX_ASSET" ||
+           ! mv "$tarball.tmp" "$tarball"; then
+            rm -f "$tarball.tmp"
+            log "nginx_cache=miss reason=asset-download-failed asset=$NGINX_ASSET"
+            return 1
+        fi
+    fi
+    local build want_name want_sha want_size got_sha
+    IFS=$'\t' read -r build want_name want_sha want_size < <(nginx_cache_asset_info "$manifest" "$NGINX_ARCH" || true)
+    got_sha=$(host_sha256 "$tarball" 2>/dev/null || true)
+    if [[ "$build" != "$NGINX_BUILD" || "$want_name" != "$NGINX_ASSET" ||
+          -z "$want_sha" || ! "$want_size" =~ ^[0-9]+$ || "$got_sha" != "$want_sha" ]]; then
+        # A stale, half-written or tampered cache must never reach a container.
+        rm -f "$manifest" "$tarball" "$manifest.tmp" "$tarball.tmp"
+        log "nginx_cache=miss reason=verify-failed build=${build:-none} asset=$NGINX_ASSET"
+        return 1
+    fi
+    cp "$manifest" "$dest/release-manifest.json"
+    cp "$tarball" "$dest/$NGINX_ASSET"
+    printf '{"nginx_build_online_version":"%s"}\n' "$NGINX_BUILD" >"$dest/versions.json"
+    NGINX_CACHE_ENVS=(-e IDLELEO_NGINX_CACHE=/seed/nginx -e E2E_NGINX_BUILD="$NGINX_BUILD")
+    cat >"$EVID/nginx-cache.json" <<JSON
+{
+  "build": "$NGINX_BUILD",
+  "arch": "$NGINX_ARCH",
+  "asset": "$NGINX_ASSET",
+  "source": "$cache_source",
+  "tarballSha256": "$want_sha",
+  "tarballSizeBytes": $want_size,
+  "manifestSha256": "$(host_sha256 "$dest/release-manifest.json")",
+  "versionsSha256": "$(host_sha256 "$dest/versions.json")"
+}
+JSON
+    log "nginx_cache=$cache_source build=$NGINX_BUILD arch=$NGINX_ARCH tarball_sha256=$want_sha"
+}
+
+if seed_nginx_cache; then
+    log "nginx_cache=hit (OPS-19/31/32 offline Nginx)"
+else
+    NGINX_CACHE_ENVS=()
+    log "nginx_cache=miss (falling back to online downloads)"
+fi
+
+# --- offline release template cache ----------------------------------------
+# OPS-19/31/32 fresh installs also fetch the Xray config template from the
+# release raw tree. Seed the tracked templates so a raw.githubusercontent.com
+# hiccup cannot fail the install; download_json_file still jq-validates them.
+RELEASE_CACHE_ENVS=()
+seed_release_cache() {
+    local dest="$WORK/seed/release/config" f
+    mkdir -p "$dest"
+    for f in vless_reality.json vless_tls.json; do
+        if [[ ! -f "$ROOT/config/$f" ]]; then
+            log "release_cache=miss reason=missing-template file=$f"
+            return 1
+        fi
+        cp "$ROOT/config/$f" "$dest/$f"
+    done
+    RELEASE_CACHE_ENVS=(-e IDLELEO_RELEASE_CACHE=/seed/release)
+    log "release_cache=seeded templates=vless_reality.json,vless_tls.json"
+}
+
+if seed_release_cache; then
+    log "release_cache=hit"
+else
+    RELEASE_CACHE_ENVS=()
+    log "release_cache=miss (falling back to online downloads)"
+fi
 
 docker run --rm -v "$WORK/seed:/seed" "$IMAGE_TAG" bash -c \
     "openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj '/CN=$DOMAIN' \
@@ -385,7 +533,9 @@ run_bash_round() {
                 -e E2E_TRANSPORT="$transport" -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET"
                 -e E2E_PORT=443 -e E2E_LOCAL_IP="$LOCAL_IP" -e E2E_RELAY_HOST="$RELAY_HOST"
                 -e E2E_RELAY_PORT="$RELAY_PORT" -e E2E_PREV_OUT="/out"
-                -e E2E_TIMEOUT="${E2E_TIMEOUT:-900}")
+                -e E2E_TIMEOUT="${E2E_TIMEOUT:-900}"
+                "${NGINX_CACHE_ENVS[@]+"${NGINX_CACHE_ENVS[@]}"}"
+                "${RELEASE_CACHE_ENVS[@]+"${RELEASE_CACHE_ENVS[@]}"}")
     # Round 2 tests config idempotency, not live takeover. Bash reinstall
     # replaces the binary before its port guard, so the still-running service
     # is no longer recognised and the guard rejects its own port. Stop the
@@ -425,6 +575,8 @@ run_go_round() {
     local -a run_cmd=(docker exec -e E2E_OUT="$target_out" -e E2E_ROUND="$round" -e E2E_SCENARIO="$sid"
         -e E2E_PROFILE="$profile" -e E2E_PREV_OUT=/out
         "${acme_envs[@]+"${acme_envs[@]}"}"
+        "${NGINX_CACHE_ENVS[@]+"${NGINX_CACHE_ENVS[@]}"}"
+        "${RELEASE_CACHE_ENVS[@]+"${RELEASE_CACHE_ENVS[@]}"}"
         "$server" bash "/src/tests/e2e-diff/drivers/$driver" "${argv[@]}")
     "${run_cmd[@]}"; local rc=$?
     # The managed Nginx artifact comes from the network. A reset/EOF there is an

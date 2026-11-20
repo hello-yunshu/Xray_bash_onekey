@@ -51,11 +51,14 @@ log "seeded_installer=yes"
 # network. The shell version must match the tracked script under test.
 src_version=$(grep -m1 '^shell_version=' /src/install.sh | awk -F'=|"' '{print $3}')
 src_version="${src_version:-3.3.6}"
+# The Nginx build must match the offline cache seeded by the runner, so both
+# sides resolve the same artifact; the default keeps the historical build.
+nginx_build="${E2E_NGINX_BUILD:-2026.10.15.7679}"
 cat >/etc/idleleo/versions.json <<JSON
-{"shell_online_version":"${src_version}","shell_release_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"2026.10.15.7679"}
+{"shell_online_version":"${src_version}","shell_release_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"${nginx_build}"}
 JSON
 export XRAY_VERSIONS_FILE=/etc/idleleo/versions.json
-log "seeded_versions=yes shell=${src_version}"
+log "seeded_versions=yes shell=${src_version} nginx_build=${nginx_build}"
 
 # Seed the pinned Xray binary so the installer skips its own download; every
 # config/install step still executes for real.

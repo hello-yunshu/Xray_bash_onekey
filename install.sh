@@ -1900,7 +1900,21 @@ download_json_file() {
 
     mkdir -p "$(dirname "${dest_file}")"
     rm -f "${tmp_file}"
-    if ! curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o "${tmp_file}" "$url"; then
+    # Optional offline release cache (IDLELEO_RELEASE_CACHE): a directory that
+    # mirrors the release raw tree (e.g. config/vless_reality.json). A hit
+    # replaces the download and still passes the JSON validation below, so a
+    # corrupt cache fails closed instead of installing unverified bytes.
+    local cache_root="${IDLELEO_RELEASE_CACHE:-}"
+    if [[ -n "${cache_root}" && -n "${shell_release_raw_base:-}" &&
+          "${url}" == "${shell_release_raw_base}/"* ]]; then
+        local rel="${url#"${shell_release_raw_base}/"}"
+        if [[ "${rel}" != *".."* && -f "${cache_root}/${rel}" ]] &&
+           cp "${cache_root}/${rel}" "${tmp_file}" 2>/dev/null; then
+            log_echo "${Info} ${GreenBG} $(gettext "使用离线缓存"): ${rel} ${Font}"
+        fi
+    fi
+    if [[ ! -s "${tmp_file}" ]] &&
+       ! curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o "${tmp_file}" "$url"; then
         rm -f "${tmp_file}"
         return 1
     fi
@@ -6961,8 +6975,29 @@ nginx_install() {
     local base_url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}"
     local manifest_file="${temp_dir}/release-manifest.json"
 
+    # Optional offline artifact cache (IDLELEO_NGINX_CACHE): a directory holding
+    # versions.json, release-manifest.json and the arch tarball. When both files
+    # are present they replace the two downloads; every manifest, filename,
+    # SHA256 and tar check below still runs, so a corrupt cache fails closed.
+    # A partial cache falls back to the network instead of installing
+    # unverified bytes.
+    local nginx_cache_dir="${IDLELEO_NGINX_CACHE:-}"
+    local nginx_cache_hit=0
+    local nginx_cache_asset=""
+    if [[ -n "${nginx_cache_dir}" ]]; then
+        nginx_cache_asset="${nginx_cache_dir}/${expected_nginx_filename}"
+        if [[ -f "${nginx_cache_dir}/release-manifest.json" && -f "${nginx_cache_asset}" ]] &&
+           cp "${nginx_cache_dir}/release-manifest.json" "${manifest_file}" 2>/dev/null; then
+            nginx_cache_hit=1
+            log_echo "${Info} ${GreenBG} Nginx $(gettext "使用离线缓存"): ${nginx_cache_dir} ${Font}"
+        else
+            log_echo "${Warning} ${YellowBG} Nginx $(gettext "离线缓存不完整, 回退在线下载"): ${nginx_cache_dir} ${Font}"
+        fi
+    fi
+
     # Manifest is mandatory (fail-closed). Missing/invalid manifest = abort.
-    if ! download_json_file "${base_url}/release-manifest.json" "${manifest_file}"; then
+    if [[ ${nginx_cache_hit} -eq 0 ]] &&
+       ! download_json_file "${base_url}/release-manifest.json" "${manifest_file}"; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "release-manifest.json 下载失败或无效, 拒绝安装") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
         return 1
@@ -7009,7 +7044,14 @@ nginx_install() {
 
     local url="${base_url}/${nginx_filename}"
 
-    if ! nginx_download_release_asset "$url" "$nginx_filename"; then
+    if [[ ${nginx_cache_hit} -eq 1 ]]; then
+        if ! cp "${nginx_cache_asset}" "${nginx_filename}" 2>/dev/null; then
+            log_echo "${Error} ${RedBG} Nginx $(gettext "缓存产物复制失败, 拒绝安装") ${Font}"
+            cd "$current_dir" && rm -rf "$temp_dir"
+            return 1
+        fi
+        log_echo "${OK} ${GreenBG} Nginx $(gettext "使用缓存产物") (${nginx_filename}) ${Font}"
+    elif ! nginx_download_release_asset "$url" "$nginx_filename"; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "下载") $(gettext "失败") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
         return 1

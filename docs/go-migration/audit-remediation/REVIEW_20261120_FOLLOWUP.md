@@ -28,6 +28,7 @@
 | FUP-07 | P1 | 直接编辑 `config.json` 后 `xray share` 因哈希不符完全不可用 | 陈旧哈希降级：跳过元数据默认值、按运行时配置渲染并输出 `stale` 警告；loopback 歧义仍返回可操作错误 | FIXED_VERIFIED |
 | FUP-08 | P1 | `config edit` 的 `OldShareURI`/`NewShareURI`/`ShortIDLinks` 以 Reality SNI 作拨号地址，报告与备份可能给出不可连接链接 | `EditRequest.Host` 成为唯一拨号地址来源；URL 形式拒绝；Reality 缺 `--host` 时输出降级警告；E7/E8 与驱动两侧显式 `--host 127.0.0.1` | FIXED_VERIFIED |
 | FUP-09 | P1 | OPS-32 要求 A 链延伸到恢复窗口末尾，nginx 衰减权重导致的稀疏命中被误判为未恢复 | 判定改为窗口尾部 `2*fail_timeout` 内 A ≥ `stable_min` 且相邻间隔 ≤ `fail_timeout`，规则文案同步 | FIXED_VERIFIED |
+| FUP-10 | P2 | OPS-19/31/32 的 verdict 依赖 GitHub/raw 在线下载，`curl: (18)`、`rc=124` 会把网络抖动记成行为差异 | 离线包缓存：Nginx 发布包（manifest + tarball，两侧共享 `IDLELEO_NGINX_CACHE`）与配置模板（`IDLELEO_RELEASE_CACHE`）；Go 侧缺文件/损坏直接失败不回落网络，Bash 侧保留全部 manifest/SHA256/tar 校验 | FIXED_VERIFIED |
 
 ## 3. 测试结果
 
@@ -43,7 +44,7 @@
 | P2 E1-E6 | 全部 `allPassed`（E1 6/6、E2 4/4、E3 4/4、E4 5/5、E5 11/11、E6 10/10 checks） | `tests/e2e-diff/evidence/fix-20261120-p2j/p2/` |
 | P2 E7 / E8 | **13/13**、**14/14** `allPassed`（两侧 `--host 127.0.0.1`） | `tests/e2e-diff/evidence/fix-20261120-p2h/p2/` |
 | P2 OPS-32（ws / reality） | **PASS / PASS** | `tests/e2e-diff/evidence/fix-20261120-p2i/p2/OPS-32/` |
-| 证据卫生 | `0 finding(s) in 33993 file(s)` | 本轮全仓扫描 |
+| 证据卫生 | `0 finding(s) in 34516 file(s)` | 本轮全仓扫描（含 cache2/cache4） |
 | `environment.txt` 契约 | 2 tests OK | `tests/go-parity/matrix/test_environment_contract.py` |
 
 ### 3.2 前序轮次（保留，用于对照）
@@ -91,10 +92,10 @@ PR #182 保持 **draft**，未合并 `develop/go-native`，未打 tag，未触�
 
 ### P2
 
-1. **P2 依赖外网下载。** `OPS-19`（GitHub Nginx 包）、`OPS-31`/`OPS-32` 的 Bash
-   侧（apt/nginx 下载）在 `p2b`、`p2e` 出现 `curl: (18) Transferred a partial
-   file` / `rc=124`，与代码无关；`p2d`（OPS-19/31）、`p2i`（OPS-32）同机复跑即
-   通过。建议 CI 预置包缓存或离线镜像，并把下载失败与行为差异分开记 verdict。
+1. **P2 第三方下载未全部缓存。** OPS-19/31/32 的 Nginx 发布包与配置模板已走离线缓存
+   （FUP-10），网络抖动不再影响 verdict。仍未缓存的外部项：`OPS-19` 的 apt
+   安装（镜像已预装则无下载）、`xray_stats` 辅助脚本的可选在线更新。它们不是
+   OPS-19/31/32 的判定输入，失败也不会改变 verdict，但会拖慢安装日志。
 2. **证据体积。** `tests/go-parity/evidence/matrix-fix-20261120-clean2/` 约
    15 MB，已入库；后续可考虑压缩或只保留 summary 与失败样本。
 3. **同 HEAD CI 回填。** 代码不变时无需重跑；后续代码变化必须重跑并替换 run id
@@ -120,5 +121,7 @@ P0/P1 代码缺陷。
 
 1. 提供一个独立测试 VPS（非生产），跑公网 ACME、IPv6 与多版本矩阵，回填
    `ACCEPTANCE_MATRIX.md` 的 M8 与 OPS-SWEEP 行。
-2. 为 OPS-19/31/32 增加离线包缓存，消除网络抖动对 verdict 的影响（P2）。
+2. ~~为 OPS-19/31/32 增加离线包缓存，消除网络抖动对 verdict 的影响（P2）。~~
+   已完成（FUP-10）：Nginx 包与配置模板全部命中缓存，且在 GitHub/raw 主机被
+   指向 `127.0.0.1` 的离线证明中 OPS-32 ws/reality 仍为 PASS。
 3. 外部项补齐后重新评审 GO/NO-GO；在此之前 PR #182 保持 draft。

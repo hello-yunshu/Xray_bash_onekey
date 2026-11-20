@@ -1,0 +1,4 @@
+== backend-a.realityServers
+server backend-a:9001 weight=50 max_fails=2 fail_timeout=10;
+== backend-b.realityServers
+server backend-b:9002 weight=50 max_fails=2 fail_timeout=10;
