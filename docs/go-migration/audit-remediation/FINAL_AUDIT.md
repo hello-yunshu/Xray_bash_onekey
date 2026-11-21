@@ -169,11 +169,18 @@
 | P2 | XHTTP 空白输入静默接受 | 区分未提供与空白，空白拒绝 | `internal/xraycfg/edit_test.go` |
 | P1 | 账本/矩阵/报告失配 | 34 行账本从证据生成，逐行记录 Bash 入口/Go 命令 | `tests/e2e-diff/ledger.json` |
 
-Docker 可验证项：M1–M10 10/10 双端、E1–E8 100/100、OPS 34 行 0 FAIL/
-0 BLOCKED/0 NOT_RUN、S4–S9、R1/R2/I/INJ 106/0、历史 3.3.2 13/0、冷恢复
-27/27、P3 4×62、3 版本、Debian 12、31 样本 soak + 两周期调度、98 项矩阵
-0 GAP、CI 7/7。详见 `DOCKER_ACCEPTANCE_20261121.md`。
+Docker 可验证项：M1–M10 10/10 双端（`FINAL-M2`）、E1–E8 100/100、OPS 34 行
+0 FAIL/0 BLOCKED/0 NOT_RUN、S4–S9（S6 17/17，`FINAL-S6D`）、R1/R2/I/INJ 106/0、
+历史 3.3.2 13/0 与 3.3.3 52/0（`FINAL-HIST3B`）、冷恢复 27/27、P3 4×62、
+3 版本、Debian 12、31 样本 soak + 两周期调度、98 项矩阵 0 GAP、最终 SHA
+F28/F08/F18 57/0/129/0/178/0、amd64 与最终环境证据、CI 7/7。详见
+`DOCKER_ACCEPTANCE_20261121.md`。
 
-**结论**：Docker 开发候选 `GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；正式发布、
-合并 `main`/`develop/go-native`、tag 仍为 `NO_GO_NOT_AUTHORIZED`（独立 VPS、
+未闭合（NOT_DONE）：冷恢复仅 Reality（缺 TLS/relay/multi 与端到端故障注入）；
+Bash 用户/私钥菜单未驱动；XHTTP 尾/重复斜杠数据面未在最终 SHA 重跑；
+Test Install 历史静默退出仍为 PARTIAL。
+
+**结论**：上述 NOT_DONE 未完成，Docker 开发候选保持
+`NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；正式发布、合并
+`main`/`develop/go-native`、tag 为 `NO_GO_NOT_AUTHORIZED`（独立 VPS、
 公网 ACME、外部 IPv6 未验证，且任务书禁止）。
