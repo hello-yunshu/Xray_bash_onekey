@@ -18,7 +18,7 @@
   ],
   "summaryScope": "items below are the 2026-11-19 baseline; see followup20261120",
   "ciSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
-  "ciNote": "PR #182 draft: code commit 96f77eae 7/7 success; final docs head d399e6bd 7/7 success (stage 44860271297, preview 44860271369, release 44860271325, real-root 44860271300, Test Install 44860271291, Privacy 44860271356, Rill 44860271269)",
+  "ciNote": "PR #182 draft: code commit 96f77eae 7/7 success; final head c3d4f904 7/7 success (stage 44870185245, preview 44870185254, release 44870185226, real-root 44870185251, Test Install 44870185223, Privacy 44870185229, Rill 44870185231)",
   "pr": {
     "number": 182,
     "url": "https://github.com/hello-yunshu/Xray_bash_onekey/pull/182",
@@ -574,17 +574,18 @@
       "codeSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
       "codeShaWorkflows": 7,
       "codeShaSuccess": 7,
-      "finalHead": "d399e6bd",
+      "evidenceHead": "814a375755b3beffe7e3e784aeab56c656e9cb99",
+      "finalHead": "c3d4f90431ca3b4c547cde174ca84c4a90f14df0",
       "finalHeadWorkflows": 7,
       "finalHeadSuccess": 7,
       "finalHeadRuns": {
-        "stageGate": 44860271297,
-        "preview": 44860271369,
-        "releaseQualification": 44860271325,
-        "realRoot": 44860271300,
-        "testInstall": 44860271291,
-        "privacy": 44860271356,
-        "rill": 44860271269
+        "stageGate": 44870185245,
+        "preview": 44870185254,
+        "releaseQualification": 44870185226,
+        "realRoot": 44870185251,
+        "testInstall": 44870185223,
+        "privacy": 44870185229,
+        "rill": 44870185231
       }
     },
     "verdicts": {

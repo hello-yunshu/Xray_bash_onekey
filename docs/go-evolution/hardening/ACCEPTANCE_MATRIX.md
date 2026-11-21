@@ -122,7 +122,7 @@ IPv6、多版本矩阵未验证）。
 | H11 | 多版本 + Debian 12 | 3 版本 + M1/M4/OPS-09 PASS | 真实二进制/第二发行版 | — |
 | H12 | Soak + 调度 | 31/31、1849s、两周期 | 真实客户端+l4 | — |
 | H13 | 98 项矩阵 | 104 行 0 GAP | `repo_dirty=0` | 配置矩阵非真实部署 |
-| H14 | 真实 CI | 7/7 success | PR #182 @ `96f77eae`、`d399e6bd` | draft，不发布 |
+| H14 | 真实 CI | 7/7 success | PR #182 @ `96f77eae`、`c3d4f904` | draft，不发布 |
 | H15 | OPS-04/10 强度 | PASS | 新端口 L4/share/幂等/越界拒绝；`nginx -t` 与片段字节比较 | `FINAL-M2-20261121/p2/` |
 | H16 | F28/F08/F18 最终 SHA | 57/0、129/0、178/0 | 干净 worktree + 真实 xray | `artifacts/intake-20261121/s1/features-final/` |
 | H17 | amd64 + 环境证据 | PASS | amd64 构建/测试；OS/systemd/bash/xray sha256 | `artifacts/intake-20261121/s0/` |

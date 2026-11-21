@@ -226,7 +226,7 @@ GeoData 非空且校验和匹配，`state.json` 记录 `result=ok`。
 | 证据隐私 | 0 findings（41845 文件） | `check_evidence_hygiene.py --mask artifacts/intake-20261121 tests/e2e-diff/evidence tests/go-parity/evidence/matrix-20261121` |
 | 98 项配置矩阵 | 104 行：54 MATCH + 40 MATCH_CORE_FIELDS + 4 REFUSED + 6 A1_PASS，0 GAP，`repo_dirty=0` | `tests/go-parity/evidence/matrix-20261121/summary.json` |
 | 干净树二进制 | `git archive` 重建 sha256 与全部验收运行一致 | `artifacts/intake-20261121/s0/clean-tree-build.txt` |
-| 真实 CI | 7/7 success @ `96f77eae`：stage gate `44798164756`、preview `44798164664`、release qualification `44798164791`、real-root `44798164759`、Test Install `44798164733`、Privacy Guard `44798164734`、Rill Xray Agent `44798164622`；最终文档 head `d399e6bd` 同样 7/7 success（stage `44860271297`、preview `44860271369`、release `44860271325`、real-root `44860271300`、Test Install `44860271291`、Privacy `44860271356`、Rill `44860271269`）；本轮证据 head `814a3757` 的 CI 以推送后 run 为准 | GitHub Actions（PR #182，draft） |
+| 真实 CI | 7/7 success @ `96f77eae`：stage gate `44798164756`、preview `44798164664`、release qualification `44798164791`、real-root `44798164759`、Test Install `44798164733`、Privacy Guard `44798164734`、Rill Xray Agent `44798164622`；证据/文档 head `c3d4f904` 同样 7/7 success（stage `44870185245`、preview `44870185254`、release `44870185226`、real-root `44870185251`、Test Install `44870185223`、Privacy `44870185229`、Rill `44870185231`） | GitHub Actions（PR #182，draft） |
 
 过程中被后续运行取代的中间记录（如 `FINAL-OPS`/`FINAL-OPS2`/`FINAL-OPS3`、
 `FINAL-R`、`FINAL-HIST` 与首次 S6）原样保留在证据目录，但**不计入账本**；
