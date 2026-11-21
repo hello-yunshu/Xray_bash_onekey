@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "frozenAt": "2026-11-13T17:21:00+08:00",
-  "repoCommit": "814a3757",
+  "repoCommit": "61bb32bf",
   "branch": "develop/go-native",
   "sourcePlan": "docs/plans/bash-vs-go-docker-differential-impl.md",
   "decisions": {
@@ -42,13 +42,15 @@
   },
   "acceptance": {
     "opsTotal": 34,
-    "dualSideVerifiedOps": 11,
-    "goOnlyOps": 22,
+    "dualSideVerifiedOps": 13,
+    "goOnlyOps": 20,
     "failOps": 0,
     "bashOnlyOps": 1,
     "blockedOps": 0,
     "notRunOps": 0,
     "dualSideVerifiedIds": [
+      "OPS-01",
+      "OPS-02",
       "OPS-04",
       "OPS-05",
       "OPS-06",
@@ -62,8 +64,6 @@
       "OPS-32"
     ],
     "goOnlyIds": [
-      "OPS-01",
-      "OPS-02",
       "OPS-03",
       "OPS-08",
       "OPS-11",
@@ -91,8 +91,8 @@
     ],
     "notRunIds": [],
     "generatedFrom": "tests/e2e-diff/ledger.json",
-    "generatedAt": "2026-11-21T05:15:27+00:00",
-    "codeSha": "814a375755b3beffe7e3e784aeab56c656e9cb99"
+    "generatedAt": "2026-11-21T06:35:17+00:00",
+    "codeSha": "61bb32bf31ca3b4c547cde174ca84c4a90f14df0"
   },
   "install": [
     {
@@ -597,6 +597,8 @@
         "xray",
         "user",
         "list",
+        "--path",
+        "/etc/idleleo/conf/xray/config.json",
         "--json"
       ],
       "verdict": "must-match",
@@ -615,8 +617,19 @@
         "xray",
         "user",
         "add",
+        "--sandbox",
+        "/",
         "--email",
-        "e2e@example.com",
+        "user2@example.com",
+        "--uuid",
+        "22222222-3333-4444-5555-666666666666",
+        "--short-id",
+        "e2e0a1b2",
+        "--validator",
+        "/usr/local/bin/xray",
+        "--service",
+        "/usr/local/bin/e2e-service-apply",
+        "--container",
         "--json"
       ],
       "verdict": "must-match",
@@ -636,8 +649,15 @@
         "xray",
         "user",
         "remove",
+        "--sandbox",
+        "/",
         "--email",
-        "e2e@example.com",
+        "user2@example.com",
+        "--validator",
+        "/usr/local/bin/xray",
+        "--service",
+        "/usr/local/bin/e2e-service-apply",
+        "--container",
         "--json"
       ],
       "verdict": "must-match",

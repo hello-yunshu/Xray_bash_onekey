@@ -115,7 +115,7 @@ IPv6、多版本矩阵未验证）。
 | H04 | 账本一致性 | `FIXED_VERIFIED` | 34 行自动生成，0 FAIL/NOT_RUN | `tests/e2e-diff/ledger.json` |
 | H05 | M1–M10 | 10/10 `DUAL_SIDE_PASS` | fresh+幂等+L4+L6 | M8 为等价含限制 |
 | H06 | E1–E8 | 100/100 `allPassed` | Go-only | Bash 无非交互入口 |
-| H07 | OPS 34 | 11 双端 + 22 Go-only + 1 Bash-only | 真实菜单/CLI/root | 逐行登记，不造映射 |
+| H07 | OPS 34 | 13 双端 + 20 Go-only + 1 Bash-only | 真实菜单/CLI/root | 逐行登记，不造映射 |
 | H08 | S4–S9 | 9/12/17/6/13/6 PASS | 真实子脚本 | S7 签发 BLOCKED |
 | H09 | R1/R2/I/INJ + 历史 | 106/0 + 13/0（3.3.2）+ 52/0（3.3.3） | 容器 systemd | 非独立 VM |
 | H10 | 冷恢复 + P3 | 27/27 + 4×62/62 | 销毁源容器/热更新 | 非独立 VM |
@@ -126,9 +126,11 @@ IPv6、多版本矩阵未验证）。
 | H15 | OPS-04/10 强度 | PASS | 新端口 L4/share/幂等/越界拒绝；`nginx -t` 与片段字节比较 | `FINAL-M2-20261121/p2/` |
 | H16 | F28/F08/F18 最终 SHA | 57/0、129/0、178/0 | 干净 worktree + 真实 xray | `artifacts/intake-20261121/s1/features-final/` |
 | H17 | amd64 + 环境证据 | PASS | amd64 构建/测试；OS/systemd/bash/xray sha256 | `artifacts/intake-20261121/s0/` |
+| H18 | Bash 用户菜单双端 | OPS-01/02 `DUAL_SIDE_PASS`；OPS-03 `DIFF` | 真实 `2>1>1/2/3` 菜单与 Go `user list/add/remove` 各自独立容器 | OPS-03 删除后 shortId Bash 清理、Go 保留 |
 
 **未闭合（NOT_DONE）**：冷恢复仅 Reality（缺 TLS/relay/multi 与端到端故障
-注入）；Bash 用户/私钥菜单未驱动；XHTTP 尾/重复斜杠数据面未在最终 SHA 重跑。
+注入）；Bash 私钥重建菜单未驱动；OPS-03 shortId 未收敛；
+XHTTP 尾/重复斜杠数据面未在最终 SHA 重跑。
 
 **候选结论**：`NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`。Docker 可验证的适用项
 全部通过，但上述 `NOT_DONE` 类别仍未完成；独立 VPS、公网 ACME/DNS-01、

@@ -886,6 +886,10 @@ OPS_UUID_LABEL="${E2E_OPS_UUID_LABEL:-e2e-uuid}"
 # target, so the snapshot can prove the nested menu write instead of
 # re-observing the fragment install.sh already generated.
 OPS10_DOMAIN="${E2E_OPS10_DOMAIN:-ops10.example.com}"
+# OPS-01/02/03 drive the real user-management menu (main menu 13/14/15).
+OPS_USER_EMAIL="${E2E_OPS_USER_EMAIL:-user2@example.com}"
+OPS_USER_UUID="${E2E_OPS_USER_UUID:-22222222-3333-4444-5555-666666666666}"
+OPS_USER_SHORT_ID="${E2E_OPS_USER_SHORT_ID:-e2e0a1b2}"
 
 ops_bash_base() { # <server> <dir> <sid>
     local server=$1 dir=$2 sid=$3
@@ -921,6 +925,26 @@ ops_bash_menu() { # <server> <dir> <ops-id>
     echo $? >"$dir/ops.rc"
 }
 
+ops_bash_user_menu() { # <server> <dir> <add|show|remove>
+    local server=$1 dir=$2 action=$3
+    docker exec -e E2E_USER_ACTION="$action" -e E2E_USER_EMAIL="$OPS_USER_EMAIL" \
+        -e E2E_LOG="/out/users-$action.log" -e E2E_TIMEOUT="${E2E_TIMEOUT:-900}" \
+        "$server" expect -f /src/tests/e2e-diff/drivers/bash_users.exp \
+        >"$dir/$action.out" 2>&1
+    echo $? >"$dir/$action.rc"
+}
+
+ops_health() { # <server> <dir> <tag>
+    local server=$1 dir=$2 tag=$3
+    docker exec "$server" sh -c \
+        'bin=$(command -v xray || echo /usr/local/bin/xray); "$bin" -test -config /etc/idleleo/conf/xray/config.json' \
+        >"$dir/$tag.xray-test.log" 2>&1
+    echo $? >"$dir/$tag.xray-test.rc"
+    docker exec "$server" sh -c 'systemctl is-active xray' \
+        >"$dir/$tag.xray-active.txt" 2>&1
+    echo $? >"$dir/$tag.xray-active.rc"
+}
+
 ops_snapshot() { # <server> <dir> <tag>
     local server=$1 dir=$2 tag=$3
     docker exec "$server" sh -c \
@@ -932,6 +956,12 @@ ops_snapshot() { # <server> <dir> <tag>
     docker exec "$server" sh -c \
         'jq -r ".inbounds[]?.settings.clients[]?.id // empty" /etc/idleleo/conf/xray/config.json 2>/dev/null' \
         >"$dir/$tag.client-ids.txt"
+    docker exec "$server" sh -c \
+        'jq -r ".inbounds[]?.settings.clients[]?.email // empty" /etc/idleleo/conf/xray/config.json 2>/dev/null' \
+        >"$dir/$tag.emails.txt"
+    docker exec "$server" sh -c \
+        'jq -r ".inbounds[]?.streamSettings.realitySettings.shortIds[]? // empty" \
+         /etc/idleleo/conf/xray/config.json 2>/dev/null' >"$dir/$tag.short-ids.txt"
     docker exec "$server" sh -c \
         'jq -r ".inbounds[]?.streamSettings.realitySettings.target // empty" \
          /etc/idleleo/conf/xray/config.json 2>/dev/null' >"$dir/$tag.reality-target.txt"
@@ -1396,8 +1426,256 @@ ops_simple_job() { # <ops-id> <base-scenario> <go-mode>
     log "[$oid] verdict=$(ops_generic_verdict "$oid")"
 }
 
-# ops19_verdict turns the two observation sets into ops.json. Missing evidence
-# is HARNESS-ERROR, an observation mismatch is BLOCKER, never PASS.
+ops_users_verdict() { # <base>
+    local base=$1
+    python3 - "$base" "$OPS_USER_EMAIL" "$OPS_USER_UUID" "$OPS_USER_SHORT_ID" <<'PY'
+import json
+import os
+import sys
+
+base, email, go_uuid, go_short_id = sys.argv[1:5]
+p2 = os.path.dirname(base)
+bdir, gdir = os.path.join(base, "bash"), os.path.join(base, "go")
+
+
+def lines(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return [line.strip() for line in fh if line.strip()]
+    except OSError:
+        return []
+
+
+def text(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.read()
+    except OSError:
+        return ""
+
+
+def rc(path):
+    raw = text(path).strip()
+    try:
+        return int(raw)
+    except ValueError:
+        return None
+
+
+def active(tag, side):
+    return text(os.path.join(base, side, "%s.xray-active.txt" % tag)).strip().startswith("active")
+
+
+def healthy(tag):
+    return all(
+        rc(os.path.join(base, side, "%s.xray-test.rc" % tag)) == 0
+        and rc(os.path.join(base, side, "%s.xray-active.rc" % tag)) == 0
+        and active(tag, side)
+        for side in ("bash", "go")
+    )
+
+
+def snap(side, tag, kind):
+    return set(lines(os.path.join(base, side, "%s.%s.txt" % (tag, kind))))
+
+
+obs = {}
+for side in ("bash", "go"):
+    obs[side] = {
+        "before": snap(side, "before", "client-ids"),
+        "added": snap(side, "added", "client-ids"),
+        "removed": snap(side, "removed", "client-ids"),
+        "addedEmails": snap(side, "added", "emails"),
+        "removedEmails": snap(side, "removed", "emails"),
+        "beforeSids": snap(side, "before", "short-ids"),
+        "addedSids": snap(side, "added", "short-ids"),
+        "removedSids": snap(side, "removed", "short-ids"),
+        "addRc": rc(os.path.join(base, side, "add.rc")),
+        "showRc": rc(os.path.join(base, side, "11-show.rc" if side == "go" else "show.rc")),
+        "removeRc": rc(os.path.join(base, side, "remove.rc")),
+    }
+    obs[side]["newIds"] = obs[side]["added"] - obs[side]["before"]
+
+go_show = []
+try:
+    go_show = json.loads(text(os.path.join(gdir, "11-show.out")) or "[]")
+except json.JSONDecodeError:
+    go_show = []
+bash_show_text = text(os.path.join(bdir, "show.out")) + text(os.path.join(bdir, "users-show.log"))
+
+details = {
+    side: {
+        "beforeClients": len(obs[side]["before"]),
+        "addedClients": len(obs[side]["added"]),
+        "removedClients": len(obs[side]["removed"]),
+        "newIds": sorted(obs[side]["newIds"]),
+        "beforeShortIds": len(obs[side]["beforeSids"]),
+        "addedShortIds": len(obs[side]["addedSids"]),
+        "removedShortIds": len(obs[side]["removedSids"]),
+        "addRc": obs[side]["addRc"],
+        "showRc": obs[side]["showRc"],
+        "removeRc": obs[side]["removeRc"],
+    }
+    for side in ("bash", "go")
+}
+
+
+def write(oid, verdict, reasons, bash_rc, go_rc, extra=None):
+    out = os.path.join(p2, oid)
+    os.makedirs(out, exist_ok=True)
+    report = {
+        "id": oid,
+        "verdict": verdict,
+        "reasons": reasons,
+        "opsRc": {"bash": bash_rc, "go": go_rc},
+        "details": details,
+    }
+    if extra:
+        report.update(extra)
+    with open(os.path.join(out, "ops.json"), "w", encoding="utf-8") as fh:
+        json.dump(report, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+
+
+# OPS-01: both sides must list the newly added user (email + its UUID).
+reasons = []
+if obs["bash"]["showRc"] != 0:
+    reasons.append("bash show rc=%s" % obs["bash"]["showRc"])
+if obs["go"]["showRc"] != 0:
+    reasons.append("go list rc=%s" % obs["go"]["showRc"])
+bash_new = sorted(obs["bash"]["newIds"])
+go_new = sorted(obs["go"]["newIds"])
+if len(bash_new) != 1:
+    reasons.append("bash added %d new clients (want 1)" % len(bash_new))
+elif email not in bash_show_text or bash_new[0] not in bash_show_text:
+    reasons.append("bash show output lacks the added email/UUID")
+if len(go_new) != 1:
+    reasons.append("go added %d new clients (want 1)" % len(go_new))
+elif not isinstance(go_show, list) or not any(
+        isinstance(item, dict) and item.get("email") == email and item.get("uuid") == go_new[0]
+        for item in go_show):
+    reasons.append("go user list lacks the added email/UUID")
+if not healthy("added"):
+    reasons.append("xray -test/service not healthy after add")
+write("OPS-01", "PASS" if not reasons else "FAIL", reasons,
+      obs["bash"]["showRc"], obs["go"]["showRc"])
+
+# OPS-02: one new client + one new Reality shortId on both sides.
+reasons = []
+for side in ("bash", "go"):
+    if obs[side]["addRc"] != 0:
+        reasons.append("%s add rc=%s" % (side, obs[side]["addRc"]))
+    if len(obs[side]["newIds"]) != 1:
+        reasons.append("%s added %d clients (want 1)" % (side, len(obs[side]["newIds"])))
+    if email not in obs[side]["addedEmails"]:
+        reasons.append("%s config lacks the added email" % side)
+    if len(obs[side]["addedSids"]) != len(obs[side]["beforeSids"]) + 1:
+        reasons.append("%s shortId count %d -> %d (want +1)"
+                       % (side, len(obs[side]["beforeSids"]), len(obs[side]["addedSids"])))
+if not healthy("added"):
+    reasons.append("xray -test/service not healthy after add")
+write("OPS-02", "PASS" if not reasons else "FAIL", reasons,
+      obs["bash"]["addRc"], obs["go"]["addRc"])
+
+# OPS-03: removal must restore the client set. Bash also removes the Reality
+# shortId it generated; Go currently keeps it. Only when both sides fully
+# converge do we claim a dual verdict; otherwise the row stays GO_ONLY and the
+# observed difference is recorded instead of being papered over.
+reasons = []
+for side in ("bash", "go"):
+    if obs[side]["removeRc"] != 0:
+        reasons.append("%s remove rc=%s" % (side, obs[side]["removeRc"]))
+    if obs[side]["removed"] != obs[side]["before"]:
+        reasons.append("%s client set not restored after remove" % side)
+    if email in obs[side]["removedEmails"]:
+        reasons.append("%s removed config still lists the email" % side)
+if not healthy("removed"):
+    reasons.append("xray -test/service not healthy after remove")
+shortid_clean = all(
+    obs[side]["removedSids"] == obs[side]["beforeSids"] for side in ("bash", "go")
+)
+if not shortid_clean:
+    reasons.append("shortId residue after remove: bash=%d go=%d (baseline %d/%d)"
+                   % (len(obs["bash"]["removedSids"]), len(obs["go"]["removedSids"]),
+                      len(obs["bash"]["beforeSids"]), len(obs["go"]["beforeSids"])))
+if not reasons:
+    write("OPS-03", "PASS", [], obs["bash"]["removeRc"], obs["go"]["removeRc"])
+else:
+    out = os.path.join(p2, "OPS-03")
+    os.makedirs(out, exist_ok=True)
+    record = {
+        "id": "OPS-03",
+        "result": "DIFF" if len(reasons) == 1 and "shortId residue" in reasons[0] else "FAIL",
+        "reasons": reasons,
+        "details": details,
+        "note": "no ops.json: the row is not claimed as dual-side verified",
+    }
+    with open(os.path.join(out, "shortid-difference.json"), "w", encoding="utf-8") as fh:
+        json.dump(record, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+
+summary = {"shortIdClean": shortid_clean, "reasons": reasons}
+with open(os.path.join(base, "users-summary.json"), "w", encoding="utf-8") as fh:
+    json.dump(summary, fh, indent=2, sort_keys=True)
+    fh.write("\n")
+print("OPS-01/02 written; shortIdClean=%s" % shortid_clean)
+PY
+}
+
+ops_users_job() {
+    OPS_NET="e2e-$RUN_ID-users"
+    local base="$EVID/OPS-USERS" bdir="$EVID/OPS-USERS/bash" gdir="$EVID/OPS-USERS/go"
+    mkdir -p "$bdir" "$gdir"
+    docker network create "$OPS_NET" >/dev/null 2>&1 || true
+    log "[OPS-USERS] start"
+
+    local bserver="e2e-$RUN_ID-users-bash"
+    if start_server "$bserver" OPS-USERS bash "$bdir" "$OPS_NET"; then
+        ops_bash_base "$bserver" "$bdir" M2
+        ops_snapshot "$bserver" "$bdir" before
+        ops_health "$bserver" "$bdir" before
+        ops_bash_user_menu "$bserver" "$bdir" add
+        ops_snapshot "$bserver" "$bdir" added
+        ops_health "$bserver" "$bdir" added
+        ops_bash_user_menu "$bserver" "$bdir" show
+        ops_bash_user_menu "$bserver" "$bdir" remove
+        ops_snapshot "$bserver" "$bdir" removed
+        ops_health "$bserver" "$bdir" removed
+    else
+        echo '{"status":"harness-error","reason":"container start failed"}' >"$bdir/harness.json"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" >/dev/null 2>&1 || true
+
+    local gserver="e2e-$RUN_ID-users-go"
+    if start_server "$gserver" OPS-USERS go "$gdir" "$OPS_NET"; then
+        ops_go_base "$gserver" "$gdir" reality-nginx
+        docker exec "$gserver" sh -c \
+            'printf "#!/bin/sh\nexec systemctl restart xray\n" >/usr/local/bin/e2e-service-apply && chmod 0755 /usr/local/bin/e2e-service-apply'
+        ops_snapshot "$gserver" "$gdir" before
+        ops_health "$gserver" "$gdir" before
+        ops_go_cli "$gserver" "$gdir" add xray user add --sandbox / \
+            --email "$OPS_USER_EMAIL" --uuid "$OPS_USER_UUID" --short-id "$OPS_USER_SHORT_ID" \
+            --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply \
+            --container --json
+        ops_snapshot "$gserver" "$gdir" added
+        ops_health "$gserver" "$gdir" added
+        ops_go_cli "$gserver" "$gdir" 11-show xray user list \
+            --path /etc/idleleo/conf/xray/config.json --json
+        ops_go_cli "$gserver" "$gdir" remove xray user remove --sandbox / \
+            --email "$OPS_USER_EMAIL" --validator /usr/local/bin/xray \
+            --service /usr/local/bin/e2e-service-apply --container --json
+        ops_snapshot "$gserver" "$gdir" removed
+        ops_health "$gserver" "$gdir" removed
+    else
+        echo '{"status":"harness-error","reason":"container start failed"}' >"$gdir/harness.json"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$gserver" >/dev/null 2>&1 || true
+    docker network rm "$OPS_NET" >/dev/null 2>&1 || true
+
+    log "[OPS-USERS] $(ops_users_verdict "$base")"
+}
+
+
 ops19_verdict() {
     local base=$1
     python3 - "$base" "$F2B_JAIL" "$F2B_BAN_IP" <<'PY'
@@ -2497,6 +2775,12 @@ ops_job() {
     case $1 in
         OPS-19) ops19_job ;;
         OPS-21) ops21_job ;;
+        OPS-01|OPS-02|OPS-03)
+            if [[ ! -f "$EVID/.ops-users-done" ]]; then
+                ops_users_job
+                : >"$EVID/.ops-users-done"
+            fi
+            ;;
         OPS-09) ops_balance_job OPS-09 ws wsServers tls ;;
         OPS-31) ops_balance_job OPS-31 reality realityServers reality ;;
         OPS-32) ops32_job ;;
@@ -2554,6 +2838,7 @@ fi
 # silently inheriting its declared verdict.
 OIDS=()
 for oid in OPS-19 OPS-21 OPS-09 OPS-31 OPS-32 \
+           OPS-01 OPS-02 OPS-03 \
            OPS-04 OPS-05 OPS-06 OPS-07 OPS-10 OPS-17c OPS-30; do
     if [[ -z "$ONLY" ]]; then
         OIDS+=("$oid")

@@ -136,7 +136,8 @@ def sweep_results(root):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--matrix-evidence")
+    ap.add_argument("--matrix-evidence", action="append", default=[],
+                    help="run_p2_matrix.sh output tree (repeatable; later runs fill gaps)")
     ap.add_argument("--ops-evidence", action="append", default=[],
                     help="run_ops_sweep.sh / run_ops_realroot.sh output tree (repeatable)")
     ap.add_argument("--code-sha", default="")
@@ -145,7 +146,13 @@ def main():
     ap.add_argument("--acceptance-json", default="docs/go-evolution/hardening/acceptance.json")
     args = ap.parse_args()
 
-    dual = matrix_results(args.matrix_evidence)
+    dual = {}
+    for root in args.matrix_evidence:
+        for op_id, entry in matrix_results(root).items():
+            # A failure from any run always wins; otherwise keep the first
+            # passing record so the evidence path stays stable.
+            if op_id not in dual or entry["status"] == "FAIL":
+                dual[op_id] = entry
     sweep = {}
     for root in args.ops_evidence:
         for op_id, entry in sweep_results(root).items():
@@ -232,7 +239,7 @@ def main():
         "blockedIds": blocked_ids,
         "notRunIds": not_run_ids,
         "sources": {
-            "matrixEvidence": repo_path(args.matrix_evidence),
+            "matrixEvidence": [repo_path(p) for p in args.matrix_evidence],
             "opsEvidence": [repo_path(p) for p in args.ops_evidence],
         },
         "results": results,

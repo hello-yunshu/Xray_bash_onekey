@@ -114,8 +114,8 @@ E6 10、E7 13、E8 14），每条都包含编辑前后配置、分享链接、�
 
 | 状态 | 数量 | ID |
 | --- | --- | --- |
-| DUAL_SIDE_VERIFIED | 11 | 04/05/06/07/09/10/17c/19/21/31/32 |
-| GO_ONLY | 22 | 01/02/03/08/11/12/13/14/15/16/17a/17b/18/20/22/23/24/25/26/27/28/29 |
+| DUAL_SIDE_VERIFIED | 13 | 01/02/04/05/06/07/09/10/17c/19/21/31/32 |
+| GO_ONLY | 20 | 03/08/11/12/13/14/15/16/17a/17b/18/20/22/23/24/25/26/27/28/29 |
 | BASH_ONLY | 1 | 30 |
 | FAIL | 0 | — |
 | BLOCKED | 0 | — |
@@ -123,9 +123,9 @@ E6 10、E7 13、E8 14），每条都包含编辑前后配置、分享链接、�
 
 | ID | 名称 | 状态 | 证据 |
 | --- | --- | --- | --- |
-| OPS-01 | 查看用户 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
-| OPS-02 | 添加用户 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
-| OPS-03 | 删除用户 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
+| OPS-01 | 查看用户 | DUAL_SIDE_VERIFIED | FINAL-USERS-20261121/p2/OPS-01/ops.json |
+| OPS-02 | 添加用户 | DUAL_SIDE_VERIFIED | FINAL-USERS-20261121/p2/OPS-02/ops.json |
+| OPS-03 | 删除用户 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt；差异见 FINAL-USERS-20261121/p2/OPS-03/shortid-difference.json |
 | OPS-04 | 变更端口 | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-04/ops.json |
 | OPS-05 | 变更UUID/映射 | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-05/ops.json |
 | OPS-06 | 变更target | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-06/ops.json |
@@ -158,9 +158,17 @@ E6 10、E7 13、E8 14），每条都包含编辑前后配置、分享链接、�
 | OPS-31 | Reality负载均衡 | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-31/ops.json |
 | OPS-32 | 后端故障摘除（ws + reality 上游） | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-32/ops.json |
 
-- 双端证据：`FINAL-M2-20261121/p2/OPS-*/ops.json`。
+- 双端证据：`FINAL-M2-20261121/p2/OPS-*/ops.json`；
+  用户管理双端证据为 `FINAL-USERS-20261121/p2/OPS-01|02/ops.json`。
+- 用户管理：真实 Bash 菜单 `配置变更 > 用户管理 > 查看/添加/删除`
+  （`2>1>1/2/3`）与 Go `xray user list/add/remove` 各自在独立容器执行。
+  OPS-01/02 双端 PASS：两侧均新增 1 个客户端、1 个 Reality shortId，
+  `xray -test` 与服务状态正常，查看/列表均返回新 email 与 UUID。
+  OPS-03 仅客户端集合恢复；Bash 同时删除 shortId（2→1），Go 保留
+  shortId（2→2），未收敛，故不宣称双端，差异见
+  `FINAL-USERS-20261121/p2/OPS-03/shortid-difference.json`。
 - Go 侧真实点检：`FINAL-OPS4-20261121/assertions.txt`（51 项）覆盖
-  01/02/03/11/12/13/14/15/16/17a/18/20/22/23/24/25/26/28/29。
+  03/11/12/13/14/15/16/17a/18/20/22/23/24/25/26/28/29。
 - 真实 root：`FINAL-RR-20261121/realroot/assertions.txt`（26 项）覆盖
   OPS-08 六个策略用例、OPS-27 十个证书清理用例、OPS-17b 的
   1.27.5→1.30.6 组件更新（action/previousVersion/newVersion/health、
@@ -248,16 +256,17 @@ GeoData 非空且校验和匹配，`state.json` 记录 `result=ok`。
 | M8 Bash 侧 | DOCKER_EQUIVALENT_WITH_LIMITS | Bash 无本地 CA 注入入口（ED-C14） |
 | Test Install 历史静默退出 | PARTIAL | 本轮未复现；不以本地结果替代 CI |
 | OPS-30 语言 | BASH_ONLY | Go 无等价命令，Bash 功能未删除 |
-| 22 行 OPS 仅 Go 侧 | GO_ONLY | Bash 菜单无对应非交互入口；逐行登记，不造映射 |
+| 20 行 OPS 仅 Go 侧 | GO_ONLY | Bash 菜单无对应非交互入口；逐行登记，不造映射 |
 | 冷恢复配置覆盖 | NOT_DONE | 只跑 Reality；TLS/relay/multi 代表配置与端到端 SIGKILL/ENOSPC/EROFS/lock 注入未做 |
-| Bash 用户/私钥菜单 | NOT_DONE | E1–E8 为 Go-only；用户增删、shortId/私钥重建未逐一驱动 Bash 菜单 |
+| OPS-03 shortId 残留 | NOT_DONE | Bash 删除用户会清理 Reality shortId，Go 删除后保留（2→2）；未修复，OPS-03 保持 GO_ONLY |
+| Bash 私钥菜单 | NOT_DONE | 用户查看/添加/删除已真实驱动；私钥重建菜单仍未逐一驱动 |
 | XHTTP 斜杠边界 | NOT_DONE | 空白输入已修；尾斜杠/重复斜杠的真实数据面未在最终 SHA 重跑 |
 
 ## 7. 结论
 
 | 范围 | 结论 |
 | --- | --- |
-| Docker 开发候选 | `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`：M/OPS/S/R/P3/soak/CI 已绿，但冷恢复多配置、Bash 用户/私钥菜单、XHTTP 斜杠边界仍未完成（见 §6） |
+| Docker 开发候选 | `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`：M/OPS/S/R/P3/soak/CI 已绿，但冷恢复多配置、OPS-03 shortId 残留、Bash 私钥菜单、XHTTP 斜杠边界仍未完成（见 §6） |
 | 正式发布 / 合并 / tag | `NO_GO_NOT_AUTHORIZED`：任务书禁止；独立 VPS、公网 ACME、外部 IPv6 未验证 |
 
 保持 Go 唯一管理核心；本轮只修安全缺陷与测试/证据工具，没有新增产品
@@ -273,6 +282,7 @@ GeoData 非空且校验和匹配，`state.json` 记录 `result=ok`。
 | S6 故障与热更新 | 17/17：本地校验和 origin，正常/重复/下载失败/坏字节/截断，旧资产不变 | `FINAL-S6D-20261121/s/assertions.txt` |
 | OPS-04 强度 | 双端：443 释放、8443 监听、Go share 端口 8443、新端口 L4、幂等重放、越界端口拒绝且零写入 | `FINAL-M2-20261121/p2/OPS-04/ops.json` |
 | OPS-10 强度 | 双端：`nginx -t`、443 L4、仅 serverNames 片段可变、其他片段字节不变 | `FINAL-M2-20261121/p2/OPS-10/ops.json` |
-| 全矩阵复跑 | M1–M10、E1–E8、OPS 11 双端 + 1 Bash-only；FINAL-M2 | `FINAL-M2-20261121/p2/` |
+| 全矩阵复跑 | M1–M10、E1–E8、OPS 13 双端 + 1 Bash-only；FINAL-M2 + FINAL-USERS | `FINAL-M2-20261121/p2/`、`FINAL-USERS-20261121/p2/` |
+| Bash 用户菜单 | OPS-01/02 双端 PASS（真实 `2>1>1/2>1>2`）；OPS-03 客户端集合一致，但 Bash 清理 shortId、Go 保留（DIFF） | `FINAL-USERS-20261121/p2/` |
 | amd64 | `linux/amd64` 构建 + `internal/xraycfg`/`internal/deploy` 测试通过 | `artifacts/intake-20261121/s0/amd64-gate.log` |
 | 环境证据 | OS/systemd/bash/nginx/xray 版本与 sha256、Bash pin（短 pin 无法本地解析） | `artifacts/intake-20261121/s0/environment-final.json` |

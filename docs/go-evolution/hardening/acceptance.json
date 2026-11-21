@@ -209,8 +209,10 @@
   ],
   "ops": {
     "total": 34,
-    "dualSideVerified": 11,
+    "dualSideVerified": 13,
     "dualSideVerifiedIds": [
+      "OPS-01",
+      "OPS-02",
       "OPS-04",
       "OPS-05",
       "OPS-06",
@@ -223,7 +225,7 @@
       "OPS-31",
       "OPS-32"
     ],
-    "goOnly": 22,
+    "goOnly": 20,
     "fail": 0,
     "failIds": [],
     "bashOnly": 1,
@@ -234,8 +236,8 @@
     "blockedIds": [],
     "notRun": 0,
     "notRunIds": [],
-    "generatedAt": "2026-11-21T05:15:27+00:00",
-    "codeSha": "814a375755b3beffe7e3e784aeab56c656e9cb99",
+    "generatedAt": "2026-11-21T06:35:17+00:00",
+    "codeSha": "61bb32bf31ca3b4c547cde174ca84c4a90f14df0",
     "source": "tests/e2e-diff/ledger.json"
   },
   "summary": {
@@ -338,7 +340,8 @@
     "independent VM cold restore and power-loss recovery: VPS_DEFERRED (containers cover the equivalent flow)",
     "public ACME/DNS-01/EAB and S7 acme.sh issuance: BLOCKED (no public domain/CA; Go and S5 issued against local Pebble)",
     "external public IPv6/NAT: VPS_DEFERRED (isolated containers have no external IPv6 path)",
-    "22 OPS rows are GO_ONLY because the Bash menu has no non-interactive equivalent; each row is registered, no mapping invented",
+    "20 OPS rows are GO_ONLY because the Bash menu has no non-interactive equivalent; each row is registered, no mapping invented",
+    "OPS-01/02 are dual-side verified through the real Bash user menu (2>1>1/2>1>2); OPS-03 client set converges but the Bash removal also prunes the Reality shortId while Go keeps it",
     "OPS-30 language switch: BASH_ONLY, Bash feature not removed, not claimed equivalent",
     "M8 Bash side: DOCKER_EQUIVALENT_WITH_LIMITS (ED-C14)",
     "Test Install historical silent exit: PARTIAL, not reproduced locally",
@@ -497,6 +500,7 @@
       "editMatrix": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/E*/go/edit/checks.json",
       "opsGoSweep": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
       "opsRealRoot": "tests/e2e-diff/evidence/FINAL-RR-20261121/realroot/assertions.txt",
+      "userMenu": "tests/e2e-diff/evidence/FINAL-USERS-20261121/p2/",
       "subscripts": "tests/e2e-diff/evidence/FINAL-S-20261121/s/assertions.txt",
       "subscriptsRerun": "tests/e2e-diff/evidence/FINAL-S6D-20261121/s/assertions.txt",
       "takeover": "tests/e2e-diff/evidence/FINAL-R2-20261121/r1/assertions.txt",
@@ -522,6 +526,7 @@
       "M1_M10": "DUAL_SIDE_PASS",
       "E1_E8": "GO_ONLY_PASS_100_CHECKS",
       "OPS": "0_FAIL_0_BLOCKED_0_NOT_RUN",
+      "userMenu": "OPS-01_02_DUAL_PASS_OPS-03_SHORTID_DIFF",
       "S4_S9": "PASS_EXCEPT_S7_ISSUANCE_BLOCKED",
       "takeover_history": "PASS_106_0_and_13_0_and_52_0",
       "cold_P3": "PASS_27_27_and_4x62",
@@ -595,7 +600,7 @@
     },
     "unresolved": [
       "cold restore covers Reality only; TLS/relay/multi representative configs and end-to-end SIGKILL/ENOSPC/EROFS/lock/cert-missing/partial-restore injection are NOT_DONE",
-      "E1-E8 are Go-only; Bash user add/remove and shortId/private-key menu paths are NOT_DONE",
+      "E1-E8 are Go-only; Bash user list/add are now dual-side verified (OPS-01/02), but OPS-03 leaves a shortId difference (Bash prunes it, Go keeps it) and the Bash private-key rebuild menu path is NOT_DONE",
       "XHTTP blank input is fixed; trailing-slash and duplicate-slash real data-plane probes are NOT_DONE at the final SHA",
       "Test Install historical silent exit remains PARTIAL: not reproduced locally, CI result not replaced"
     ]

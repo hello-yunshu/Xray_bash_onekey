@@ -168,7 +168,8 @@ E2E_RUN_ID=<run-id> E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.sh
 | P1 四摘要不一致 | `FIXED_VERIFIED`：34 行账本自动生成，逐行含 Bash 入口/Go 命令/证据 | `tests/e2e-diff/ledger.json` |
 | M1–M10 | 10/10 `DUAL_SIDE_PASS`；M8 为 `DOCKER_EQUIVALENT_WITH_LIMITS`（ED-C14） | `FINAL-M2-20261121/p2/install-matrix.md` |
 | E1–E8 | 100/100 检查通过（Go-only，Bash 无非交互入口） | `FINAL-M2-20261121/p2/E*/go/edit/checks.json` |
-| OPS 34 行 | 11 双端 + 22 Go-only + 1 Bash-only，0 FAIL / 0 BLOCKED / 0 NOT_RUN | `tests/e2e-diff/ledger.json` |
+| OPS 34 行 | 13 双端 + 20 Go-only + 1 Bash-only，0 FAIL / 0 BLOCKED / 0 NOT_RUN | `tests/e2e-diff/ledger.json` |
+| OPS 用户菜单 | 真实 Bash `配置变更>用户管理>查看/添加/删除`（`2>1>1/2/3`）与 Go `user list/add/remove` 各自独立容器：OPS-01/02 `DUAL_SIDE_PASS`；OPS-03 客户端集合一致但 shortId 未收敛 | `FINAL-USERS-20261121/p2/OPS-01|02/ops.json`、`OPS-03/shortid-difference.json` |
 | OPS 真实 root | 26/26：OPS-08 六策略、OPS-27 十用例、OPS-17b 1.27.5→1.30.6 | `FINAL-RR-20261121/realroot/assertions.txt` |
 | OPS-04/10 强度 | 双端真实新端口 L4、Go share 端口、幂等重放、越界拒绝且零写入；`nginx -t` 与片段字节比较 | `FINAL-M2-20261121/p2/OPS-04`、`OPS-10` |
 | S4–S9 | S4 9/9、S5 12/12（Pebble 真签发）、S6 17/17（本地校验和 origin，含坏字节/截断）、S7 6/6 + 签发 BLOCKED、S8 13/13、S9 6/6 | `FINAL-S-20261121/s/`、`FINAL-S6D-20261121/s/assertions.txt` |
@@ -186,7 +187,9 @@ E2E_RUN_ID=<run-id> E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.sh
 
 - 冷恢复只覆盖 Reality；TLS/relay/multi 代表配置与 SIGKILL/ENOSPC/EROFS/lock/
   证书缺失/部分恢复的端到端故障注入未做（`NOT_DONE`）。
-- E1–E8 为 Go-only；Bash 用户增删、shortId/私钥菜单未逐一驱动（`NOT_DONE`）。
+- E1–E8 为 Go-only；Bash 用户查看/添加已双端驱动（OPS-01/02 PASS），
+  但删除用户后 Bash 清理 Reality shortId、Go 保留（OPS-03 `DIFF`），且
+  Bash 私钥重建菜单未逐一驱动（`NOT_DONE`）。
 - XHTTP 空白输入已修；尾斜杠/重复斜杠的真实数据面未在最终 SHA 重跑（`NOT_DONE`）。
 - Test Install 历史静默退出仍为 `PARTIAL`，本轮未复现，不以本地结果替代 CI。
 

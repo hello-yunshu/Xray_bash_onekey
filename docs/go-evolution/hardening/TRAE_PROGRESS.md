@@ -114,7 +114,8 @@
 | --- | --- | --- |
 | S0 | 解压审计包、冻结 HEAD `c0f382f2`、确认镜像/seed/历史安装器 | 环境快照 + gate/race/bash-syntax 全绿 |
 | S1 | 真实 root 红→绿：cert clear 7 红→10/10，guard 3 红→6/6，XHTTP 空白负例 | `artifacts/intake-20261121/s1/` |
-| S2 | M1–M10、E1–E8、OPS 34（11 双端/22 Go-only/1 Bash-only）、S4–S9 | `FINAL-M2`、`FINAL-OPS4`、`FINAL-RR`、`FINAL-S`/`FINAL-S6D` |
+| S2 | M1–M10、E1–E8、OPS 34（13 双端/20 Go-only/1 Bash-only） | `FINAL-M2`、`FINAL-OPS4`、`FINAL-RR`、`FINAL-S`/`FINAL-S6D` |
+| 补跑 | Bash 真实用户菜单 `2>1>1/2/3` 与 Go CLI 各自独立容器：OPS-01/02 双端 PASS；OPS-03 客户端集合一致但 shortId 未收敛（DIFF） | `FINAL-USERS-20261121/p2/` |
 | S3 | R1/R2/I/INJ 106/0、历史 3.3.2 13/0 与 3.3.3 52/0、冷恢复 27/27、P3 4×62、3 版本、Debian 12 | 对应 `FINAL-*`/`goevo-*` 目录 |
 | S4 | 31 样本 soak + 两个真实调度周期；账本/矩阵/报告/CI；隐私 0 | `FINAL-SOAK-20261121`、`ledger.json`、PR #182 7/7 |
 | 补强 | F28/F08/F18 57/0、129/0、178/0；S6 17/17（坏字节/截断）；OPS-04/10 新端口 L4/share/幂等/越界；amd64；最终环境证据 | `artifacts/intake-20261121/s0/`、`s1/features-final/` |
@@ -124,7 +125,8 @@
 Bash 入口/Go 命令/契约。未新增产品功能，未做架构重构。
 
 未闭合（NOT_DONE）：冷恢复仅 Reality（缺 TLS/relay/multi 与端到端故障注入）；
-Bash 用户/私钥菜单未驱动；XHTTP 尾/重复斜杠数据面未在最终 SHA 重跑；
+Bash 私钥重建菜单未驱动；OPS-03 删除后 Bash 清理 shortId、Go 保留；
+XHTTP 尾/重复斜杠数据面未在最终 SHA 重跑；
 Test Install 历史静默退出仍为 PARTIAL。
 
 **结论**：Docker 开发候选 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`（上述
