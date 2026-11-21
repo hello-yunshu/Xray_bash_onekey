@@ -109,7 +109,7 @@ func TestShareSelectsUserByEmailAndUUID(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, selector := range []string{"second@example.com", second.UUID} {
-		info, err := ShareConfig(cfg, ShareOptions{User: selector})
+		info, err := ShareConfig(cfg, ShareOptions{User: selector, Host: "198.51.100.25"})
 		if err != nil {
 			t.Fatalf("%q: %v", selector, err)
 		}
@@ -117,7 +117,31 @@ func TestShareSelectsUserByEmailAndUUID(t *testing.T) {
 			t.Fatalf("%q selected %s, want %s", selector, info.UUID, second.UUID)
 		}
 	}
-	if _, err := ShareConfig(cfg, ShareOptions{User: "missing@example.com"}); err == nil {
+	if _, err := ShareConfig(cfg, ShareOptions{User: "missing@example.com", Host: "198.51.100.25"}); err == nil {
 		t.Fatal("unknown user must be refused")
+	}
+}
+
+func TestShareRealityRequiresExplicitHost(t *testing.T) {
+	g, err := Generate(Spec{Mode: ModeReality, Domain: "www.example.com", Port: 443})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ShareConfig(g.Config, ShareOptions{}); err == nil ||
+		!strings.Contains(err.Error(), "--host is required") {
+		t.Fatalf("Reality SNI must not become the connection host: %v", err)
+	}
+	info, err := ShareConfig(g.Config, ShareOptions{Host: "198.51.100.25"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(info.ShareURI, "vless://") || !strings.Contains(info.ShareURI, "@198.51.100.25:443?") {
+		t.Fatalf("connection host not used: %s", info.ShareURI)
+	}
+	if !strings.Contains(info.ShareURI, "sni=www.example.com") {
+		t.Fatalf("SNI lost: %s", info.ShareURI)
+	}
+	if strings.Contains(info.ShareURI, "@www.example.com") {
+		t.Fatalf("camouflage SNI leaked into the dial address: %s", info.ShareURI)
 	}
 }

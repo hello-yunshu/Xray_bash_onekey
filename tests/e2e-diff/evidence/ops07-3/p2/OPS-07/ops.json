@@ -1,0 +1,27 @@
+{
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-07",
+  "nginxTls": {
+    "bash": [
+      "TLSv1.2    1;"
+    ],
+    "bashBefore": [
+      "#TLSv1.2    1;"
+    ],
+    "go": [
+      "TLSv1.2    1;"
+    ],
+    "goBefore": [
+      "#TLSv1.2    1;"
+    ]
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "verdict": "PASS"
+}

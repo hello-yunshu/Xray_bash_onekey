@@ -1,0 +1,7 @@
+installed: mode=tls transport=xhttp tls=TLS
+config=/etc/idleleo/conf/xray/config.json sha256=4619a624a4f1e092974787fd5501bfc5c0e843c3d883802cd97a2959786f6412
+service active=active enabled=enabled
+nginx managed=true verified=true dir=/etc/idleleo/conf/nginx
+warning=clash-xhttp-unsupported
+warning=nginx version: nginx version: nginx/1.30.6
+warning=nginx-syntax-verified; routing verified only by the Docker e2e harness

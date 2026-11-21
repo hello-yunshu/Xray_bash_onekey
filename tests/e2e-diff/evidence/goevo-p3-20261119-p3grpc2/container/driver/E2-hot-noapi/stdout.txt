@@ -1,0 +1,23 @@
+{
+  "entry": {
+    "id": "1795090866308035551-364",
+    "state": "COMMITTED",
+    "target": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "5bfebcb1ca81644d88ecc12ee563d468c260b77914496d73851265b37c422488",
+    "newSha256": "53a41c6a48509db01fd684775df0d1e74a307afa4957c4bf9027ae1a8f24d8a6",
+    "startedAt": "2026-11-19T12:21:06Z",
+    "updatedAt": "2026-11-19T12:21:06Z"
+  },
+  "hot": {
+    "applied": false,
+    "error": "xray API is not enabled",
+    "persisted": true
+  },
+  "user": {
+    "index": 1,
+    "uuid": "<uuid>",
+    "email": "hot-b@test.local",
+    "level": 0,
+    "primary": false
+  }
+}

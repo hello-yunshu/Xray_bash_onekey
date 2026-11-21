@@ -1,0 +1,17 @@
+{
+  "path": "/etc/idleleo/conf/xray/config.json",
+  "sha256": "df22179522c3ff9d53a81cc5e5df69861be02bbc346304c3d5bda46ce979dd15",
+  "authority": "0.0.0.0",
+  "inbounds": [
+    {
+      "index": 0,
+      "tag": "VLESS-Reality-in",
+      "protocol": "vless",
+      "listen": "0.0.0.0",
+      "port": "443",
+      "network": "raw",
+      "security": "reality"
+    }
+  ],
+  "warnings": []
+}

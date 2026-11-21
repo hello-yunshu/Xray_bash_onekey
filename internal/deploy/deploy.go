@@ -290,7 +290,11 @@ func Install(ctx context.Context, spec InstallSpec) (Report, error) {
 		artifact, installedOK := nginx.InstalledArtifact(paths.Root)
 		if !installedOK {
 			var resolveErr error
-			artifact, resolveErr = resolveManagedNginx(ctx, nginx.Options{})
+			artifact, resolveErr = resolveManagedNginx(ctx, nginx.Options{
+				// The E2E harness seeds this directory so a verdict never depends
+				// on a flaky GitHub download; unset means the normal online path.
+				CacheDir: os.Getenv("IDLELEO_NGINX_CACHE"),
+			})
 			if resolveErr != nil {
 				return Report{}, resolveErr
 			}

@@ -110,7 +110,7 @@ class Fixture:
         return path
 
     # -- process execution ----------------------------------------------------
-    def run(self, cmd, timeout=60, env=None, cwd=None):
+    def run(self, cmd, timeout=60, env=None, cwd=None, redact=False):
         cmd = [str(x) for x in cmd]
         started = time.monotonic()
         timed_out = False
@@ -126,13 +126,22 @@ class Fixture:
             out = _decode(exc.stdout)
             err = _decode(exc.stderr)
         seconds = round(time.monotonic() - started, 2)
-        self._log(f"$ {' '.join(cmd)} (rc={rc} {seconds}s)")
-        if out:
-            self._log("  stdout: " + out.strip()[:8000].replace("\n", "\n          "))
-        if err:
-            self._log("  stderr: " + err.strip()[:8000].replace("\n", "\n          "))
+        # redact=True keeps transient key material out of commands.log, which is
+        # an uploaded evidence artifact: only the exit status is recorded.
+        if redact:
+            self._log(f"$ <redacted command> (rc={rc} {seconds}s)")
+            if out:
+                self._log("  stdout: <redacted>")
+            if err:
+                self._log("  stderr: <redacted>")
+        else:
+            self._log(f"$ {' '.join(cmd)} (rc={rc} {seconds}s)")
+            if out:
+                self._log("  stdout: " + out.strip()[:8000].replace("\n", "\n          "))
+            if err:
+                self._log("  stderr: " + err.strip()[:8000].replace("\n", "\n          "))
         if timed_out:
-            self.bad(f"timeout after {timeout}s", " ".join(cmd))
+            self.bad(f"timeout after {timeout}s", "<redacted>" if redact else " ".join(cmd))
         if self.elapsed() > TOTAL_BUDGET:
             self.bad("internal budget exceeded", f"{self.elapsed():.1f}s > {TOTAL_BUDGET}s")
             raise SystemExit(self.finish())

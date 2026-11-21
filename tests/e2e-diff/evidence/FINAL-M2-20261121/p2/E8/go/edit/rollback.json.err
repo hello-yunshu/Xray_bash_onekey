@@ -1,0 +1,3 @@
+old share (stops working after rotation): vless://10afdc2a-1c8c-427c-8a53-07167549b7aa@127.0.0.1:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=QI3WkNwMfkkJyM5UbNfl2hBDC73y087srMBl8sH_GEg&sid=5247e4a7&type=raw#idleleo-reality
+rotating the Reality private key disconnects every client until it switches to the new link; the old link cannot be kept alive.
+reality handshake with example.com:443 failed: read tcp 127.0.0.1:42034->127.0.0.1:40213: read: connection reset by peer (); previous configuration restored

@@ -1,0 +1,43 @@
+ID,scenario,go_install_rc,go_dataplane,bash_install_rc,bash_dataplane,layers,verdict,evidence
+M1,reality-standard,0,reality:ok,0,reality:ok,L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-20261119/p2/M1
+M2,reality-nginx,0,reality:ok,0,reality:ok,L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-20261119/p2/M2
+M3,reality-transport,0,"reality:ok,ws:ok",0,"reality:ok,ws:ok",L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-20261119/p2/M3
+M4,tls-ws,0,ws:ok,0,ws:ok,L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-20261119/p2/M4
+M5,tls-grpc,0,grpc:ok,0,grpc:ok,L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-20261119/p2/M5
+M6,tls-xhttp,0,xhttp:ok,0,xhttp:ok,L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-20261119/p2/M6
+M7,tls-ws-grpc-xhttp,0,"grpc:ok,ws:ok,xhttp:ok",0,"grpc:ok,ws:ok,xhttp:ok",L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-m7-20261119/p2/M7
+M8,tls-acme,0,ws:ok (Pebble),0,ws:ok (BASH_DELEGATES_GO),L1-L4,DOCKER_EQUIVALENT_WITH_LIMITS,tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/M8
+M9,none-ws,0,ws:ok,0,ws:ok,L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-20261119/p2/M9
+M10,relay-stream,0,relay:ok,0,relay:ok,L1-L4,MATCH,tests/e2e-diff/evidence/audit-final-20261119/p2/M10
+A98,historical-98-case-matrix,0,54 MATCH / 40 core / 0 GAP / 4 REFUSED,0,98 Bash install cases executed,L0-L2,MATCH,tests/go-parity/evidence/matrix-fix-20261120-clean2/summary.json
+OPS-09,nginx-load-balance,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/audit-ops-dual-20261120/p2/OPS-09
+OPS-19,fail2ban,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/fix-20261120-p2d/p2/OPS-19
+OPS-21,traffic-block,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/fix-20261120-p2c/p2/OPS-21
+OPS-31,reality-load-balance,0,ops:ok,0,ops:ok,L0-L5,MATCH,tests/e2e-diff/evidence/fix-20261120-p2d/p2/OPS-31
+OPS-32,backend-health-eviction,0,ws PASS / reality PASS（尾部 20s 规则）,0,ws PASS / reality PASS,L0-L5,MATCH,tests/e2e-diff/evidence/fix-20261120-p2i/p2/OPS-32
+OPS-04,nginx-public-port-edit,0,"nginx listen 8443；shareUri 同步",0,"nginx listen 8443；xray active",L0-L5,MATCH,tests/e2e-diff/evidence/opsfix-3/p2/OPS-04
+OPS-05,reality-uuid-edit,0,"client id 替换为字面量 UUID",0,"client id 替换为 UUIDv5",L0-L5,MATCH_ALLOWED_DIFF,tests/e2e-diff/evidence/ops-full-3/p2/OPS-05
+OPS-06,reality-target-and-server-names,0,"target 与 serverNames 一致",0,"target 与 serverNames 一致",L0-L5,MATCH,tests/e2e-diff/evidence/ops-full-3/p2/OPS-06
+OPS-07,reality-tls-version,0,"nginx 启用 TLSv1.2",0,"nginx 启用 TLSv1.2",L0-L5,MATCH,tests/e2e-diff/evidence/ops-full-3/p2/OPS-07
+OPS-10,nginx-server-names-nested,0,"嵌套 file_manager 创建 ops10.example.com 片段",0,"config edit --server-names 生成同一片段",L0-L2,MATCH,tests/e2e-diff/evidence/ops10-3/p2/OPS-10
+OPS-17c,auto-update-schedule,0,"systemd timer idleleo-schedule",0,"cron auto_update.sh",L0-L2,MATCH,tests/e2e-diff/evidence/ops-full-3/p2/OPS-17c
+OPS-30,menu-language,—,"无 Go 等价命令",0,"language.conf 已更新",L0-L2,BASH_ONLY,tests/e2e-diff/evidence/ops-full-3/p2/OPS-30
+OPS-SWEEP,remaining-ops-go-side,0,36 PASS / 0 FAIL (18 IDs),—,—,L0-L5,NOT_RUN,tests/e2e-diff/evidence/audit-ops-20261120
+OPS-08,sni-guard-online,0,unit+CLI+nginx -t PASS,—,—,L0-L2,NOT_RUN,artifacts/audit-remediation/logs/ops08-27-nginx.log
+OPS-27,clear-certificates,0,unit+CLI+nginx -t PASS,—,—,L0-L2,NOT_RUN,artifacts/audit-remediation/logs/ops08-27-nginx.log
+OPS-BACKLOG,ops-without-go-equivalent,—,none,—,—,—,BASH_ONLY,OPS-30 记 BASH_ONLY（不计 dualSide）；其余 OPS 行均有 Go 命令
+FUP-SHARE,share-metadata-and-reality-host,0,F28 57/0; F08 129/0; F18 178/0; OPS-21 PASS,—,—,L0-L5,PASS,artifacts/audit-remediation/followup-20261120
+FUP-EDIT,reality-rotation-link-identity,0,E7 13/13; E8 14/14；两侧 --host 127.0.0.1,—,—,L1-L5,PASS,tests/e2e-diff/evidence/fix-20261120-p2h/p2
+A1,cert-clear-ownership-references,0,real-root in-use/third-party kept,—,Bash old wildcard risk (safety delta),real,PASS_WITH_SAFETY_DELTA,artifacts/go-docker-20261120/a1-red-baseline.log; a1-acme-realroot-final.log
+A2,share-host-sni-metadata,0,share unit 10 cases,—,not rerun at candidate,unit,PASS_IMPACT_SCOPED,internal/cli/share_metadata_test.go
+A3,guard-show-from-nginx,0,isolate/reject/decoy + drift/missing,—,Bash menu NOT_RUN,real,PASS,artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/a3-guard-redgreen.log
+A4,xhttp-leading-slash,0,4 path crosses 200/301,0,Bash /xhttp real client,real,NO_DEFECT_SEMANTIC_DIFF,artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/a4-prefix-probe.log
+A5,fixed-items-cache-ops32,0,OPS-32 ws+reality PASS,—,Test Install CI_PENDING,mixed,PARTIAL,tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/OPS-32
+OPS-R3,ops-dual-09-19-21-31-32,0,real nginx/xray/client,0,real nginx/xray/client,L1-L4,MATCH,tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2
+OPS-34-LEDGER,ops-34-coverage,0,"11 dual PASS（含 OPS-05 allowed-diff）+ 18 Go-only + 1 BASH_ONLY + 4 NOT_RUN",0,"同批次双侧观测",L0-L5,PARTIAL,tests/e2e-diff/evidence/opsfix-3/p2; tests/e2e-diff/evidence/ops10-3/p2
+C2-R3,cold-restore-r1-inj,0,source 8/8 target 19/19; R1 106/0,—,legacy install,real,PASS,tests/e2e-diff/evidence/goevo-coldrestore-docker-final-cold-20261120-df3f3838
+C3-R3,multi-version-distro-ipv6,0,"3 个真实 Xray tag xray -test PASS（v26.11.9/v26.10.31/v26.10.21）",0,"Debian 12 M1+OPS-19 PASS；外部公网 IPv6 VPS_DEFERRED",L0-L4,PARTIAL,tests/e2e-diff/evidence/versions-3/versions; tests/e2e-diff/evidence/debian12-1/p2
+C4-R3,soak-30min,0,"30/30 iterations active, xray -test rc=0, :443 listen, NRestarts=0, RSS<512MiB",—,—,L0-L4,PASS,tests/e2e-diff/evidence/soak-30m-1/soak
+D4-R3,docker-candidate-conclusion,—,—,—,—,—,NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE,docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261120.md; tests/e2e-diff/evidence/ops-full-3/p2
+D3-CI,ci-7-workflows,—,7/7 success,—,Test Install success,—,PASS,GitHub Actions aa4b9da9: 44725121966/21993/21851/22135/21880/21834/21949
+D3-CI-HEAD,ci-7-workflows-head,—,7/7 success,—,Test Install success,—,PASS,GitHub Actions beb51ab9: 44725987921/87933/87816/87872/87940/87830/87943

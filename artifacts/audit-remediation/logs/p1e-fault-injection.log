@@ -1,0 +1,108 @@
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/prepared
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/first-file
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/half
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/before-commit
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/before-service
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/after-service
+--- PASS: TestRestoreHardKillAtEveryDurablePointConverges (1.10s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/prepared (0.58s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/first-file (0.08s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/half (0.08s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/before-commit (0.09s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/before-service (0.16s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/after-service (0.11s)
+=== RUN   TestRestoreRollsBackOnFilesystemErrors
+=== RUN   TestRestoreRollsBackOnFilesystemErrors/enospc
+=== RUN   TestRestoreRollsBackOnFilesystemErrors/read-only
+=== RUN   TestRestoreRollsBackOnFilesystemErrors/permission
+--- PASS: TestRestoreRollsBackOnFilesystemErrors (0.10s)
+    --- PASS: TestRestoreRollsBackOnFilesystemErrors/enospc (0.05s)
+    --- PASS: TestRestoreRollsBackOnFilesystemErrors/read-only (0.03s)
+    --- PASS: TestRestoreRollsBackOnFilesystemErrors/permission (0.02s)
+=== RUN   TestRestoreRefusesWhileAnotherProcessHoldsLock
+--- PASS: TestRestoreRefusesWhileAnotherProcessHoldsLock (0.00s)
+=== RUN   TestRecoverRefusesCorruptJournalWithoutTouchingFiles
+--- PASS: TestRecoverRefusesCorruptJournalWithoutTouchingFiles (0.01s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/backup	1.218s
+=== RUN   TestRollbackFailureIsReportedNotHidden
+--- PASS: TestRollbackFailureIsReportedNotHidden (0.05s)
+=== RUN   TestRecoverRefusesCorruptJournal
+--- PASS: TestRecoverRefusesCorruptJournal (0.00s)
+=== RUN   TestCleanLogsRefusesRealRootWithoutAck
+--- PASS: TestCleanLogsRefusesRealRootWithoutAck (0.00s)
+=== RUN   TestInspectTLSPairRejectsExpired
+--- PASS: TestInspectTLSPairRejectsExpired (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.055s
+=== RUN   TestAuditCorruptMetadataBlocked
+--- PASS: TestAuditCorruptMetadataBlocked (0.01s)
+=== RUN   TestAuditPortConflictBlocked
+--- PASS: TestAuditPortConflictBlocked (0.00s)
+=== RUN   TestRecoverCorruptJournal
+--- PASS: TestRecoverCorruptJournal (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	0.018s
+=== RUN   TestWriteAtomicConcurrentWritersKeepOneCompleteVersion
+--- PASS: TestWriteAtomicConcurrentWritersKeepOneCompleteVersion (0.07s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	0.075s
+=== RUN   TestRequireSystemWriteSandboxNeedsMarker
+--- PASS: TestRequireSystemWriteSandboxNeedsMarker (0.01s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/host	0.008s
+testing: warning: no tests to run
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/acme	0.003s [no tests to run]
+=== RUN   TestPortAvailableSeesOccupiedLoopback
+--- PASS: TestPortAvailableSeesOccupiedLoopback (0.00s)
+=== RUN   TestGenerateRejectsReservedPublicPort
+--- PASS: TestGenerateRejectsReservedPublicPort (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.007s
+=== RUN   TestApplyReadOnlyFileLeavesKernelAlone
+--- PASS: TestApplyReadOnlyFileLeavesKernelAlone (0.01s)
+=== RUN   TestApplyRollbackFailureKeepsJournal
+--- PASS: TestApplyRollbackFailureKeepsJournal (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/tcpcfg	0.008s
+=== RUN   TestStalePidFileIsReported
+--- PASS: TestStalePidFileIsReported (0.01s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/container	0.009s
+=== RUN   TestRepairRefusesWhileAnotherUpdateHoldsTheLock
+--- PASS: TestRepairRefusesWhileAnotherUpdateHoldsTheLock (0.01s)
+=== RUN   TestRepairStaleLockNeedsExplicitFlag
+--- PASS: TestRepairStaleLockNeedsExplicitFlag (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/repair	0.011s
+=== RUN   TestSetInboundPortRejectsInvalid
+--- PASS: TestSetInboundPortRejectsInvalid (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	0.003s
+=== RUN   TestRunFindsExpiredCertificateAndLooseModes
+--- PASS: TestRunFindsExpiredCertificateAndLooseModes (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/doctor	0.004s
+=== migration lifecycle ===
+=== RUN   TestActivateSwitchesEntryAndCronOnly
+--- PASS: TestActivateSwitchesEntryAndCronOnly (0.14s)
+=== RUN   TestValidateRejectsDrift
+--- PASS: TestValidateRejectsDrift (0.03s)
+=== RUN   TestActivateRefusesChangedEntry
+--- PASS: TestActivateRefusesChangedEntry (0.06s)
+=== RUN   TestRecoverPreservesThirdPartyEntry
+--- PASS: TestRecoverPreservesThirdPartyEntry (0.10s)
+=== RUN   TestRecoverPreparedDiscards
+--- PASS: TestRecoverPreparedDiscards (0.07s)
+=== RUN   TestRecoverActivatingRestoresEntryAndCron
+--- PASS: TestRecoverActivatingRestoresEntryAndCron (0.12s)
+=== RUN   TestRecoverCommittedRefuses
+--- PASS: TestRecoverCommittedRefuses (0.15s)
+=== RUN   TestRecoverAfterMetadataCrashLeavesNoHalfMigration
+--- PASS: TestRecoverAfterMetadataCrashLeavesNoHalfMigration (0.15s)
+=== RUN   TestRecoverAfterMetadataCrashRestoresPreviousMetadata
+--- PASS: TestRecoverAfterMetadataCrashRestoresPreviousMetadata (0.09s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	0.918s

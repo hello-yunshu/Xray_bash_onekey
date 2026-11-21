@@ -1,0 +1,80 @@
+{
+  "dns": {
+    "disableCache": false,
+    "servers": [
+      "https+local://dns.google/dns-query",
+      "https+local://cloudflare-dns.com/dns-query",
+      "https+local://doh.opendns.com/dns-query",
+      "208.67.222.222",
+      "8.8.8.8",
+      "1.1.1.1",
+      "localhost"
+    ]
+  },
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 9443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "email": "me@hey.run",
+            "flow": "xtls-rprx-vision",
+            "id": "1a2c31b1-0b72-4c6a-b9ac-0ae61adfd407",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "raw",
+        "realitySettings": {
+          "minClientVer": "1.0.0",
+          "privateKey": "-avrUSBz7G-732jt6k9eh3VNBqh4Dwi5zFT1hTCu9Io",
+          "serverNames": [
+            "example.com"
+          ],
+          "shortIds": [
+            "57d124a8"
+          ],
+          "target": "example.com:443"
+        },
+        "security": "reality"
+      },
+      "tag": "VLESS-Reality-in"
+    }
+  ],
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIPv4v6"
+        }
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blocked"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "inboundTag": [
+          "VLESS-Reality-in"
+        ],
+        "outboundTag": "direct",
+        "type": "field"
+      }
+    ]
+  }
+}

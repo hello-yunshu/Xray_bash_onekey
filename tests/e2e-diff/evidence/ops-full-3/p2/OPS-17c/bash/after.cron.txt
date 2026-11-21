@@ -1,0 +1,1 @@
+0 1 * * * bash "/etc/idleleo/scripts/auto_update.sh"

@@ -1,0 +1,61 @@
+{
+  "mode": "tls",
+  "transport": "ws",
+  "changed": [
+    "cert-file",
+    "cert-key-file"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "4335164dd493cb754b6060e666494d3b34c121048f519e7588461a4923323c9b",
+  "newSha256": "4335164dd493cb754b6060e666494d3b34c121048f519e7588461a4923323c9b",
+  "backupDir": "/etc/idleleo/backup/edit-20261120T102648",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://6a146288-12ed-422c-874e-e23ea3f58089@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+  "domain": "example.com",
+  "certFile": "/etc/idleleo/cert/e5-new.crt",
+  "certKeyFile": "/etc/idleleo/cert/e5-new.key",
+  "certNotAfter": "2026-12-20T10:26:48Z",
+  "certSans": [
+    "example.com"
+  ],
+  "tlsProbe": "ok",
+  "tlsServerName": "example.com",
+  "tlsVersion": "TLS 1.3",
+  "tlsSystemTrusted": false,
+  "scheduleUpdated": true,
+  "schedulePath": "/etc/idleleo/schedule/jobs.json",
+  "disconnect": false,
+  "warnings": [
+    "certificate /etc/idleleo/cert/e5-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')",
+    "served certificate chain is not trusted by the system roots (staging or private CA?): x509: certificate signed by unknown authority"
+  ],
+  "upstreamSha256": "c3ba056c458c332de4723c414d429743681a3bcdb7eada5db6f797699eab6729",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "4335164dd493cb754b6060e666494d3b34c121048f519e7588461a4923323c9b",
+    "newSha256": "4335164dd493cb754b6060e666494d3b34c121048f519e7588461a4923323c9b",
+    "changed": [
+      "cert-file",
+      "cert-key-file"
+    ],
+    "affectedServices": [
+      "nginx",
+      "xray"
+    ],
+    "disconnectRisk": "none: no live session is dropped",
+    "validationSteps": [
+      "xray -test",
+      "nginx -t",
+      "local TLS handshake against the served certificate"
+    ],
+    "rollbackScope": "runtime config + nginx front + certificate renewal target",
+    "ownership": "idleleo-managed",
+    "fingerprint": "ff817eb681ed3e9c"
+  }
+}

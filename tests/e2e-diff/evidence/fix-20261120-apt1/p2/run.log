@@ -1,0 +1,17 @@
+13:46:48 run_id=fix-20261120-apt1
+13:46:50 image_id=sha256:2d508ddc4c8627e4050776e1c456b55b5dee914780bbb2b7d3861bb61d5a7078
+13:46:50 building idleleo
+13:46:58 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=bbbc82bcd9b91005227365f237f43dd15ac8c9a5e7c74d1de57b55422ff43707
+13:46:58 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+13:46:58 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+13:46:58 release_cache=seeded templates=vless_reality.json,vless_tls.json
+13:46:58 release_cache=hit
+13:48:04 apt_cache=download debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+13:48:04 apt_cache=hit (OPS offline apt)
+13:48:04 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+13:48:04 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+13:48:07 argv-verify written
+13:48:07 [OPS-19] start
+13:49:46 [OPS-19] verdict=PASS
+13:49:46 scope: installs=[] edits=[] ops=[OPS-19]
+13:49:46 P2 finished: tests/e2e-diff/evidence/fix-20261120-apt1/p2

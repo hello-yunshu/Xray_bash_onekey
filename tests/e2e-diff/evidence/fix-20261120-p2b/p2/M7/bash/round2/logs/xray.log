@@ -1,0 +1,5 @@
+<TS> e2e-fix-20261120-p2b-M7-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M7-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-fix-20261120-p2b-M7-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-fix-20261120-p2b-M7-bash xray[<PID>]: 2026/11/20 01:03:57.493165 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-fix-20261120-p2b-M7-bash xray[<PID>]: 2026/11/20 01:03:57.493914 [Warning] core: Xray 26.10.31 started

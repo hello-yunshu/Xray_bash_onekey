@@ -1,0 +1,17 @@
+16:45:02 seeded_geo=geoip.dat geosite.dat  asset_root=/etc/idleleo/share/xray
+16:45:05 control origin ready at 11.0.0.2:80
+16:45:05 uri built network=raw
+16:45:12 check baselineControl=true ok
+16:45:17 check serviceAliveAfterApply=true active
+16:45:17 check applyRcZero=true rc=0
+16:45:17 check rulesAdded=true before=1 after=6
+16:45:17 check fallbackDirect=true 
+16:45:17 check noCatchAllBlocked=true 
+16:45:17 check customRuleApplied=false 
+16:45:24 check controlAfterApply=true ok
+16:45:25 check adsBlocked=true blocked
+16:45:26 check privateBlocked=true blocked
+16:45:26 check countryBlocked=true blocked
+16:45:26 check offRcZero=true rc=0
+16:45:26 check offRestored=true baseline=routing-before
+16:45:34 check controlAfterOff=true ok

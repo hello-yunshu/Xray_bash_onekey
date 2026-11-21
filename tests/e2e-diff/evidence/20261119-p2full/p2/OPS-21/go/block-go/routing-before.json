@@ -1,0 +1,12 @@
+{
+  "domainStrategy": "AsIs",
+  "rules": [
+    {
+      "inboundTag": [
+        "VLESS-Reality-in"
+      ],
+      "outboundTag": "direct",
+      "type": "field"
+    }
+  ]
+}

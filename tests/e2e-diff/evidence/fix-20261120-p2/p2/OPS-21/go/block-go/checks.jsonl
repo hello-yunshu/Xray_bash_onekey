@@ -1,0 +1,27 @@
+{"name":"realityOriginLocal","ok":true,"detail":"target=127.0.0.1:8443 sni=local.test"}
+{"name":"shareUri","ok":false,"detail":"cannot build a share link"}
+{"name":"baselineControl","ok":false,"detail":"error"}
+{"name":"customListConfigured","ok":true,"detail":""}
+{"name":"serviceAliveAfterApply","ok":true,"detail":"active"}
+{"name":"applyRcZero","ok":true,"detail":"rc=0"}
+{"name":"rulesAdded","ok":true,"detail":"before=2 after=8"}
+{"name":"fallbackDirect","ok":true,"detail":""}
+{"name":"noCatchAllBlocked","ok":true,"detail":""}
+{"name":"customRuleApplied","ok":true,"detail":""}
+{"name":"controlAfterApply","ok":false,"detail":"error"}
+{"name":"adsBlocked","ok":false,"detail":"error"}
+{"name":"privateBlocked","ok":false,"detail":"error"}
+{"name":"countryBlocked","ok":false,"detail":"error"}
+{"name":"editRcZero","ok":true,"detail":"rc=0"}
+{"name":"editUuidApplied","ok":true,"detail":"6e7bca4b-5adf-491b-b655-decc518e3e7a"}
+{"name":"editRoutingIdentical","ok":true,"detail":""}
+{"name":"editOwnedRulesKept","ok":true,"detail":"owned=6 missing=0"}
+{"name":"editUserRuleKept","ok":true,"detail":""}
+{"name":"editBlockReported","ok":true,"detail":"blockRuleCount=6"}
+{"name":"controlAfterEdit","ok":false,"detail":"error"}
+{"name":"adsBlockedAfterEdit","ok":false,"detail":"error"}
+{"name":"offRcZero","ok":true,"detail":"rc=0"}
+{"name":"offRestored","ok":true,"detail":"baseline=routing-with-user"}
+{"name":"customListKept","ok":true,"detail":""}
+{"name":"customRuleRemoved","ok":true,"detail":""}
+{"name":"controlAfterOff","ok":false,"detail":"error"}

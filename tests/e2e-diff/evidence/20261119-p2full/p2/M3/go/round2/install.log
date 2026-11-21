@@ -1,0 +1,3 @@
+installed: mode=reality transport=raw tls=Reality
+config=/etc/idleleo/conf/xray/config.json sha256=967729b0080e34a0098bee74faef0aae9bd4cc6b6ed1a03d3f2f0f5c7e6951d8
+service active=active enabled=enabled

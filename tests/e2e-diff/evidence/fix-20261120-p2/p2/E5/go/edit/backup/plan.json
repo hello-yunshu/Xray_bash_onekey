@@ -1,0 +1,23 @@
+{
+  "operation": "edit-runtime-config",
+  "resource": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "12b24d10038cd9b259265e6d5091adf5c22e9b3a8e6347b4fa13ec7d230e8547",
+  "newSha256": "12b24d10038cd9b259265e6d5091adf5c22e9b3a8e6347b4fa13ec7d230e8547",
+  "changed": [
+    "cert-file",
+    "cert-key-file"
+  ],
+  "affectedServices": [
+    "nginx",
+    "xray"
+  ],
+  "disconnectRisk": "none: no live session is dropped",
+  "validationSteps": [
+    "xray -test",
+    "nginx -t",
+    "local TLS handshake against the served certificate"
+  ],
+  "rollbackScope": "runtime config + nginx front + certificate renewal target",
+  "ownership": "idleleo-managed",
+  "fingerprint": "93bb4d4b94831d4e"
+}

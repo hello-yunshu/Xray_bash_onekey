@@ -1,0 +1,15 @@
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash xray[<PID>]: 2026/11/19 16:54:41.102382 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash xray[<PID>]: 2026/11/19 16:54:41.105301 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash xray[<PID>]: 2026/11/19 16:54:43.363189 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-audit-ops-dual-20261120-OPS-32-reality-bash xray[<PID>]: 2026/11/19 16:54:43.363308 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+2026/11/19 16:54:41.110786 [Warning] core: Xray 26.10.31 started
+2026/11/19 16:54:43.371153 [Warning] core: Xray 26.10.31 started

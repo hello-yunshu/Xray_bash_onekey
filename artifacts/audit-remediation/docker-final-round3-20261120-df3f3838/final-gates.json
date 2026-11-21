@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-20T19:40:00+08:00",
+  "candidate": {
+    "branch": "work/go-hardening-parity-20261119",
+    "sha": "df3f38381a8d3c4f8c8bc9681d589c891f5133f6",
+    "auditBaseline": "4566673290453a3b9e840b4f6206dadd0dfd763f",
+    "bashBaseline": "install.sh v3.3.6 / 0fa7052e",
+    "pr": 182,
+    "draft": true
+  },
+  "gate1": {
+    "status": "PASS_WITH_ONE_REUSE",
+    "items": {
+      "gofmt_vet_build_test": {
+        "status": "PASS",
+        "evidence": "artifacts/go-docker-20261120/gate-final.log",
+        "rc": 0
+      },
+      "race_8_packages": {
+        "status": "PASS",
+        "evidence": "race-final.log",
+        "rc": 0,
+        "packages": [
+          "cli",
+          "deploy",
+          "xraycfg",
+          "store",
+          "change",
+          "backup",
+          "repair",
+          "schedule"
+        ]
+      },
+      "bash_syntax": {
+        "status": "PASS",
+        "evidence": "artifacts/go-docker-20261120/bash-syntax.log",
+        "rc": 0,
+        "command": "bash -n install.sh scripts/*.sh .github/test/*.sh tests/e2e-diff/*.sh artifacts/audit-remediation/*.sh"
+      },
+      "matrix_98": {
+        "status": "PASS",
+        "evidence": "tests/go-parity/evidence/matrix-20261120-final/summary.json",
+        "counts": {
+          "match": 54,
+          "match_core_fields": 40,
+          "gap": 0,
+          "refused": 4,
+          "a1": 6
+        },
+        "caveat": "summary.git_commit 字段为 86d810e5（生成元数据），实际为候选工作树重跑"
+      },
+      "fixtures_f28_f08_f18": {
+        "status": "NOT_RERUN_AT_CANDIDATE",
+        "lastGreen": "F28 57/0, F08 129/0, F18 178/0 at c1b14832/ce746d8c",
+        "impact": "df3f3838 只改 edit.go 的 XHTTP 路径，未触及 share 路径；按影响面复用，不冒充候选新证据"
+      }
+    }
+  },
+  "gate2": {
+    "status": "PARTIAL",
+    "candidateCriticalItems": {
+      "A1": "PASS（红绿 + 真实 root）",
+      "A2": "PASS_IMPACT_SCOPED（候选未重跑）",
+      "A3": "PASS（红绿 + 真实 nginx）",
+      "A4": "NO_DEFECT_SEMANTIC_DIFF（真实客户端 4 交叉）",
+      "A5": "PARTIAL（OPS-32 PASS；Test Install 在 aa4b9da9 通过，但静默退出根因未定位）"
+    }
+  },
+  "gate3": {
+    "status": "PASS",
+    "commit": "aa4b9da950efefc5a6407f9e9887109c7e76bac9",
+    "workflows": 7,
+    "success": 7,
+    "failure": 0,
+    "inProgress": 0,
+    "runs": [
+      {
+        "id": 44725121966,
+        "name": "Go parity stage gate",
+        "conclusion": "success"
+      },
+      {
+        "id": 44725121993,
+        "name": "Privacy Guard",
+        "conclusion": "success"
+      },
+      {
+        "id": 44725121851,
+        "name": "Rill Xray Agent",
+        "conclusion": "success"
+      },
+      {
+        "id": 44725122135,
+        "name": "Go preview qualification (NOT FOR RELEASE)",
+        "conclusion": "success"
+      },
+      {
+        "id": 44725121880,
+        "name": "Go real-root change acceptance (container)",
+        "conclusion": "success"
+      },
+      {
+        "id": 44725121834,
+        "name": "Test Install",
+        "conclusion": "success"
+      },
+      {
+        "id": 44725121949,
+        "name": "Go production parity release qualification",
+        "conclusion": "success"
+      }
+    ],
+    "note": "代码候选 df3f3838；文档证据提交 aa4b9da9。Test Install 本次通过，但历史静默退出的根因未定位"
+  },
+  "gate4": {
+    "dockerRequired": {
+      "A1_A5": "PARTIAL",
+      "B1_environment_frozen": "PASS（镜像 digest/宿主/版本已落盘，离线门禁）",
+      "B1_three_install_paths": "PASS（fresh / 幂等 / 旧版接管 R1）",
+      "B2_coverage_ledger": "PASS（54 行 case-matrix.csv，未跑留空）",
+      "B3_ten_modes": "PASS（其中 M8 为 DOCKER_EQUIVALENT_WITH_LIMITS）",
+      "B4_edit_E1_E8": "GO_ONLY_PASS（Go 独有非交互编辑；Bash 侧未双端）",
+      "B4_ops_34_dual_side": "INCOMPLETE",
+      "B4_subscripts_9": "NOT_RUN",
+      "C1_pebble_acme": "PASS_WITH_LIMITS（Bash 侧 BASH_DELEGATES_GO）",
+      "C2_migration_rollback": "PASS（coldrestore + R1/R2/INJ）",
+      "C3_multi_version_distro_ipv6": "NOT_RUN / VPS_DEFERRED",
+      "C4_fault_injection": "PASS",
+      "C4_soak": "NOT_RUN"
+    },
+    "blockers": [
+      "B4：34 个 OPS 中仅 5 个完成双端真实执行；17 个仅 Go sweep、2 个仅 Go 命令、10 个未执行；任务书禁止用 Go-only sweep 替代",
+      "B4：9 个 subscripts 未逐项确认真实运行/替换/取消",
+      "C3：多版本 Xray/Bash 矩阵与第二发行版 smoke 未执行",
+      "C4：30 分钟/两个调度周期 soak 未执行",
+      "M8：Bash 侧纯 ACME 路径 BLOCKED，当前为 BASH_DELEGATES_GO"
+    ]
+  },
+  "conclusions": {
+    "dockerDevelopmentCandidate": {
+      "decision": "NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
+      "reason": "安全整改 A1/A3 与核心双端安装/客户端/迁移/故障注入通过，但容器可执行项未全部完成（B4/B2/C3/C4），按 D4 只能 NO-GO"
+    },
+    "formalRelease": {
+      "decision": "NO_GO_NOT_AUTHORIZED",
+      "reason": "任务书未授权发布；独立 VPS、公网 CA、外部 IPv6、多版本与长期 soak 仍 VPS_DEFERRED/NOT_RUN；不合并、不打 tag、不发布"
+    }
+  },
+  "coverageCounts": {
+    "ledgerRows": 54,
+    "executedPass": 36,
+    "partial": 1,
+    "notRun": 13,
+    "intentionalDelta": 1,
+    "vpsDeferred": 1,
+    "notRerunAtCandidate": 1,
+    "ciPending": 0,
+    "ciPass": 1
+  }
+}

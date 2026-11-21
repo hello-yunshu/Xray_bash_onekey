@@ -1,0 +1,19 @@
+13:08:25 run_id=fix-20261120-cache4
+13:08:25 blocked_hosts=github.com,raw.githubusercontent.com,cdn.jsdelivr.net,objects.githubusercontent.com,release-assets.githubusercontent.com (pinned to 127.0.0.1 for offline proof)
+13:08:26 image_id=sha256:1637070654e7af6eae96815eff54ac070ead36fd6ac16e3f01125e1db1377374
+13:08:26 building idleleo
+13:08:34 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=bbbc82bcd9b91005227365f237f43dd15ac8c9a5e7c74d1de57b55422ff43707
+13:08:34 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+13:08:34 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+13:08:34 release_cache=seeded templates=vless_reality.json,vless_tls.json
+13:08:34 release_cache=hit
+13:08:35 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+13:08:35 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+13:08:38 argv-verify written
+13:08:38 [OPS-32] start upstream=ws
+13:12:04 [OPS-32/ws] verdict=PASS
+13:12:04 [OPS-32] start upstream=reality
+13:15:51 [OPS-32/reality] verdict=PASS
+13:15:51 [OPS-32] verdict=PASS
+13:15:52 scope: installs=[] edits=[] ops=[OPS-32]
+13:15:52 P2 finished: tests/e2e-diff/evidence/fix-20261120-cache4/p2

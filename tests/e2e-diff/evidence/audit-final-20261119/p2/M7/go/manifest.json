@@ -1,0 +1,56 @@
+{
+  "count": 5,
+  "entries": [
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/cert",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/cert/xray.crt",
+      "sha256": "fcd8022c6e44056ff720e8b0e13c1ae7e8ee8cbadd947f1b273fbf471dd689e0",
+      "size": 1151,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/cert/xray.key",
+      "sha256": "d4ebfcb8a9045e8c6a61f9ccfacb5232e87a8a49a61892d193f0d00148498796",
+      "size": 1704,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/usr/local/bin/xray",
+      "sha256": "5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328",
+      "size": 32637052,
+      "target": null,
+      "type": "file"
+    }
+  ],
+  "schemaVersion": 1
+}

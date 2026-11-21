@@ -1,0 +1,3 @@
+installed: mode=none transport=ws tls=None
+config=/etc/idleleo/conf/xray/config.json sha256=6c4704ab62c60736095b070261d4f65dab46bbeaf6548b6d4c514f1e612ffa04
+service active=active enabled=enabled

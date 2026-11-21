@@ -1,0 +1,137 @@
+{
+  "side": "go",
+  "checks": [
+    {
+      "name": "realityOriginLocal",
+      "ok": true,
+      "detail": "target=127.0.0.1:8443 sni=local.test"
+    },
+    {
+      "name": "baselineControl",
+      "ok": true,
+      "detail": "ok"
+    },
+    {
+      "name": "customListConfigured",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "serviceAliveAfterApply",
+      "ok": true,
+      "detail": "active"
+    },
+    {
+      "name": "applyRcZero",
+      "ok": true,
+      "detail": "rc=0"
+    },
+    {
+      "name": "rulesAdded",
+      "ok": true,
+      "detail": "before=2 after=8"
+    },
+    {
+      "name": "fallbackDirect",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "noCatchAllBlocked",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customRuleApplied",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "controlAfterApply",
+      "ok": true,
+      "detail": "ok"
+    },
+    {
+      "name": "adsBlocked",
+      "ok": true,
+      "detail": "blocked"
+    },
+    {
+      "name": "privateBlocked",
+      "ok": true,
+      "detail": "blocked"
+    },
+    {
+      "name": "countryBlocked",
+      "ok": true,
+      "detail": "blocked"
+    },
+    {
+      "name": "editRcZero",
+      "ok": true,
+      "detail": "rc=0"
+    },
+    {
+      "name": "editUuidApplied",
+      "ok": true,
+      "detail": "dbde3352-1b59-4c8d-80fc-8c6ca416a554"
+    },
+    {
+      "name": "editRoutingIdentical",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "editOwnedRulesKept",
+      "ok": true,
+      "detail": "owned=6 missing=0"
+    },
+    {
+      "name": "editUserRuleKept",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "editBlockReported",
+      "ok": true,
+      "detail": "blockRuleCount=6"
+    },
+    {
+      "name": "controlAfterEdit",
+      "ok": true,
+      "detail": "ok"
+    },
+    {
+      "name": "adsBlockedAfterEdit",
+      "ok": true,
+      "detail": "blocked"
+    },
+    {
+      "name": "offRcZero",
+      "ok": true,
+      "detail": "rc=0"
+    },
+    {
+      "name": "offRestored",
+      "ok": true,
+      "detail": "baseline=routing-with-user"
+    },
+    {
+      "name": "customListKept",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "customRuleRemoved",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "controlAfterOff",
+      "ok": true,
+      "detail": "ok"
+    }
+  ],
+  "failed": [],
+  "status": "pass"
+}

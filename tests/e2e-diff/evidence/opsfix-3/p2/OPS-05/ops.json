@@ -1,0 +1,33 @@
+{
+  "allowedDiff": "bash derives UUIDv5 from the mapping string; go applies the literal UUID",
+  "bashUuidLabel": "e2e-uuid",
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "clientIds": {
+    "bash": {
+      "after": [
+        "a59ba94a-593c-51d9-b8b2-28cba713e333"
+      ],
+      "before": [
+        "21618d82-4877-5b2e-9d9e-b2240c40b740"
+      ]
+    },
+    "go": {
+      "after": [
+        "99999999-8888-7777-6666-555555555555"
+      ],
+      "before": [
+        "1dd744ff-c780-4705-9731-08418093fc4d"
+      ]
+    }
+  },
+  "id": "OPS-05",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "verdict": "PASS"
+}

@@ -258,7 +258,8 @@ def main(f):
                 "validator was called once with -test -config", json.dumps(calls))
         f.check(".edit-candidate-" in calls[0],
                 "validator ran against the candidate, not the live config", calls[0])
-    r = f.run([f.go, "xray", "share", "--path", str(cfg1), "--json"])
+    r = f.run([f.go, "xray", "share", "--path", str(cfg1),
+               "--host", "198.51.100.25", "--json"])
     info = f.json_of(r, "share after port edit") if r.rc == 0 else None
     f.check(r.rc == 0, "share after port edit rc=0", r.text[:200])
     if info:

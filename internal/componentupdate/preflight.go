@@ -37,19 +37,34 @@ type EvidenceLevel struct {
 	Detail string `json:"detail,omitempty"`
 }
 
+// Readiness values. `compatible` is a legacy boolean that only ever meant
+// "the candidate did not reject the installed config". It cannot express
+// "config-parses was not run", so callers must use readiness for the real
+// qualification state. Keeping the boolean would let `not-run` serialize as
+// `compatible: true`, which is exactly the misreading this field prevents.
+const (
+	ReadinessVerified     = "verified"     // installable + config-parses both passed
+	ReadinessUnverified   = "unverified"   // artifact is installable, compatibility not run
+	ReadinessIncompatible = "incompatible" // artifact or config check failed
+)
+
 // PreflightReport is the JSON contract for `update preflight`.
 type PreflightReport struct {
-	SchemaVersion    int             `json:"schemaVersion"`
-	Component        string          `json:"component"`
-	PreviousVersion  string          `json:"previousVersion"`
-	CandidateVersion string          `json:"candidateVersion"`
-	Action           string          `json:"action"`
-	SHA256           string          `json:"sha256"`
-	SizeBytes        int64           `json:"sizeBytes"`
-	DigestVerified   bool            `json:"digestVerified"`
-	Compatible       bool            `json:"compatible"`
-	Levels           []EvidenceLevel `json:"levels"`
-	Warnings         []string        `json:"warnings,omitempty"`
+	SchemaVersion    int    `json:"schemaVersion"`
+	Component        string `json:"component"`
+	PreviousVersion  string `json:"previousVersion"`
+	CandidateVersion string `json:"candidateVersion"`
+	Action           string `json:"action"`
+	SHA256           string `json:"sha256"`
+	SizeBytes        int64  `json:"sizeBytes"`
+	DigestVerified   bool   `json:"digestVerified"`
+	// Compatible is retained for older consumers but is only true when
+	// config-parses actually passed. A not-run compatibility check reports
+	// false here and readiness=unverified.
+	Compatible bool            `json:"compatible"`
+	Readiness  string          `json:"readiness"`
+	Levels     []EvidenceLevel `json:"levels"`
+	Warnings   []string        `json:"warnings,omitempty"`
 }
 
 // Preflight qualifies a candidate without touching the installed artifacts.
@@ -78,6 +93,7 @@ func Preflight(ctx context.Context, spec Spec) (PreflightReport, error) {
 		CandidateVersion: m.Version,
 		SHA256:           m.SHA256,
 		SizeBytes:        m.SizeBytes,
+		Readiness:        ReadinessUnverified,
 	}
 
 	previous, err := installedVersion(ctx, paths.Root, spec.Component)
@@ -99,6 +115,7 @@ func Preflight(ctx context.Context, spec Spec) (PreflightReport, error) {
 				Detail: fmt.Sprintf("manifest %s is older than installed %s", m.Version, previous),
 			})
 			report.Compatible = false
+			report.Readiness = ReadinessIncompatible
 			return report, fmt.Errorf("%w: installed %s, manifest %s", ErrDowngrade, previous, m.Version)
 		case cmp == 0:
 			report.Action = "reinstall"
@@ -112,6 +129,8 @@ func Preflight(ctx context.Context, spec Spec) (PreflightReport, error) {
 		report.Levels = append(report.Levels, EvidenceLevel{
 			Name: "installable", Status: EvidenceFail, Detail: err.Error(),
 		})
+		report.Compatible = false
+		report.Readiness = ReadinessIncompatible
 		return report, err
 	}
 	report.DigestVerified = true
@@ -122,6 +141,7 @@ func Preflight(ctx context.Context, spec Spec) (PreflightReport, error) {
 	})
 	if artErr != nil {
 		report.Compatible = false
+		report.Readiness = ReadinessIncompatible
 		return report, artErr
 	}
 
@@ -139,7 +159,19 @@ func Preflight(ctx context.Context, spec Spec) (PreflightReport, error) {
 			Detail: "requires an activated service and a real client; check after activation with `idleleo doctor --deep`",
 		},
 	)
-	report.Compatible = configStatus != EvidenceFail
+	// Only an actually executed compatibility check may claim compatibility.
+	// A not-run check (no installed config) is installable but unverified.
+	switch configStatus {
+	case EvidencePass:
+		report.Compatible = true
+		report.Readiness = ReadinessVerified
+	case EvidenceNotRun:
+		report.Compatible = false
+		report.Readiness = ReadinessUnverified
+	default:
+		report.Compatible = false
+		report.Readiness = ReadinessIncompatible
+	}
 	if configStatus == EvidenceFail {
 		return report, fmt.Errorf("%w: %s", ErrConfig, configDetail)
 	}

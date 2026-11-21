@@ -1,0 +1,7 @@
+installed: mode=tls transport=ws+grpc+xhttp tls=TLS
+config=/etc/idleleo/conf/xray/config.json sha256=548aa7849718e11026097ffdaf4c20c0dfb35d4ff380e9240c5539dab1102069
+service active=active enabled=enabled
+nginx managed=true verified=true dir=/etc/idleleo/conf/nginx
+warning=multi-transport: only the primary inbound share URI is emitted; use 'xray share --inbound' for the others
+warning=nginx version: nginx version: nginx/1.30.6
+warning=nginx-syntax-verified; routing verified only by the Docker e2e harness

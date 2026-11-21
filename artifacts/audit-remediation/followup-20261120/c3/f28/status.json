@@ -1,0 +1,22 @@
+{
+  "config": {
+    "matchesMetadata": true,
+    "path": "/tmp/f28-readonly-root-ow8mahtp/etc/idleleo/conf/xray/config.json",
+    "sha256": "fbf9f456bce91dc07a9acab65da49fbf0beeec0ab32778d9eb9cfa6c1109cdf7"
+  },
+  "drift": [],
+  "engine": "xray",
+  "installed": true,
+  "role": "node",
+  "schemaVersion": 1,
+  "service": {
+    "enabled": "sandbox-not-queried",
+    "nginx": "sandbox-not-queried",
+    "sandbox": true,
+    "source": "sandbox",
+    "xray": "sandbox-not-queried"
+  },
+  "tls": "Reality",
+  "transport": "tcp",
+  "warnings": []
+}

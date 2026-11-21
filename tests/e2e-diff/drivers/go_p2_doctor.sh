@@ -48,7 +48,7 @@ assert $(jq -e '.healthy == true and (.checks | length) > 0' "$OUT/E1-doctor/std
 run E2-doctor-deep "$GO" doctor --deep --json
 rc2=$?
 assert $([ "$rc2" -eq 0 ] && echo 0 || echo 1) "doctor --deep exits 0 (rc=$rc2)"
-assert $(jq -e '.checks[] | select(.id=="connectivity") | .status=="unknown" and .evidence=="tcp-connect"' \
+assert $(jq -e '.checks[] | select(.id=="connectivity") | .status=="unknown" and .evidence=="TCP_REACHABLE"' \
     "$OUT/E2-doctor-deep/stdout.txt" >/dev/null 2>&1 && echo 0 || echo 1) \
     "deep probe proves TCP but refuses to fake a Reality handshake"
 

@@ -1,0 +1,7 @@
+/etc/idleleo/conf/nginx/00-xray.conf:    map $ssl_preread_server_name $sni_upstream {
+/etc/idleleo/conf/nginx/00-xray.conf:    log_format tls_error_log '$remote_addr [$time_local] "$ssl_preread_server_name" '
+/etc/idleleo/conf/nginx/00-xray.conf:    log_format sni_error_log '$remote_addr [$time_local] "$ssl_preread_server_name" '
+/usr/local/nginx/conf/fastcgi.conf:fastcgi_param  SERVER_NAME        $server_name;
+/usr/local/nginx/conf/nginx.conf:        server_name  localhost;
+/usr/local/nginx/conf/nginx.conf:    #    server_name  somename  alias  another.alias;
+/usr/local/nginx/conf/nginx.conf:    #    server_name  localhost;

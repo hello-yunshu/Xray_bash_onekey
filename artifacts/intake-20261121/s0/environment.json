@@ -1,0 +1,18 @@
+{
+  "capturedAt": "2026-11-20T18:10:07.990314+00:00",
+  "branch": "work/go-hardening-parity-20261119",
+  "head": "c0f382f2bbc805556b0dd72b4a800af51de2312c",
+  "dirty": "M internal/cli/xrayedit.go\n M internal/deploy/certclear.go\n M internal/deploy/certclear_test.go\n M internal/deploy/guard.go\n M internal/deploy/guard_test.go\n M internal/xraycfg/edit.go\n M internal/xraycfg/edit_test.go\n?? artifacts/intake-20261121/\n?? tests/e2e-diff/drivers/cert_clear_cases.sh\n?? tests/e2e-diff/drivers/guard_cases.sh\n?? tests/e2e-diff/evidence/FINAL-M-20261121/\n?? tests/e2e-diff/evidence/FINAL-OPS-20261121/",
+  "goToolchain": "golang:1.27.4 (vendored, GOFLAGS=-mod=vendor, GOPROXY=off, GOTOOLCHAIN=local)",
+  "docker": "29.8.2 arm64",
+  "hostArch": "arm64",
+  "images": {
+    "idleleo-e2e:debian12": "f67ddd3cc98d",
+    "idleleo-e2e:24.04": "688fabaf2d84",
+    "golang:1.27.4": "5e8afd493a71",
+    "nginx:1.27": "6784fb0834aa"
+  },
+  "bashPin": "0fa7052e (v3.3.6, per development reports)",
+  "seedBinarySha256": "2d5ae472318af02457e65a73643b90a0b626fc1a7b9e0b317583626466e395d6",
+  "fixedBinarySha256": "f7c5701ee3b2e2e3434fc0adcc8c591cef6c84ffd636b1ce4c60b88b22834818"
+}

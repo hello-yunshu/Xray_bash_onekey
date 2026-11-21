@@ -1,0 +1,18 @@
+{
+  "allowedDiff": "bash writes a crontab entry; go writes a systemd timer",
+  "autoUpdate": {
+    "bashCron": "0 1 * * * bash \"/etc/idleleo/scripts/auto_update.sh\"\n",
+    "goTimers": "Fri 2026-11-20 17:16:03 UTC     59min -         - idleleo-schedule.timer       idleleo-schedule.service\n"
+  },
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-17c",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "verdict": "PASS"
+}

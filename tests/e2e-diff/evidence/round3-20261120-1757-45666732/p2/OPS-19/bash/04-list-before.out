@@ -1,0 +1,49 @@
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+[警告]  Release 未声明该校验值(兼容期), 继续安装: fail2ban_manager.sh 
+
+ Fail2ban 总体状态: 
+Status
+|- Number of jail:	4
+`- Jail list:	nginx-badbots, nginx-botsearch, nginx-no-host, nginx-tls-error
+
+ 默认启用的 Jail 状态: 
+----------------------------------------
+ Fail2ban Nginx 封锁情况: 
+Status for the jail: nginx-badbots
+|- Filter
+|  |- Currently failed:	0
+|  |- Total failed:	0
+|  `- File list:	/usr/local/nginx/logs/access.log
+`- Actions
+   |- Currently banned:	1
+   |- Total banned:	1
+   `- Banned IP list:	203.0.113.7
+Status for the jail: nginx-botsearch
+|- Filter
+|  |- Currently failed:	0
+|  |- Total failed:	0
+|  `- File list:	/usr/local/nginx/logs/access.log /usr/local/nginx/logs/error.log
+`- Actions
+   |- Currently banned:	0
+   |- Total banned:	0
+   `- Banned IP list:	
+Status for the jail: nginx-no-host
+|- Filter
+|  |- Currently failed:	0
+|  |- Total failed:	0
+|  `- File list:	/usr/local/nginx/logs/sni_error.log
+`- Actions
+   |- Currently banned:	0
+   |- Total banned:	0
+   `- Banned IP list:	
+Status for the jail: nginx-tls-error
+|- Filter
+|  |- Currently failed:	0
+|  |- Total failed:	0
+|  `- File list:	/usr/local/nginx/logs/tls_error.log
+`- Actions
+   |- Currently banned:	0
+   |- Total banned:	0
+   `- Banned IP list:	
+

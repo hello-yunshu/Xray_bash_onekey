@@ -1,0 +1,65 @@
+17:57:12 run_id=round3-20261120-1757-45666732
+17:57:13 image_id=sha256:ee4f07fa75371ee49b8f010258f38a09755c7b1238fe3f1870fc9007caa9bb9e
+17:57:13 building idleleo
+17:57:18 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=dd09e5ccdec455fdf26b2452cc51d7b02289087658b3de2646507aeb0b6cff92
+17:57:18 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+17:57:18 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+17:57:18 release_cache=seeded templates=vless_reality.json,vless_tls.json
+17:57:18 release_cache=hit
+17:57:19 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+17:57:19 apt_cache=hit (OPS offline apt)
+17:57:19 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+17:57:19 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+17:57:22 argv-verify written
+17:57:22 [M2] start
+17:57:22 [M3] start
+17:57:22 [M1] start
+17:57:22 [M4] start
+17:58:25 [M4] done
+17:58:59 [M1] done
+17:59:14 [M3] done
+17:59:23 [M2] done
+17:59:23 [M5] start
+17:59:23 [M8] start
+17:59:23 [M7] start
+17:59:23 [M6] start
+17:59:24 [M8] pebble ready
+18:00:44 [M5] done
+18:00:49 [M6] done
+18:00:58 [M8] done
+18:01:30 [M7] done
+18:01:30 [M10] start
+18:01:30 [M9] start
+18:02:25 [M9] done
+18:02:36 [M10] done
+18:02:36 [E4] start
+18:02:36 [E7] start
+18:02:36 [E5] start
+18:02:36 [E8] start
+18:02:36 [E1] start
+18:02:36 [E3] start
+18:02:36 [E6] start
+18:02:36 [E2] start
+18:02:53 [E5] done
+18:02:56 [E3] done
+18:03:02 [E6] done
+18:03:04 [E2] done
+18:03:07 [E1] done
+18:03:08 [E4] done
+18:03:51 [E7] done
+18:04:18 [E8] done
+18:04:18 [OPS-19] start
+18:05:48 [OPS-19] verdict=PASS
+18:05:48 [OPS-21] start
+18:07:40 [OPS-21] verdict=PASS
+18:07:40 [OPS-09] start upstream=ws
+18:08:25 [OPS-09] verdict=PASS
+18:08:25 [OPS-31] start upstream=reality
+18:09:35 [OPS-31] verdict=PASS
+18:09:35 [OPS-32] start upstream=ws
+18:12:55 [OPS-32/ws] verdict=PASS
+18:12:55 [OPS-32] start upstream=reality
+18:16:38 [OPS-32/reality] verdict=PASS
+18:16:38 [OPS-32] verdict=PASS
+18:16:38 scope: installs=[M1,M2,M3,M4,M5,M6,M7,M8,M9,M10] edits=[E1,E2,E3,E4,E5,E6,E7,E8] ops=[OPS-19,OPS-21,OPS-09,OPS-31,OPS-32]
+18:16:38 P2 finished: tests/e2e-diff/evidence/round3-20261120-1757-45666732/p2

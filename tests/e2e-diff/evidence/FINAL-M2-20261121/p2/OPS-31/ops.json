@@ -1,0 +1,98 @@
+{
+  "addRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "backend": {
+    "host": "10.99.0.7",
+    "port": 9447,
+    "weight": 60
+  },
+  "backends": {
+    "bash": [
+      "10.99.0.7:9447 weight=60",
+      "127.0.0.1:9443 weight=50"
+    ],
+    "go": [
+      "10.99.0.7:9447 weight=60",
+      "127.0.0.1:9443 weight=50"
+    ]
+  },
+  "bashMenu": "2>3>1",
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "expectedLine": "server 10.99.0.7:9447 weight=60 max_fails=2 fail_timeout=10;",
+  "files": {
+    "bash": {
+      "afterRemove": [
+        "127.0.0.1.realityServers"
+      ],
+      "content": {
+        "10.99.0.7.realityServers": "server 10.99.0.7:9447 weight=60 max_fails=2 fail_timeout=10;",
+        "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;"
+      },
+      "created": [
+        "10.99.0.7.realityServers",
+        "127.0.0.1.realityServers"
+      ],
+      "dir": "/etc/idleleo/conf/nginx",
+      "suffix": "realityServers"
+    },
+    "go": {
+      "afterRemove": [
+        "127.0.0.1.realityServers"
+      ],
+      "content": {
+        "10.99.0.7.realityServers": "server 10.99.0.7:9447 weight=60 max_fails=2 fail_timeout=10;",
+        "127.0.0.1.realityServers": "server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;"
+      },
+      "created": [
+        "10.99.0.7.realityServers",
+        "127.0.0.1.realityServers"
+      ],
+      "dir": "/etc/idleleo/conf/nginx",
+      "suffix": "realityServers"
+    }
+  },
+  "id": "OPS-31",
+  "list": {
+    "bash": {
+      "reportsCreated": true,
+      "reportsDeleted": true,
+      "showsBackend": true
+    },
+    "go": {
+      "afterAdd": [
+        {
+          "file": "/etc/idleleo/conf/nginx/10.99.0.7.realityServers",
+          "host": "10.99.0.7",
+          "port": 9447,
+          "weight": 60
+        },
+        {
+          "file": "/etc/idleleo/conf/nginx/127.0.0.1.realityServers",
+          "host": "127.0.0.1",
+          "port": 9443,
+          "weight": 50
+        }
+      ],
+      "afterRemove": [
+        {
+          "file": "/etc/idleleo/conf/nginx/127.0.0.1.realityServers",
+          "host": "127.0.0.1",
+          "port": 9443,
+          "weight": 50
+        }
+      ]
+    }
+  },
+  "reasons": [],
+  "removeRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "upstream": "reality",
+  "verdict": "PASS"
+}

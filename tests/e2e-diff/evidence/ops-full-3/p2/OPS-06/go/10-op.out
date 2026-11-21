@@ -1,0 +1,54 @@
+{
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "changed": [
+    "target",
+    "server-names"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.serverNames[0]"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "21de6a68452f26f87a7b652d17ec5ccc4cba089f586a680171ac8b6e3286246b",
+  "newSha256": "325caf9e3642d2d7eddde1d248483e00d7231f94f7f307a647b210f9f2fc2a69",
+  "backupDir": "/etc/idleleo/backup/edit-20261120T150909",
+  "noChanges": false,
+  "noRestart": false,
+  "noProbe": true,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://864e42a0-5d6e-4059-9fca-cc67c915be15@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=fq7YVE0dZP4_v0J-MQITw35OWpudFQ2mlLTC2g6WTQg&sid=a1ee984c&type=raw#idleleo-reality-nginx",
+  "originProbe": "skipped: --no-probe",
+  "tlsSystemTrusted": false,
+  "disconnect": false,
+  "warnings": null,
+  "shortIds": [
+    "a1ee984c"
+  ],
+  "oldShareUri": "vless://864e42a0-5d6e-4059-9fca-cc67c915be15@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=fq7YVE0dZP4_v0J-MQITw35OWpudFQ2mlLTC2g6WTQg&sid=a1ee984c&type=raw#idleleo-reality-nginx",
+  "upstreamSha256": "29b6208b18d3713bbd23e4b3ce6f7e9200abb2748ff821d9219c7b3b6e76b75f",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "21de6a68452f26f87a7b652d17ec5ccc4cba089f586a680171ac8b6e3286246b",
+    "newSha256": "325caf9e3642d2d7eddde1d248483e00d7231f94f7f307a647b210f9f2fc2a69",
+    "changed": [
+      "server-names",
+      "target"
+    ],
+    "affectedServices": [
+      "nginx",
+      "xray"
+    ],
+    "disconnectRisk": "none: no live session is dropped",
+    "validationSteps": [
+      "xray -test",
+      "nginx -t"
+    ],
+    "rollbackScope": "runtime config + nginx front",
+    "ownership": "idleleo-managed",
+    "fingerprint": "d28bb90d51d6e179"
+  }
+}

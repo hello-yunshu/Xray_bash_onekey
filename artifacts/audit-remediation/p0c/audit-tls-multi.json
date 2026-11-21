@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "root": "/work/roots/tls-multi",
+  "legacyVersion": "3.3.4",
+  "xrayVersion": "26.10.31",
+  "role": "node",
+  "tls": "TLS",
+  "transport": "multi",
+  "nginxRequired": true,
+  "port": 443,
+  "userCount": 4,
+  "runtimePath": "/work/roots/tls-multi/etc/idleleo/conf/xray/config.json",
+  "runtimeSha256": "ae92830397eaaf9926fb1aebe064f4d0b50f8e433245bca5057d1a29fa94262e",
+  "runtimeBytes": 2744,
+  "customDns": true,
+  "customRouting": true,
+  "customOutbounds": true,
+  "customItems": [],
+  "certFiles": [],
+  "nginxFiles": [],
+  "units": {
+    "nginx": {
+      "path": "/work/roots/tls-multi/etc/systemd/system/nginx.service",
+      "present": false
+    },
+    "xray": {
+      "path": "/work/roots/tls-multi/etc/systemd/system/xray.service",
+      "present": false
+    }
+  },
+  "entry": {
+    "path": "/work/roots/tls-multi/usr/bin/idleleo",
+    "exists": true,
+    "isSymlink": true,
+    "linkTarget": "../../etc/idleleo/install.sh",
+    "sha256": "4a53aafd23b9b656770bc95377d168468c2d10d819ff0cfc062fdf83d74df65b",
+    "isGoBridge": false
+  },
+  "legacyScript": {
+    "path": "/work/roots/tls-multi/etc/idleleo/install.sh",
+    "sha256": "4a53aafd23b9b656770bc95377d168468c2d10d819ff0cfc062fdf83d74df65b"
+  },
+  "geoLegacyCron": false,
+  "projectCronLines": 0,
+  "relayConf": {
+    "path": ""
+  },
+  "rill": {
+    "installed": false,
+    "observationAgeSeconds": 0,
+    "status": "absent",
+    "enabled": false
+  },
+  "permissionFixes": [],
+  "findings": [
+    {
+      "code": "certificates-missing",
+      "severity": "fix",
+      "message": "TLS is configured but no certificate files were found"
+    },
+    {
+      "code": "xray-unit-missing",
+      "severity": "fix",
+      "message": "xray.service is missing; service semantics cannot be preserved"
+    },
+    {
+      "code": "nginx-unit-missing",
+      "severity": "fix",
+      "message": "nginx.service is missing for a TLS/relay installation"
+    }
+  ],
+  "verdict": "needs-fix"
+}

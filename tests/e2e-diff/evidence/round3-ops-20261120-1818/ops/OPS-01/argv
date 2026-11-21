@@ -1,0 +1,1 @@
+xray user list --path /etc/idleleo/conf/xray/config.json --json

@@ -1,0 +1,771 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-21T06:37:52+00:00",
+  "codeSha": "a502780cb7484b6d5240657884d12a09370b86bc",
+  "opsTotal": 34,
+  "counts": {
+    "DUAL_SIDE_VERIFIED": 13,
+    "GO_ONLY": 20,
+    "FAIL": 0,
+    "BASH_ONLY": 1,
+    "BLOCKED": 0,
+    "NOT_RUN": 0
+  },
+  "dualSideVerifiedIds": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-04",
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-09",
+    "OPS-10",
+    "OPS-17c",
+    "OPS-19",
+    "OPS-21",
+    "OPS-31",
+    "OPS-32"
+  ],
+  "goOnlyIds": [
+    "OPS-03",
+    "OPS-08",
+    "OPS-11",
+    "OPS-12",
+    "OPS-13",
+    "OPS-14",
+    "OPS-15",
+    "OPS-16",
+    "OPS-17a",
+    "OPS-17b",
+    "OPS-18",
+    "OPS-20",
+    "OPS-22",
+    "OPS-23",
+    "OPS-24",
+    "OPS-25",
+    "OPS-26",
+    "OPS-27",
+    "OPS-28",
+    "OPS-29"
+  ],
+  "failIds": [],
+  "bashOnlyIds": [
+    "OPS-30"
+  ],
+  "blockedIds": [],
+  "notRunIds": [],
+  "sources": {
+    "matrixEvidence": [
+      "tests/e2e-diff/evidence/FINAL-M2-20261121",
+      "tests/e2e-diff/evidence/FINAL-USERS-20261121"
+    ],
+    "opsEvidence": [
+      "tests/e2e-diff/evidence/FINAL-OPS4-20261121",
+      "tests/e2e-diff/evidence/FINAL-RR-20261121/realroot"
+    ]
+  },
+  "results": [
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-USERS-20261121/p2/OPS-01/ops.json",
+      "runId": "FINAL-USERS-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-01",
+      "name": "查看用户",
+      "bashEntry": "2>1>1",
+      "goCommand": "idleleo xray user list --path /etc/idleleo/conf/xray/config.json --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": null
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-USERS-20261121/p2/OPS-02/ops.json",
+      "runId": "FINAL-USERS-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-02",
+      "name": "添加用户",
+      "bashEntry": "2>1>2",
+      "goCommand": "idleleo xray user add --sandbox / --email user2@example.com --uuid 22222222-3333-4444-5555-666666666666 --short-id e2e0a1b2 --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply --container --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-03",
+      "name": "删除用户",
+      "bashEntry": "2>1>3",
+      "goCommand": "idleleo xray user remove --sandbox / --email user2@example.com --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply --container --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ],
+      "notes": null
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-04/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-04",
+      "name": "变更端口",
+      "bashEntry": "2>2>2",
+      "goCommand": "idleleo xray config edit --port 8444 --public-port 8443 --yes --no-probe --container --json",
+      "contract": "allowed-diff",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4"
+      ],
+      "notes": "Bash moves only the public Nginx port and keeps the loopback inbound on 9443; Go needs the inbound port in the same edit, so it moves that to 8444. The public port (the user-facing one) matches at 8443."
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-05/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-05",
+      "name": "变更UUID/映射",
+      "bashEntry": "2>2>1",
+      "goCommand": "idleleo xray config edit --uuid 99999999-8888-7777-6666-555555555555 --yes --no-probe --container --json",
+      "contract": "allowed-diff",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ],
+      "notes": "Bash derives UUIDv5 from the custom mapping string; Go applies the literal UUID. Both change the client id and both ids must be valid UUIDs."
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-06/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-06",
+      "name": "变更target",
+      "bashEntry": "2>2>3",
+      "goCommand": "idleleo xray config edit --target www.cloudflare.com:443 --server-names www.cloudflare.com --yes --no-probe --container --json",
+      "contract": "allowed-diff",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L4"
+      ],
+      "notes": "Bash target_set also rewrites serverNames, so the Go call sets both. Go refuses with rc=2 and writes nothing when the origin probe fails; that case is recorded BLOCKED, never PASS."
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-07/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-07",
+      "name": "变更TLS版本",
+      "bashEntry": "2>2>4",
+      "goCommand": "idleleo xray tls --version 1.2+ --container",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L2"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 7,
+      "evidence": "tests/e2e-diff/evidence/FINAL-RR-20261121/realroot/assertions.txt",
+      "runId": "realroot",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-08",
+      "name": "SNI Guard",
+      "bashEntry": "2>2>5",
+      "goCommand": "idleleo xray guard set --policy isolate --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L2"
+      ],
+      "notes": null
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": null,
+      "goExit": null,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-09/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-09",
+      "name": "Nginx负载均衡",
+      "bashEntry": "2>3>1",
+      "goCommand": "idleleo xray balance list --upstream ws --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L4"
+      ],
+      "notes": null
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-10/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-10",
+      "name": "serverNames",
+      "bashEntry": "2>3>2",
+      "goCommand": "idleleo xray config edit --server-names ops10.example.com --yes --no-probe --container --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ],
+      "notes": "Bash drives the nested file_manager menu (create ops10.example.com fragment); the BLOCKED path remains only for an unreachable menu."
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-11",
+      "name": "查看配置信息",
+      "bashEntry": "3>1",
+      "goCommand": "idleleo show --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 1,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-12",
+      "name": "实时访问日志",
+      "bashEntry": "3>2",
+      "goCommand": "idleleo service logs --unit xray --lines 20",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 1,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-13",
+      "name": "实时错误日志",
+      "bashEntry": "3>3",
+      "goCommand": "idleleo service logs --unit xray --lines 20",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 4,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-14",
+      "name": "端口实时流量",
+      "bashEntry": "3>4",
+      "goCommand": "idleleo stats --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-15",
+      "name": "服务重启/启动/停止/状态",
+      "bashEntry": "4>1>1..4",
+      "goCommand": "idleleo service restart",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L3"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 4,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-16",
+      "name": "证书状态/有效期/自动更新",
+      "bashEntry": "4>2>1..3",
+      "goCommand": "idleleo xray cert renew --dry-run",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L2",
+        "L5"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-17a",
+      "name": "更新脚本",
+      "bashEntry": "5>1",
+      "goCommand": "idleleo update check --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 8,
+      "evidence": "tests/e2e-diff/evidence/FINAL-RR-20261121/realroot/assertions.txt",
+      "runId": "realroot",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-17b",
+      "name": "更新Nginx",
+      "bashEntry": "5>3",
+      "goCommand": "idleleo update nginx --manifest <path|URL> --container --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": "真实 1.27.5→1.30.6 组件更新已接入：run_ops_realroot.sh 在 nginx:1.27 容器内验证 action/previousVersion/newVersion/health 并激活新二进制（FINAL-RR-20261121）。Bash 菜单 5>3 为同一能力入口，本轮未在 Bash 侧执行。"
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-17c/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-17c",
+      "name": "配置自动更新",
+      "bashEntry": "5>4",
+      "goCommand": "idleleo schedule install --interval 3600",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-18",
+      "name": "TCP加速",
+      "bashEntry": "6>1",
+      "goCommand": "idleleo tcp status --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L3"
+      ],
+      "notes": null
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": null,
+      "goExit": null,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-19/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-19",
+      "name": "Fail2ban",
+      "bashEntry": "6>2",
+      "goCommand": "idleleo fail2ban install --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L3"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-20",
+      "name": "流量统计",
+      "bashEntry": "6>3",
+      "goCommand": "idleleo stats --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": null
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": null,
+      "goExit": null,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-21/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-21",
+      "name": "流量阻断",
+      "bashEntry": "6>4",
+      "goCommand": "idleleo xray block status --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-22",
+      "name": "清除日志",
+      "bashEntry": "6>5",
+      "goCommand": "idleleo xray logs clean --yes --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 4,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-23",
+      "name": "服务器网速",
+      "bashEntry": "6>6",
+      "goCommand": "idleleo speedtest --samples 1 --bytes 1048576",
+      "contract": "allowed-diff",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": "Go speedtest 指向本地 1MiB origin（run_ops_sweep.sh OPS-23，FINAL-OPS4-20261121）；Bash 菜单 6>6 使用外部测速端点，未纳入本轮双端。"
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 7,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-24",
+      "name": "刷新GeoData",
+      "bashEntry": "6>7",
+      "goCommand": "idleleo schedule run --job geodata-refresh",
+      "contract": "allowed-diff",
+      "layers": [
+        "L0",
+        "L1"
+      ],
+      "notes": "Go 以 schedule run --job geodata-refresh 对接真实 geoip.dat/geosite.dat 本地 origin，校验 result=ok 且 sha256 匹配（FINAL-OPS4-20261121）；Bash 菜单 6>7 为同一能力入口，本轮未在 Bash 侧执行。"
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 1,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-25",
+      "name": "备份管理文件",
+      "bashEntry": "7>1",
+      "goCommand": "idleleo metadata export --out /tmp/e2e-metadata.json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-26",
+      "name": "恢复管理文件",
+      "bashEntry": "7>2",
+      "goCommand": "idleleo metadata import --from /tmp/e2e-metadata.json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 11,
+      "evidence": "tests/e2e-diff/evidence/FINAL-RR-20261121/realroot/assertions.txt",
+      "runId": "realroot",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-27",
+      "name": "清空证书文件",
+      "bashEntry": "7>3",
+      "goCommand": "idleleo xray cert clear --yes --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 4,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-28",
+      "name": "卸载",
+      "bashEntry": "7>4",
+      "goCommand": "idleleo xray uninstall",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L3"
+      ],
+      "notes": null
+    },
+    {
+      "status": "GO_ONLY",
+      "verdict": "PASS",
+      "goExit": 0,
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "runId": "FINAL-OPS4-20261121",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-29",
+      "name": "Rill AI 状态",
+      "bashEntry": "9",
+      "goCommand": "idleleo rill status --json",
+      "contract": "allowed-diff",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": null
+    },
+    {
+      "status": "BASH_ONLY",
+      "verdict": "BASH_ONLY",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-30/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-30",
+      "name": "修改语言",
+      "bashEntry": "8",
+      "goCommand": null,
+      "contract": "allowed-diff",
+      "layers": [
+        "L0"
+      ],
+      "notes": "语言切换是 Bash 交互菜单的本地化偏好，Go CLI 不提供等价命令；Bash 功能未被删除，登记为 BASH_ONLY（非安全差异，未获“取消功能”批准，因此不宣称对等）。"
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": null,
+      "goExit": null,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-31/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-31",
+      "name": "Reality负载均衡",
+      "bashEntry": "2>3>1",
+      "goCommand": "idleleo xray balance list --upstream reality --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L4"
+      ],
+      "notes": null
+    },
+    {
+      "status": "DUAL_SIDE_VERIFIED",
+      "verdict": "PASS",
+      "bashExit": null,
+      "goExit": null,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/OPS-32/ops.json",
+      "runId": "FINAL-M2-20261121",
+      "layer": "L0-L4 driver evidence",
+      "id": "OPS-32",
+      "name": "后端故障摘除（ws + reality 上游）",
+      "bashEntry": "2>3>1",
+      "goCommand": "idleleo xray balance list --upstream ws --json",
+      "contract": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L4"
+      ],
+      "notes": null
+    }
+  ]
+}

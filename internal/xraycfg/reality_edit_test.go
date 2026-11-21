@@ -62,6 +62,55 @@ func TestEditRealityLinkKeepsPortWithoutPublicDefault(t *testing.T) {
 	}
 }
 
+func TestEditHostBecomesTheDialAddress(t *testing.T) {
+	raw := editBase(t)
+	g, res, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},
+		EditRequest{ShortIDAuto: true, Host: "203.0.113.10"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The SNI stays the camouflage identity; only the authority moves to the
+	// address the operator says clients dial.
+	for _, link := range []string{g.ShareURI, res.OldShareURI, res.NewShareURI} {
+		if !strings.Contains(link, "@203.0.113.10:443?") {
+			t.Fatalf("link does not dial the explicit host: %s", link)
+		}
+		if !strings.Contains(link, "sni=example.com") {
+			t.Fatalf("link lost the SNI: %s", link)
+		}
+		if strings.Contains(link, "@example.com:443?") {
+			t.Fatalf("link still dials the SNI: %s", link)
+		}
+	}
+}
+
+func TestEditShortIDLinksUseTheExplicitHost(t *testing.T) {
+	raw := editBase(t)
+	_, res, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},
+		EditRequest{ListShortIDs: true, Host: "198.51.100.25"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.ShortIDLinks) == 0 {
+		t.Fatal("no short-id links returned")
+	}
+	for _, link := range res.ShortIDLinks {
+		if !strings.Contains(link.ShareURI, "@198.51.100.25:443?") {
+			t.Fatalf("short-id link does not dial the explicit host: %s", link.ShareURI)
+		}
+	}
+}
+
+func TestEditRejectsURLAsHost(t *testing.T) {
+	raw := editBase(t)
+	for _, host := range []string{"https://example.com", "example.com/path"} {
+		if _, _, err := EditRuntime(raw, EditDefaults{Mode: ModeReality},
+			EditRequest{ShortIDAuto: true, Host: host}); err == nil {
+			t.Fatalf("host %q must be rejected", host)
+		}
+	}
+}
+
 func TestEditShortIDEmptyClearsExplicitly(t *testing.T) {
 	raw := editBase(t)
 	g, res, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},

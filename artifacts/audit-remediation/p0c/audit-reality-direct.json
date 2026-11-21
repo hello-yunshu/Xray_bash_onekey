@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "root": "/work/roots/reality-direct",
+  "legacyVersion": "3.3.4",
+  "xrayVersion": "26.10.31",
+  "role": "node",
+  "tls": "Reality",
+  "transport": "raw",
+  "nginxRequired": false,
+  "port": 9443,
+  "userCount": 1,
+  "runtimePath": "/work/roots/reality-direct/etc/idleleo/conf/xray/config.json",
+  "runtimeSha256": "2de3d72f2fc0cd18a0715e2e3a3e80e33cb4c0cb1e54fcd586d404dfb0d93239",
+  "runtimeBytes": 1692,
+  "customDns": true,
+  "customRouting": true,
+  "customOutbounds": true,
+  "customItems": [],
+  "certFiles": [],
+  "nginxFiles": [],
+  "units": {
+    "nginx": {
+      "path": "/work/roots/reality-direct/etc/systemd/system/nginx.service",
+      "present": false
+    },
+    "xray": {
+      "path": "/work/roots/reality-direct/etc/systemd/system/xray.service",
+      "present": false
+    }
+  },
+  "entry": {
+    "path": "/work/roots/reality-direct/usr/bin/idleleo",
+    "exists": true,
+    "isSymlink": true,
+    "linkTarget": "../../etc/idleleo/install.sh",
+    "sha256": "4a53aafd23b9b656770bc95377d168468c2d10d819ff0cfc062fdf83d74df65b",
+    "isGoBridge": false
+  },
+  "legacyScript": {
+    "path": "/work/roots/reality-direct/etc/idleleo/install.sh",
+    "sha256": "4a53aafd23b9b656770bc95377d168468c2d10d819ff0cfc062fdf83d74df65b"
+  },
+  "geoLegacyCron": false,
+  "projectCronLines": 0,
+  "relayConf": {
+    "path": ""
+  },
+  "rill": {
+    "installed": false,
+    "observationAgeSeconds": 0,
+    "status": "absent",
+    "enabled": false
+  },
+  "permissionFixes": [],
+  "findings": [
+    {
+      "code": "xray-unit-missing",
+      "severity": "fix",
+      "message": "xray.service is missing; service semantics cannot be preserved"
+    }
+  ],
+  "verdict": "needs-fix"
+}

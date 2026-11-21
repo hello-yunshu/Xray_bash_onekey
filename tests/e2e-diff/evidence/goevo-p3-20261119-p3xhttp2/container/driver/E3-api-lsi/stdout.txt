@@ -1,0 +1,181 @@
+{
+    "inbounds": [
+        {
+            "proxySettings": {
+                "_TypedMessage_": "xray.proxy.vless.inbound.Config",
+                "decryption": "none",
+                "users": [
+                    {
+                        "account": {
+                            "_TypedMessage_": "xray.proxy.vless.Account",
+                            "flow": "xtls-rprx-vision",
+                            "id": "<uuid>"
+                        },
+                        "email": "me@hey.run"
+                    },
+                    {
+                        "account": {
+                            "_TypedMessage_": "xray.proxy.vless.Account",
+                            "id": "<uuid>"
+                        },
+                        "email": "hot-b@test.local"
+                    }
+                ]
+            },
+            "receiverSettings": {
+                "_TypedMessage_": "xray.app.proxyman.ReceiverConfig",
+                "listen": "0.0.0.0",
+                "portList": 443,
+                "streamSettings": {
+                    "protocolName": "tcp",
+                    "securitySettings": [
+                        {
+                            "_TypedMessage_": "xray.transport.internet.reality.Config",
+                            "dest": "127.0.0.1:8443",
+                            "limitFallbackDownload": {},
+                            "limitFallbackUpload": {},
+                            "minClientVer": [
+                                1,
+                                0,
+                                0
+                            ],
+                            "privateKey": [
+                                47,
+                                239,
+                                215,
+                                196,
+                                212,
+                                245,
+                                47,
+                                221,
+                                135,
+                                192,
+                                43,
+                                117,
+                                65,
+                                121,
+                                187,
+                                234,
+                                132,
+                                11,
+                                83,
+                                14,
+                                217,
+                                162,
+                                165,
+                                31,
+                                115,
+                                201,
+                                116,
+                                112,
+                                37,
+                                197,
+                                29,
+                                161
+                            ],
+                            "serverNames": [
+                                "www.cloudflare.com"
+                            ],
+                            "shortIds": [
+                                [
+                                    183,
+                                    95,
+                                    199,
+                                    218,
+                                    0,
+                                    0,
+                                    0,
+                                    0
+                                ]
+                            ],
+                            "type": "tcp"
+                        }
+                    ],
+                    "securityType": "xray.transport.internet.reality.Config"
+                }
+            },
+            "tag": "VLESS-Reality-in"
+        },
+        {
+            "proxySettings": {
+                "_TypedMessage_": "xray.proxy.vless.inbound.Config",
+                "decryption": "none",
+                "users": [
+                    {
+                        "account": {
+                            "_TypedMessage_": "xray.proxy.vless.Account",
+                            "id": "<uuid>"
+                        },
+                        "email": "xhttp@hey.run"
+                    }
+                ]
+            },
+            "receiverSettings": {
+                "_TypedMessage_": "xray.app.proxyman.ReceiverConfig",
+                "listen": "0.0.0.0",
+                "portList": 11000,
+                "streamSettings": {
+                    "protocolName": "splithttp",
+                    "transportSettings": [
+                        {
+                            "protocolName": "splithttp",
+                            "settings": {
+                                "_TypedMessage_": "xray.transport.internet.splithttp.Config",
+                                "mode": "auto",
+                                "path": "/ray/",
+                                "scMaxEachPostBytes": {},
+                                "scMinPostsIntervalMs": {},
+                                "scStreamUpServerSecs": {},
+                                "seqPlacement": "path",
+                                "sessionIDLength": {},
+                                "sessionIDPlacement": "path",
+                                "uplinkChunkSize": {},
+                                "uplinkDataKey": "X-Data",
+                                "uplinkDataPlacement": "auto",
+                                "uplinkHTTPMethod": "POST",
+                                "xPaddingBytes": {},
+                                "xPaddingHeader": "X-Padding",
+                                "xPaddingKey": "x_padding",
+                                "xPaddingMethod": "repeat-x",
+                                "xPaddingPlacement": "queryInHeader",
+                                "xmux": {
+                                    "cMaxReuseTimes": {},
+                                    "hMaxRequestTimes": {
+                                        "from": 600,
+                                        "to": 900
+                                    },
+                                    "hMaxReusableSecs": {
+                                        "from": 1800,
+                                        "to": 3000
+                                    },
+                                    "maxConcurrency": {},
+                                    "maxConnections": {
+                                        "from": 3,
+                                        "to": 3
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "tag": "VLESS-xhttp-in"
+        },
+        {
+            "proxySettings": {
+                "_TypedMessage_": "xray.proxy.dokodemo.Config",
+                "allowedNetworks": [
+                    "TCP"
+                ],
+                "rewriteAddress": "127.0.0.1"
+            },
+            "receiverSettings": {
+                "_TypedMessage_": "xray.app.proxyman.ReceiverConfig",
+                "listen": "127.0.0.1",
+                "portList": 10085
+            },
+            "tag": "api"
+        }
+    ]
+}
+

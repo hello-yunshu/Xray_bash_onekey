@@ -269,7 +269,7 @@ func TestEditPortOnlyTouchesPort(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	info, err := Share(g2.Config, 0, "", 0)
+	info, err := Share(g2.Config, 0, "198.51.100.25", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -300,6 +300,45 @@ func TestEditTransportRebuildsInbounds(t *testing.T) {
 	newClient := asMap(asSlice(asMap(in[0]["settings"])["clients"])[0])
 	if asString(oldClient["id"]) != asString(newClient["id"]) {
 		t.Fatalf("transport edit changed the UUID")
+	}
+}
+
+func TestEditXHTTPPathAlwaysHasLeadingSlash(t *testing.T) {
+	raw := editBase(t)
+	for _, tc := range []struct{ in, want string }{
+		{"custom", "/custom"},
+		{"/custom/", "/custom/"},
+	} {
+		g, _, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},
+			EditRequest{Transport: TransportXHTTP, XHTTPPath: tc.in, XHTTPPathSet: true})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var path string
+		for _, inbound := range editInbounds(t, g.Config) {
+			stream := asMap(inbound["streamSettings"])
+			if asString(stream["network"]) != TransportXHTTP {
+				continue
+			}
+			path = asString(asMap(stream["xhttpSettings"])["path"])
+		}
+		if path != tc.want {
+			t.Fatalf("xhttp path %q rendered as %q, want %q", tc.in, path, tc.want)
+		}
+	}
+}
+
+// TestEditXHTTPPathRejectsBlankInput pins the security decision for the inputs
+// where the Bash menu and the Go CLI diverged: empty and whitespace-only paths
+// are refused instead of being silently ignored or rendered as "/ ".
+func TestEditXHTTPPathRejectsBlankInput(t *testing.T) {
+	raw := editBase(t)
+	for _, in := range []string{"", " ", "   ", "\t", " /custom "} {
+		_, _, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},
+			EditRequest{Transport: TransportXHTTP, XHTTPPath: in, XHTTPPathSet: true})
+		if err == nil {
+			t.Fatalf("xhttp path %q must be rejected", in)
+		}
 	}
 }
 
@@ -418,6 +457,37 @@ func TestEditNoOpWhenNothingRequested(t *testing.T) {
 	after, _ := parseRuntime(g.Config)
 	if b, _ := json.Marshal(before); string(b) != string(mustMarshal(after)) {
 		t.Fatalf("no-op edit rewrote the config")
+	}
+}
+
+func TestEditPublicPortOnNginxFrontIsNotANoOp(t *testing.T) {
+	stubCanBind(t, func(string, int) bool { return true })
+	base, err := Generate(Spec{Mode: ModeRealityNginx, Domain: "example.com", Port: 443})
+	if err != nil {
+		t.Fatal(err)
+	}
+	patched, res, err := EditRuntime(base.Config,
+		EditDefaults{Mode: ModeRealityNginx, PublicPort: 443}, EditRequest{PublicPort: 8443})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.NoChanges {
+		t.Fatalf("public-port edit on a front must not be reported as a no-op: %+v", res)
+	}
+	if res.PublicPort != 8443 || patched.PublicPort != 8443 {
+		t.Fatalf("public port not applied: result=%d generated=%d", res.PublicPort, patched.PublicPort)
+	}
+	if !strings.Contains(patched.NginxConf, "listen 8443") {
+		t.Fatalf("generated front does not listen on 8443:\n%s", patched.NginxConf)
+	}
+	// Passing the live value back must still be a no-op, not a needless reload.
+	_, same, err := EditRuntime(base.Config,
+		EditDefaults{Mode: ModeRealityNginx, PublicPort: 443}, EditRequest{PublicPort: 443})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !same.NoChanges {
+		t.Fatalf("unchanged public port must stay a no-op: %+v", same)
 	}
 }
 

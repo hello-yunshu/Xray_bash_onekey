@@ -1,0 +1,52 @@
+{
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "changed": [
+    "server-names"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.serverNames[0]"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "1b83e377e701f681ed3f0aa0d88e888c6187818820520e6eb3f45cfae262ee0b",
+  "newSha256": "824f95a01705a866d5bead49f754de7d5856bd10b3dd72e91d89ce629c0ed274",
+  "backupDir": "/etc/idleleo/backup/edit-20261121T043804",
+  "noChanges": false,
+  "noRestart": false,
+  "noProbe": true,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://fa6dc782-b24e-43c9-9b34-79907031bd75@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=ops10.example.com&fp=chrome&pbk=foJ8cJw2ugBKwfh15RGynLpxVdZbt1EZpyL1URnZrQE&sid=77930433&type=raw#idleleo-reality-nginx",
+  "originProbe": "skipped: --no-probe",
+  "tlsSystemTrusted": false,
+  "disconnect": false,
+  "warnings": null,
+  "shortIds": [
+    "77930433"
+  ],
+  "oldShareUri": "vless://fa6dc782-b24e-43c9-9b34-79907031bd75@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=foJ8cJw2ugBKwfh15RGynLpxVdZbt1EZpyL1URnZrQE&sid=77930433&type=raw#idleleo-reality-nginx",
+  "upstreamSha256": "29b6208b18d3713bbd23e4b3ce6f7e9200abb2748ff821d9219c7b3b6e76b75f",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "1b83e377e701f681ed3f0aa0d88e888c6187818820520e6eb3f45cfae262ee0b",
+    "newSha256": "824f95a01705a866d5bead49f754de7d5856bd10b3dd72e91d89ce629c0ed274",
+    "changed": [
+      "server-names"
+    ],
+    "affectedServices": [
+      "nginx",
+      "xray"
+    ],
+    "disconnectRisk": "none: no live session is dropped",
+    "validationSteps": [
+      "xray -test",
+      "nginx -t"
+    ],
+    "rollbackScope": "runtime config + nginx front",
+    "ownership": "idleleo-managed",
+    "fingerprint": "b847fed179796c9e"
+  }
+}

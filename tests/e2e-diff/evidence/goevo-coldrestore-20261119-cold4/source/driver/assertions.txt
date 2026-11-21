@@ -1,0 +1,8 @@
+PASS	source install is healthy before the backup (rc=0)
+PASS	source backup create exits 0 (rc=0)
+PASS	source archive exists
+PASS	source archive is mode 0600 (mode=600)
+PASS	source archive verifies (rc=0)
+PASS	a real client reaches the origin on the source machine
+PASS	source doctor --client-probe exits 0 (rc=0)
+PASS	source probe reports REAL_CLIENT_PASS

@@ -1,0 +1,43 @@
+SCENARIO=OPS-19 ENTRY=-f
+spawn bash /etc/idleleo/install.sh -f
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+[警告]  Release 未声明该校验值(兼容期), 继续安装: fail2ban_manager.sh 
+[OK]  当前已经是最新版本: 1.6.0 
+[OK]  当前系统为 Ubuntu 24.04 noble 
+[33m0% [Working][0m            Hit:1 http://ports.ubuntu.com/ubuntu-ports noble InRelease
+[33m0% [Working][0m[33m0% [Waiting for headers][0m                        Hit:2 http://ports.ubuntu.com/ubuntu-ports noble-updates InRelease
+[33m0% [Waiting for headers][0m[33m0% [Waiting for headers][0m                        Hit:3 http://ports.ubuntu.com/ubuntu-ports noble-backports InRelease
+[33m0% [Waiting for headers][0m[33m0% [Waiting for headers][0m                        Hit:4 http://ports.ubuntu.com/ubuntu-ports noble-security InRelease
+[33m                        0% [Working][0m[33m20% [Working][0m             Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 4%Reading package lists... 4%Reading package lists... 52%Reading package lists... 52%Reading package lists... 52%Reading package lists... 52%Reading package lists... 53%Reading package lists... 53%Reading package lists... 59%Reading package lists... 59%Reading package lists... 66%Reading package lists... 66%Reading package lists... 77%Reading package lists... 77%Reading package lists... 78%Reading package lists... 78%Reading package lists... 78%Reading package lists... 78%Reading package lists... 78%Reading package lists... 78%Reading package lists... 78%Reading package lists... 78%Reading package lists... 83%Reading package lists... 83%Reading package lists... 88%Reading package lists... 88%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... Done
+Reading state information... 0% Reading state information... 1%Reading state information... Done
+11 packages can be upgraded. Run 'apt list --upgradable' to see them.
+
+ 设置 Fail2ban 用于防止暴力破解 
+ 主菜单 
+1. 安装 Fail2ban
+2. 管理 Fail2ban
+3. 卸载 Fail2ban
+4. 查看 Fail2ban 状态
+5. 退出
+请选择一个选项:STEP[f2bMenu]=1
+1
+[OK]  Fail2ban 已经安装, 跳过安装步骤 
+[警告]  systemd 无法读取 SSH 日志 
+[警告]  跳过启用 SSH 规则 
+Synchronizing state of fail2ban.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+Executing: /usr/lib/systemd/systemd-sysv-install enable fail2ban
+[OK]  Fail2ban 配置 完成 
+[OK]  Fail2ban 配置 完成 
+
+ 设置 Fail2ban 用于防止暴力破解 
+ 主菜单 
+1. 安装 Fail2ban
+2. 管理 Fail2ban
+3. 卸载 Fail2ban
+4. 查看 Fail2ban 状态
+5. 退出
+请选择一个选项:STEP[f2bExit]=5
+5
+EXPECT_WAIT_STATUS=2779 exp4 0 0

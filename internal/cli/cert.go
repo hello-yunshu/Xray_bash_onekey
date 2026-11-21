@@ -10,6 +10,7 @@ import (
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/acme"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/change"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/deploy"
 )
 
 // acmeIssueFn, acmeRenewFn and acmePreflightFn are variables so tests can
@@ -29,6 +30,8 @@ func xrayCert(ctx context.Context, opts Options, cfg config, args []string) int 
 	action, rest := args[0], args[1:]
 	switch action {
 	case "issue", "renew":
+	case "clear":
+		return xrayCertClear(ctx, opts, cfg, rest)
 	default:
 		return usage(opts, cfg.lang, "help")
 	}
@@ -189,6 +192,53 @@ func xrayCert(ctx context.Context, opts Options, cfg config, args []string) int 
 	}
 	if result.Reloaded {
 		fmt.Fprintln(opts.Out, "reload: done")
+	}
+	return 0
+}
+
+// xrayCertClear removes only certificates proven to belong to this project and
+// not referenced by an effective Nginx/Xray/schedule configuration. An unclear
+// owner is kept with a warning, never guessed away.
+func xrayCertClear(ctx context.Context, opts Options, cfg config, args []string) int {
+	cfg.json = cfg.json || hasFlag(args, "--json")
+	dryRun := hasFlag(args, "--dry-run")
+	if !dryRun && !hasFlag(args, "--yes") {
+		if !confirmEdit(opts) {
+			return fail(opts, cfg, &change.UsageError{Msg: "certificate deletion cancelled"})
+		}
+	}
+	report, err := deploy.ClearCertificates(ctx, deploy.ClearCertsSpec{
+		Root:                 cfg.root,
+		AllowContainerWrites: hasFlag(args, "--container"),
+		DryRun:               dryRun,
+	})
+	if err != nil {
+		return fail(opts, cfg, err)
+	}
+	if cfg.json {
+		return writeJSON(opts, report)
+	}
+	if report.Missing {
+		fmt.Fprintf(opts.Out, "cert clear: %s does not exist; nothing to remove\n", report.Dir)
+		return 0
+	}
+	fmt.Fprintf(opts.Out, "cert clear: dir=%s dryRun=%t removed=%d kept=%d recovered=%t\n",
+		report.Dir, report.DryRun, len(report.Removed), len(report.Skipped), report.Recovered)
+	for _, entry := range report.Planned {
+		fmt.Fprintf(opts.Out, "plan action=%s owner=%s inUse=%t kind=%s path=%s\n",
+			entry.Action, entry.Owner, entry.InUse, entry.Kind, entry.Path)
+		if entry.Reason != "" {
+			fmt.Fprintf(opts.Out, "  reason=%s\n", entry.Reason)
+		}
+		for _, source := range entry.ReferencedBy {
+			fmt.Fprintf(opts.Out, "  referencedBy=%s\n", source)
+		}
+	}
+	for _, path := range report.Removed {
+		fmt.Fprintf(opts.Out, "removed=%s\n", path)
+	}
+	for _, warning := range report.Warnings {
+		fmt.Fprintf(opts.Out, "warning=%s\n", warning)
 	}
 	return 0
 }

@@ -1,0 +1,36 @@
+run_id=docker-final-cold-20261120-df3f3838
+commit=df3f38381a8d3c4f8c8bc9681d589c891f5133f6
+image=idleleo-e2e:24.04
+image_id=sha256:76b8b5d49b44c070978723937426452d9f00a3fc4bc5711c82880512b121ca9c
+building idleleo
+idleleo_sha256=1d299dc6f7f4481d583bca08d944d407d61b3361bcacdf667f5324adf21f1f5e
+building the local TLS target
+arch=arm64
+xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 arch=arm64
+source: starting e2e-docker-final-cold-20261120-df3f3838-cold-source
+source: installing Go manager
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target 127.0.0.1:8443 --port 443 --container
+install_exit=0
+done=reality install_exit=0
+source: driver
+driver_start=2026-11-20T10:42:07Z mode=source root=/
+driver_done assertions=8 pass / 0 fail
+source_driver_rc=0
+source: destroying e2e-docker-final-cold-20261120-df3f3838-cold-source
+target: starting e2e-docker-final-cold-20261120-df3f3838-cold-target
+target: installing a fresh Go manager (new keys and users)
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target 127.0.0.1:8443 --port 443 --container
+install_exit=0
+done=reality install_exit=0
+target: driver
+driver_start=2026-11-20T10:42:11Z mode=target root=/
+driver_done assertions=19 pass / 0 fail
+target_driver_rc=0
+evidence=tests/e2e-diff/evidence/goevo-coldrestore-docker-final-cold-20261120-df3f3838
+RESULT: PASS

@@ -1,0 +1,68 @@
+{
+  "dns": {
+    "disableCache": false,
+    "servers": [
+      "localhost"
+    ]
+  },
+  "inbounds": [
+    {
+      "listen": "0.0.0.0",
+      "port": 10086,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "email": "user@example.com",
+            "id": "REDACTED",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "path": "/ray/"
+        },
+        "realitySettings": {
+          "privateKey": "REDACTED"
+        }
+      },
+      "tag": "VLESS-ws-in"
+    }
+  ],
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIPv4v6"
+        }
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blocked"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "inboundTag": [
+          "VLESS-ws-in"
+        ],
+        "outboundTag": "direct",
+        "type": "field"
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/backup	1.877s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/repair	1.018s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	3.640s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	1.251s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	1.035s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	1.224s

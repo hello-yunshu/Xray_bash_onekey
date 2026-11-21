@@ -1,0 +1,10 @@
+{
+  "role": "relay",
+  "backend": "origin.example.com:80",
+  "listen": "0.0.0.0:18444",
+  "configPath": "/etc/idleleo/conf/nginx/relay-stream.conf",
+  "nginxDir": "/etc/idleleo/conf/nginx",
+  "nginxManaged": true,
+  "nginxVerified": true,
+  "warnings": []
+}

@@ -1,0 +1,4 @@
+== gofmt
+== vet
+== build
+ALL_OK

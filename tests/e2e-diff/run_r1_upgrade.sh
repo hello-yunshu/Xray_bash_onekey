@@ -32,6 +32,14 @@ source "$ROOT/tests/go-parity/lib/docker_common.sh"
 
 mkdir -p "$EVID" "$WORK/seed/cert" "$WORK/secret"
 : >"$EVID/assertions.txt"
+# Historical migration: point the driver at a real older installer (mounted as
+# /seed/historical.sh) instead of the tracked one. No snapshot is fabricated.
+if [[ -n "${E2E_HISTORICAL_INSTALLER:-}" ]]; then
+    install -m 0755 "$E2E_HISTORICAL_INSTALLER" "$WORK/seed/historical.sh"
+    # The driver must install from the mounted historical copy, not the
+    # tracked install.sh; otherwise the run silently tests the current shell.
+    export E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-/seed/historical.sh}"
+fi
 log() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$EVID/run.log"; }
 assert() { # assert <ok:0|1> <label>
     if [ "$1" -eq 0 ]; then
@@ -159,6 +167,7 @@ run_r1() { # run_r1 <sid> <profile> <bash-arg> <l4-profile> <l4-transport> <go-a
 
     docker exec -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
         -e E2E_PROFILE="$profile" -e E2E_ARG="$barg" -e E2E_MENU="" \
+        -e E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-}" \
         -e E2E_TRANSPORT=1 -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" \
         -e E2E_PORT=443 -e E2E_LOCAL_IP=127.0.0.1 \
         "$c" bash /src/tests/e2e-diff/drivers/bash_install.sh
@@ -262,6 +271,7 @@ run_r2() { # run_r2 <sid> <profile> <bash-arg> <l4-profile> <l4-transport>
     fi
     docker exec -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
         -e E2E_PROFILE="$profile" -e E2E_ARG="$barg" -e E2E_MENU="" \
+        -e E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-}" \
         -e E2E_TRANSPORT=1 -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" \
         -e E2E_PORT=443 -e E2E_LOCAL_IP=127.0.0.1 \
         "$c" bash /src/tests/e2e-diff/drivers/bash_install.sh
@@ -367,6 +377,7 @@ run_injections() { # run_injections <sid> <profile> <bash-arg> <go-args...>
     fi
     docker exec -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
         -e E2E_PROFILE="$profile" -e E2E_ARG="$barg" -e E2E_MENU="" \
+        -e E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-}" \
         -e E2E_TRANSPORT=1 -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" \
         -e E2E_PORT=443 -e E2E_LOCAL_IP=127.0.0.1 \
         "$c" bash /src/tests/e2e-diff/drivers/bash_install.sh

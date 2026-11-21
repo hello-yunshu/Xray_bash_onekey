@@ -1,0 +1,14 @@
+{
+  "upstream": "reality",
+  "backends": [
+    {
+      "host": "127.0.0.1",
+      "port": 9443,
+      "weight": 50,
+      "file": "/etc/idleleo/conf/nginx/127.0.0.1.realityServers"
+    }
+  ],
+  "changed": false,
+  "probed": false,
+  "warnings": []
+}

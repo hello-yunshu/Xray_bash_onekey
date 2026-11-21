@@ -1,0 +1,33 @@
+{
+  "afterSha": "02c970c80d7ccdf336e115dac4c9aa059f0426b42e755affdb1823020d967d4d",
+  "allPassed": true,
+  "beforeSha": "02c970c80d7ccdf336e115dac4c9aa059f0426b42e755affdb1823020d967d4d",
+  "checks": {
+    "backupHasOldCert": true,
+    "backupHasOldKey": true,
+    "editRcZero": true,
+    "fragmentUpdated": true,
+    "probeOk": true,
+    "runtimeUnchanged": true,
+    "scheduleUpdated": true,
+    "servicesActive": true,
+    "tlsVersion13": true,
+    "wireCertMatches": true,
+    "xrayNotRestarted": true
+  },
+  "editRc": 0,
+  "error": "",
+  "wanted": [
+    "backupHasOldCert",
+    "backupHasOldKey",
+    "editRcZero",
+    "fragmentUpdated",
+    "probeOk",
+    "runtimeUnchanged",
+    "scheduleUpdated",
+    "servicesActive",
+    "tlsVersion13",
+    "wireCertMatches",
+    "xrayNotRestarted"
+  ]
+}

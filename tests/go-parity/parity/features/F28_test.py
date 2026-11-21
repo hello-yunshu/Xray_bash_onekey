@@ -15,6 +15,7 @@ reads must not write anything, including a change journal.
 import json
 import shutil
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -79,8 +80,9 @@ def check_contains(f, label, text, needle):
 
 
 def build_root(f, name, private_key):
-    root = f.evidence / name
-    shutil.rmtree(root, ignore_errors=True)
+    # The fixture config carries a transient Reality private key, so it lives
+    # outside the evidence directory: only its projected JSON is uploaded.
+    root = Path(tempfile.mkdtemp(prefix=f"f28-{name}-"))
     config = root / CONFIG_REL
     config.parent.mkdir(parents=True, exist_ok=True)
     config.write_text(json.dumps({
@@ -141,20 +143,22 @@ def main(f):
     f.need_root()
     xray = f.xray_bin()
 
-    keys = f.run([xray, "x25519"], timeout=30)
+    # A transient Reality keypair is generated only to render one link. It is
+    # never written to evidence: redact=True keeps argv/stdout out of
+    # commands.log, and the assertions below print booleans, not key material.
+    keys = f.run([xray, "x25519"], timeout=30, redact=True)
     private_key = key_value(keys.text, ["PrivateKey", "Private key"])
     f.check(bool(private_key), "xray x25519 produced a private key",
-            f"expected=<non-empty> actual={private_key!r} output={keys.text.strip()[:300]!r}")
+            "expected=<non-empty> actual=<redacted>")
     if not private_key:
         return
-    derived = f.run([xray, "x25519", "-i", private_key], timeout=30)
     public_key = key_value(
-        derived.text,
+        keys.text,
         ["Password (PublicKey)", "PublicKey", "Password", "Public key"],
         skip=("private",),
     )
-    f.check(bool(public_key), "xray x25519 -i produced a public key",
-            f"expected=<non-empty> actual={public_key!r} output={derived.text.strip()[:300]!r}")
+    f.check(bool(public_key), "xray x25519 produced a public key",
+            "expected=<non-empty> actual=<redacted>")
     if not public_key:
         return
 
@@ -213,9 +217,10 @@ def main(f):
         "warnings": [],
     })
 
-    # 3) share: rendered client view for the Reality inbound.
+    # 3) share: rendered client view for the Reality inbound. --root keeps the
+    # fixture inside its own root instead of reading the host's metadata.
     share = f.run([
-        f.go, "xray", "share", "--path", str(config),
+        f.go, "--root", str(root), "xray", "share", "--path", str(config),
         "--host", PUBLIC_HOST, "--public-port", str(PUBLIC_PORT), "--json",
     ], timeout=30)
     f.check(share.rc == 0, "share exit 0", f"rc={share.rc} {share.err[:300]}")

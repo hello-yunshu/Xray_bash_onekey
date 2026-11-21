@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "units": {
+    "nginx": {
+      "errorLines": 0,
+      "lines": 25,
+      "sampleErrors": [],
+      "sha256": "69a2d7c64313e254b8cfc69c4e6e8653771dd10a00853183a6fd83efb97359c6",
+      "warningLines": 0
+    },
+    "xray": {
+      "errorLines": 3,
+      "lines": 28,
+      "sampleErrors": [
+        "2026/11/20 09:59:45.899565 [Error] app/dns: failed to retrieve response for example.com. > Post \"https://dns.google/dns-query\": EOF",
+        "2026/11/20 09:59:47.207878 [Error] app/dns: failed to retrieve response for example.com. > Post \"https://cloudflare-dns.com/dns-query\": EOF",
+        "2026/11/20 09:59:49.075022 [Error] app/dns: failed to retrieve response for example.com. > Post \"https://doh.opendns.com/dns-query\": EOF"
+      ],
+      "sha256": "54964681cb137619ae1fe48ff14676f065dd73d58407403007ab9ced43ecdbda",
+      "warningLines": 7
+    }
+  }
+}

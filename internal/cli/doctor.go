@@ -16,7 +16,17 @@ func doctorCommand(ctx context.Context, opts Options, cfg config, paths host.Pat
 		return rc
 	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
-	report := doctor.RunWith(ctx, paths.Root, doctor.Options{Deep: hasFlag(args, "--deep")})
+	probeURL := flagValue(args, "--probe-url")
+	if hasFlag(args, "--client-probe") && strings.TrimSpace(probeURL) == "" {
+		fmt.Fprintln(opts.Err, "doctor: --client-probe needs --probe-url http://origin/path; no probe was run")
+		return 2
+	}
+	report := doctor.RunWith(ctx, paths.Root, doctor.Options{
+		Deep:        hasFlag(args, "--deep"),
+		ClientProbe: hasFlag(args, "--client-probe"),
+		ProbeURL:    probeURL,
+		ProbeExpect: flagValue(args, "--probe-expect"),
+	})
 	if cfg.json {
 		if rc := writeJSON(opts, report); rc != 0 {
 			return rc
@@ -35,6 +45,7 @@ func doctorCommand(ctx context.Context, opts Options, cfg config, paths host.Pat
 		fmt.Fprintf(opts.Out, "summary: pass=%d warn=%d fail=%d unknown=%d skipped=%d\n",
 			report.Summary.OK, report.Summary.Warn, report.Summary.Fail,
 			report.Summary.Unknown, report.Summary.Skip)
+		fmt.Fprintf(opts.Out, "evidence-level: %s\n", report.EvidenceLevel)
 	}
 	if !report.Healthy {
 		return 1

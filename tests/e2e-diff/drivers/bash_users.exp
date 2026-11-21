@@ -1,0 +1,113 @@
+#!/usr/bin/expect -f
+# Drives the REAL install.sh user-management menu (2 > 1 > 1/2/3) for
+# OPS-01/02/03. Each invocation performs exactly one action so the runner can
+# snapshot the managed tree between add, show and remove.
+#
+# Environment:
+#   E2E_USER_ACTION   add | show | remove
+#   E2E_USER_EMAIL    email for add (default user2@example.com)
+#   E2E_LOG           transcript path (append)
+#   E2E_TIMEOUT       expect timeout seconds (default 900)
+#   E2E_INSTALL_SRC   install.sh path (default /src/install.sh)
+#
+# Exit codes: 0 success, 1 business failure, 124 harness error.
+
+set timeout [expr {[info exists env(E2E_TIMEOUT)] ? $env(E2E_TIMEOUT) : 900}]
+
+set logf $env(E2E_LOG)
+log_file -a $logf
+
+set action $env(E2E_USER_ACTION)
+set email [expr {[info exists env(E2E_USER_EMAIL)] ? $env(E2E_USER_EMAIL) : "user2@example.com"}]
+
+proc harness_error {msg} {
+    puts "HARNESS-ERROR: $msg"
+    exit 124
+}
+
+proc navigate {path} {
+    foreach item [split $path ">"] {
+        expect {
+            -re {请输入选项} {
+                send "$item\r"
+                puts "STEP\[menu\]=$item"
+            }
+            eof { harness_error "menu: eof before prompt (item $item)" }
+            timeout { harness_error "menu: timeout before prompt (item $item)" }
+        }
+    }
+}
+
+proc ask {prompt answer label} {
+    expect {
+        -re $prompt {
+            send "$answer\r"
+            puts "STEP\[$label\]=$answer"
+        }
+        eof { harness_error "$label: eof before prompt '$prompt'" }
+        timeout { harness_error "$label: timeout waiting prompt '$prompt'" }
+    }
+}
+
+# Answer "0" at the main menu until install.sh exits, draining any pause.
+proc close_menu {} {
+    for {set depth 0} {$depth < 6} {incr depth} {
+        expect {
+            -re {回到菜单|按回车|Back to the menu|Press Enter} {
+                send "\r"
+                puts "STEP\[pause\]=enter"
+                exp_continue
+            }
+            -re {请输入选项|please enter an option} {
+                send "0\r"
+                puts "STEP\[exit\]=0"
+            }
+            -re {安装失败|自动恢复失败} { puts "INSTALL_FAILED"; exit 1 }
+            eof {
+                set rc [wait]
+                puts "EXPECT_WAIT_STATUS=$rc"
+                exit [lindex $rc 3]
+            }
+            timeout { harness_error "menu did not exit (level $depth)" }
+        }
+    }
+    harness_error "menu nesting exceeded 6 levels"
+}
+
+proc add_user {} {
+    global email
+    navigate "2>1>2"
+    ask {是否需要自定义.*用户名} y customEmail
+    ask {请输入正确的 email} $email email
+    ask {是否需要自定义字符串映射} n uuidMode
+    ask {是否继续添加用户} n addContinue
+    close_menu
+}
+
+proc show_user {} {
+    navigate "2>1>1"
+    ask {请输入[:：]} 2 userIndex
+    ask {是否继续显示用户} n showContinue
+    close_menu
+}
+
+proc remove_user {} {
+    navigate "2>1>3"
+    ask {请输入[:：]} 2 userIndex
+    ask {是否继续删除用户} n removeContinue
+    close_menu
+}
+
+puts "USER_ACTION=$action EMAIL=$email"
+set install_src "/src/install.sh"
+if {[info exists env(E2E_INSTALL_SRC)] && $env(E2E_INSTALL_SRC) ne ""} {
+    set install_src $env(E2E_INSTALL_SRC)
+}
+spawn bash $install_src
+
+switch -- $action {
+    add { add_user }
+    show { show_user }
+    remove { remove_user }
+    default { harness_error "unknown E2E_USER_ACTION '$action'" }
+}

@@ -1,0 +1,29 @@
+{
+  "configSource": "idleleo xray install --mode reality (pinned build)",
+  "newestTag": "v26.11.9",
+  "scope": "binary compatibility: every release must parse the installed config",
+  "verdict": "PASS",
+  "versions": [
+    {
+      "asset": "Xray-linux-arm64-v8a.zip",
+      "detail": "Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)",
+      "sha256": "64ed6858982a7f5eb85d88b811089063bd4f17561f4c8f44e0f1dc8e6f6430be",
+      "tag": "v26.11.9",
+      "verdict": "PASS"
+    },
+    {
+      "asset": "Xray-linux-arm64-v8a.zip",
+      "detail": "Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)",
+      "sha256": "1811c8f1da0c3b6dc707ebaf1c8390e987ba39859a8f0a7aadd8526157f2ec8d",
+      "tag": "v26.10.31",
+      "verdict": "PASS"
+    },
+    {
+      "asset": "Xray-linux-arm64-v8a.zip",
+      "detail": "Xray 26.10.21 (Xray, Penetrates Everything.) 1b1647c (go1.27.3 linux/arm64)",
+      "sha256": "d1304946c486d98e6b886e9b931eaaaebb23835b30e217638037b7f2721d4e9c",
+      "tag": "v26.10.21",
+      "verdict": "PASS"
+    }
+  ]
+}

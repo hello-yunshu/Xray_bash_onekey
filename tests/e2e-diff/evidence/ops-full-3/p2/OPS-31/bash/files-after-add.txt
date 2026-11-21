@@ -1,0 +1,4 @@
+== 10.99.0.7.realityServers
+server 10.99.0.7:9447 weight=60 max_fails=2 fail_timeout=10;
+== 127.0.0.1.realityServers
+server 127.0.0.1:9443 weight=50 max_fails=2 fail_timeout=10;

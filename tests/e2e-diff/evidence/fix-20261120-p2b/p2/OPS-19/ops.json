@@ -1,0 +1,39 @@
+{
+  "banIp": "203.0.113.7",
+  "bannedAfter": false,
+  "bannedBefore": false,
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-19",
+  "jail": "nginx-badbots",
+  "jails": {
+    "bash": [],
+    "go": [
+      "nginx-badbots",
+      "nginx-botsearch",
+      "nginx-no-host",
+      "nginx-tls-error"
+    ]
+  },
+  "observations": {
+    "bash": {
+      "bannedAfter": false,
+      "bannedBefore": false,
+      "unbanned": false
+    },
+    "go": {
+      "bannedAfter": false,
+      "bannedBefore": true,
+      "unbanned": true
+    }
+  },
+  "reasons": [
+    "bash jail set missing nginx-badbots",
+    "bash ban observation missing 203.0.113.7",
+    "bash unban failed (rc=1)"
+  ],
+  "unbanned": false,
+  "verdict": "BLOCKER"
+}

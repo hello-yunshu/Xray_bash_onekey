@@ -64,9 +64,27 @@ docker run --rm -v "$WORK/seed:/seed" "$IMAGE_TAG" bash -c \
 }
 
 C="e2e-$RUN_ID-server"
+ORIGIN="e2e-$RUN_ID-origin"
 NET="e2e-$RUN_ID-net"
 docker network create "$NET" >/dev/null 2>&1 || true
-docker rm -f "$C" >/dev/null 2>&1 || true
+docker rm -f "$C" "$ORIGIN" >/dev/null 2>&1 || true
+
+# OPS-23 (speedtest) and OPS-24 (geodata-refresh) need a reachable HTTP origin.
+# It is a local nginx that serves the real GeoData pair from the audit cache and
+# a fixed 1 MiB payload for the throughput probe; the Go code paths under test
+# are unchanged, so this is a real network run rather than a stub.
+GEO_SRC="${E2E_GEO_DIR:-$HOME/.cache/xray-audit/share/xray-bin}"
+mkdir -p "$WORK/origin"
+dd if=/dev/zero of="$WORK/origin/__down" bs=1048576 count=1 status=none
+for name in geoip.dat geosite.dat; do
+    [[ -f "$GEO_SRC/$name" ]] || {
+        log "FATAL: real GeoData $GEO_SRC/$name is missing (set E2E_GEO_DIR)"; exit 2
+    }
+    cp "$GEO_SRC/$name" "$WORK/origin/$name"
+done
+( cd "$WORK/origin" && shasum -a 256 geoip.dat >geoip.dat.sha256sum \
+    && shasum -a 256 geosite.dat >geosite.dat.sha256sum )
+log "origin=nginx:1.27 geoip_sha256=$(awk '{print $1}' "$WORK/origin/geoip.dat.sha256sum")"
 # shellcheck disable=SC2046
 docker run -d --name "$C" --hostname "$C" --network "$NET" \
     --privileged --cgroupns=host --tmpfs /run --tmpfs /run/lock \
@@ -79,6 +97,18 @@ for _ in $(seq 1 30); do
     [ "$(docker exec "$C" systemctl is-system-running 2>/dev/null)" = "running" ] && break
     sleep 1
 done
+
+docker run -d --name "$ORIGIN" --network "$NET" \
+    -v "$WORK/origin:/usr/share/nginx/html:ro" nginx:1.27 >/dev/null || {
+    log "FATAL: origin container start failed"; exit 2
+}
+for _ in $(seq 1 30); do
+    docker exec "$C" curl -fsS "http://$ORIGIN/geoip.dat" -o /dev/null 2>/dev/null && break
+    sleep 1
+done
+docker exec "$C" curl -fsS "http://$ORIGIN/geoip.dat" -o /dev/null 2>/dev/null || {
+    log "FATAL: origin is not reachable from the test container"; exit 2
+}
 
 docker exec "$C" install -m 0755 /seed/idleleo /usr/local/bin/idleleo
 docker exec "$C" install -m 0755 /seed/idleleo-recover /usr/local/bin/idleleo-recover
@@ -176,6 +206,43 @@ run_op OPS-15 0 service restart --container
 assert "$([ "$(active_xray)" = "active" ] && echo 0 || echo 1)" "OPS-15 xray active after restart"
 run_op OPS-18 1 tcp status --json
 run_op OPS-22 1 xray logs clean --yes --container --json
+# OPS-23/24 read the local origin started above. Both commands keep their real
+# network path (HTTP GET), so the assertions cover transport and verification,
+# not just flag parsing.
+run_op OPS-23 1 speedtest --server "http://$ORIGIN" --bytes 1048576 --samples 1 --json
+assert "$(grep -q '"downMbps"' "$EVID/ops/OPS-23/out.txt" && echo 0 || echo 1)" \
+    "OPS-23 reports a measured throughput"
+assert "$(grep -q '"bytes": 1048576' "$EVID/ops/OPS-23/out.txt" && echo 0 || echo 1)" \
+    "OPS-23 read the full 1 MiB payload"
+run_op OPS-24a 1 schedule install --interval 3600 --geodata-url "http://$ORIGIN" --container --json
+# The sweep restarts xray many times within seconds, so systemd's default
+# start-rate limit (5 starts / 10s) can trip before the job's own restart. That
+# is a harness artefact, not a product default: clearing the transient limit
+# lets the geodata job perform its real restart. Production units are unchanged.
+docker exec "$C" systemctl reset-failed xray >/dev/null 2>&1 || true
+printf 'note=systemd start-limit state cleared before the geodata restart\n' \
+    >>"$EVID/ops/OPS-24a/out.txt"
+run_op OPS-24 1 schedule run --job geodata-refresh --json
+assert "$(grep -q '"result": "ok"' "$EVID/ops/OPS-24/out.txt" && echo 0 || echo 1)" \
+    "OPS-24 geodata-refresh reports ok"
+for name in geoip.dat geosite.dat; do
+    want=$(awk '{print $1}' "$WORK/origin/$name.sha256sum")
+    got=$(docker exec "$C" sha256sum "/etc/idleleo/share/xray/$name" 2>/dev/null | awk '{print $1}')
+    assert "$([ "$want" = "$got" ] && echo 0 || echo 1)" \
+        "OPS-24 wrote verified $name (sha256=$got)"
+done
+# OPS-16 is the read-only certificate view. It must report the real lifetime of
+# the installed certificate and confirm renewal is not due, without contacting a
+# CA (a dry run never writes or downloads).
+docker exec "$C" sh -c "mkdir -p /etc/idleleo/cert && openssl req -x509 -newkey rsa:2048 -nodes \
+    -days 3650 -subj '/CN=$DOMAIN' -addext 'subjectAltName=DNS:$DOMAIN' \
+    -keyout /etc/idleleo/cert/xray.key -out /etc/idleleo/cert/xray.crt" >/dev/null 2>&1
+run_op OPS-16 1 xray cert renew --dry-run --domain "$DOMAIN" --webroot /etc/idleleo/conf \
+    --cert-out /etc/idleleo/cert/xray.crt --key-out /etc/idleleo/cert/xray.key --json
+assert "$(grep -q '"notAfter"' "$EVID/ops/OPS-16/out.txt" && echo 0 || echo 1)" \
+    "OPS-16 reports the certificate expiry"
+assert "$(grep -q '"due": false' "$EVID/ops/OPS-16/out.txt" && echo 0 || echo 1)" \
+    "OPS-16 reports renewal is not due"
 run_op OPS-25 0 metadata export --out /tmp/e2e-metadata.json
 run_op OPS-29 1 rill status --json
 run_op OPSS-01 1 schedule status --json
@@ -191,5 +258,8 @@ assert "$(docker exec "$C" sh -c '[ ! -e /etc/idleleo/conf/xray/config.json ] &&
 
 log "run_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 log "$PASS PASS / $FAIL FAIL"
-[[ "${E2E_KEEP:-0}" == "1" ]] || { docker rm -f "$C" >/dev/null 2>&1; docker network rm "$NET" >/dev/null 2>&1; }
+[[ "${E2E_KEEP:-0}" == "1" ]] || {
+    docker rm -f "$C" "$ORIGIN" >/dev/null 2>&1
+    docker network rm "$NET" >/dev/null 2>&1
+}
 [ "$FAIL" -eq 0 ]

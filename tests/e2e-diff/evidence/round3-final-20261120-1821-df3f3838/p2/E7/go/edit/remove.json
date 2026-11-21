@@ -1,0 +1,51 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "short-id-remove"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.shortIds"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "dce5c57531d7152c683efb1fb92393f8fc6126e6c6d1fd39d5816b423d22b75b",
+  "newSha256": "b061e0386b2103792c420d493b9367c1ade25013e44065de870efa630835066d",
+  "backupDir": "/etc/idleleo/backup/edit-20261120T102720",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://6b323596-6e29-46c5-8b92-0ce242221e7d@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=6EVw7AcYEfaf0Y86AJoavbmvle-NgEo7IifuurecByc&sid=37d6c30e&type=raw#idleleo-reality",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": [
+    "share links use the Reality SNI as the dial host because --host was not given; pass --host <address clients dial> to hand out a usable link"
+  ],
+  "shortIds": [
+    "37d6c30e"
+  ],
+  "oldShareUri": "vless://6b323596-6e29-46c5-8b92-0ce242221e7d@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=6EVw7AcYEfaf0Y86AJoavbmvle-NgEo7IifuurecByc&sid=bc413665&type=raw#idleleo-reality",
+  "realityProbe": "ok: vless+reality handshake+request through 127.0.0.1:443",
+  "upstreamUnchanged": true,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "dce5c57531d7152c683efb1fb92393f8fc6126e6c6d1fd39d5816b423d22b75b",
+    "newSha256": "b061e0386b2103792c420d493b9367c1ade25013e44065de870efa630835066d",
+    "changed": [
+      "short-id-remove"
+    ],
+    "affectedServices": [
+      "xray"
+    ],
+    "disconnectRisk": "drops live client sessions until clients reconnect",
+    "validationSteps": [
+      "xray -test",
+      "vless+reality handshake with the new link"
+    ],
+    "rollbackScope": "runtime config",
+    "ownership": "idleleo-managed",
+    "fingerprint": "d5e9c9ba0c976bfd"
+  }
+}

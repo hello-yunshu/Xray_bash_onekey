@@ -1,0 +1,17 @@
+PASS	S4 Bash reality install exits 0
+FAIL	S6 normal run exits 0 (rc=1)
+FAIL	S6 installs non-empty geoip.dat and geosite.dat
+FAIL	S6 records both GeoData versions
+PASS	S6 Xray is active after the update
+FAIL	S6 repeat run exits 0 (rc=1)
+FAIL	S6 repeat run detects the files are current
+PASS	S6 repeat run does not rewrite the GeoData files
+PASS	S6 failed download exits non-zero (rc=1)
+PASS	S6 failed download is reported
+PASS	S6 failed download leaves the installed GeoData intact
+PASS	S6 corrupt payload exits non-zero (rc=1)
+PASS	S6 corrupt payload is rejected by the upstream checksum
+PASS	S6 corrupt payload leaves the installed GeoData intact
+PASS	S6 truncated payload exits non-zero (rc=1)
+PASS	S6 truncated payload is rejected by the upstream checksum
+PASS	S6 truncated payload leaves the installed GeoData intact

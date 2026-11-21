@@ -133,11 +133,20 @@ def test_node(row,repo,go_bin,work):
     bs=run(['bash','-c',BASH_NODE],env,timeout=35,cwd=repo)
     if bs['exit'] or not out.is_file():return {'status':'BASH_FAILED','bash':bs}
     bm=json.loads(out.read_text()); goout=work/f'{row["id"]}-go.json'
+    nginxout=work/f'{row["id"]}-nginx.conf'
     trans=row['transport']; cmd=[str(go_bin),'xray','generate','--mode',row['mode'],
         '--transport',trans,'--port',str(row['port']),'--uuid',UUID,
         '--email','audit@example.com','--domain','example.com','--server-names','example.org',
         '--target','example.org:443','--path','/audit-ws/','--service-name','audit-grpc',
-        '--out',str(goout),'--json']
+        '--out',str(goout),'--nginx-out',str(nginxout),'--json']
+    # Bash's port prompt is the public/front port. TLS and Reality+Nginx keep
+    # Xray on a loopback backend and let Nginx own that public port, so compare
+    # the generated front listener instead of the backend inbound. Comparing
+    # the inbound port here encoded the old bug where both processes fought
+    # over the same socket; P2 M4/M2 cover the split with a live data plane.
+    fronted=row['mode'] in ('tls','reality-nginx')
+    if fronted:
+        cmd += ['--public-port',str(row['port'])]
     gg=run(cmd,timeout=35,cwd=repo)
     if gg['exit'] or not goout.is_file():
         return {'status':'GAP' if row['expected_gap'] else 'GO_FAILED','bash_schema':sorted(bm),
@@ -147,10 +156,15 @@ def test_node(row,repo,go_bin,work):
     multi=trans=='ws+grpc+xhttp'
     expected_transport='raw' if row['mode'].startswith('reality') else trans
     expected_tls='reality' if row['mode'].startswith('reality') else 'none'  # TLS is terminated by Nginx
+    if fronted:
+        front=nginxout.read_text() if nginxout.is_file() else ''
+        port_ok=re.search(r'^\s*listen\s+%d\b'%row['port'],front,re.M) is not None
+    else:
+        port_ok=inb.get('port')==row['port']
     checks={'uuid':cli.get('id')==bm.get('id'),
             'security':st.get('security')==expected_tls,
             'email':cli.get('email')==bm.get('email'),
-            'port':inb.get('port')==row['port'],
+            'port':port_ok,
             'legacy_mode':bm.get('tls')==('Reality' if row['mode'].startswith('reality') else ('TLS' if row['mode']=='tls' else 'None'))}
     if multi:
         # Multi-entry is a topology, not a single streamSettings.network value:

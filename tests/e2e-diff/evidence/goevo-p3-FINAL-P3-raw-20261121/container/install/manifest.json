@@ -1,0 +1,116 @@
+{
+  "count": 11,
+  "entries": [
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/conf",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "xray",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/xray",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "xray",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/xray/config.json",
+      "sha256": "a75ae19edb05d9a0f820d04a324b1b47690eee5ad4e21b2a398fcdb0dc606e07",
+      "size": 1695,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/p3",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o666",
+      "owner": "root",
+      "path": "/etc/idleleo/p3/target.crt",
+      "sha256": "a73ee5c0b1c4cd99ab39812d88cc83a37d6dfbe5fcdf961a9a37feccbfb36d9b",
+      "size": 644,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o600",
+      "owner": "root",
+      "path": "/etc/idleleo/p3/target.key",
+      "sha256": "ab1158a3b799f7fda1c5cd9abfd8988310c0d587708cd2aa2590faab5bf32152",
+      "size": 241,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/v1",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/v1/metadata.json",
+      "sha256": "2db1ed3316f2f18333d4ae8e551ef2bf1823aec9287cae6b902a5a1bd4a8a7ed",
+      "size": 611,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/systemd/system/xray.service",
+      "sha256": "f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3",
+      "size": 435,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/usr/local/bin/xray",
+      "sha256": "5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328",
+      "size": 32637052,
+      "target": null,
+      "type": "file"
+    }
+  ],
+  "schemaVersion": 1
+}

@@ -1,0 +1,112 @@
+{
+  "afterSha": "03c0d0b6d3aead002e06f8f637b78d517535682dccafd0664de7acd2d4d0c728",
+  "allPassed": true,
+  "beforeSha": "4bfa6a56ef7220619919cee9487dd2ff3fe029cc62728def6ca65fd5e1d4b7de",
+  "checks": {
+    "backupHasOldShareUri": true,
+    "baselineLinkWorks": true,
+    "configRestored": true,
+    "failurePointRecorded": true,
+    "faultEditFails": true,
+    "newLinkWorksAfterRotate": true,
+    "oldLinkCaptured": true,
+    "oldLinkFailsAfterRotate": true,
+    "oldLinkWorksAfterRollback": true,
+    "rollbackProbeOk": true,
+    "rotateRcZero": true,
+    "rotationReported": true,
+    "serviceActive": true,
+    "serviceActiveAfterCleanup": true
+  },
+  "count": 14,
+  "details": [
+    {
+      "detail": "35f8e2ce",
+      "name": "baselineLinkWorks",
+      "ok": true
+    },
+    {
+      "detail": "rc=0",
+      "name": "rotateRcZero",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "name": "rotationReported",
+      "ok": true
+    },
+    {
+      "detail": "vless://0c209c27-f2ab-444c-9308-8714c39332b5@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=oqCx9Qy2LrOroLv5Hw329uK8EXpMhbBNPEbujaOK9gE&sid=35f8e2ce&type=raw#idleleo-reality",
+      "name": "oldLinkCaptured",
+      "ok": true
+    },
+    {
+      "detail": "/etc/idleleo/backup/edit-20261119T114349/old-share-uri.txt",
+      "name": "backupHasOldShareUri",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "name": "newLinkWorksAfterRotate",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "name": "oldLinkFailsAfterRotate",
+      "ok": true
+    },
+    {
+      "detail": "rc=1",
+      "name": "faultEditFails",
+      "ok": true
+    },
+    {
+      "detail": "reality-handshake",
+      "name": "failurePointRecorded",
+      "ok": true
+    },
+    {
+      "detail": "ok: old link still completes a vless+reality handshake+request",
+      "name": "rollbackProbeOk",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "name": "configRestored",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "name": "oldLinkWorksAfterRollback",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "name": "serviceActiveAfterCleanup",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "name": "serviceActive",
+      "ok": true
+    }
+  ],
+  "editRc": 0,
+  "scenario": "E8",
+  "wanted": [
+    "baselineLinkWorks",
+    "rotateRcZero",
+    "rotationReported",
+    "oldLinkCaptured",
+    "backupHasOldShareUri",
+    "newLinkWorksAfterRotate",
+    "oldLinkFailsAfterRotate",
+    "faultEditFails",
+    "failurePointRecorded",
+    "rollbackProbeOk",
+    "configRestored",
+    "oldLinkWorksAfterRollback",
+    "serviceActiveAfterCleanup",
+    "serviceActive"
+  ]
+}

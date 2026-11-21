@@ -1,0 +1,42 @@
+{
+  "jails": [
+    {
+      "name": "sshd",
+      "written": false,
+      "reason": "no active ssh/sshd unit: systemd cannot read SSH logs"
+    },
+    {
+      "name": "nginx-badbots",
+      "written": true,
+      "logPath": "/usr/local/nginx/logs/access.log"
+    },
+    {
+      "name": "nginx-botsearch",
+      "written": true,
+      "logPath": "/usr/local/nginx/logs/access.log"
+    },
+    {
+      "name": "nginx-no-host",
+      "written": true,
+      "logPath": "/usr/local/nginx/logs/sni_error.log"
+    },
+    {
+      "name": "nginx-tls-error",
+      "written": true,
+      "logPath": "/usr/local/nginx/logs/tls_error.log"
+    }
+  ],
+  "files": [
+    "/etc/fail2ban/filter.d/nginx-no-host.conf",
+    "/etc/fail2ban/filter.d/nginx-tls-error.conf",
+    "/etc/fail2ban/jail.d/nginx-badbots.local",
+    "/etc/fail2ban/jail.d/nginx-botsearch.local",
+    "/etc/fail2ban/jail.d/nginx-no-host.local",
+    "/etc/fail2ban/jail.d/nginx-tls-error.local",
+    "/etc/fail2ban/jail.d/zzz-idleleo-incremental.local",
+    "/etc/fail2ban/jail.local",
+    "/etc/systemd/system/fail2ban.service.d/restart-policy.conf"
+  ],
+  "warnings": [],
+  "serviceRestarted": true
+}

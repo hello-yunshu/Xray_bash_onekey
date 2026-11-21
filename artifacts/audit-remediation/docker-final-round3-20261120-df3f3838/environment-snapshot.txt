@@ -1,0 +1,7 @@
+client 29.8.2 darwin/arm64
+server 29.8.2 linux/arm64
+host=Darwin arm64
+driver=overlayfs cgroup=cgroupfs cgroupVersion=2 kernel=7.2.12-orbstack-00394-gbecdd6130068 storage=overlayfs
+e2e=sha256:76b8b5d49b44c070978723937426452d9f00a3fc4bc5711c82880512b121ca9c
+nginx=sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+go=sha256:5e8afd493a7124a8586e134d9b532731161d4b9becf9dee5a5956b107426f93d

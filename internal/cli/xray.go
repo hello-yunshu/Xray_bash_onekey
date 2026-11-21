@@ -31,7 +31,7 @@ func xrayCommand(ctx context.Context, opts Options, cfg config, a *app.App, args
 	// Nested commands (user/cert) own their own flag vocabulary; everything
 	// else is validated against the two-word path.
 	flagArgs, flagKey := rest, "xray "+sub
-	if (sub == "user" || sub == "cert" || sub == "config" || sub == "logs" || sub == "balance" || sub == "api") && len(rest) > 0 {
+	if (sub == "user" || sub == "cert" || sub == "config" || sub == "logs" || sub == "balance" || sub == "guard" || sub == "api") && len(rest) > 0 {
 		flagArgs, flagKey = rest[1:], flagKey+" "+rest[0]
 	}
 	if rc, ok := checkFlags(opts, cfg, flagArgs, flagKey); ok && rc != 0 {
@@ -62,6 +62,8 @@ func xrayCommand(ctx context.Context, opts Options, cfg config, a *app.App, args
 		return xrayLogs(ctx, opts, cfg, rest)
 	case "balance":
 		return xrayBalance(ctx, opts, cfg, rest)
+	case "guard":
+		return xrayGuard(ctx, opts, cfg, rest)
 	case "tls":
 		return xrayTLS(ctx, opts, cfg, rest)
 	case "block":
@@ -221,10 +223,16 @@ func xrayShare(opts Options, cfg config, args []string) int {
 		PublicSecurity: flagValue(args, "--public-security"),
 		User:           flagValue(args, "--user"),
 	}
-	// Link-only preferences persisted by `xray config edit --fp/--spx`. A
-	// missing metadata file is not fatal: the link then keeps the defaults.
-	if paths, pathErr := host.NewPaths(cfg.root); pathErr == nil {
-		if meta, _, metaErr := store.LoadMetadata(paths); metaErr == nil && meta.ShareLinkOnly != nil {
+	// Metadata carries the trusted public topology: Bash TLS nodes keep Xray on
+	// loopback with stream security=none, so the runtime config alone cannot
+	// tell an Nginx TLS front from a plain public port. It may only describe the
+	// config it owns; metadata from another root or for different bytes is never
+	// applied, because a stale public port/security would render a wrong link.
+	meta, managed, stale := managedShareMetadata(cfg.root, path, raw)
+	if managed {
+		applyShareMetadataDefaults(&shareOpts, meta)
+		// Link-only preferences persisted by `xray config edit --fp/--spx`.
+		if meta.ShareLinkOnly != nil {
 			shareOpts.Fingerprint = meta.ShareLinkOnly.Fingerprint
 			shareOpts.SpiderX = meta.ShareLinkOnly.SpiderX
 		}
@@ -232,6 +240,13 @@ func xrayShare(opts Options, cfg config, args []string) int {
 	info, err := xraycfg.ShareConfig(raw, shareOpts)
 	if err != nil {
 		return fail(opts, cfg, err)
+	}
+	// A direct edit of config.json leaves the metadata hash behind. The runtime
+	// config is still authoritative for everything that can be derived from it,
+	// so share keeps working; the caller is told the public-side defaults were
+	// skipped instead of silently rendering a link from stale facts.
+	if stale != "" {
+		info.Warnings = append(info.Warnings, stale)
 	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
 	if cfg.json {
@@ -262,6 +277,76 @@ func xrayShare(opts Options, cfg config, args []string) int {
 		fmt.Fprintf(opts.Out, "warning=%s\n", w)
 	}
 	return 0
+}
+
+// managedShareMetadata returns the manager metadata under root only when the
+// selected config is provably the one it describes: the canonical selected path
+// must equal root + runtimeConfigPath, and a recorded runtimeSha256 must match
+// the bytes about to be shared. Metadata from another root or another config is
+// never applied. A matching path with a different hash means the file was edited
+// outside the manager: the runtime config still wins, the defaults are skipped,
+// and the returned warning explains why the link may lack persisted preferences.
+func managedShareMetadata(root, selected string, raw []byte) (store.Metadata, bool, string) {
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		return store.Metadata{}, false, ""
+	}
+	meta, _, err := store.LoadMetadata(paths)
+	if err != nil {
+		return store.Metadata{}, false, ""
+	}
+	if err := store.ValidateManagerPath(meta.RuntimeConfigPath); err != nil {
+		return store.Metadata{}, false, ""
+	}
+	managed, err := paths.Join(meta.RuntimeConfigPath, false)
+	if err != nil {
+		return store.Metadata{}, false, ""
+	}
+	if canonicalPath(managed) != canonicalPath(selected) {
+		return store.Metadata{}, false, ""
+	}
+	if meta.RuntimeSHA256 != "" && meta.RuntimeSHA256 != store.HashBytes(raw) {
+		return store.Metadata{}, false, "runtime metadata is stale (runtimeSha256 does not match the shared config, usually a direct edit): public-side defaults were not applied; re-run a managed change or pass --host/--public-port/--public-security explicitly"
+	}
+	return meta, true, ""
+}
+
+// canonicalPath resolves a path for ownership comparison. Missing files still
+// get an absolute, cleaned form so a path that does not exist cannot compare
+// equal by accident.
+func canonicalPath(path string) string {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return filepath.Clean(path)
+	}
+	if resolved, err := filepath.EvalSymlinks(abs); err == nil {
+		return resolved
+	}
+	return filepath.Clean(abs)
+}
+
+// applyShareMetadataDefaults fills the public-side fields that the runtime
+// config cannot prove when Nginx terminates TLS in front of a loopback Xray
+// backend. Explicit flags always win. Install.ServerNames is deliberately not
+// used: for Reality it is the SNI/camouflage identity, not the address clients
+// dial, so a connection host must be supplied explicitly.
+func applyShareMetadataDefaults(opts *xraycfg.ShareOptions, meta store.Metadata) {
+	if strings.TrimSpace(opts.PublicSecurity) == "" {
+		switch meta.TLS {
+		case "TLS":
+			opts.PublicSecurity = xraycfg.ModeTLS
+		case "Reality":
+			opts.PublicSecurity = xraycfg.ModeReality
+		case "None":
+			opts.PublicSecurity = xraycfg.ModeNone
+		}
+	}
+	if meta.Install == nil {
+		return
+	}
+	if opts.PublicPort == 0 && meta.Install.Port > 0 {
+		opts.PublicPort = meta.Install.Port
+	}
 }
 
 // terminalQR renders link as the same UTF-8 matrix Bash prints with

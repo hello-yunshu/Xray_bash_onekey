@@ -1,0 +1,50 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "reality-private-key"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.privateKey"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "4bfa6a56ef7220619919cee9487dd2ff3fe029cc62728def6ca65fd5e1d4b7de",
+  "newSha256": "03c0d0b6d3aead002e06f8f637b78d517535682dccafd0664de7acd2d4d0c728",
+  "backupDir": "/etc/idleleo/backup/edit-20261119T114349",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://0c209c27-f2ab-444c-9308-8714c39332b5@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=lQKJEoLwAYwbYzgrm48GjnYxnnrLXU7iscFSeYK9Oik&sid=35f8e2ce&type=raw#idleleo-reality",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": null,
+  "shortIds": [
+    "35f8e2ce"
+  ],
+  "oldShareUri": "vless://0c209c27-f2ab-444c-9308-8714c39332b5@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=oqCx9Qy2LrOroLv5Hw329uK8EXpMhbBNPEbujaOK9gE&sid=35f8e2ce&type=raw#idleleo-reality",
+  "privateKeyRotated": true,
+  "realityProbe": "ok: vless+reality handshake+request through 127.0.0.1:443",
+  "upstreamUnchanged": true,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "4bfa6a56ef7220619919cee9487dd2ff3fe029cc62728def6ca65fd5e1d4b7de",
+    "newSha256": "03c0d0b6d3aead002e06f8f637b78d517535682dccafd0664de7acd2d4d0c728",
+    "changed": [
+      "reality-private-key"
+    ],
+    "affectedServices": [
+      "xray"
+    ],
+    "disconnectRisk": "drops live client sessions until clients reconnect",
+    "validationSteps": [
+      "xray -test",
+      "vless+reality handshake with the new link"
+    ],
+    "rollbackScope": "runtime config",
+    "ownership": "idleleo-managed",
+    "fingerprint": "5e3c44d7b89ca36d"
+  }
+}

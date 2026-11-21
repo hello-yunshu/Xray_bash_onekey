@@ -1,0 +1,1 @@
+schedule run --job geodata-refresh --json

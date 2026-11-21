@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "state": "VALIDATED",
+  "xrayExit": 0,
+  "xrayOutput": "Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)\nA unified platform for anti-censorship.\n2026/11/20 18:33:20.387262 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}\n2026/11/20 18:33:20.387983 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.\nConfiguration OK.",
+  "nginxExit": 0,
+  "nginxOutput": "nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok\nnginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful",
+  "candidateExit": 0,
+  "candidateStatusExit": 0,
+  "candidateInstalled": true,
+  "candidateMatchesMetadata": true,
+  "runtimeSha256": "2a10fad073ad7a124d498a4c9129dd18ace56023c72d1d03b1aee9a9275b1d56",
+  "rillStatus": "absent",
+  "rillUnchanged": true
+}

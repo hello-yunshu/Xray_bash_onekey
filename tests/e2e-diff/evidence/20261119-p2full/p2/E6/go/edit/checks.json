@@ -1,0 +1,33 @@
+{
+  "afterSha": "f3ebdc9f4e00eebc2ec785b4e5e846857f8eeb197cfe97af0c5da8f3bdc1bb92",
+  "allPassed": true,
+  "beforeSha": "f3ebdc9f4e00eebc2ec785b4e5e846857f8eeb197cfe97af0c5da8f3bdc1bb92",
+  "checks": {
+    "backupHasOldPair": true,
+    "configRestored": true,
+    "guardRejected": true,
+    "guardZeroWrites": true,
+    "nginxRestored": true,
+    "probeFailureRecorded": true,
+    "rollbackRcNonZero": true,
+    "scheduleRestored": true,
+    "servedCertRestored": true,
+    "servicesActive": true
+  },
+  "editRc": 1,
+  "error": "front at 127.0.0.1:443 serves a certificate that differs from the configured file; previous configuration restored",
+  "failurePoint": "tls-probe: served certificate mismatch",
+  "guardRc": 1,
+  "wanted": [
+    "backupHasOldPair",
+    "configRestored",
+    "guardRejected",
+    "guardZeroWrites",
+    "nginxRestored",
+    "probeFailureRecorded",
+    "rollbackRcNonZero",
+    "scheduleRestored",
+    "servedCertRestored",
+    "servicesActive"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "upstream": "reality",
+  "backends": [
+    {
+      "host": "10.99.0.7",
+      "port": 9447,
+      "weight": 60,
+      "file": "/etc/idleleo/conf/nginx/10.99.0.7.realityServers"
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 9443,
+      "weight": 50,
+      "file": "/etc/idleleo/conf/nginx/127.0.0.1.realityServers"
+    }
+  ],
+  "changed": true,
+  "file": "/etc/idleleo/conf/nginx/10.99.0.7.realityServers",
+  "probed": false,
+  "warnings": [
+    "no liveness probe was run; nginx removes a dead backend passively via max_fails=2 fail_timeout=10"
+  ]
+}

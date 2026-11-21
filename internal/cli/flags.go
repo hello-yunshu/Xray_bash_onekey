@@ -115,10 +115,15 @@ var commandFlags = map[string]flagSpec{
 	"xray balance add":    specOf([]string{"upstream", "host", "port", "weight"}, "probe", "container"),
 	"xray balance remove": specOf([]string{"upstream", "host", "port"}, "container"),
 	"xray tls":            specOf([]string{"version"}, "container"),
+	"xray guard show":     specOf(nil),
+	"xray guard set": specOf(
+		[]string{"policy", "decoy-domain", "decoy-cert", "decoy-key", "decoy-ip"},
+		"dry-run", "container"),
+	"xray cert clear": specOf(nil, "yes", "dry-run", "container"),
 	"xray config edit": specOf(
 		[]string{"path", "listen", "port", "public-port", "transport", "ws-path", "xhttp-path",
 			"grpc-service-name", "target", "server-names", "uuid", "ws-port", "grpc-port", "xhttp-port",
-			"domain", "cert", "cert-key", "relay-target", "relay-listen-port",
+			"domain", "cert", "cert-key", "relay-target", "relay-listen-port", "host",
 			"short-id", "short-id-remove", "fp", "spx", "confirm-reality-rotation"},
 		"dry-run", "no-restart", "no-probe", "yes", "rewrite-config", "container", "allow-non-loopback",
 		"short-id-auto", "short-id-list", "rotate-reality-private-key"),
@@ -212,11 +217,12 @@ var commandFlags = map[string]flagSpec{
 	"speedtest":   specOf([]string{"server", "bytes", "samples", "timeout"}),
 	"rill status": specOf(nil),
 
-	"doctor":         specOf(nil, "deep"),
+	"doctor":         specOf([]string{"probe-url", "probe-expect"}, "deep", "client-probe"),
 	"repair":         specOf(nil, "dry-run", "fix-lock", "container"),
 	"backup create":  specOf([]string{"out"}, "include-geodata", "container"),
 	"backup verify":  specOf([]string{"archive"}),
 	"backup restore": specOf([]string{"archive"}, "no-pre-backup", "dry-run", "container"),
+	"backup recover": specOf(nil, "json", "container", "dry-run"),
 }
 
 // checkFlags validates args against the command whitelist. ok is false when the

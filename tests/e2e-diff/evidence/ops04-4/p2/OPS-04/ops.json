@@ -1,0 +1,38 @@
+{
+  "active": {
+    "bash": "active",
+    "go": "active"
+  },
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-04",
+  "nginxListen": {
+    "bash": [
+      "listen       80;",
+      "# proxy the PHP scripts to Apache listening on 127.0.0.1:80",
+      "# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000",
+      "#    listen       8000;",
+      "#    listen       somename:8080;",
+      "#    listen       443 ssl;"
+    ],
+    "go": [
+      "listen       80;",
+      "# proxy the PHP scripts to Apache listening on 127.0.0.1:80",
+      "# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000",
+      "#    listen       8000;",
+      "#    listen       somename:8080;",
+      "#    listen       443 ssl;"
+    ]
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "bash nginx does not listen on 8443: ['listen       80;', '# proxy the PHP scripts to Apache listening on 127.0.0.1:80', '# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000', '#    listen       8000;', '#    listen       somename:8080;', '#    listen       443 ssl;']",
+    "go nginx does not listen on 8443: ['listen       80;', '# proxy the PHP scripts to Apache listening on 127.0.0.1:80', '# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000', '#    listen       8000;', '#    listen       somename:8080;', '#    listen       443 ssl;']"
+  ],
+  "verdict": "BLOCKER"
+}

@@ -1,0 +1,17 @@
+21:10:05 run_id=ops04-2
+21:10:06 image_id=sha256:64b76d652d1dbc2fb6dc9373c7ad513373db9e5494f11f88636c50f507122dda
+21:10:06 building idleleo
+21:10:12 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=1d299dc6f7f4481d583bca08d944d407d61b3361bcacdf667f5324adf21f1f5e
+21:10:12 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+21:10:12 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+21:10:12 release_cache=seeded templates=vless_reality.json,vless_tls.json
+21:10:12 release_cache=hit
+21:10:13 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+21:10:13 apt_cache=hit (OPS offline apt)
+21:10:13 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+21:10:13 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+21:10:17 argv-verify written
+21:10:17 [OPS-04] start
+21:11:17 [OPS-04] verdict=BLOCKER
+21:11:17 scope: installs=[] edits=[] ops=[OPS-04]
+21:11:17 P2 finished: tests/e2e-diff/evidence/ops04-2/p2

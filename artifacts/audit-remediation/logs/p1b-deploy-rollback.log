@@ -1,0 +1,12 @@
+=== RUN   TestReinstallRollbackRestoresFilesAndService
+--- PASS: TestReinstallRollbackRestoresFilesAndService (0.03s)
+=== RUN   TestFreshInstallRollbackRemovesNewFiles
+--- PASS: TestFreshInstallRollbackRemovesNewFiles (0.01s)
+=== RUN   TestManagedNginxFailureReportsResidualInstall
+--- PASS: TestManagedNginxFailureReportsResidualInstall (0.00s)
+=== RUN   TestFinalizeFailureMentionsManagedNginx
+--- PASS: TestFinalizeFailureMentionsManagedNginx (0.02s)
+=== RUN   TestRollbackFailureIsReportedNotHidden
+--- PASS: TestRollbackFailureIsReportedNotHidden (0.06s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.134s

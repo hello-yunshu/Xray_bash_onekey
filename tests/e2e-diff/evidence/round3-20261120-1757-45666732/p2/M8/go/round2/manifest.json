@@ -1,0 +1,286 @@
+{
+  "count": 28,
+  "entries": [
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o700",
+      "owner": "root",
+      "path": "/etc/idleleo/acme",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o600",
+      "owner": "root",
+      "path": "/etc/idleleo/acme/account.json",
+      "sha256": "69f835cb79dfc8d191ddae010e40534454143b1102a68089449b20d4b249429a",
+      "size": 107,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o600",
+      "owner": "root",
+      "path": "/etc/idleleo/acme/account.key",
+      "sha256": "6ce797bd81f57246913e49db9466d5ec8cb406a72c54607203b8d3b447cb095b",
+      "size": 241,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "idleleo-nginx",
+      "mode": "0o750",
+      "owner": "root",
+      "path": "/etc/idleleo/cert",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "idleleo-nginx",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/cert/.managed-by-idleleo",
+      "sha256": "1d964dedb06c6246e012e9c5815df81f4ae1afb957444fd3354dafda05bac596",
+      "size": 19,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "idleleo-nginx",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/cert/xray.crt",
+      "sha256": "57e086e35b1293026b6bcf6549cb30d0e3355eb1048eda75d885fd4bc1ae7fe7",
+      "size": 1259,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "idleleo-nginx",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/cert/xray.key",
+      "sha256": "64984db0292ddb38caccd8e37f5f2af0fe9fde7d263b2670ec3179104ed9ed42",
+      "size": 241,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/conf",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/.well-known",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/.well-known/acme-challenge",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "idleleo-nginx",
+      "mode": "0o750",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/nginx",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "idleleo-nginx",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/nginx/00-xray.conf",
+      "sha256": "ad65f2a41e3de4f08b208eb83a96a8c973d56f972aaf36a1c38a95971fb0780c",
+      "size": 1554,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "idleleo-nginx",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/nginx/01-xray-80.conf",
+      "sha256": "3dd5ee23b9b6f891a5f66ced858e0d4d0c7ae6c852d23568c3f507300d6e7078",
+      "size": 420,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "idleleo-nginx",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/nginx/02-xray-server.conf",
+      "sha256": "f2db9aaaa1312db9a51d3b0d516a019db9f048a54df63837eda2ebed7bc05a22",
+      "size": 135,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "idleleo-nginx",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/nginx/127.0.0.1.wsServers",
+      "sha256": "055d51a04e8e43811a707b1d100cf121f70b72d2312f41bb8b118855529c2c14",
+      "size": 62,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "idleleo-nginx",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/nginx/nginx.default",
+      "sha256": "28924d8c868aedb98e996bd4af1e3c4342d532e59f0ed7bd0e406905e0fb2fa0",
+      "size": 2630,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "xray",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/xray",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "xray",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/xray/config.json",
+      "sha256": "e12034185413ca74249f9e268b05f9537c35da4abd5a889d51a879c2db3504bf",
+      "size": 1390,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o750",
+      "owner": "root",
+      "path": "/etc/idleleo/schedule",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/schedule/jobs.json",
+      "sha256": "2910174301646ec2500a1b0c62174848debd2f2494071dd271c939cef9f7c4e2",
+      "size": 487,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/v1",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/v1/metadata.json",
+      "sha256": "595dd1229e361c7e06ffed8908fbf08ce8a587be74bb146a852830546dfb53ec",
+      "size": 708,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/v1/nginx.json",
+      "sha256": "8b90990efe4194bc2954d5d219d42cab8510a132ae8547f1f94ae4b62c19a94b",
+      "size": 391,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/systemd/system/nginx.service",
+      "sha256": "d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d",
+      "size": 450,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/systemd/system/xray.service",
+      "sha256": "f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3",
+      "size": 435,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/usr/local/bin/xray",
+      "sha256": "5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328",
+      "size": 32637052,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/usr/local/nginx/sbin/nginx",
+      "sha256": "655bbb8485928af03d9f004b551bf1c53777426532a978a5245cacfb204a431f",
+      "size": 22464616,
+      "target": null,
+      "type": "file"
+    }
+  ],
+  "schemaVersion": 1
+}

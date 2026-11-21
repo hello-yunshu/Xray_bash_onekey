@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "dryRun": false,
+  "actions": [
+    "create etc/idleleo/alerts",
+    "create etc/idleleo/backup",
+    "create etc/idleleo/cert",
+    "create etc/idleleo/info",
+    "set group of etc/idleleo/conf to xray",
+    "set group of etc/idleleo/conf/xray/config.json to xray",
+    "set mode of etc/idleleo/conf/xray to 0750",
+    "set mode of etc/idleleo/conf/xray/config.json to 0640",
+    "set mode of etc/idleleo/v1 to 0750",
+    "set mode of etc/idleleo/v1/metadata.json to 0600"
+  ],
+  "remaining": null,
+  "healthy": true
+}

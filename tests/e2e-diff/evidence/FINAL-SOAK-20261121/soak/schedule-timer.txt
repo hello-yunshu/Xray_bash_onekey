@@ -1,0 +1,5 @@
+NEXT                        LEFT LAST                        PASSED UNIT                   ACTIVATES
+Fri 2026-11-20 18:56:47 UTC  12s Fri 2026-11-20 18:56:32 UTC 2s ago idleleo-schedule.timer idleleo-schedule.service
+
+1 timers listed.
+Pass --all to see loaded but inactive timers, too.

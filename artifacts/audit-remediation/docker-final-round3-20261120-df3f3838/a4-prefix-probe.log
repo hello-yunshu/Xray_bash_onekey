@@ -1,0 +1,11 @@
+# A4 pre-fix probe (2026-11-20T11:03:07Z)
+# parent 45666732 already normalizes leading slash in Generate; the copied test passes => no behavioral red
+=== RUN   TestPrefixRedXHTTPPathAlwaysHasLeadingSlash
+--- PASS: TestPrefixRedXHTTPPathAlwaysHasLeadingSlash (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.001s
+# candidate test
+=== RUN   TestEditXHTTPPathAlwaysHasLeadingSlash
+--- PASS: TestEditXHTTPPathAlwaysHasLeadingSlash (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.001s

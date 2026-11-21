@@ -1,0 +1,8 @@
+{
+  "branch": "work/go-hardening-parity-20261119",
+  "commit": "3cd6643fcd047bd3f56a0afca4ce2c8dea89e901",
+  "imageTag": "idleleo-e2e:24.04",
+  "network": "enabled",
+  "rows": "S6",
+  "runId": "FINAL-S6C-20261121"
+}

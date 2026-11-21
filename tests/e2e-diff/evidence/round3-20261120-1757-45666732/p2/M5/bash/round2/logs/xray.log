@@ -1,0 +1,20 @@
+<TS> e2e-round3-20261120-1757-45666732-M5-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M5-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-20261120-1757-45666732-M5-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-20261120-1757-45666732-M5-bash xray[<PID>]: 2026/11/20 09:59:36.849410 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-20261120-1757-45666732-M5-bash xray[<PID>]: 2026/11/20 09:59:36.850185 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+<TS> e2e-round3-20261120-1757-45666732-M5-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-round3-20261120-1757-45666732-M5-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-round3-20261120-1757-45666732-M5-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M5-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M5-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-20261120-1757-45666732-M5-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-20261120-1757-45666732-M5-bash xray[<PID>]: 2026/11/20 10:00:03.559113 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-20261120-1757-45666732-M5-bash xray[<PID>]: 2026/11/20 10:00:03.560030 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+2026/11/20 09:59:36.857005 [Warning] core: Xray 26.10.31 started
+2026/11/20 09:59:40.717168 [Warning] transport/internet/grpc/encoding: received "X-Forwarded-For" from 127.0.0.1:40312 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 09:59:44.724743 [Error] app/dns: failed to retrieve response for example.com. > Post "https://dns.google/dns-query": context deadline exceeded
+2026/11/20 09:59:48.728406 [Error] app/dns: failed to retrieve response for example.com. > Post "https://cloudflare-dns.com/dns-query": context deadline exceeded
+2026/11/20 09:59:49.075753 [Error] app/dns: failed to retrieve response for example.com. > Post "https://doh.opendns.com/dns-query": EOF
+2026/11/20 09:59:51.901849 [Warning] transport/internet/grpc/encoding: received "X-Forwarded-For" from 127.0.0.1:39756 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 10:00:03.563968 [Warning] core: Xray 26.10.31 started

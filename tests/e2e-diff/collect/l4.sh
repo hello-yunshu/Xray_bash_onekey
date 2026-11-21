@@ -37,6 +37,9 @@ EXTRA_CA="${E2E_EXTRA_CA:-}"
 # server container). Edit scenarios point it at whatever Nginx currently
 # serves, so a certificate swap stays probe-able without rewriting the file.
 CERT_PIN="${E2E_L4_CERT:-/etc/idleleo/cert/xray.crt}"
+# A port change moves the public listener; the probe must dial the new port
+# instead of the install default.
+SERVER_PORT="${E2E_L4_PORT:-443}"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET_URL="${E2E_L4_URL:-http://example.com/}"
 MARKER="${E2E_L4_MARKER:-Example Domain}"
@@ -73,7 +76,7 @@ docker exec "$SERVER" python3 /src/tests/e2e-diff/collect/client_config.py \
     --mode "$PROFILE" \
     --transport "$TRANSPORT" \
     --server-address "$server_ip" \
-    --server-port 443 \
+    --server-port "$SERVER_PORT" \
     --domain "$DOMAIN" \
     ${EXTRA[@]+"${EXTRA[@]}"} \
     --cert "$CERT_PIN" \

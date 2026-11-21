@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "state": "PREPARED",
+  "verdict": "needs-fix",
+  "planPath": "/work/roots/tls-multi/var/lib/idleleo/bridge/plan.json",
+  "snapshotPath": "/work/roots/tls-multi/var/lib/idleleo/bridge/snapshot",
+  "candidateSha256": "8221745cb4c6109c0db4c41c4a65b86005fe5b76e0a9594d496691535ffe3b8e",
+  "candidateVersion": "0.2.0-phase04",
+  "candidatePinned": false,
+  "recoverySha256": "67f4505d5f488fdfe953ae4a51dc373237015828f8ede2fe446afc2009ca1634",
+  "metadataPath": "/work/roots/tls-multi/etc/idleleo/v1/metadata.json",
+  "projectCronLines": 0,
+  "retainedCronLines": null,
+  "customItems": 0,
+  "customAcknowledged": false,
+  "permissionFixes": 0,
+  "rillStatus": "absent",
+  "scheduledJobs": [
+    "auto-update",
+    "cert-renew",
+    "geodata-refresh",
+    "stats-collect"
+  ],
+  "degradedJobs": [
+    "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+  ],
+  "warnings": [
+    "candidate-unpinned: no --candidate-manifest given; sha256 8221745cb4c6109c0db4c41c4a65b86005fe5b76e0a9594d496691535ffe3b8e was computed locally and is not compared with a trusted release manifest",
+    "degraded:auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+  ]
+}

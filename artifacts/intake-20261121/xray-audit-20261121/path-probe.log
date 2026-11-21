@@ -1,0 +1,10 @@
+input|bash|go|equal
+xhttp|/xhttp|/xhttp|yes
+/xhttp|/xhttp|/xhttp|yes
+/xhttp/|/xhttp/|/xhttp/|yes
+xhttp/|/xhttp/|/xhttp/|yes
+''|/|''|no
+\ xhttp\ |/\ xhttp\ |/xhttp|no
+\ /xhttp\ |/\ /xhttp\ |/xhttp|no
+//xhttp|//xhttp|//xhttp|yes
+/|/|/|yes

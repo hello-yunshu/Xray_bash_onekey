@@ -1,0 +1,47 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "diff": [
+    "inbounds[0].port"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "c9e4a8783ce85e4175fce08934ee8bff8899db8a66ee5c1e3ad7f53db39c3d1f",
+  "newSha256": "f6ffd516bcfced4df10ee57dc035321c07dc42cb8917f17cc7af3bd1fc20e160",
+  "backupDir": "/etc/idleleo/backup/edit-20261119T114342",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://608c7b35-6e05-446d-949c-31e5f9692d33@www.cloudflare.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=tPQuOBmPUJ0nsaB3qDZnX2-5QYybzKVXF0mdS88jWxY&sid=d57efac0&type=raw#idleleo-reality",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": null,
+  "shortIds": [
+    "d57efac0"
+  ],
+  "oldShareUri": "vless://608c7b35-6e05-446d-949c-31e5f9692d33@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=tPQuOBmPUJ0nsaB3qDZnX2-5QYybzKVXF0mdS88jWxY&sid=d57efac0&type=raw#idleleo-reality",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "c9e4a8783ce85e4175fce08934ee8bff8899db8a66ee5c1e3ad7f53db39c3d1f",
+    "newSha256": "f6ffd516bcfced4df10ee57dc035321c07dc42cb8917f17cc7af3bd1fc20e160",
+    "changed": [
+      "port"
+    ],
+    "affectedServices": [
+      "xray"
+    ],
+    "disconnectRisk": "drops live client sessions until clients reconnect",
+    "validationSteps": [
+      "xray -test"
+    ],
+    "rollbackScope": "runtime config",
+    "ownership": "idleleo-managed",
+    "fingerprint": "89fff93143b59e51"
+  }
+}

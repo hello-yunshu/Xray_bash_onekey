@@ -1,0 +1,31 @@
+{
+  "cron": {
+    "curCount": 0,
+    "duplicates": [],
+    "prevCount": 0,
+    "stable": true
+  },
+  "inbounds": null,
+  "manifest": {
+    "added": [
+      "/etc/idleleo/conf/nginx/nginx.default",
+      "/etc/idleleo/conf/nginx/relay-stream.conf",
+      "/etc/idleleo/info/xray_info.inf",
+      "/etc/systemd/system/nginx.service",
+      "/usr/local/nginx/sbin/nginx"
+    ],
+    "addedCount": 5,
+    "backupAddedCount": 0,
+    "backupRemovedCount": 0,
+    "changed": [
+      "/etc/idleleo/conf/install_config.json",
+      "/etc/idleleo/logs/install.log"
+    ],
+    "changedCount": 2,
+    "removed": [],
+    "removedCount": 0,
+    "stable": false
+  },
+  "ok": false,
+  "schemaVersion": 1
+}

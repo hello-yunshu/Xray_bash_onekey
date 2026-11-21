@@ -1,0 +1,14 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-04,OPS-10",
+  "ops": [
+    "OPS-04",
+    "OPS-10"
+  ],
+  "runId": "TUNE-OPS2-20261121",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

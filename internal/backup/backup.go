@@ -6,6 +6,7 @@ package backup
 
 import (
 	"archive/tar"
+	"bufio"
 	"compress/gzip"
 	"context"
 	"crypto/sha256"
@@ -21,6 +22,18 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
+)
+
+const (
+	// maxArchiveBytes bounds the decompressed tar stream so a crafted archive
+	// cannot exhaust memory or disk during verify.
+	maxArchiveBytes int64 = 4 << 30
+	// maxManifestBytes keeps a hostile manifest from being read into memory.
+	maxManifestBytes int64 = 16 << 20
+	// maxManagedFileBytes bounds one managed file (geodata is the largest).
+	maxManagedFileBytes int64 = 1 << 30
 )
 
 const SchemaVersion = 1
@@ -75,6 +88,7 @@ type Report struct {
 	CreatedAt     string   `json:"createdAt"`
 	Restored      []string `json:"restored,omitempty"`
 	Changes       []Change `json:"changes,omitempty"`
+	Warnings      []string `json:"warnings,omitempty"`
 	DryRun        bool     `json:"dryRun,omitempty"`
 	PreBackup     string   `json:"preBackup,omitempty"`
 	Sensitive     bool     `json:"sensitive"`
@@ -97,27 +111,62 @@ var restoreLimits = []string{
 
 // Create writes a verified tar.gz and returns its digest. It refuses to
 // overwrite an existing path and never follows a symlink in the tree.
+//
+// The archive is written to a sibling temp file, fsynced and only then linked
+// into place, so a crash leaves no half-valid archive at the requested name.
 func Create(ctx context.Context, root, archive string, opts CreateOptions) (Report, error) {
 	if opts.Now.IsZero() {
 		opts.Now = time.Now().UTC()
 	}
-	if err := os.MkdirAll(filepath.Dir(archive), 0o700); err != nil {
+	absRoot, err := ensureRoot(root)
+	if err != nil {
 		return Report{}, err
 	}
-	out, err := os.OpenFile(archive, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+	if archiveInsideManaged(absRoot, archive) {
+		return Report{}, errors.New("backup archive must not live inside the managed trees it archives")
+	}
+	outDir := filepath.Dir(archive)
+	if err := os.MkdirAll(outDir, 0o700); err != nil {
+		return Report{}, err
+	}
+	if _, err := os.Lstat(archive); err == nil {
+		return Report{}, fmt.Errorf("backup archive: %w", os.ErrExist)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return Report{}, fmt.Errorf("backup archive: %w", err)
+	}
+	tmp, err := os.CreateTemp(outDir, ".idleleo-backup-*.tar.gz")
 	if err != nil {
 		return Report{}, fmt.Errorf("backup archive: %w", err)
 	}
-	defer out.Close()
+	tmpName := tmp.Name()
+	committed := false
+	defer func() {
+		tmp.Close()
+		if !committed {
+			_ = os.Remove(tmpName)
+		}
+	}()
 
 	var entries []Entry
 	var skipped []string
 	for _, rel := range append(append([]string{}, managedDirs...), maybeGeo(opts.IncludeGeodata)...) {
-		dir := filepath.Join(root, rel)
-		if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
+		dir, err := securePath(absRoot, rel, false)
+		if err != nil {
+			// An optional tree (notably the opt-in GeoData directory) may be
+			// absent while one of its parents exists. That is not a failure:
+			// there is simply nothing to archive. Symlinks and unsafe parents
+			// still return a non-ENOENT error and abort the backup.
+			if errors.Is(err, os.ErrNotExist) {
+				skipped = append(skipped, rel+" (absent)")
+				continue
+			}
+			return Report{}, err
+		}
+		if _, err := os.Lstat(dir); errors.Is(err, os.ErrNotExist) {
+			skipped = append(skipped, rel+" (absent)")
 			continue
 		}
-		err := filepath.WalkDir(dir, func(path string, d os.DirEntry, walkErr error) error {
+		err = filepath.WalkDir(dir, func(path string, d os.DirEntry, walkErr error) error {
 			if walkErr != nil {
 				return walkErr
 			}
@@ -131,7 +180,7 @@ func Create(ctx context.Context, root, archive string, opts CreateOptions) (Repo
 			if err != nil {
 				return err
 			}
-			relPath, err := filepath.Rel(root, path)
+			relPath, err := filepath.Rel(absRoot, path)
 			if err != nil {
 				return err
 			}
@@ -153,14 +202,16 @@ func Create(ctx context.Context, root, archive string, opts CreateOptions) (Repo
 	}
 	sort.Slice(entries, func(i, j int) bool { return entries[i].Path < entries[j].Path })
 
-	gz := gzip.NewWriter(out)
+	gz := gzip.NewWriter(tmp)
 	tw := tar.NewWriter(gz)
 	now := opts.Now
 	for i := range entries {
-		body, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(entries[i].Path)))
+		body, mode, err := readNoFollow(filepath.Join(absRoot, filepath.FromSlash(entries[i].Path)))
 		if err != nil {
 			return Report{}, err
 		}
+		entries[i].Mode = uint32(mode)
+		entries[i].Size = int64(len(body))
 		sum := sha256.Sum256(body)
 		entries[i].SHA256 = hex.EncodeToString(sum[:])
 		if err := writeTar(tw, entries[i].Path, entries[i].Mode, now, body); err != nil {
@@ -194,8 +245,28 @@ func Create(ctx context.Context, root, archive string, opts CreateOptions) (Repo
 	if err := gz.Close(); err != nil {
 		return Report{}, err
 	}
-	if err := out.Close(); err != nil {
+	if err := tmp.Chmod(0o600); err != nil {
 		return Report{}, err
+	}
+	if err := tmp.Sync(); err != nil {
+		return Report{}, err
+	}
+	if err := tmp.Close(); err != nil {
+		return Report{}, err
+	}
+	// Link is atomic and fails with EEXIST, so a concurrent create cannot both
+	// believe they reserved the name.
+	if err := os.Link(tmpName, archive); err != nil {
+		return Report{}, fmt.Errorf("backup archive: %w", err)
+	}
+	if err := os.Remove(tmpName); err != nil {
+		return Report{}, err
+	}
+	committed = true
+	syncDir(outDir)
+	if _, err := Verify(archive); err != nil {
+		_ = os.Remove(archive)
+		return Report{}, fmt.Errorf("backup verification failed: %w", err)
 	}
 	sum, size, err := digestFile(archive)
 	if err != nil {
@@ -238,18 +309,25 @@ func digestFile(path string) (string, int64, error) {
 }
 
 // Verify reads the archive without extracting it, recomputes every hash and
-// rejects entries that escape the managed trees.
+// rejects entries that escape the managed trees. It is deliberately strict:
+// the tar contents must match the manifest exactly (no extra or missing
+// files), modes and sizes must agree, and trailing or multi-member gzip
+// streams are refused.
 func Verify(archive string) (Manifest, error) {
 	f, err := os.Open(archive)
 	if err != nil {
 		return Manifest{}, err
 	}
 	defer f.Close()
-	gz, err := gzip.NewReader(f)
+	br := bufio.NewReaderSize(f, 64<<10)
+	gz, err := gzip.NewReader(br)
 	if err != nil {
 		return Manifest{}, fmt.Errorf("not a gzip archive: %w", err)
 	}
 	defer gz.Close()
+	// One member only. A concatenated gzip stream would let a second archive be
+	// smuggled past a reader that trusts the first member.
+	gz.Multistream(false)
 	tr := tar.NewReader(gz)
 	seen := map[string]Entry{}
 	var manifest Manifest
@@ -269,17 +347,23 @@ func Verify(archive string) (Manifest, error) {
 		if hdr.Typeflag != tar.TypeReg {
 			return Manifest{}, fmt.Errorf("archive entry is not a regular file: %q", hdr.Name)
 		}
-		total += hdr.Size
-		if total > 4<<30 {
-			return Manifest{}, errors.New("archive expands beyond 4 GiB")
+		if hdr.Size < 0 || hdr.Size > maxManagedFileBytes {
+			return Manifest{}, fmt.Errorf("archive entry has an invalid size: %q", hdr.Name)
 		}
-		body, err := io.ReadAll(tr)
-		if err != nil {
-			return Manifest{}, err
+		total += hdr.Size
+		if total > maxArchiveBytes {
+			return Manifest{}, errors.New("archive expands beyond 4 GiB")
 		}
 		if hdr.Name == "manifest.json" {
 			if haveManifest {
 				return Manifest{}, errors.New("archive contains more than one manifest")
+			}
+			if hdr.Size > maxManifestBytes {
+				return Manifest{}, errors.New("manifest is larger than the supported limit")
+			}
+			body := make([]byte, hdr.Size)
+			if _, err := io.ReadFull(tr, body); err != nil {
+				return Manifest{}, err
 			}
 			if err := json.Unmarshal(body, &manifest); err != nil {
 				return Manifest{}, fmt.Errorf("manifest: %w", err)
@@ -290,18 +374,46 @@ func Verify(archive string) (Manifest, error) {
 		if _, dup := seen[hdr.Name]; dup {
 			return Manifest{}, fmt.Errorf("archive contains a duplicate entry: %s", hdr.Name)
 		}
-		sum := sha256.Sum256(body)
-		seen[hdr.Name] = Entry{Path: hdr.Name, Mode: uint32(hdr.Mode), Size: int64(len(body)), SHA256: hex.EncodeToString(sum[:])}
+		h := sha256.New()
+		n, err := io.Copy(h, tr)
+		if err != nil {
+			return Manifest{}, err
+		}
+		if n != hdr.Size {
+			return Manifest{}, fmt.Errorf("archive entry is truncated: %s", hdr.Name)
+		}
+		seen[hdr.Name] = Entry{
+			Path: hdr.Name, Mode: uint32(hdr.Mode) & 0o777, Size: n,
+			SHA256: hex.EncodeToString(h.Sum(nil)),
+		}
 	}
 	if !haveManifest || manifest.SchemaVersion != SchemaVersion {
 		return Manifest{}, errors.New("archive has no supported manifest")
 	}
-	// Consume the rest of the gzip stream so the footer checksum is verified and
-	// bytes appended after the member are rejected instead of ignored.
+	// Drain the member so the gzip footer/CRC is verified, then prove that no
+	// bytes follow it.
 	if _, err := io.Copy(io.Discard, gz); err != nil {
 		return Manifest{}, fmt.Errorf("archive has trailing or corrupt data: %w", err)
 	}
+	if br.Buffered() > 0 {
+		return Manifest{}, errors.New("archive has trailing data after the gzip member")
+	}
+	if n, _ := f.Read(make([]byte, 1)); n != 0 {
+		return Manifest{}, errors.New("archive has trailing data after the gzip member")
+	}
+	if len(manifest.Entries) != len(seen) {
+		return Manifest{}, fmt.Errorf("archive entries (%d) do not match the manifest (%d)",
+			len(seen), len(manifest.Entries))
+	}
+	declared := make(map[string]bool, len(manifest.Entries))
 	for _, want := range manifest.Entries {
+		if !safeEntryName(want.Path) || want.Path == "manifest.json" {
+			return Manifest{}, fmt.Errorf("manifest declares an unsafe path: %q", want.Path)
+		}
+		if declared[want.Path] {
+			return Manifest{}, fmt.Errorf("manifest declares a duplicate entry: %s", want.Path)
+		}
+		declared[want.Path] = true
 		got, ok := seen[want.Path]
 		if !ok {
 			return Manifest{}, fmt.Errorf("archive is missing %s", want.Path)
@@ -309,23 +421,32 @@ func Verify(archive string) (Manifest, error) {
 		if got.SHA256 != want.SHA256 || got.Size != want.Size {
 			return Manifest{}, fmt.Errorf("archive content does not match its manifest: %s", want.Path)
 		}
+		if got.Mode != want.Mode&0o777 {
+			return Manifest{}, fmt.Errorf("archive mode does not match its manifest: %s", want.Path)
+		}
+	}
+	for name := range seen {
+		if !declared[name] {
+			return Manifest{}, fmt.Errorf("archive contains an undeclared entry: %s", name)
+		}
 	}
 	return manifest, nil
 }
 
 func safeEntryName(name string) bool {
-	if name == "" || strings.HasPrefix(name, "/") || strings.Contains(name, "\\") {
+	if name == "manifest.json" {
+		return true
+	}
+	clean, err := cleanRel(name)
+	if err != nil {
 		return false
 	}
-	if strings.HasPrefix(name, "manifest.json") {
-		return name == "manifest.json"
-	}
 	for _, rel := range managedDirs {
-		if strings.HasPrefix(name, rel+"/") && !strings.Contains(name, "..") {
+		if strings.HasPrefix(clean, rel+"/") {
 			return true
 		}
 	}
-	return strings.HasPrefix(name, geodataDir+"/") && !strings.Contains(name, "..")
+	return strings.HasPrefix(clean, geodataDir+"/")
 }
 
 // RestoreOptions controls the safety net around an extraction.
@@ -333,11 +454,15 @@ type RestoreOptions struct {
 	NoPreBackup bool
 	DryRun      bool
 	Validate    func(ctx context.Context, configPath string) error
-	Now         time.Time
+	// Apply runs after the files are committed but before the transaction is
+	// recorded COMMITTED, so a failed service restart rolls the tree back.
+	Apply func(ctx context.Context) error
+	Now   time.Time
 }
 
-// Restore verifies, extraction-stages, validates and then swaps files in. On a
-// swap failure every replaced file is put back from the stage.
+// Restore verifies, stages, validates and then applies files inside a durable
+// transaction. A SIGKILL leaves a PREPARED/APPLYING journal that `Recover`
+// converges; it never deletes a snapshot it cannot verify.
 func Restore(ctx context.Context, root, archive string, opts RestoreOptions) (Report, error) {
 	if opts.Now.IsZero() {
 		opts.Now = time.Now().UTC()
@@ -347,28 +472,61 @@ func Restore(ctx context.Context, root, archive string, opts RestoreOptions) (Re
 		return Report{}, err
 	}
 	rep := Report{SchemaVersion: SchemaVersion, Archive: archive, Files: len(manifest.Entries), Sensitive: true, DryRun: opts.DryRun}
+	if sum, _, err := digestFile(archive); err == nil {
+		rep.ArchiveSHA256 = sum
+	}
 	if opts.DryRun {
 		for _, e := range manifest.Entries {
 			dst := filepath.Join(root, filepath.FromSlash(e.Path))
 			action := "add"
-			body, err := os.ReadFile(dst)
+			fi, statErr := os.Lstat(dst)
 			switch {
-			case err == nil:
+			case statErr == nil:
+				if !fi.Mode().IsRegular() {
+					return rep, fmt.Errorf("refusing to inspect a non-regular file: %s", dst)
+				}
+				body, _, err := readNoFollow(dst)
+				if err != nil {
+					return rep, err
+				}
 				sum := sha256.Sum256(body)
 				if hex.EncodeToString(sum[:]) == e.SHA256 {
 					action = "unchanged"
 				} else {
 					action = "replace"
 				}
-			case !os.IsNotExist(err):
-				return rep, err
+			case !errors.Is(statErr, os.ErrNotExist):
+				return rep, statErr
 			}
 			rep.Changes = append(rep.Changes, Change{Path: e.Path, Action: action})
 		}
 		return rep, nil
 	}
+
+	absRoot, err := ensureRoot(root)
+	if err != nil {
+		return rep, err
+	}
+	lock, err := host.AcquireUpdate(lockFileFor(absRoot))
+	if err != nil {
+		if errors.Is(err, host.ErrLocked) {
+			return rep, errors.New("another update holds the lock; retry after it finishes")
+		}
+		return rep, err
+	}
+	defer lock.Release()
+
+	if prev, err := loadRestoreRecord(absRoot); err == nil {
+		switch prev.State {
+		case RestoreStatePrepared, RestoreStateApplying, RestoreStateRecoveryNeeded:
+			return rep, fmt.Errorf("an interrupted restore is %s; run `idleleo backup recover` before restoring again", prev.State)
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return rep, err
+	}
+
 	if !opts.NoPreBackup {
-		dir := filepath.Join(root, "etc/idleleo/backup")
+		dir := filepath.Join(absRoot, "etc/idleleo/backup")
 		base := filepath.Join(dir, "pre-restore-"+opts.Now.Format("20060102T150405Z"))
 		var out Report
 		var err error
@@ -377,7 +535,7 @@ func Restore(ctx context.Context, root, archive string, opts RestoreOptions) (Re
 			if i > 0 {
 				name = base + "-" + strconv.Itoa(i) + ".tar.gz"
 			}
-			out, err = Create(ctx, root, name, CreateOptions{Now: opts.Now})
+			out, err = Create(ctx, absRoot, name, CreateOptions{Now: opts.Now})
 			if !errors.Is(err, os.ErrExist) {
 				break
 			}
@@ -387,10 +545,10 @@ func Restore(ctx context.Context, root, archive string, opts RestoreOptions) (Re
 		}
 		rep.PreBackup = out.Archive
 	}
-	if err := os.MkdirAll(filepath.Join(root, "var/tmp"), 0o750); err != nil {
+	if _, err := secureMkdirAll(absRoot, "var/tmp", 0o750); err != nil {
 		return rep, err
 	}
-	stage, err := os.MkdirTemp(filepath.Join(root, "var/tmp"), "restore-")
+	stage, err := os.MkdirTemp(filepath.Join(absRoot, "var/tmp"), "restore-")
 	if err != nil {
 		return rep, err
 	}
@@ -406,50 +564,7 @@ func Restore(ctx context.Context, root, archive string, opts RestoreOptions) (Re
 			}
 		}
 	}
-	type swap struct{ dst, old string }
-	var swaps []swap
-	rollback := func() {
-		for i := len(swaps) - 1; i >= 0; i-- {
-			_ = os.Remove(swaps[i].dst)
-			if swaps[i].old != "" {
-				_ = os.Rename(swaps[i].old, swaps[i].dst)
-			}
-		}
-	}
-	for _, e := range manifest.Entries {
-		src := filepath.Join(stage, filepath.FromSlash(e.Path))
-		dst := filepath.Join(root, filepath.FromSlash(e.Path))
-		if err := os.MkdirAll(filepath.Dir(dst), 0o750); err != nil {
-			rollback()
-			return rep, err
-		}
-		old := dst + ".restore-old"
-		_ = os.Remove(old)
-		if _, err := os.Stat(dst); err == nil {
-			if err := os.Rename(dst, old); err != nil {
-				rollback()
-				return rep, err
-			}
-			swaps = append(swaps, swap{dst: dst, old: old})
-		} else {
-			swaps = append(swaps, swap{dst: dst, old: ""})
-		}
-		if err := os.Rename(src, dst); err != nil {
-			rollback()
-			return rep, err
-		}
-		if err := os.Chmod(dst, os.FileMode(e.Mode)); err != nil {
-			rollback()
-			return rep, err
-		}
-		rep.Restored = append(rep.Restored, e.Path)
-	}
-	for _, s := range swaps {
-		if s.old != "" {
-			_ = os.Remove(s.old)
-		}
-	}
-	return rep, nil
+	return restoreApply(ctx, absRoot, stage, manifest, rep, opts)
 }
 
 func extract(ctx context.Context, archive, stage string) error {

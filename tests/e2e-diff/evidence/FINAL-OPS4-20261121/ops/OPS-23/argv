@@ -1,0 +1,1 @@
+speedtest --server http://e2e-FINAL-OPS4-20261121-origin --bytes 1048576 --samples 1 --json

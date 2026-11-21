@@ -1,0 +1,11 @@
+20:11:24 run_id=20261119-ops21
+20:11:25 image_id=sha256:2c8e000bd2cd62753f5c195ecbc2ed965a5b66cec0246d08f7c78bdc13ed8dc6
+20:11:25 building idleleo
+20:11:33 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=cbcb7049f9182074994702bcd7028a60476fe250da10490c8abfa0dfe8192eb3
+20:11:34 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+20:11:34 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+20:11:36 argv-verify written
+20:11:37 [OPS-21] start
+20:14:47 [OPS-21] verdict=PASS
+20:14:47 scope: installs=[] edits=[] ops=[OPS-21]
+20:14:47 P2 finished: tests/e2e-diff/evidence/20261119-ops21/p2

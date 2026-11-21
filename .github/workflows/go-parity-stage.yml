@@ -43,6 +43,10 @@ jobs:
         run: |
           set -euo pipefail
           python3 current/tests/go-parity/parity/scripts/check_evidence_hygiene.py current/tests/go-parity/evidence current/tests/go-parity/parity/evidence current/docs
+      - name: Matrix environment contract (digest without host path)
+        run: |
+          set -euo pipefail
+          python3 current/tests/go-parity/matrix/test_environment_contract.py
       - name: Go core formatting, vet, tests and build
         run: |
           set -euo pipefail

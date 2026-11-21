@@ -1,0 +1,33 @@
+{
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-06",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "bash target not applied: ['www.cloudflare.com:443']",
+    "go target not applied: ['www.cloudflare.com:443']",
+    "serverNames differ (bash=['www.cloudflare.com'] go=['example.com'])"
+  ],
+  "serverNames": {
+    "bash": [
+      "www.cloudflare.com"
+    ],
+    "go": [
+      "example.com"
+    ]
+  },
+  "targets": {
+    "bash": [
+      "www.cloudflare.com:443"
+    ],
+    "go": [
+      "www.cloudflare.com:443"
+    ]
+  },
+  "verdict": "BLOCKER"
+}

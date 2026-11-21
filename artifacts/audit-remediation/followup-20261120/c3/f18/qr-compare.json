@@ -1,0 +1,8 @@
+{
+  "bytes": 5078,
+  "goQrSha256": "a29daa204d0da10b874413b5b7aceebbb0b030e06ded56ead7bd97987c8b6ab2",
+  "lines": 31,
+  "qrencodeSha256": "a29daa204d0da10b874413b5b7aceebbb0b030e06ded56ead7bd97987c8b6ab2",
+  "qrencodeVersion": "qrencode version 4.1.1",
+  "uri": "vless://c0233e04-c2ad-47e7-aef4-1fe30d03c806@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=V4Aq1J6As0bQjkeWtOFx0n2IHKmyRIXh1Zy5pAY3NRs&sid=c76ecbd9&type=raw#idleleo-reality"
+}

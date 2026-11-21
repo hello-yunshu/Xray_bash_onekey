@@ -1,0 +1,16 @@
+<TS> e2e-fix-20261120-p2b-M6-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M6-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-fix-20261120-p2b-M6-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-fix-20261120-p2b-M6-bash xray[<PID>]: 2026/11/20 01:02:43.371825 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-fix-20261120-p2b-M6-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-fix-20261120-p2b-M6-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-fix-20261120-p2b-M6-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M6-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-fix-20261120-p2b-M6-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-fix-20261120-p2b-M6-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-fix-20261120-p2b-M6-bash xray[<PID>]: 2026/11/20 01:03:03.528732 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/20 01:02:43.377686 [Warning] core: Xray 26.10.31 started
+2026/11/20 01:02:47.115321 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:41284 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 01:02:47.115354 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:41294 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 01:02:51.118681 [Error] app/dns: failed to retrieve response for example.com. > Post "https://dns.google/dns-query": context deadline exceeded
+2026/11/20 01:03:03.532220 [Warning] core: Xray 26.10.31 started

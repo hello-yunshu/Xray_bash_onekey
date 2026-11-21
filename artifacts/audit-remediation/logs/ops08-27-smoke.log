@@ -1,0 +1,84 @@
+{
+  "enabled": true,
+  "policy": "isolate"
+}
+{
+  "mode": "Reality",
+  "policy": "reject",
+  "denyPort": 9404,
+  "changed": true,
+  "dryRun": true,
+  "files": [
+    "/tmp/ops-guard-cert/etc/idleleo/conf/nginx/00-xray.conf",
+    "/tmp/ops-guard-cert/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/tmp/ops-guard-cert/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/tmp/ops-guard-cert/usr/local/nginx/conf/nginx.conf",
+    "/tmp/ops-guard-cert/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": false,
+  "warnings": []
+}
+{
+  "mode": "Reality",
+  "policy": "isolate",
+  "denyPort": 9403,
+  "changed": true,
+  "dryRun": true,
+  "files": [
+    "/tmp/ops-guard-cert/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/tmp/ops-guard-cert/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/tmp/ops-guard-cert/usr/local/nginx/conf/nginx.conf",
+    "/tmp/ops-guard-cert/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": false,
+  "warnings": []
+}
+{
+  "mode": "Reality",
+  "policy": "decoy",
+  "decoyDomain": "decoy.local",
+  "denyPort": 9444,
+  "changed": true,
+  "dryRun": true,
+  "files": [
+    "/tmp/ops-guard-cert/etc/idleleo/conf/nginx/00-xray.conf",
+    "/tmp/ops-guard-cert/etc/idleleo/cert/decoy.crt",
+    "/tmp/ops-guard-cert/etc/idleleo/cert/decoy.key",
+    "/tmp/ops-guard-cert/etc/idleleo/decoy/index.html",
+    "/tmp/ops-guard-cert/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/tmp/ops-guard-cert/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/tmp/ops-guard-cert/usr/local/nginx/conf/nginx.conf",
+    "/tmp/ops-guard-cert/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": false,
+  "selfSigned": true,
+  "warnings": []
+}
+{
+  "dir": "/tmp/ops-guard-cert/etc/idleleo/cert",
+  "removed": [
+    "/tmp/ops-guard-cert/etc/idleleo/cert/example.com.crt",
+    "/tmp/ops-guard-cert/etc/idleleo/cert/example.com.key"
+  ],
+  "missing": false,
+  "dryRun": true,
+  "warnings": []
+}
+{
+  "dir": "/tmp/ops-guard-cert/etc/idleleo/cert",
+  "removed": [
+    "/tmp/ops-guard-cert/etc/idleleo/cert/example.com.crt",
+    "/tmp/ops-guard-cert/etc/idleleo/cert/example.com.key"
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": []
+}
+{
+  "dir": "/tmp/ops-guard-cert/etc/idleleo/cert",
+  "removed": [],
+  "missing": false,
+  "dryRun": false,
+  "warnings": []
+}
+OPS-08/OPS-27 smoke: PASS

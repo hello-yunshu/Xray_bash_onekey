@@ -1,0 +1,18 @@
+{
+  "allowedDiff": "go has no language capability; row is bash-only",
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-30",
+  "language": {
+    "after": "5d09c6dfe73bbab8d74f1a283f1a35adc392265338d4bf0a6afa5af51d409303  /etc/idleleo/language.conf",
+    "before": "absent"
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "verdict": "BASH-ONLY"
+}
