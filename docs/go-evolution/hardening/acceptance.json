@@ -18,7 +18,7 @@
   ],
   "summaryScope": "items below are the 2026-11-19 baseline; see followup20261120",
   "ciSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
-  "ciNote": "PR #182 draft: 7/7 workflows success (stage 44798164756, preview 44798164664, release 44798164791, real-root 44798164759, Test Install 44798164733, Privacy 44798164734, Rill 44798164622)",
+  "ciNote": "PR #182 draft: code commit 96f77eae 7/7 success; final docs head d399e6bd 7/7 success (stage 44860271297, preview 44860271369, release 44860271325, real-root 44860271300, Test Install 44860271291, Privacy 44860271356, Rill 44860271269)",
   "pr": {
     "number": 182,
     "url": "https://github.com/hello-yunshu/Xray_bash_onekey/pull/182",
@@ -563,9 +563,21 @@
       "verdict": "PASS"
     },
     "ci": {
-      "workflows": 7,
-      "success": 7,
-      "sha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03"
+      "codeSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
+      "codeShaWorkflows": 7,
+      "codeShaSuccess": 7,
+      "finalHead": "d399e6bd",
+      "finalHeadWorkflows": 7,
+      "finalHeadSuccess": 7,
+      "finalHeadRuns": {
+        "stageGate": 44860271297,
+        "preview": 44860271369,
+        "releaseQualification": 44860271325,
+        "realRoot": 44860271300,
+        "testInstall": 44860271291,
+        "privacy": 44860271356,
+        "rill": 44860271269
+      }
     },
     "verdicts": {
       "dockerCandidate": "GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
