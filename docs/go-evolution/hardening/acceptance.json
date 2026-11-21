@@ -234,7 +234,7 @@
     "blockedIds": [],
     "notRun": 0,
     "notRunIds": [],
-    "generatedAt": "2026-11-20T19:01:25+00:00",
+    "generatedAt": "2026-11-21T03:15:52+00:00",
     "codeSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
     "source": "tests/e2e-diff/ledger.json"
   },
