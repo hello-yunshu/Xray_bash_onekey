@@ -18,7 +18,7 @@
   ],
   "summaryScope": "items below are the 2026-11-19 baseline; see followup20261120",
   "ciSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
-  "ciNote": "PR #182 draft: code commit 96f77eae 7/7 success; final head c3d4f904 7/7 success (stage 44870185245, preview 44870185254, release 44870185226, real-root 44870185251, Test Install 44870185223, Privacy 44870185229, Rill 44870185231)",
+  "ciNote": "PR #182 draft: code commit 96f77eae 7/7 success; evidence/docs head 53f412fe 7/7 success (stage/preview/release/real-root/Test Install/Privacy/Rill); release-candidate-gate skipped on a non-release branch",
   "pr": {
     "number": 182,
     "url": "https://github.com/hello-yunshu/Xray_bash_onekey/pull/182",
@@ -580,18 +580,10 @@
       "codeShaWorkflows": 7,
       "codeShaSuccess": 7,
       "evidenceHead": "a502780cb7484b6d5240657884d12a09370b86bc",
-      "finalHead": "c3d4f90431ca3b4c547cde174ca84c4a90f14df0",
+      "finalHead": "53f412fe",
       "finalHeadWorkflows": 7,
       "finalHeadSuccess": 7,
-      "finalHeadRuns": {
-        "stageGate": 44870185245,
-        "preview": 44870185254,
-        "releaseQualification": 44870185226,
-        "realRoot": 44870185251,
-        "testInstall": 44870185223,
-        "privacy": 44870185229,
-        "rill": 44870185231
-      }
+      "finalHeadNote": "7 required workflows success at 53f412fe (stage, preview, release qualification, real-root, Test Install, Privacy, Rill); release-candidate-gate skipped by design"
     },
     "verdicts": {
       "dockerCandidate": "NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE",

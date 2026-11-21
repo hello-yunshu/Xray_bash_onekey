@@ -181,7 +181,7 @@ E2E_RUN_ID=<run-id> E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.sh
 | F28/F08/F18 最终 SHA | 57/0、129/0、178/0（干净 worktree + 真实 xray） | `artifacts/intake-20261121/s1/features-final/run.log` |
 | amd64 | `linux/amd64` 构建 + `internal/xraycfg`/`internal/deploy` 测试通过 | `artifacts/intake-20261121/s0/amd64-gate.log` |
 | 环境证据 | OS/systemd/bash/nginx/xray 版本与 sha256；Bash pin 短 SHA 无法本地解析 | `artifacts/intake-20261121/s0/environment-final.json` |
-| 真实 CI | 7/7 success @ `96f77eae`；证据/文档 head `c3d4f904` 7/7（stage/preview/release/real-root/Test Install/Privacy/Rill） | PR #182 |
+| 真实 CI | 7/7 success @ `96f77eae`；证据/文档 head `53f412fe` 7/7（stage/preview/release/real-root/Test Install/Privacy/Rill；证据提交 `a502780c`） | PR #182 |
 
 **未闭合（不得视为通过）**：
 
