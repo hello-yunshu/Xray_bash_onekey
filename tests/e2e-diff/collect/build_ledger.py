@@ -39,6 +39,14 @@ def read_json(path):
         return None
 
 
+def repo_path(path):
+    """Record paths relative to the repo so the ledger carries no host path."""
+    if not path:
+        return path
+    rel = os.path.relpath(os.path.abspath(path))
+    return path if rel.startswith("..") or os.path.isabs(rel) else rel
+
+
 def matrix_results(root):
     """Read p2/OPS-*/ops.json verdicts from a matrix run."""
     out = {}
@@ -74,7 +82,7 @@ def matrix_results(root):
             "bashExit": bash_rc,
             "goExit": go_rc,
             "reasons": reasons,
-            "evidence": os.path.join(root, "p2", name, "ops.json"),
+            "evidence": repo_path(os.path.join(root, "p2", name, "ops.json")),
             "runId": os.path.basename(os.path.normpath(root)),
             "layer": "L0-L4 driver evidence",
         }
@@ -119,7 +127,7 @@ def sweep_results(root):
             "goExit": 0 if entry["fail"] == 0 else 1,
             "reasons": entry["failText"],
             "assertions": entry["pass"] + entry["fail"],
-            "evidence": os.path.join(root, "assertions.txt"),
+            "evidence": repo_path(os.path.join(root, "assertions.txt")),
             "runId": os.path.basename(os.path.normpath(root)),
             "layer": "L0-L2 Go CLI evidence",
         }
@@ -224,8 +232,8 @@ def main():
         "blockedIds": blocked_ids,
         "notRunIds": not_run_ids,
         "sources": {
-            "matrixEvidence": os.path.abspath(args.matrix_evidence) if args.matrix_evidence else None,
-            "opsEvidence": [os.path.abspath(p) for p in args.ops_evidence],
+            "matrixEvidence": repo_path(args.matrix_evidence),
+            "opsEvidence": [repo_path(p) for p in args.ops_evidence],
         },
         "results": results,
     }
