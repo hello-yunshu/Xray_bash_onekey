@@ -11,7 +11,8 @@
 | --- | --- |
 | 分支 | `work/go-hardening-parity-20261119` |
 | 审计 HEAD | `c0f382f2bbc805556b0dd72b4a800af51de2312c` |
-| 本轮修复提交 | `96f77eae8849e1f1a73f0d8e6dfaaac922255f03`（账本 `codeSha` 同值） |
+| 本轮产品代码提交 | `96f77eae8849e1f1a73f0d8e6dfaaac922255f03` |
+| 本轮证据 / 测试工具 head | `814a375755b3beffe7e3e784aeab56c656e9cb99`（账本 `codeSha` 同值；产品代码自 `96f77eae` 未变，后续提交只含脚本/证据/文档） |
 | 固定 Bash | v3.3.6 `0fa7052e`；真实历史安装器 v3.3.2、v3.3.3（`install-v3.3.*.sh`） |
 | Go 工具链 | `golang:1.27.4`，`CGO_ENABLED=0 GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local` |
 | 运行镜像 | `idleleo-e2e:24.04`（`688fabaf2d84`）、`idleleo-e2e:debian12`（`f67ddd3cc98d`）、`nginx:1.27`（1.27.5 + openssl）、`golang:1.27.4` |
@@ -222,10 +223,10 @@ GeoData 非空且校验和匹配，`state.json` 记录 `result=ok`。
 | gofmt / go vet / go build / go test | rc=0，25 包 ok | `artifacts/intake-20261121/s0/gate.log` |
 | go test -race | rc=0 | `artifacts/intake-20261121/s0/race.log` |
 | Bash 语法（安装器 + 驱动） | 全部 rc=0 | `artifacts/intake-20261121/s0/bash-syntax.log` |
-| 证据隐私 | 0 findings（38545 文件） | `check_evidence_hygiene.py --mask artifacts/intake-20261121 tests/e2e-diff/evidence tests/go-parity/evidence/matrix-20261121` |
+| 证据隐私 | 0 findings（41845 文件） | `check_evidence_hygiene.py --mask artifacts/intake-20261121 tests/e2e-diff/evidence tests/go-parity/evidence/matrix-20261121` |
 | 98 项配置矩阵 | 104 行：54 MATCH + 40 MATCH_CORE_FIELDS + 4 REFUSED + 6 A1_PASS，0 GAP，`repo_dirty=0` | `tests/go-parity/evidence/matrix-20261121/summary.json` |
 | 干净树二进制 | `git archive` 重建 sha256 与全部验收运行一致 | `artifacts/intake-20261121/s0/clean-tree-build.txt` |
-| 真实 CI | 7/7 success @ `96f77eae`：stage gate `44798164756`、preview `44798164664`、release qualification `44798164791`、real-root `44798164759`、Test Install `44798164733`、Privacy Guard `44798164734`、Rill Xray Agent `44798164622`；最终文档 head `d399e6bd` 同样 7/7 success（stage `44860271297`、preview `44860271369`、release `44860271325`、real-root `44860271300`、Test Install `44860271291`、Privacy `44860271356`、Rill `44860271269`） | GitHub Actions（PR #182，draft） |
+| 真实 CI | 7/7 success @ `96f77eae`：stage gate `44798164756`、preview `44798164664`、release qualification `44798164791`、real-root `44798164759`、Test Install `44798164733`、Privacy Guard `44798164734`、Rill Xray Agent `44798164622`；最终文档 head `d399e6bd` 同样 7/7 success（stage `44860271297`、preview `44860271369`、release `44860271325`、real-root `44860271300`、Test Install `44860271291`、Privacy `44860271356`、Rill `44860271269`）；本轮证据 head `814a3757` 的 CI 以推送后 run 为准 | GitHub Actions（PR #182，draft） |
 
 过程中被后续运行取代的中间记录（如 `FINAL-OPS`/`FINAL-OPS2`/`FINAL-OPS3`、
 `FINAL-R`、`FINAL-HIST` 与首次 S6）原样保留在证据目录，但**不计入账本**；
