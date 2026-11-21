@@ -1,12 +1,15 @@
 {
   "schemaVersion": 1,
   "frozenAt": "2026-11-13T17:21:00+08:00",
-  "repoCommit": "fee7a68",
+  "repoCommit": "96f77eae",
   "branch": "develop/go-native",
   "sourcePlan": "docs/plans/bash-vs-go-docker-differential-impl.md",
   "decisions": {
     "officialUpgradePath": "R1",
-    "r2Scope": ["M1", "M4"],
+    "r2Scope": [
+      "M1",
+      "M4"
+    ],
     "expectedDiffPolicy": "per-entry owner+approved_by+expires; pending counts as BLOCKER",
     "ciIntegration": "not in this round",
     "D1_m3_reality_ws": "Go aligned to bash: Reality keeps the raw primary inbound and adds ws/grpc/xhttp alongside it; M3 Go installs and is tested (no capability gap)",
@@ -37,7 +40,60 @@
     "L5": "logs: ANSI/timestamp/PID-normalized error-warning extraction",
     "L6": "idempotency: second identical run"
   },
-  "acceptance": {"opsTotal": 34, "dualSideVerifiedOps": ["OPS-09", "OPS-19", "OPS-21", "OPS-31", "OPS-32"], "goOnlyOps": ["OPS-01", "OPS-02", "OPS-03", "OPS-04", "OPS-05", "OPS-06", "OPS-07", "OPS-08", "OPS-10", "OPS-11", "OPS-12", "OPS-13", "OPS-14", "OPS-15", "OPS-16", "OPS-17a", "OPS-17b", "OPS-17c", "OPS-18", "OPS-20", "OPS-22", "OPS-23", "OPS-24", "OPS-25", "OPS-26", "OPS-27", "OPS-28", "OPS-29", "OPS-30"], "counts": {"dualSide": 5, "goOnly": 29}, "note": "Go-only rows are at most GO_ONLY_PASS; only dualSideVerifiedOps have both-side data-plane evidence."},
+  "acceptance": {
+    "opsTotal": 34,
+    "dualSideVerifiedOps": 11,
+    "goOnlyOps": 22,
+    "failOps": 0,
+    "bashOnlyOps": 1,
+    "blockedOps": 0,
+    "notRunOps": 0,
+    "dualSideVerifiedIds": [
+      "OPS-04",
+      "OPS-05",
+      "OPS-06",
+      "OPS-07",
+      "OPS-09",
+      "OPS-10",
+      "OPS-17c",
+      "OPS-19",
+      "OPS-21",
+      "OPS-31",
+      "OPS-32"
+    ],
+    "goOnlyIds": [
+      "OPS-01",
+      "OPS-02",
+      "OPS-03",
+      "OPS-08",
+      "OPS-11",
+      "OPS-12",
+      "OPS-13",
+      "OPS-14",
+      "OPS-15",
+      "OPS-16",
+      "OPS-17a",
+      "OPS-17b",
+      "OPS-18",
+      "OPS-20",
+      "OPS-22",
+      "OPS-23",
+      "OPS-24",
+      "OPS-25",
+      "OPS-26",
+      "OPS-27",
+      "OPS-28",
+      "OPS-29"
+    ],
+    "failIds": [],
+    "bashOnlyIds": [
+      "OPS-30"
+    ],
+    "notRunIds": [],
+    "generatedFrom": "tests/e2e-diff/ledger.json",
+    "generatedAt": "2026-11-20T19:01:25+00:00",
+    "codeSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03"
+  },
   "install": [
     {
       "id": "M1",
@@ -45,9 +101,44 @@
       "profile": "reality_standard",
       "tls": "Reality",
       "transport": null,
-      "bash": {"entry": ["install.sh", "-2"], "answersRef": "M1"},
-      "go": {"argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "reality", "--domain", "www.cloudflare.com", "--target", "www.cloudflare.com", "--port", "443", "--container"], "env": {"IDLELEO_ALLOW_SYSTEM_WRITES": "I_ACCEPT_CONTAINER_ONLY"}, "verified": true},
-      "layers": ["L0", "L1", "L2", "L3", "L4", "L5", "L6"],
+      "bash": {
+        "entry": [
+          "install.sh",
+          "-2"
+        ],
+        "answersRef": "M1"
+      },
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "install",
+          "--binary",
+          "/usr/local/bin/xray",
+          "--mode",
+          "reality",
+          "--domain",
+          "www.cloudflare.com",
+          "--target",
+          "www.cloudflare.com",
+          "--port",
+          "443",
+          "--container"
+        ],
+        "env": {
+          "IDLELEO_ALLOW_SYSTEM_WRITES": "I_ACCEPT_CONTAINER_ONLY"
+        },
+        "verified": true
+      },
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "L6"
+      ],
       "repeat": 2,
       "eligible": true,
       "notes": "a2 已验证的驱动序列可直接复用；Go argv 于 P1 用 --help 与实跑核实（--binary 必填）"
@@ -58,9 +149,40 @@
       "profile": "reality_nginx",
       "tls": "Reality",
       "transport": null,
-      "bash": {"entry": ["install.sh"], "menu": "1>1>1", "answersRef": "M2"},
-      "go": {"argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "reality-nginx", "--domain", "www.cloudflare.com", "--target", "www.cloudflare.com", "--port", "443", "--container"], "verified": true},
-      "layers": ["L0", "L1", "L2", "L3", "L4", "L5"],
+      "bash": {
+        "entry": [
+          "install.sh"
+        ],
+        "menu": "1>1>1",
+        "answersRef": "M2"
+      },
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "install",
+          "--binary",
+          "/usr/local/bin/xray",
+          "--mode",
+          "reality-nginx",
+          "--domain",
+          "www.cloudflare.com",
+          "--target",
+          "www.cloudflare.com",
+          "--port",
+          "443",
+          "--container"
+        ],
+        "verified": true
+      },
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
       "repeat": 2,
       "eligible": true,
       "notes": "2026-11-14 核实：Go 的等价模式是 --mode reality-nginx（xray generate rc=0）；原 --mode reality --nginx-bin 不是 Nginx 前置语义。bash 走菜单 1>1（preset）。"
@@ -71,9 +193,47 @@
       "profile": "reality_transport",
       "tls": "Reality",
       "transport": "ws",
-      "bash": {"entry": ["install.sh"], "menu": "1>1>3", "answersRef": "M3", "transport": "1"},
-      "go": {"argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "reality", "--transport", "ws", "--domain", "www.cloudflare.com", "--target", "www.cloudflare.com", "--port", "443", "--container"], "env": {"IDLELEO_ALLOW_SYSTEM_WRITES": "I_ACCEPT_CONTAINER_ONLY"}, "verified": true},
-      "layers": ["L0", "L1", "L2", "L3", "L4", "L5", "L6"],
+      "bash": {
+        "entry": [
+          "install.sh"
+        ],
+        "menu": "1>1>3",
+        "answersRef": "M3",
+        "transport": "1"
+      },
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "install",
+          "--binary",
+          "/usr/local/bin/xray",
+          "--mode",
+          "reality",
+          "--transport",
+          "ws",
+          "--domain",
+          "www.cloudflare.com",
+          "--target",
+          "www.cloudflare.com",
+          "--port",
+          "443",
+          "--container"
+        ],
+        "env": {
+          "IDLELEO_ALLOW_SYSTEM_WRITES": "I_ACCEPT_CONTAINER_ONLY"
+        },
+        "verified": true
+      },
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "L6"
+      ],
       "repeat": 2,
       "eligible": true,
       "notes": "Go 已按 bash reality_add_more 对齐：Reality raw 主 inbound + ws 附加 inbound（端口 +1）；L4 分别验证 reality 与 ws。"
@@ -84,9 +244,50 @@
       "profile": "transport_nginx_tls",
       "tls": "self-signed",
       "transport": "ws",
-      "bash": {"entry": ["install.sh", "-1"], "answersRef": "M4"},
-      "go": {"argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "tls", "--transport", "ws", "--domain", "example.com", "--cert", "/etc/idleleo/cert/xray.crt", "--cert-key", "/etc/idleleo/cert/xray.key", "--port", "9000", "--public-port", "443", "--container"], "env": {"IDLELEO_ALLOW_SYSTEM_WRITES": "I_ACCEPT_CONTAINER_ONLY"}, "verified": true},
-      "layers": ["L0", "L1", "L2", "L3", "L4", "L5", "L6"],
+      "bash": {
+        "entry": [
+          "install.sh",
+          "-1"
+        ],
+        "answersRef": "M4"
+      },
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "install",
+          "--binary",
+          "/usr/local/bin/xray",
+          "--mode",
+          "tls",
+          "--transport",
+          "ws",
+          "--domain",
+          "example.com",
+          "--cert",
+          "/etc/idleleo/cert/xray.crt",
+          "--cert-key",
+          "/etc/idleleo/cert/xray.key",
+          "--port",
+          "9000",
+          "--public-port",
+          "443",
+          "--container"
+        ],
+        "env": {
+          "IDLELEO_ALLOW_SYSTEM_WRITES": "I_ACCEPT_CONTAINER_ONLY"
+        },
+        "verified": true
+      },
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "L6"
+      ],
       "repeat": 2,
       "eligible": true,
       "notes": "自签证书由测试预置（与 bash 侧同一份）；L1 只比路径/权限，证书比 SAN+指纹窗口。P1 实跑核实：--port 为 nginx 背后的 loopback inbound 端口，--public-port 为 nginx 监听端口；两者都用 443 会让 xray 与 nginx 争抢 :443 导致 xray 启动失败"
@@ -97,9 +298,38 @@
       "profile": "transport_nginx_tls",
       "tls": "self-signed",
       "transport": "grpc",
-      "bash": {"entry": ["install.sh", "-1"], "answersRef": "M5"},
-      "go": {"argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "tls", "--transport", "grpc", "--domain", "example.com", "--container"], "verified": true},
-      "layers": ["L0", "L1", "L2", "L3", "L4", "L5"],
+      "bash": {
+        "entry": [
+          "install.sh",
+          "-1"
+        ],
+        "answersRef": "M5"
+      },
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "install",
+          "--binary",
+          "/usr/local/bin/xray",
+          "--mode",
+          "tls",
+          "--transport",
+          "grpc",
+          "--domain",
+          "example.com",
+          "--container"
+        ],
+        "verified": true
+      },
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
       "repeat": 2,
       "eligible": true,
       "notes": ""
@@ -110,9 +340,38 @@
       "profile": "transport_nginx_tls",
       "tls": "self-signed",
       "transport": "xhttp",
-      "bash": {"entry": ["install.sh", "-1"], "answersRef": "M6"},
-      "go": {"argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "tls", "--transport", "xhttp", "--domain", "example.com", "--container"], "verified": true},
-      "layers": ["L0", "L1", "L2", "L3", "L4", "L5"],
+      "bash": {
+        "entry": [
+          "install.sh",
+          "-1"
+        ],
+        "answersRef": "M6"
+      },
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "install",
+          "--binary",
+          "/usr/local/bin/xray",
+          "--mode",
+          "tls",
+          "--transport",
+          "xhttp",
+          "--domain",
+          "example.com",
+          "--container"
+        ],
+        "verified": true
+      },
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
       "repeat": 2,
       "eligible": true,
       "notes": ""
@@ -123,9 +382,39 @@
       "profile": "transport_nginx_tls",
       "tls": "self-signed",
       "transport": "ws+grpc+xhttp",
-      "bash": {"entry": ["install.sh", "-1"], "answersRef": "M7"},
-      "go": {"argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "tls", "--transport", "ws+grpc+xhttp", "--domain", "example.com", "--container"], "verified": true},
-      "layers": ["L0", "L1", "L2", "L3", "L4", "L5", "L6"],
+      "bash": {
+        "entry": [
+          "install.sh",
+          "-1"
+        ],
+        "answersRef": "M7"
+      },
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "install",
+          "--binary",
+          "/usr/local/bin/xray",
+          "--mode",
+          "tls",
+          "--transport",
+          "ws+grpc+xhttp",
+          "--domain",
+          "example.com",
+          "--container"
+        ],
+        "verified": true
+      },
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "L6"
+      ],
       "repeat": 2,
       "eligible": true,
       "notes": "组合模式需要三个 inbound 全部连通"
@@ -136,18 +425,74 @@
       "profile": "transport_nginx_tls",
       "tls": "ACME",
       "transport": "ws",
-      "bash": {"entry": ["install.sh", "-1"], "answersRef": "M8"},
+      "bash": {
+        "entry": [
+          "install.sh",
+          "-1"
+        ],
+        "answersRef": "M8"
+      },
       "go": {
         "driver": "acme",
-        "argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "tls", "--transport", "ws", "--domain", "example.com", "--cert", "/etc/idleleo/cert/xray.crt", "--cert-key", "/etc/idleleo/cert/xray.key", "--port", "9000", "--public-port", "443", "--container"],
-        "acme": {"directory": "https://pebble:14000/dir", "caCert": "/test/certs/pebble.minica.pem", "webroot": "/etc/idleleo/conf", "email": "e2e@example.com"},
+        "argv": [
+          "idleleo",
+          "xray",
+          "install",
+          "--binary",
+          "/usr/local/bin/xray",
+          "--mode",
+          "tls",
+          "--transport",
+          "ws",
+          "--domain",
+          "example.com",
+          "--cert",
+          "/etc/idleleo/cert/xray.crt",
+          "--cert-key",
+          "/etc/idleleo/cert/xray.key",
+          "--port",
+          "9000",
+          "--public-port",
+          "443",
+          "--container"
+        ],
+        "acme": {
+          "directory": "https://pebble:14000/dir",
+          "caCert": "/test/certs/pebble.minica.pem",
+          "webroot": "/etc/idleleo/conf",
+          "email": "e2e@example.com"
+        },
         "verified": true
       },
-      "layers": ["L0", "L1", "L2", "L3", "L4", "L5"],
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
       "repeat": 2,
       "eligible": true,
       "notes": "Pebble sidecar（PEBBLE_VA_ALWAYS_VALID=1）在场景网络内提供 ACME v2；Bash 由 install.sh 的 IDLELEO_ACME_DIRECTORY 注入，Go 由 go_acme.sh 先 cert issue 再 install。两侧安装后统一执行 idleleo schedule install（install.sh 断言必须有活跃续期调度）。2026-11-17 两次独立 run（run7/run9）双侧 rc=0、L4 两轮 ok、ED-C14 抑制 26 条既有类差异；run8 因 nginx 下载 curl(18) 网络抖动记 HARNESS-ERROR 并重跑。",
-      "bashVariants": {"goAssisted": {"env": {"E2E_ACME": "1", "E2E_ACME_MODE": "go"}, "acceptance": "HYBRID_BASH_GO", "note": "Bash installer drives issuance; the Pebble call itself shells out to idleleo."}, "pureBashAcme": {"env": {"E2E_ACME": "1", "E2E_ACME_MODE": "bash"}, "acceptance": "BLOCKED", "reason": "The disposable image ships no acme.sh and the runner has no network to fetch it, so a pure Bash ACME baseline cannot be claimed."}}
+      "bashVariants": {
+        "goAssisted": {
+          "env": {
+            "E2E_ACME": "1",
+            "E2E_ACME_MODE": "go"
+          },
+          "acceptance": "HYBRID_BASH_GO",
+          "note": "Bash installer drives issuance; the Pebble call itself shells out to idleleo."
+        },
+        "pureBashAcme": {
+          "env": {
+            "E2E_ACME": "1",
+            "E2E_ACME_MODE": "bash"
+          },
+          "acceptance": "BLOCKED",
+          "reason": "The disposable image ships no acme.sh and the runner has no network to fetch it, so a pure Bash ACME baseline cannot be claimed."
+        }
+      }
     },
     {
       "id": "M9",
@@ -155,9 +500,42 @@
       "profile": "transport_only",
       "tls": "none",
       "transport": "ws",
-      "bash": {"entry": ["install.sh"], "menu": "1>2>2", "transport": "1", "listen": "0.0.0.0", "answersRef": "M9"},
-      "go": {"argv": ["idleleo", "xray", "install", "--binary", "/usr/local/bin/xray", "--mode", "none", "--transport", "ws", "--listen", "0.0.0.0", "--allow-non-loopback", "--container"], "verified": true},
-      "layers": ["L0", "L1", "L2", "L3", "L4", "L5", "L6"],
+      "bash": {
+        "entry": [
+          "install.sh"
+        ],
+        "menu": "1>2>2",
+        "transport": "1",
+        "listen": "0.0.0.0",
+        "answersRef": "M9"
+      },
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "install",
+          "--binary",
+          "/usr/local/bin/xray",
+          "--mode",
+          "none",
+          "--transport",
+          "ws",
+          "--listen",
+          "0.0.0.0",
+          "--allow-non-loopback",
+          "--container"
+        ],
+        "verified": true
+      },
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "L6"
+      ],
       "repeat": 2,
       "eligible": true,
       "notes": "2026-11-14 核实：--mode none --transport ws 可生成；默认 listen=127.0.0.1，跨容器 L4 必须显式 0.0.0.0（已批准 D4-A）。bash 改走菜单 1>2>2 以获得监听地址提示。"
@@ -168,60 +546,890 @@
       "profile": "relay",
       "tls": "none",
       "transport": "stream",
-      "bash": {"entry": ["install.sh", "--install-relay"], "answersRef": "M10"},
-      "go": {"argv": ["idleleo", "xray", "install", "--role", "relay", "--target", "origin.example.com:443", "--listen-port", "443", "--listen", "0.0.0.0", "--container"], "env": {"IDLELEO_ALLOW_SYSTEM_WRITES": "I_ACCEPT_CONTAINER_ONLY"}, "verified": true},
-      "layers": ["L0", "L1", "L2", "L3", "L4", "L5"],
+      "bash": {
+        "entry": [
+          "install.sh",
+          "--install-relay"
+        ],
+        "answersRef": "M10"
+      },
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "install",
+          "--role",
+          "relay",
+          "--target",
+          "origin.example.com:443",
+          "--listen-port",
+          "443",
+          "--listen",
+          "0.0.0.0",
+          "--container"
+        ],
+        "env": {
+          "IDLELEO_ALLOW_SYSTEM_WRITES": "I_ACCEPT_CONTAINER_ONLY"
+        },
+        "verified": true
+      },
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5"
+      ],
       "repeat": 2,
       "eligible": true,
       "notes": "Go 已按 bash 对齐：xray install --role relay 安装 managed Nginx（stream）、写 relay-stream.conf、在主配置顶层 include 并启服务；L4 经 Nginx stream 转发到 origin。"
     }
   ],
   "ops": [
-    {"id": "OPS-01", "name": "查看用户", "bash": "2>1>1", "answersRef": "OPS_USER", "go": ["idleleo", "xray", "user", "list", "--json"], "verdict": "must-match", "layers": ["L0", "L5"]},
-    {"id": "OPS-02", "name": "添加用户", "bash": "2>1>2", "answersRef": "OPS_USER", "go": ["idleleo", "xray", "user", "add", "--email", "e2e@example.com", "--json"], "verdict": "must-match", "layers": ["L0", "L1", "L2"]},
-    {"id": "OPS-03", "name": "删除用户", "bash": "2>1>3", "answersRef": "OPS_USER", "go": ["idleleo", "xray", "user", "remove", "--email", "e2e@example.com", "--json"], "verdict": "must-match", "layers": ["L0", "L1", "L2"]},
-    {"id": "OPS-04", "name": "变更端口", "bash": "2>2>2", "answersRef": "OPS_PORT", "go": ["idleleo", "xray", "config", "edit", "--port", "8444", "--public-port", "8443", "--yes", "--no-probe", "--container", "--json"], "verdict": "allowed-diff", "layers": ["L0", "L1", "L2", "L3", "L4"], "notes": "Bash moves only the public Nginx port and keeps the loopback inbound on 9443; Go needs the inbound port in the same edit, so it moves that to 8444. The public port (the user-facing one) matches at 8443."},
-    {"id": "OPS-05", "name": "变更UUID/映射", "bash": "2>2>1", "answersRef": "OPS_UUID", "go": ["idleleo", "xray", "config", "edit", "--uuid", "99999999-8888-7777-6666-555555555555", "--yes", "--no-probe", "--container", "--json"], "verdict": "allowed-diff", "layers": ["L0", "L1", "L2"], "notes": "Bash derives UUIDv5 from the custom mapping string; Go applies the literal UUID. Both change the client id and both ids must be valid UUIDs."},
-    {"id": "OPS-06", "name": "变更target", "bash": "2>2>3", "answersRef": "OPS_TARGET", "go": ["idleleo", "xray", "config", "edit", "--target", "www.cloudflare.com:443", "--server-names", "www.cloudflare.com", "--yes", "--no-probe", "--container", "--json"], "verdict": "allowed-diff", "layers": ["L0", "L1", "L2", "L4"], "notes": "Bash target_set also rewrites serverNames, so the Go call sets both. Go refuses with rc=2 and writes nothing when the origin probe fails; that case is recorded BLOCKED, never PASS."},
-    {"id": "OPS-07", "name": "变更TLS版本", "bash": "2>2>4", "answersRef": "OPS_TLSVER", "go": ["idleleo", "xray", "tls", "--version", "1.2+", "--container"], "verdict": "must-match", "layers": ["L0", "L2"]},
-    {"id": "OPS-08", "name": "SNI Guard", "bash": "2>2>5", "answersRef": "OPS_SNIGUARD", "go": ["idleleo", "xray", "guard", "set", "--policy", "isolate", "--json"], "verdict": "must-match", "layers": ["L0", "L2"]},
-    {"id": "OPS-09", "name": "Nginx负载均衡", "bash": "2>3>1", "answersRef": "OPS_LB", "go": ["idleleo", "xray", "balance", "list", "--upstream", "ws", "--json"], "verdict": "must-match", "layers": ["L0", "L1", "L2", "L4"]},
-    {"id": "OPS-10", "name": "serverNames", "bash": "2>3>2", "answersRef": "OPS_SNI", "go": ["idleleo", "xray", "config", "edit", "--server-names", "ops10.example.com", "--yes", "--no-probe", "--container", "--json"], "verdict": "must-match", "layers": ["L0", "L1", "L2"], "notes": "Bash drives the nested file_manager menu (create ops10.example.com fragment); the BLOCKED path remains only for an unreachable menu."},
-    {"id": "OPS-11", "name": "查看配置信息", "bash": "3>1", "answersRef": "GLOBAL", "go": ["idleleo", "show", "--json"], "verdict": "must-match", "layers": ["L0", "L5"]},
-    {"id": "OPS-12", "name": "实时访问日志", "bash": "3>2", "answersRef": "GLOBAL", "go": ["idleleo", "service", "logs", "--unit", "xray", "--lines", "20"], "verdict": "must-match", "layers": ["L0", "L5"]},
-    {"id": "OPS-13", "name": "实时错误日志", "bash": "3>3", "answersRef": "GLOBAL", "go": ["idleleo", "service", "logs", "--unit", "xray", "--lines", "20"], "verdict": "must-match", "layers": ["L0", "L5"]},
-    {"id": "OPS-14", "name": "端口实时流量", "bash": "3>4", "answersRef": "GLOBAL", "go": ["idleleo", "stats", "--json"], "verdict": "must-match", "layers": ["L0", "L5"]},
-    {"id": "OPS-15", "name": "服务重启/启动/停止/状态", "bash": "4>1>1..4", "answersRef": "GLOBAL", "go": ["idleleo", "service", "restart"], "verdict": "must-match", "layers": ["L0", "L3"]},
-    {"id": "OPS-16", "name": "证书状态/有效期/自动更新", "bash": "4>2>1..3", "answersRef": "GLOBAL", "go": ["idleleo", "xray", "cert", "renew", "--dry-run"], "verdict": "must-match", "layers": ["L0", "L2", "L5"]},
-    {"id": "OPS-17a", "name": "更新脚本", "bash": "5>1", "answersRef": "GLOBAL", "go": ["idleleo", "update", "check", "--json"], "verdict": "must-match", "layers": ["L0", "L5"]},
-    {"id": "OPS-17b", "name": "更新Nginx", "bash": "5>3", "answersRef": "GLOBAL", "go": ["idleleo", "update", "nginx", "--manifest", "<path|URL>", "--container", "--json"], "verdict": "must-match", "layers": ["L0", "L5"], "notes": "Go 侧需要 --manifest；本轮未接入双端驱动，故仍记 NOT_RUN。"},
-    {"id": "OPS-17c", "name": "配置自动更新", "bash": "5>4", "answersRef": "GLOBAL", "go": ["idleleo", "schedule", "install", "--interval", "3600"], "verdict": "must-match", "layers": ["L0", "L1", "L2"]},
-    {"id": "OPS-18", "name": "TCP加速", "bash": "6>1", "answersRef": "GLOBAL", "go": ["idleleo", "tcp", "status", "--json"], "verdict": "must-match", "layers": ["L0", "L3"]},
-    {"id": "OPS-19", "name": "Fail2ban", "bash": "6>2", "answersRef": "OPS_F2B", "go": ["idleleo", "fail2ban", "install", "--json"], "verdict": "must-match", "layers": ["L0", "L1", "L3"]},
-    {"id": "OPS-20", "name": "流量统计", "bash": "6>3", "answersRef": "OPS_STATS", "go": ["idleleo", "stats", "--json"], "verdict": "must-match", "layers": ["L0", "L5"]},
-    {"id": "OPS-21", "name": "流量阻断", "bash": "6>4", "answersRef": "OPS_BLOCK", "go": ["idleleo", "xray", "block", "status", "--json"], "verdict": "must-match", "layers": ["L0", "L1", "L2", "L3", "L4"]},
-    {"id": "OPS-22", "name": "清除日志", "bash": "6>5", "answersRef": "GLOBAL", "go": ["idleleo", "xray", "logs", "clean", "--yes", "--json"], "verdict": "must-match", "layers": ["L0", "L1"]},
-    {"id": "OPS-23", "name": "服务器网速", "bash": "6>6", "answersRef": "OPS_SPEED", "go": ["idleleo", "speedtest", "--samples", "1", "--bytes", "1048576"], "verdict": "allowed-diff", "layers": ["L0", "L5"]},
-    {"id": "OPS-24", "name": "刷新GeoData", "bash": "6>7", "answersRef": "GLOBAL", "go": ["idleleo", "schedule", "run", "--job", "geodata-refresh"], "verdict": "allowed-diff", "layers": ["L0", "L1"], "notes": "Go 走已配置的 geodata-refresh job；与 OPS/S6 共用外部 GeoData 资产，本轮该资产在 90 秒上限内未下完（BLOCKED）。"},
-    {"id": "OPS-25", "name": "备份管理文件", "bash": "7>1", "answersRef": "GLOBAL", "go": ["idleleo", "metadata", "export", "--out", "/tmp/e2e-metadata.json"], "verdict": "must-match", "layers": ["L0", "L1"]},
-    {"id": "OPS-26", "name": "恢复管理文件", "bash": "7>2", "answersRef": "OPS_RESTORE", "go": ["idleleo", "metadata", "import", "--from", "/tmp/e2e-metadata.json"], "verdict": "must-match", "layers": ["L0", "L1", "L2"]},
-    {"id": "OPS-27", "name": "清空证书文件", "bash": "7>3", "answersRef": "OPS_CLEARCERT", "go": ["idleleo", "xray", "cert", "clear", "--yes", "--json"], "verdict": "must-match", "layers": ["L0", "L1"]},
-    {"id": "OPS-28", "name": "卸载", "bash": "7>4", "answersRef": "OPS_UNINSTALL", "go": ["idleleo", "xray", "uninstall"], "verdict": "must-match", "layers": ["L0", "L1", "L3"]},
-    {"id": "OPS-29", "name": "Rill AI 状态", "bash": "9", "answersRef": "GLOBAL", "go": ["idleleo", "rill", "status", "--json"], "verdict": "allowed-diff", "layers": ["L0", "L5"]},
-    {"id": "OPS-30", "name": "修改语言", "bash": "8", "answersRef": "OPS_LANG", "go": null, "verdict": "allowed-diff", "layers": ["L0"]},
-    {"id": "OPS-31", "name": "Reality负载均衡", "bash": "2>3>1", "answersRef": "OPS_LB_REALITY", "go": ["idleleo", "xray", "balance", "list", "--upstream", "reality", "--json"], "verdict": "must-match", "layers": ["L0", "L1", "L2", "L4"]},
-    {"id": "OPS-32", "name": "后端故障摘除（ws + reality 上游）", "bash": "2>3>1", "answersRef": "OPS_LB", "go": ["idleleo", "xray", "balance", "list", "--upstream", "ws", "--json"], "verdict": "must-match", "layers": ["L0", "L1", "L2", "L4"]}
+    {
+      "id": "OPS-01",
+      "name": "查看用户",
+      "bash": "2>1>1",
+      "answersRef": "OPS_USER",
+      "go": [
+        "idleleo",
+        "xray",
+        "user",
+        "list",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ]
+    },
+    {
+      "id": "OPS-02",
+      "name": "添加用户",
+      "bash": "2>1>2",
+      "answersRef": "OPS_USER",
+      "go": [
+        "idleleo",
+        "xray",
+        "user",
+        "add",
+        "--email",
+        "e2e@example.com",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ]
+    },
+    {
+      "id": "OPS-03",
+      "name": "删除用户",
+      "bash": "2>1>3",
+      "answersRef": "OPS_USER",
+      "go": [
+        "idleleo",
+        "xray",
+        "user",
+        "remove",
+        "--email",
+        "e2e@example.com",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ]
+    },
+    {
+      "id": "OPS-04",
+      "name": "变更端口",
+      "bash": "2>2>2",
+      "answersRef": "OPS_PORT",
+      "go": [
+        "idleleo",
+        "xray",
+        "config",
+        "edit",
+        "--port",
+        "8444",
+        "--public-port",
+        "8443",
+        "--yes",
+        "--no-probe",
+        "--container",
+        "--json"
+      ],
+      "verdict": "allowed-diff",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4"
+      ],
+      "notes": "Bash moves only the public Nginx port and keeps the loopback inbound on 9443; Go needs the inbound port in the same edit, so it moves that to 8444. The public port (the user-facing one) matches at 8443."
+    },
+    {
+      "id": "OPS-05",
+      "name": "变更UUID/映射",
+      "bash": "2>2>1",
+      "answersRef": "OPS_UUID",
+      "go": [
+        "idleleo",
+        "xray",
+        "config",
+        "edit",
+        "--uuid",
+        "99999999-8888-7777-6666-555555555555",
+        "--yes",
+        "--no-probe",
+        "--container",
+        "--json"
+      ],
+      "verdict": "allowed-diff",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ],
+      "notes": "Bash derives UUIDv5 from the custom mapping string; Go applies the literal UUID. Both change the client id and both ids must be valid UUIDs."
+    },
+    {
+      "id": "OPS-06",
+      "name": "变更target",
+      "bash": "2>2>3",
+      "answersRef": "OPS_TARGET",
+      "go": [
+        "idleleo",
+        "xray",
+        "config",
+        "edit",
+        "--target",
+        "www.cloudflare.com:443",
+        "--server-names",
+        "www.cloudflare.com",
+        "--yes",
+        "--no-probe",
+        "--container",
+        "--json"
+      ],
+      "verdict": "allowed-diff",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L4"
+      ],
+      "notes": "Bash target_set also rewrites serverNames, so the Go call sets both. Go refuses with rc=2 and writes nothing when the origin probe fails; that case is recorded BLOCKED, never PASS."
+    },
+    {
+      "id": "OPS-07",
+      "name": "变更TLS版本",
+      "bash": "2>2>4",
+      "answersRef": "OPS_TLSVER",
+      "go": [
+        "idleleo",
+        "xray",
+        "tls",
+        "--version",
+        "1.2+",
+        "--container"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L2"
+      ]
+    },
+    {
+      "id": "OPS-08",
+      "name": "SNI Guard",
+      "bash": "2>2>5",
+      "answersRef": "OPS_SNIGUARD",
+      "go": [
+        "idleleo",
+        "xray",
+        "guard",
+        "set",
+        "--policy",
+        "isolate",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L2"
+      ]
+    },
+    {
+      "id": "OPS-09",
+      "name": "Nginx负载均衡",
+      "bash": "2>3>1",
+      "answersRef": "OPS_LB",
+      "go": [
+        "idleleo",
+        "xray",
+        "balance",
+        "list",
+        "--upstream",
+        "ws",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L4"
+      ]
+    },
+    {
+      "id": "OPS-10",
+      "name": "serverNames",
+      "bash": "2>3>2",
+      "answersRef": "OPS_SNI",
+      "go": [
+        "idleleo",
+        "xray",
+        "config",
+        "edit",
+        "--server-names",
+        "ops10.example.com",
+        "--yes",
+        "--no-probe",
+        "--container",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ],
+      "notes": "Bash drives the nested file_manager menu (create ops10.example.com fragment); the BLOCKED path remains only for an unreachable menu."
+    },
+    {
+      "id": "OPS-11",
+      "name": "查看配置信息",
+      "bash": "3>1",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "show",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ]
+    },
+    {
+      "id": "OPS-12",
+      "name": "实时访问日志",
+      "bash": "3>2",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "service",
+        "logs",
+        "--unit",
+        "xray",
+        "--lines",
+        "20"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ]
+    },
+    {
+      "id": "OPS-13",
+      "name": "实时错误日志",
+      "bash": "3>3",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "service",
+        "logs",
+        "--unit",
+        "xray",
+        "--lines",
+        "20"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ]
+    },
+    {
+      "id": "OPS-14",
+      "name": "端口实时流量",
+      "bash": "3>4",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "stats",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ]
+    },
+    {
+      "id": "OPS-15",
+      "name": "服务重启/启动/停止/状态",
+      "bash": "4>1>1..4",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "service",
+        "restart"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L3"
+      ]
+    },
+    {
+      "id": "OPS-16",
+      "name": "证书状态/有效期/自动更新",
+      "bash": "4>2>1..3",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "xray",
+        "cert",
+        "renew",
+        "--dry-run"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L2",
+        "L5"
+      ]
+    },
+    {
+      "id": "OPS-17a",
+      "name": "更新脚本",
+      "bash": "5>1",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "update",
+        "check",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ]
+    },
+    {
+      "id": "OPS-17b",
+      "name": "更新Nginx",
+      "bash": "5>3",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "update",
+        "nginx",
+        "--manifest",
+        "<path|URL>",
+        "--container",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": "真实 1.27.5→1.30.6 组件更新已接入：run_ops_realroot.sh 在 nginx:1.27 容器内验证 action/previousVersion/newVersion/health 并激活新二进制（FINAL-RR-20261121）。Bash 菜单 5>3 为同一能力入口，本轮未在 Bash 侧执行。"
+    },
+    {
+      "id": "OPS-17c",
+      "name": "配置自动更新",
+      "bash": "5>4",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "schedule",
+        "install",
+        "--interval",
+        "3600"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ]
+    },
+    {
+      "id": "OPS-18",
+      "name": "TCP加速",
+      "bash": "6>1",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "tcp",
+        "status",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L3"
+      ]
+    },
+    {
+      "id": "OPS-19",
+      "name": "Fail2ban",
+      "bash": "6>2",
+      "answersRef": "OPS_F2B",
+      "go": [
+        "idleleo",
+        "fail2ban",
+        "install",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L3"
+      ]
+    },
+    {
+      "id": "OPS-20",
+      "name": "流量统计",
+      "bash": "6>3",
+      "answersRef": "OPS_STATS",
+      "go": [
+        "idleleo",
+        "stats",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L5"
+      ]
+    },
+    {
+      "id": "OPS-21",
+      "name": "流量阻断",
+      "bash": "6>4",
+      "answersRef": "OPS_BLOCK",
+      "go": [
+        "idleleo",
+        "xray",
+        "block",
+        "status",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4"
+      ]
+    },
+    {
+      "id": "OPS-22",
+      "name": "清除日志",
+      "bash": "6>5",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "xray",
+        "logs",
+        "clean",
+        "--yes",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1"
+      ]
+    },
+    {
+      "id": "OPS-23",
+      "name": "服务器网速",
+      "bash": "6>6",
+      "answersRef": "OPS_SPEED",
+      "go": [
+        "idleleo",
+        "speedtest",
+        "--samples",
+        "1",
+        "--bytes",
+        "1048576"
+      ],
+      "verdict": "allowed-diff",
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "notes": "Go speedtest 指向本地 1MiB origin（run_ops_sweep.sh OPS-23，FINAL-OPS4-20261121）；Bash 菜单 6>6 使用外部测速端点，未纳入本轮双端。"
+    },
+    {
+      "id": "OPS-24",
+      "name": "刷新GeoData",
+      "bash": "6>7",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "schedule",
+        "run",
+        "--job",
+        "geodata-refresh"
+      ],
+      "verdict": "allowed-diff",
+      "layers": [
+        "L0",
+        "L1"
+      ],
+      "notes": "Go 以 schedule run --job geodata-refresh 对接真实 geoip.dat/geosite.dat 本地 origin，校验 result=ok 且 sha256 匹配（FINAL-OPS4-20261121）；Bash 菜单 6>7 为同一能力入口，本轮未在 Bash 侧执行。"
+    },
+    {
+      "id": "OPS-25",
+      "name": "备份管理文件",
+      "bash": "7>1",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "metadata",
+        "export",
+        "--out",
+        "/tmp/e2e-metadata.json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1"
+      ]
+    },
+    {
+      "id": "OPS-26",
+      "name": "恢复管理文件",
+      "bash": "7>2",
+      "answersRef": "OPS_RESTORE",
+      "go": [
+        "idleleo",
+        "metadata",
+        "import",
+        "--from",
+        "/tmp/e2e-metadata.json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ]
+    },
+    {
+      "id": "OPS-27",
+      "name": "清空证书文件",
+      "bash": "7>3",
+      "answersRef": "OPS_CLEARCERT",
+      "go": [
+        "idleleo",
+        "xray",
+        "cert",
+        "clear",
+        "--yes",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1"
+      ]
+    },
+    {
+      "id": "OPS-28",
+      "name": "卸载",
+      "bash": "7>4",
+      "answersRef": "OPS_UNINSTALL",
+      "go": [
+        "idleleo",
+        "xray",
+        "uninstall"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L3"
+      ]
+    },
+    {
+      "id": "OPS-29",
+      "name": "Rill AI 状态",
+      "bash": "9",
+      "answersRef": "GLOBAL",
+      "go": [
+        "idleleo",
+        "rill",
+        "status",
+        "--json"
+      ],
+      "verdict": "allowed-diff",
+      "layers": [
+        "L0",
+        "L5"
+      ]
+    },
+    {
+      "id": "OPS-30",
+      "name": "修改语言",
+      "bash": "8",
+      "answersRef": "OPS_LANG",
+      "go": null,
+      "verdict": "allowed-diff",
+      "layers": [
+        "L0"
+      ],
+      "notes": "语言切换是 Bash 交互菜单的本地化偏好，Go CLI 不提供等价命令；Bash 功能未被删除，登记为 BASH_ONLY（非安全差异，未获“取消功能”批准，因此不宣称对等）。"
+    },
+    {
+      "id": "OPS-31",
+      "name": "Reality负载均衡",
+      "bash": "2>3>1",
+      "answersRef": "OPS_LB_REALITY",
+      "go": [
+        "idleleo",
+        "xray",
+        "balance",
+        "list",
+        "--upstream",
+        "reality",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L4"
+      ]
+    },
+    {
+      "id": "OPS-32",
+      "name": "后端故障摘除（ws + reality 上游）",
+      "bash": "2>3>1",
+      "answersRef": "OPS_LB",
+      "go": [
+        "idleleo",
+        "xray",
+        "balance",
+        "list",
+        "--upstream",
+        "ws",
+        "--json"
+      ],
+      "verdict": "must-match",
+      "layers": [
+        "L0",
+        "L1",
+        "L2",
+        "L4"
+      ]
+    }
   ],
   "subscripts": [
-    {"id": "S1", "script": "scripts/fail2ban_manager.sh", "trigger": "6>2", "go": null, "states": ["normal", "repeat", "failure"], "layers": ["L0", "L1", "L3"], "mirrorDeps": ["apt"]},
-    {"id": "S2", "script": "scripts/traffic_blocker.sh", "trigger": "6>4", "go": null, "states": ["normal", "repeat", "failure"], "layers": ["L0", "L1", "L3"], "mirrorDeps": []},
-    {"id": "S3", "script": "scripts/file_manager.sh", "trigger": "7>1/7>2", "go": ["metadata export/import"], "states": ["normal", "repeat", "failure"], "layers": ["L0", "L1"], "mirrorDeps": []},
-    {"id": "S4", "script": "scripts/auto_update.sh", "trigger": "5>4 + cron", "go": ["schedule install"], "states": ["normal", "repeat", "failure"], "layers": ["L0", "L1", "L2"], "mirrorDeps": ["release"]},
-    {"id": "S5", "script": "scripts/ssl_update.sh", "trigger": "cron", "go": ["xray cert renew"], "states": ["normal", "repeat", "failure"], "layers": ["L0", "L1", "L5"], "mirrorDeps": ["pebble"]},
-    {"id": "S6", "script": "scripts/geo_update.sh", "trigger": "6>7 + cron", "go": null, "states": ["normal", "repeat", "failure"], "layers": ["L0", "L1"], "mirrorDeps": ["geo"]},
-    {"id": "S7", "script": "acme.sh (legacy, IDLELEO_ACME_LEGACY=1)", "trigger": "cron + 证书流程", "go": ["xray cert issue/renew"], "states": ["normal", "repeat", "failure"], "layers": ["L0", "L1", "L4"], "mirrorDeps": ["pebble"]},
-    {"id": "S8", "script": "tcp.sh", "trigger": "6>1", "go": ["tcp plan/apply"], "states": ["normal", "repeat", "failure"], "layers": ["L0", "L3"], "mirrorDeps": []},
-    {"id": "S9", "script": "superspeed.sh", "trigger": "6>6", "go": ["speedtest"], "states": ["normal", "repeat", "failure"], "layers": ["L0", "L5"], "mirrorDeps": ["speedtest-endpoint"]}
+    {
+      "id": "S1",
+      "script": "scripts/fail2ban_manager.sh",
+      "trigger": "6>2",
+      "go": null,
+      "states": [
+        "normal",
+        "repeat",
+        "failure"
+      ],
+      "layers": [
+        "L0",
+        "L1",
+        "L3"
+      ],
+      "mirrorDeps": [
+        "apt"
+      ]
+    },
+    {
+      "id": "S2",
+      "script": "scripts/traffic_blocker.sh",
+      "trigger": "6>4",
+      "go": null,
+      "states": [
+        "normal",
+        "repeat",
+        "failure"
+      ],
+      "layers": [
+        "L0",
+        "L1",
+        "L3"
+      ],
+      "mirrorDeps": []
+    },
+    {
+      "id": "S3",
+      "script": "scripts/file_manager.sh",
+      "trigger": "7>1/7>2",
+      "go": [
+        "metadata export/import"
+      ],
+      "states": [
+        "normal",
+        "repeat",
+        "failure"
+      ],
+      "layers": [
+        "L0",
+        "L1"
+      ],
+      "mirrorDeps": []
+    },
+    {
+      "id": "S4",
+      "script": "scripts/auto_update.sh",
+      "trigger": "5>4 + cron",
+      "go": [
+        "schedule install"
+      ],
+      "states": [
+        "normal",
+        "repeat",
+        "failure"
+      ],
+      "layers": [
+        "L0",
+        "L1",
+        "L2"
+      ],
+      "mirrorDeps": [
+        "release"
+      ]
+    },
+    {
+      "id": "S5",
+      "script": "scripts/ssl_update.sh",
+      "trigger": "cron",
+      "go": [
+        "xray cert renew"
+      ],
+      "states": [
+        "normal",
+        "repeat",
+        "failure"
+      ],
+      "layers": [
+        "L0",
+        "L1",
+        "L5"
+      ],
+      "mirrorDeps": [
+        "pebble"
+      ]
+    },
+    {
+      "id": "S6",
+      "script": "scripts/geo_update.sh",
+      "trigger": "6>7 + cron",
+      "go": null,
+      "states": [
+        "normal",
+        "repeat",
+        "failure"
+      ],
+      "layers": [
+        "L0",
+        "L1"
+      ],
+      "mirrorDeps": [
+        "geo"
+      ]
+    },
+    {
+      "id": "S7",
+      "script": "acme.sh (legacy, IDLELEO_ACME_LEGACY=1)",
+      "trigger": "cron + 证书流程",
+      "go": [
+        "xray cert issue/renew"
+      ],
+      "states": [
+        "normal",
+        "repeat",
+        "failure"
+      ],
+      "layers": [
+        "L0",
+        "L1",
+        "L4"
+      ],
+      "mirrorDeps": [
+        "pebble"
+      ]
+    },
+    {
+      "id": "S8",
+      "script": "tcp.sh",
+      "trigger": "6>1",
+      "go": [
+        "tcp plan/apply"
+      ],
+      "states": [
+        "normal",
+        "repeat",
+        "failure"
+      ],
+      "layers": [
+        "L0",
+        "L3"
+      ],
+      "mirrorDeps": []
+    },
+    {
+      "id": "S9",
+      "script": "superspeed.sh",
+      "trigger": "6>6",
+      "go": [
+        "speedtest"
+      ],
+      "states": [
+        "normal",
+        "repeat",
+        "failure"
+      ],
+      "layers": [
+        "L0",
+        "L5"
+      ],
+      "mirrorDeps": [
+        "speedtest-endpoint"
+      ]
+    }
   ],
   "edits": [
     {
@@ -229,8 +1437,27 @@
       "name": "config-edit-before-after",
       "base": "M1",
       "method": "M1 安装 -> xray share/config 取证 -> xray config edit --uuid --yes --container -> L4 + 改后取证",
-      "go": {"argv": ["idleleo", "xray", "config", "edit", "--uuid", "99999999-8888-7777-6666-555555555555", "--yes", "--container", "--json"]},
-      "checks": ["editRcZero", "configChanged", "uuidApplied", "shareUriUpdated", "serviceActive", "backupExists"],
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "config",
+          "edit",
+          "--uuid",
+          "99999999-8888-7777-6666-555555555555",
+          "--yes",
+          "--container",
+          "--json"
+        ]
+      },
+      "checks": [
+        "editRcZero",
+        "configChanged",
+        "uuidApplied",
+        "shareUriUpdated",
+        "serviceActive",
+        "backupExists"
+      ],
       "l4": "reality",
       "notes": "Go 独有能力，bash 侧无 UUID 非交互入口；判定只看 Go 改前/改后与 L4。"
     },
@@ -239,8 +1466,25 @@
       "name": "config-edit-restart-rollback",
       "base": "M1",
       "method": "注入一次性 Xray 重启失败（systemd drop-in）-> config edit --port 8443 -> 期望 rc!=0、配置 SHA 还原、服务 active、L4 仍通",
-      "go": {"argv": ["idleleo", "xray", "config", "edit", "--port", "8443", "--yes", "--container", "--json"]},
-      "checks": ["editRcNonZero", "rollbackReported", "configRestored", "serviceActive"],
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "config",
+          "edit",
+          "--port",
+          "8443",
+          "--yes",
+          "--container",
+          "--json"
+        ]
+      },
+      "checks": [
+        "editRcNonZero",
+        "rollbackReported",
+        "configRestored",
+        "serviceActive"
+      ],
       "l4": "reality",
       "notes": "drop-in 只在首次 ExecStartPre 失败，回滚重启可成功，用于验证真回滚而非永久坏服务。"
     },
@@ -250,9 +1494,23 @@
       "base": "M1",
       "method": "M1 安装 -> config edit --target 127.0.0.1:1（拒连端口）-> 期望 rc=2、配置 SHA 不变、无备份、服务 active、L4 仍通",
       "go": {
-        "argv": ["idleleo", "xray", "config", "edit", "--target", "127.0.0.1:1", "--container", "--json"]
+        "argv": [
+          "idleleo",
+          "xray",
+          "config",
+          "edit",
+          "--target",
+          "127.0.0.1:1",
+          "--container",
+          "--json"
+        ]
       },
-      "checks": ["probeRefused", "configRestored", "serviceActive", "noBackup"],
+      "checks": [
+        "probeRefused",
+        "configRestored",
+        "serviceActive",
+        "noBackup"
+      ],
       "l4": "reality",
       "notes": "回源探测失败必须阻断保存（rc=2、零落盘），不允许把断线配置写进现网。"
     },
@@ -262,9 +1520,26 @@
       "base": "M1",
       "method": "M1 安装 -> 驱动内起本地 TLS 回源 :8443（本地 CA 签发 local.test，CA 注入服务端与客户端容器信任库）-> config edit --target 127.0.0.1:8443 --server-names local.test -> 期望 rc=0、target 落盘、探测记录、服务 active、L4 仍通（客户端 SNI 随 serverNames 变为 local.test）",
       "go": {
-        "argv": ["idleleo", "xray", "config", "edit", "--target", "127.0.0.1:8443", "--server-names", "local.test", "--container", "--json"]
+        "argv": [
+          "idleleo",
+          "xray",
+          "config",
+          "edit",
+          "--target",
+          "127.0.0.1:8443",
+          "--server-names",
+          "local.test",
+          "--container",
+          "--json"
+        ]
       },
-      "checks": ["editRcZero", "configChanged", "targetApplied", "probeReported", "serviceActive"],
+      "checks": [
+        "editRcZero",
+        "configChanged",
+        "targetApplied",
+        "probeReported",
+        "serviceActive"
+      ],
       "l4": "reality",
       "notes": "探测按系统根证书校验链 + hostname（与 Reality 要求等价，不额外查 OCSP、不锁 TLS 版本）；E2E 用受信本地 CA 签发的本地 TLS listener 代替外网回源，不给生产加 --skip-probe 后门。本地 origin 必须像真实站点一样协商 ALPN（h2/http1.1），否则 Reality 会判为 invalid 并回退（已取证）。"
     },
@@ -273,10 +1548,36 @@
       "name": "config-edit-tls-cert-success",
       "base": "M4",
       "method": "M4 安装（TLS/ws，Nginx 443，证书 /etc/idleleo/cert/xray.crt）-> schedule install 写入 cert-renew 目标 -> 生成同域名新自签对 -> xray config edit --cert/--cert-key -> 校验写入/reload/握手/jobs.json/备份/不重启 Xray -> 改后 L4",
-      "go": {"argv": ["idleleo", "xray", "config", "edit", "--cert", "/etc/idleleo/cert/e5-new.crt", "--cert-key", "/etc/idleleo/cert/e5-new.key", "--yes", "--container", "--json"]},
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "config",
+          "edit",
+          "--cert",
+          "/etc/idleleo/cert/e5-new.crt",
+          "--cert-key",
+          "/etc/idleleo/cert/e5-new.key",
+          "--yes",
+          "--container",
+          "--json"
+        ]
+      },
       "l4Profile": "tls",
       "l4Transport": "ws",
-      "checks": ["editRcZero", "probeOk", "tlsVersion13", "wireCertMatches", "fragmentUpdated", "backupHasOldCert", "backupHasOldKey", "scheduleUpdated", "runtimeUnchanged", "xrayNotRestarted", "servicesActive"],
+      "checks": [
+        "editRcZero",
+        "probeOk",
+        "tlsVersion13",
+        "wireCertMatches",
+        "fragmentUpdated",
+        "backupHasOldCert",
+        "backupHasOldKey",
+        "scheduleUpdated",
+        "runtimeUnchanged",
+        "xrayNotRestarted",
+        "servicesActive"
+      ],
       "notes": "M4 的证书/域名编辑是前端所有，runtime JSON 必须逐字节不变且 Xray 不重启；旧对被备份到 edit-<ts>/。"
     },
     {
@@ -284,10 +1585,35 @@
       "name": "config-edit-tls-rollback",
       "base": "M4",
       "method": "M4 安装 + schedule install -> (a) --domain other.test 触发写前拒写 -> (b) 合法新对 + nginx ExecReload 静默 no-op -> 探针发现证书不符 -> 全量回滚 -> 改后 L4",
-      "go": {"argv": ["idleleo", "xray", "config", "edit", "--cert", "/etc/idleleo/cert/e6-new.crt", "--cert-key", "/etc/idleleo/cert/e6-new.key", "--yes", "--container", "--json"]},
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "config",
+          "edit",
+          "--cert",
+          "/etc/idleleo/cert/e6-new.crt",
+          "--cert-key",
+          "/etc/idleleo/cert/e6-new.key",
+          "--yes",
+          "--container",
+          "--json"
+        ]
+      },
       "l4Profile": "tls",
       "l4Transport": "ws",
-      "checks": ["guardRejected", "guardZeroWrites", "rollbackRcNonZero", "probeFailureRecorded", "configRestored", "nginxRestored", "scheduleRestored", "servedCertRestored", "backupHasOldPair", "servicesActive"],
+      "checks": [
+        "guardRejected",
+        "guardZeroWrites",
+        "rollbackRcNonZero",
+        "probeFailureRecorded",
+        "configRestored",
+        "nginxRestored",
+        "scheduleRestored",
+        "servedCertRestored",
+        "backupHasOldPair",
+        "servicesActive"
+      ],
       "notes": "E6a 证明写前守卫零落盘；E6b 由 reload 静默未生效制造真实握手失败，证明写入后探针会触发 runtime/nginx/jobs.json 全量回滚且服务保持 active。"
     },
     {
@@ -295,8 +1621,34 @@
       "name": "config-edit-shortid-transition",
       "base": "M1",
       "method": "M1 安装 -> 旧链接先探通 -> --short-id-auto 追加 sid -> 旧/新链接都探通 -> --short-id-remove 旧 sid -> 旧链接探失败、新链接探通",
-      "go": {"argv": ["idleleo", "xray", "config", "edit", "--short-id-auto", "--host", "127.0.0.1", "--container", "--json"]},
-      "checks": ["baselineLinkWorks", "appendRcZero", "appendKeepsOldSid", "newLinkUsesNewSid", "appendRestartedService", "oldLinkWorksAfterAppend", "newLinkWorksAfterAppend", "removeRcZero", "oldSidGone", "removeRestartedService", "oldLinkFailsAfterRemove", "newLinkStillWorks", "serviceActive"],
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "config",
+          "edit",
+          "--short-id-auto",
+          "--host",
+          "127.0.0.1",
+          "--container",
+          "--json"
+        ]
+      },
+      "checks": [
+        "baselineLinkWorks",
+        "appendRcZero",
+        "appendKeepsOldSid",
+        "newLinkUsesNewSid",
+        "appendRestartedService",
+        "oldLinkWorksAfterAppend",
+        "newLinkWorksAfterAppend",
+        "removeRcZero",
+        "oldSidGone",
+        "removeRestartedService",
+        "oldLinkFailsAfterRemove",
+        "newLinkStillWorks",
+        "serviceActive"
+      ],
       "l4": "reality",
       "notes": "推荐流程：追加新 id -> 客户端切换 -> 删除旧 id。追加与删除都会重启 Xray（秒级重连），但旧链接在旧 sid 仍被接受期间必须一直可用；探针用真实 xray 客户端 + 隧道内 TLS 握手 + 认证后的 HTTP 请求，避免 Reality 回退造成握手假通过。"
     },
@@ -305,8 +1657,37 @@
       "name": "config-edit-privatekey-rotate-rollback",
       "base": "M1",
       "method": "M1 安装 -> 键入确认串轮换 privateKey -> 新链接探通、旧链接失效、备份含 old-share-uri.txt -> 注入冻结配置的 systemd drop-in -> 再轮换：重启成功但新凭据未生效 -> 真实握手失败 -> failurePoint=reality-handshake -> 自动回滚 -> 旧链接探通",
-      "go": {"argv": ["idleleo", "xray", "config", "edit", "--rotate-reality-private-key", "--confirm-reality-rotation", "rotate-reality-key", "--host", "127.0.0.1", "--container", "--json"]},
-      "checks": ["baselineLinkWorks", "rotateRcZero", "rotationReported", "oldLinkCaptured", "backupHasOldShareUri", "newLinkWorksAfterRotate", "oldLinkFailsAfterRotate", "faultEditFails", "failurePointRecorded", "rollbackProbeOk", "configRestored", "oldLinkWorksAfterRollback", "serviceActiveAfterCleanup", "serviceActive"],
+      "go": {
+        "argv": [
+          "idleleo",
+          "xray",
+          "config",
+          "edit",
+          "--rotate-reality-private-key",
+          "--confirm-reality-rotation",
+          "rotate-reality-key",
+          "--host",
+          "127.0.0.1",
+          "--container",
+          "--json"
+        ]
+      },
+      "checks": [
+        "baselineLinkWorks",
+        "rotateRcZero",
+        "rotationReported",
+        "oldLinkCaptured",
+        "backupHasOldShareUri",
+        "newLinkWorksAfterRotate",
+        "oldLinkFailsAfterRotate",
+        "faultEditFails",
+        "failurePointRecorded",
+        "rollbackProbeOk",
+        "configRestored",
+        "oldLinkWorksAfterRollback",
+        "serviceActiveAfterCleanup",
+        "serviceActive"
+      ],
       "l4": "reality",
       "notes": "轮换的断线窗口不可避免，输出必须提前打印旧链接。故障注入让重启加载旧配置副本：服务 active 但新 key/sid 未生效，只有真实客户端能发现；回滚后必须用旧链接再探通，这条是断言而不是日志。"
     }
@@ -314,15 +1695,63 @@
   "upgrade": {
     "official": "R1",
     "r1": {
-      "argv": ["idleleo", "xray", "install", "--keep-config", "--binary", "/opt/xray/xray", "--container"],
-      "scenarios": ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10"],
-      "assertions": ["U1", "U2", "U3", "U4", "U5", "U6", "U7"]
+      "argv": [
+        "idleleo",
+        "xray",
+        "install",
+        "--keep-config",
+        "--binary",
+        "/opt/xray/xray",
+        "--container"
+      ],
+      "scenarios": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M8",
+        "M9",
+        "M10"
+      ],
+      "assertions": [
+        "U1",
+        "U2",
+        "U3",
+        "U4",
+        "U5",
+        "U6",
+        "U7"
+      ]
     },
     "r2": {
-      "argv": ["idleleo", "bridge", "prepare", "--candidate", "/opt/go/idleleo", "--recovery", "/tmp/e2e-recovery", "--container"],
-      "then": ["idleleo bridge validate --json", "idleleo bridge activate --container"],
-      "spotScenarios": ["M1", "M4"],
-      "assertions": ["U1", "U2", "U3", "U4", "U5"]
+      "argv": [
+        "idleleo",
+        "bridge",
+        "prepare",
+        "--candidate",
+        "/opt/go/idleleo",
+        "--recovery",
+        "/tmp/e2e-recovery",
+        "--container"
+      ],
+      "then": [
+        "idleleo bridge validate --json",
+        "idleleo bridge activate --container"
+      ],
+      "spotScenarios": [
+        "M1",
+        "M4"
+      ],
+      "assertions": [
+        "U1",
+        "U2",
+        "U3",
+        "U4",
+        "U5"
+      ]
     },
     "assertions": {
       "U1": "config semantic equality; no silent rewrite without --rewrite-config",
@@ -335,10 +1764,30 @@
       "U8": "uninstall + snapshot restore returns to bash state and connectivity"
     },
     "injections": [
-      {"id": "I1", "name": "corrupt-config", "method": "write invalid JSON to runtime config", "expect": "rc!=0, error names the config file, pre-state manifest unchanged"},
-      {"id": "I2", "name": "missing-cert", "method": "move cert/key away", "expect": "rc!=0, error names missing cert path, pre-state manifest unchanged"},
-      {"id": "I3", "name": "port-in-use", "method": "hold 443 before install", "expect": "rc!=0, error names the port, pre-state manifest unchanged"},
-      {"id": "I4", "name": "read-only-target", "method": "bind mount + remount ro; fallback chattr +i", "expect": "rc!=0, error names the path, pre-state manifest unchanged"}
+      {
+        "id": "I1",
+        "name": "corrupt-config",
+        "method": "write invalid JSON to runtime config",
+        "expect": "rc!=0, error names the config file, pre-state manifest unchanged"
+      },
+      {
+        "id": "I2",
+        "name": "missing-cert",
+        "method": "move cert/key away",
+        "expect": "rc!=0, error names missing cert path, pre-state manifest unchanged"
+      },
+      {
+        "id": "I3",
+        "name": "port-in-use",
+        "method": "hold 443 before install",
+        "expect": "rc!=0, error names the port, pre-state manifest unchanged"
+      },
+      {
+        "id": "I4",
+        "name": "read-only-target",
+        "method": "bind mount + remount ro; fallback chattr +i",
+        "expect": "rc!=0, error names the path, pre-state manifest unchanged"
+      }
     ]
   }
 }

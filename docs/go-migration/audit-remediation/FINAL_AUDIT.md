@@ -157,3 +157,23 @@
 | 正式发布 | **NO_GO_NOT_AUTHORIZED**：任务书禁止；VPS/公网 CA/外部 IPv6/多版本/soak 未验证 |
 
 不合并 `main` 或 `develop/go-native`，不打 tag，不发布，不操作生产 VPS。
+
+## 8. 2026-11-21 独立双端验收（`96f77eae`）
+
+审计包提出的 P0/P1/P2 缺陷已在真实 Docker 双端运行中复现并修复：
+
+| ID | 缺陷 | 处理 | 证据 |
+| --- | --- | --- | --- |
+| P0 | cert clear 误删内联/包含/符号链接/变量路径证书 | 引用递归扫描、fail-closed、移动前后双重校验、失败回滚 | `artifacts/intake-20261121/s1/certclear-*.log`（7 红→10/10） |
+| P1 | guard 缺 fragment/主配置时误报 active | inconsistent/configured 状态推导 + nginx 存活检查 | `artifacts/intake-20261121/s1/guard-*.log`（3 红→6/6） |
+| P2 | XHTTP 空白输入静默接受 | 区分未提供与空白，空白拒绝 | `internal/xraycfg/edit_test.go` |
+| P1 | 账本/矩阵/报告失配 | 34 行账本从证据生成，逐行记录 Bash 入口/Go 命令 | `tests/e2e-diff/ledger.json` |
+
+Docker 可验证项：M1–M10 10/10 双端、E1–E8 100/100、OPS 34 行 0 FAIL/
+0 BLOCKED/0 NOT_RUN、S4–S9、R1/R2/I/INJ 106/0、历史 3.3.2 13/0、冷恢复
+27/27、P3 4×62、3 版本、Debian 12、31 样本 soak + 两周期调度、98 项矩阵
+0 GAP、CI 7/7。详见 `DOCKER_ACCEPTANCE_20261121.md`。
+
+**结论**：Docker 开发候选 `GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；正式发布、
+合并 `main`/`develop/go-native`、tag 仍为 `NO_GO_NOT_AUTHORIZED`（独立 VPS、
+公网 ACME、外部 IPv6 未验证，且任务书禁止）。

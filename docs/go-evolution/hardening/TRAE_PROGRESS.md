@@ -107,3 +107,20 @@
 
 **结论不变**：Docker 开发候选 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；
 正式发布 `NO_GO_NOT_AUTHORIZED`。PR #182 保持 draft。
+
+## 2026-11-21 独立双端验收与三轮闭环（`96f77eae`）
+
+| 步骤 | 内容 | 结果 |
+| --- | --- | --- |
+| S0 | 解压审计包、冻结 HEAD `c0f382f2`、确认镜像/seed/历史安装器 | 环境快照 + gate/race/bash-syntax 全绿 |
+| S1 | 真实 root 红→绿：cert clear 7 红→10/10，guard 3 红→6/6，XHTTP 空白负例 | `artifacts/intake-20261121/s1/` |
+| S2 | M1–M10、E1–E8、OPS 34（11 双端/22 Go-only/1 Bash-only）、S4–S9 | `FINAL-M`、`FINAL-OPS4`、`FINAL-RR`、`FINAL-S`/`FINAL-S6B` |
+| S3 | R1/R2/I/INJ 106/0、历史 3.3.2 13/0、冷恢复 27/27、P3 4×62、3 版本、Debian 12 | 对应 `FINAL-*`/`goevo-*` 目录 |
+| S4 | 31 样本 soak + 两个真实调度周期；账本/矩阵/报告/CI；隐私 0 | `FINAL-SOAK-20261121`、`ledger.json`、PR #182 7/7 |
+
+本轮新增：`tests/e2e-diff/collect/sanitize_evidence.py`（证据脱敏）、
+`run_ops_realroot.sh`（真实组件更新 + guard/cert 用例）、账本逐行记录
+Bash 入口/Go 命令/契约。未新增产品功能，未做架构重构。
+
+**结论**：Docker 开发候选 `GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；正式发布、
+合并、tag 仍为 `NO_GO_NOT_AUTHORIZED`。PR #182 保持 draft。

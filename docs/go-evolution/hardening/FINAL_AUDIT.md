@@ -157,3 +157,29 @@ E2E_RUN_ID=<run-id> E2E_TRANSPORT=xhttp bash tests/e2e-diff/run_p3_hot.sh
 
 **结论**：Docker 开发候选 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；正式发布
 `NO_GO_NOT_AUTHORIZED`。保持 draft PR；不合并、不打 tag、不发布。
+
+## 10. 2026-11-21 独立双端验收与三轮闭环（`96f77eae`）
+
+| 项 | 结论 | 证据 |
+| --- | --- | --- |
+| P0 证书清理误删 | `FIXED_VERIFIED`：HEAD 7 项红 → 修复后 10/10，真实 root Nginx + Xray | `artifacts/intake-20261121/s1/certclear-*.log` |
+| P1 Guard 状态误报 | `FIXED_VERIFIED`：HEAD 3 项红 → 修复后 6/6 | `artifacts/intake-20261121/s1/guard-*.log` |
+| P2 XHTTP 空白输入 | `FIXED_VERIFIED`：空白/首尾空白拒绝，负例测试通过 | `internal/xraycfg/edit_test.go` |
+| P1 四摘要不一致 | `FIXED_VERIFIED`：34 行账本自动生成，逐行含 Bash 入口/Go 命令/证据 | `tests/e2e-diff/ledger.json` |
+| M1–M10 | 10/10 `DUAL_SIDE_PASS`；M8 为 `DOCKER_EQUIVALENT_WITH_LIMITS`（ED-C14） | `FINAL-M-20261121/p2/install-matrix.md` |
+| E1–E8 | 100/100 检查通过（Go-only，Bash 无非交互入口） | `FINAL-M-20261121/p2/E*/go/edit/checks.json` |
+| OPS 34 行 | 11 双端 + 22 Go-only + 1 Bash-only，0 FAIL / 0 BLOCKED / 0 NOT_RUN | `tests/e2e-diff/ledger.json` |
+| OPS 真实 root | 26/26：OPS-08 六策略、OPS-27 十用例、OPS-17b 1.27.5→1.30.6 | `FINAL-RR-20261121/realroot/assertions.txt` |
+| S4–S9 | S4 9/9、S5 12/12（Pebble 真签发）、S6 11/11（隔离重跑）、S7 6/6 + 签发 BLOCKED、S8 13/13、S9 6/6 | `FINAL-S-20261121/s/`、`FINAL-S6B-20261121/s/` |
+| R1/R2/I1/I4/INJ | 106/0；真实历史 Bash 3.3.2 13/0 | `FINAL-R2-20261121/`、`FINAL-HIST2-20261121/` |
+| 冷恢复 / P3 | 27/27；raw/ws/grpc/xhttp 各 62/62 | `goevo-coldrestore-FINAL-COLD-20261121/`、`goevo-p3-*` |
+| 多版本 / Debian 12 | 3 版本配置+部署+客户端 PASS；M1/M4/OPS-09 双端 PASS | `FINAL-VERSIONS2-20261121/`、`FINAL-DEBIAN12-20261121/` |
+| 31 样本 soak + 调度 | 1849s、31/31 客户端 ok、timer 两周期、GeoData 校验和匹配 | `FINAL-SOAK-20261121/soak/soak.json` |
+| 98 项矩阵 | 104 行 0 GAP，`repo_dirty=0` | `tests/go-parity/evidence/matrix-20261121/` |
+| 真实 CI | 7/7 success @ `96f77eae`（stage/preview/release/real-root/Test Install/Privacy/Rill） | PR #182 |
+
+**本轮结论**：Docker 可验证的适用项全部通过，P0/P1 已用真实双端运行闭合，
+Docker 开发候选改为 `GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；正式发布、合并
+`main`/`develop/go-native`、tag 仍为 `NO_GO_NOT_AUTHORIZED`（独立 VPS、公网
+ACME、外部 IPv6 未验证，且任务书禁止）。详见
+`docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261121.md`。

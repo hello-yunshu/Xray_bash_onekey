@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "generatedAt": "2026-11-20T16:25:00Z",
   "branch": "work/go-hardening-parity-20261119",
-  "baselineSha": "9b965843dccc955eee8b91903749500f082271f7",
-  "codeSha": "c1b14832364f733b11e2323c509d33dd78d8c0a8",
+  "baselineSha": "c0f382f2bbc805556b0dd72b4a800af51de2312c",
+  "codeSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
   "followupCodeShas": [
     "9f66b22ad9b555a3ae7f8a1e5d5d5d248907be99",
     "f217a2fa8656c86471f18c4d8b0b858d438f5a87",
@@ -17,8 +17,8 @@
     "1e73c19b0b51d30ec09613c16b7a5e0f6c8a7291"
   ],
   "summaryScope": "items below are the 2026-11-19 baseline; see followup20261120",
-  "ciSha": "1e73c19b0b51d30ec09613c16b7a5e0f6c8a7291",
-  "ciNote": "7/7 workflows green on this SHA (OPS-04 fix); later commits are docs-only",
+  "ciSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
+  "ciNote": "PR #182 draft: 7/7 workflows success (stage 44798164756, preview 44798164664, release 44798164791, real-root 44798164759, Test Install 44798164733, Privacy 44798164734, Rill 44798164622)",
   "pr": {
     "number": 182,
     "url": "https://github.com/hello-yunshu/Xray_bash_onekey/pull/182",
@@ -209,7 +209,8 @@
   ],
   "ops": {
     "total": 34,
-    "dualSideVerified": [
+    "dualSideVerified": 11,
+    "dualSideVerifiedIds": [
       "OPS-04",
       "OPS-05",
       "OPS-06",
@@ -222,21 +223,20 @@
       "OPS-31",
       "OPS-32"
     ],
-    "goOnly": 18,
+    "goOnly": 22,
     "fail": 0,
     "failIds": [],
-    "bashOnly": [
+    "bashOnly": 1,
+    "bashOnlyIds": [
       "OPS-30"
     ],
-    "notRun": 4,
-    "notRunIds": [
-      "OPS-16",
-      "OPS-17b",
-      "OPS-23",
-      "OPS-24"
-    ],
-    "blocked": [],
-    "evidence": "tests/e2e-diff/evidence/opsfix-3/p2; tests/e2e-diff/evidence/ops10-3/p2"
+    "blocked": 0,
+    "blockedIds": [],
+    "notRun": 0,
+    "notRunIds": [],
+    "generatedAt": "2026-11-20T19:01:25+00:00",
+    "codeSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
+    "source": "tests/e2e-diff/ledger.json"
   },
   "summary": {
     "pass": 12,
@@ -335,10 +335,13 @@
     "conclusion": "NO-GO for release and merge"
   },
   "boundaries": [
-    "independent VM cold restore and power-loss recovery: BLOCKED",
-    "pure Bash ACME (M8): BLOCKED",
-    "29 OPS rows without dual-side data plane: GO_ONLY_PASS or NOT_RUN",
-    "real multi-version Xray binary matrix: NOT_RUN",
+    "independent VM cold restore and power-loss recovery: VPS_DEFERRED (containers cover the equivalent flow)",
+    "public ACME/DNS-01/EAB and S7 acme.sh issuance: BLOCKED (no public domain/CA; Go and S5 issued against local Pebble)",
+    "external public IPv6/NAT: VPS_DEFERRED (isolated containers have no external IPv6 path)",
+    "22 OPS rows are GO_ONLY because the Bash menu has no non-interactive equivalent; each row is registered, no mapping invented",
+    "OPS-30 language switch: BASH_ONLY, Bash feature not removed, not claimed equivalent",
+    "M8 Bash side: DOCKER_EQUIVALENT_WITH_LIMITS (ED-C14)",
+    "Test Install historical silent exit: PARTIAL, not reproduced locally",
     "production VPS: forbidden by the task"
   ],
   "thirdRound20261120": {
@@ -482,6 +485,92 @@
       "success": 7,
       "failure": 0,
       "note": "same 7 workflows green after the OPS-04 fix; docs-only follow-up repeats them"
+    }
+  },
+  "round20261121": {
+    "candidateSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
+    "auditBaseline": "c0f382f2bbc805556b0dd72b4a800af51de2312c",
+    "report": "docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261121.md",
+    "evidence": {
+      "installMatrix": "tests/e2e-diff/evidence/FINAL-M-20261121/p2/install-matrix.md",
+      "editMatrix": "tests/e2e-diff/evidence/FINAL-M-20261121/p2/E*/go/edit/checks.json",
+      "opsGoSweep": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "opsRealRoot": "tests/e2e-diff/evidence/FINAL-RR-20261121/realroot/assertions.txt",
+      "subscripts": "tests/e2e-diff/evidence/FINAL-S-20261121/s/assertions.txt",
+      "subscriptsRerun": "tests/e2e-diff/evidence/FINAL-S6B-20261121/s/assertions.txt",
+      "takeover": "tests/e2e-diff/evidence/FINAL-R2-20261121/r1/assertions.txt",
+      "historical": "tests/e2e-diff/evidence/FINAL-HIST2-20261121/r1/assertions.txt",
+      "coldRestore": "tests/e2e-diff/evidence/goevo-coldrestore-FINAL-COLD-20261121/run.json",
+      "p3": "tests/e2e-diff/evidence/goevo-p3-FINAL-P3-raw-20261121/run.json",
+      "multiVersion": "tests/e2e-diff/evidence/FINAL-VERSIONS2-20261121/versions/xray-versions.json",
+      "secondDistro": "tests/e2e-diff/evidence/FINAL-DEBIAN12-20261121/p2/scope.json",
+      "soak": "tests/e2e-diff/evidence/FINAL-SOAK-20261121/soak/soak.json",
+      "matrix": "tests/go-parity/evidence/matrix-20261121/summary.json",
+      "redGreen": "artifacts/intake-20261121/s1/",
+      "gates": "artifacts/intake-20261121/s0/"
+    },
+    "items": {
+      "P0_cert_clear": "FIXED_VERIFIED",
+      "P1_guard": "FIXED_VERIFIED",
+      "P2_xhttp_blank": "FIXED_VERIFIED",
+      "P1_ledger": "FIXED_VERIFIED",
+      "M1_M10": "DUAL_SIDE_PASS",
+      "E1_E8": "GO_ONLY_PASS_100_CHECKS",
+      "OPS": "0_FAIL_0_BLOCKED_0_NOT_RUN",
+      "S4_S9": "PASS_EXCEPT_S7_ISSUANCE_BLOCKED",
+      "takeover_history": "PASS_106_0_and_13_0",
+      "cold_P3": "PASS_27_27_and_4x62",
+      "versions_distro": "PASS_3_VERSIONS_AND_DEBIAN12",
+      "soak_schedule": "PASS_31_31_1849s_2_CYCLES",
+      "matrix": "104_ROWS_0_GAP",
+      "ci": "7_7_SUCCESS"
+    },
+    "subscripts": {
+      "S4": "9/9 PASS",
+      "S5": "12/12 PASS (Pebble)",
+      "S6": "11/11 PASS (FINAL-S6B rerun; first run timed out externally)",
+      "S7": "6/6 PASS install/help/fail; issuance BLOCKED",
+      "S8": "13/13 PASS",
+      "S9": "6/6 PASS"
+    },
+    "soak": {
+      "samples": 31,
+      "elapsedSeconds": 1849,
+      "clientOk": 31,
+      "clientFail": 0,
+      "timer": "active",
+      "scheduleRuns": 2,
+      "geodata": "present+sha256-match",
+      "verdict": "PASS"
+    },
+    "multiVersion": {
+      "tags": [
+        "v26.11.9",
+        "v26.10.31",
+        "v26.10.21"
+      ],
+      "config": "PASS",
+      "deploy": "PASS",
+      "client": "PASS"
+    },
+    "secondDistro": {
+      "image": "idleleo-e2e:debian12",
+      "scenarios": [
+        "M1",
+        "M4",
+        "OPS-09"
+      ],
+      "verdict": "PASS"
+    },
+    "ci": {
+      "workflows": 7,
+      "success": 7,
+      "sha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03"
+    },
+    "verdicts": {
+      "dockerCandidate": "GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
+      "formalRelease": "NO_GO_NOT_AUTHORIZED",
+      "merge": "NO_GO_NOT_AUTHORIZED"
     }
   }
 }

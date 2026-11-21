@@ -104,3 +104,26 @@ IPv6、多版本矩阵未验证）。
 
 **候选结论**：`NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`。阻断项是 B4 的 34 OPS 与
 9 subscripts、C3 多版本/第二发行版、C4 soak；不是 A1–A5 的安全整改。
+
+## 7. 2026-11-21 独立双端验收（`96f77eae`）
+
+| ID | 项 | 状态 | 证据 | 边界 |
+| --- | --- | --- | --- | --- |
+| H01 | P0 证书清理误删 | `FIXED_VERIFIED` | HEAD 7 红 → 10/10，真实 root | `artifacts/intake-20261121/s1/` |
+| H02 | P1 Guard 状态误报 | `FIXED_VERIFIED` | HEAD 3 红 → 6/6 | 同上 |
+| H03 | P2 XHTTP 空白输入 | `FIXED_VERIFIED` | 空白负例 + 单测 | `internal/xraycfg/edit_test.go` |
+| H04 | 账本一致性 | `FIXED_VERIFIED` | 34 行自动生成，0 FAIL/NOT_RUN | `tests/e2e-diff/ledger.json` |
+| H05 | M1–M10 | 10/10 `DUAL_SIDE_PASS` | fresh+幂等+L4+L6 | M8 为等价含限制 |
+| H06 | E1–E8 | 100/100 `allPassed` | Go-only | Bash 无非交互入口 |
+| H07 | OPS 34 | 11 双端 + 22 Go-only + 1 Bash-only | 真实菜单/CLI/root | 逐行登记，不造映射 |
+| H08 | S4–S9 | 9/12/11/6/13/6 PASS | 真实子脚本 | S7 签发 BLOCKED |
+| H09 | R1/R2/I/INJ + 历史 3.3.2 | 106/0 + 13/0 | 容器 systemd | 非独立 VM |
+| H10 | 冷恢复 + P3 | 27/27 + 4×62/62 | 销毁源容器/热更新 | 非独立 VM |
+| H11 | 多版本 + Debian 12 | 3 版本 + M1/M4/OPS-09 PASS | 真实二进制/第二发行版 | — |
+| H12 | Soak + 调度 | 31/31、1849s、两周期 | 真实客户端+l4 | — |
+| H13 | 98 项矩阵 | 104 行 0 GAP | `repo_dirty=0` | 配置矩阵非真实部署 |
+| H14 | 真实 CI | 7/7 success | PR #182 @ `96f77eae` | draft，不发布 |
+
+**候选结论**：`GO_FOR_DOCKER_QUALIFIED_CANDIDATE`。Docker 可验证的适用项
+全部通过；独立 VPS、公网 ACME/DNS-01、外部 IPv6 仍为 `VPS_DEFERRED`/`BLOCKED`，
+正式发布与合并保持 `NO_GO_NOT_AUTHORIZED`。
