@@ -234,8 +234,8 @@
     "blockedIds": [],
     "notRun": 0,
     "notRunIds": [],
-    "generatedAt": "2026-11-21T03:15:52+00:00",
-    "codeSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
+    "generatedAt": "2026-11-21T05:11:24+00:00",
+    "codeSha": "3cd6643fcd047bd3f56a0afca4ce2c8dea89e901",
     "source": "tests/e2e-diff/ledger.json"
   },
   "summary": {
@@ -492,14 +492,18 @@
     "auditBaseline": "c0f382f2bbc805556b0dd72b4a800af51de2312c",
     "report": "docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261121.md",
     "evidence": {
-      "installMatrix": "tests/e2e-diff/evidence/FINAL-M-20261121/p2/install-matrix.md",
-      "editMatrix": "tests/e2e-diff/evidence/FINAL-M-20261121/p2/E*/go/edit/checks.json",
+      "installMatrix": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/install-matrix.md",
+      "editMatrix": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/E*/go/edit/checks.json",
       "opsGoSweep": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
       "opsRealRoot": "tests/e2e-diff/evidence/FINAL-RR-20261121/realroot/assertions.txt",
       "subscripts": "tests/e2e-diff/evidence/FINAL-S-20261121/s/assertions.txt",
-      "subscriptsRerun": "tests/e2e-diff/evidence/FINAL-S6B-20261121/s/assertions.txt",
+      "subscriptsRerun": "tests/e2e-diff/evidence/FINAL-S6D-20261121/s/assertions.txt",
       "takeover": "tests/e2e-diff/evidence/FINAL-R2-20261121/r1/assertions.txt",
       "historical": "tests/e2e-diff/evidence/FINAL-HIST2-20261121/r1/assertions.txt",
+      "historical2": "tests/e2e-diff/evidence/FINAL-HIST3B-20261121/r1/assertions.txt",
+      "featuresFinal": "artifacts/intake-20261121/s1/features-final/run.log",
+      "amd64": "artifacts/intake-20261121/s0/amd64-gate.log",
+      "environmentFinal": "artifacts/intake-20261121/s0/environment-final.json",
       "coldRestore": "tests/e2e-diff/evidence/goevo-coldrestore-FINAL-COLD-20261121/run.json",
       "p3": "tests/e2e-diff/evidence/goevo-p3-FINAL-P3-raw-20261121/run.json",
       "multiVersion": "tests/e2e-diff/evidence/FINAL-VERSIONS2-20261121/versions/xray-versions.json",
@@ -518,17 +522,20 @@
       "E1_E8": "GO_ONLY_PASS_100_CHECKS",
       "OPS": "0_FAIL_0_BLOCKED_0_NOT_RUN",
       "S4_S9": "PASS_EXCEPT_S7_ISSUANCE_BLOCKED",
-      "takeover_history": "PASS_106_0_and_13_0",
+      "takeover_history": "PASS_106_0_and_13_0_and_52_0",
       "cold_P3": "PASS_27_27_and_4x62",
       "versions_distro": "PASS_3_VERSIONS_AND_DEBIAN12",
       "soak_schedule": "PASS_31_31_1849s_2_CYCLES",
       "matrix": "104_ROWS_0_GAP",
+      "features_final": "F28_57_0_F08_129_0_F18_178_0",
+      "amd64": "BUILD_AND_TESTS_PASS",
+      "environment": "CAPTURED",
       "ci": "7_7_SUCCESS"
     },
     "subscripts": {
       "S4": "9/9 PASS",
       "S5": "12/12 PASS (Pebble)",
-      "S6": "11/11 PASS (FINAL-S6B rerun; first run timed out externally)",
+      "S6": "17/17 PASS (FINAL-S6D local checksum origin; normal/repeat/download-fail/corrupt/truncated)",
       "S7": "6/6 PASS install/help/fail; issuance BLOCKED",
       "S8": "13/13 PASS",
       "S9": "6/6 PASS"
@@ -580,9 +587,15 @@
       }
     },
     "verdicts": {
-      "dockerCandidate": "GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
+      "dockerCandidate": "NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
       "formalRelease": "NO_GO_NOT_AUTHORIZED",
       "merge": "NO_GO_NOT_AUTHORIZED"
-    }
+    },
+    "unresolved": [
+      "cold restore covers Reality only; TLS/relay/multi representative configs and end-to-end SIGKILL/ENOSPC/EROFS/lock/cert-missing/partial-restore injection are NOT_DONE",
+      "E1-E8 are Go-only; Bash user add/remove and shortId/private-key menu paths are NOT_DONE",
+      "XHTTP blank input is fixed; trailing-slash and duplicate-slash real data-plane probes are NOT_DONE at the final SHA",
+      "Test Install historical silent exit remains PARTIAL: not reproduced locally, CI result not replaced"
+    ]
   }
 }

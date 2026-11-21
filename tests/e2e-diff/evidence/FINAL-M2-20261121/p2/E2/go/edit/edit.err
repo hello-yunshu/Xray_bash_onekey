@@ -1,0 +1,2 @@
+systemctl restart xray failed (exit 1): Job for xray.service failed because the control process exited with error code.
+See "systemctl status xray.service" and "journalctl -xeu xray.service" for details.; previous configuration restored

@@ -36,6 +36,9 @@ mkdir -p "$EVID" "$WORK/seed/cert" "$WORK/secret"
 # /seed/historical.sh) instead of the tracked one. No snapshot is fabricated.
 if [[ -n "${E2E_HISTORICAL_INSTALLER:-}" ]]; then
     install -m 0755 "$E2E_HISTORICAL_INSTALLER" "$WORK/seed/historical.sh"
+    # The driver must install from the mounted historical copy, not the
+    # tracked install.sh; otherwise the run silently tests the current shell.
+    export E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-/seed/historical.sh}"
 fi
 log() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$EVID/run.log"; }
 assert() { # assert <ok:0|1> <label>

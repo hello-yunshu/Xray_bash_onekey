@@ -1,0 +1,52 @@
+{
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "changed": [
+    "server-names"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.serverNames[0]"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "014705345990cf151052f52a9d5b1de9f88505525ce819258de65b229d935c8e",
+  "newSha256": "0d7691b2290ad2612c0d1480ff552701763f4d06962fbef6fd3b762ca0a16050",
+  "backupDir": "/etc/idleleo/backup/edit-20261121T044158",
+  "noChanges": false,
+  "noRestart": false,
+  "noProbe": true,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://bc69e5a5-fe76-452f-965e-017604a7f1c9@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=ops10.example.com&fp=chrome&pbk=E_2DUMfB3Hmh6QffaiFfP5MQVp77LNizzE6hPIqEBEM&sid=668502a9&type=raw#idleleo-reality-nginx",
+  "originProbe": "skipped: --no-probe",
+  "tlsSystemTrusted": false,
+  "disconnect": false,
+  "warnings": null,
+  "shortIds": [
+    "668502a9"
+  ],
+  "oldShareUri": "vless://bc69e5a5-fe76-452f-965e-017604a7f1c9@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=E_2DUMfB3Hmh6QffaiFfP5MQVp77LNizzE6hPIqEBEM&sid=668502a9&type=raw#idleleo-reality-nginx",
+  "upstreamSha256": "29b6208b18d3713bbd23e4b3ce6f7e9200abb2748ff821d9219c7b3b6e76b75f",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "014705345990cf151052f52a9d5b1de9f88505525ce819258de65b229d935c8e",
+    "newSha256": "0d7691b2290ad2612c0d1480ff552701763f4d06962fbef6fd3b762ca0a16050",
+    "changed": [
+      "server-names"
+    ],
+    "affectedServices": [
+      "nginx",
+      "xray"
+    ],
+    "disconnectRisk": "none: no live session is dropped",
+    "validationSteps": [
+      "xray -test",
+      "nginx -t"
+    ],
+    "rollbackScope": "runtime config + nginx front",
+    "ownership": "idleleo-managed",
+    "fingerprint": "4f1d258f23b266c3"
+  }
+}

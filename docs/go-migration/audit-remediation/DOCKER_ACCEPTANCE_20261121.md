@@ -12,7 +12,7 @@
 | 分支 | `work/go-hardening-parity-20261119` |
 | 审计 HEAD | `c0f382f2bbc805556b0dd72b4a800af51de2312c` |
 | 本轮修复提交 | `96f77eae8849e1f1a73f0d8e6dfaaac922255f03`（账本 `codeSha` 同值） |
-| 固定 Bash | v3.3.6 `0fa7052e`；真实历史安装器 v3.3.2（`install-v3.3.2.sh`） |
+| 固定 Bash | v3.3.6 `0fa7052e`；真实历史安装器 v3.3.2、v3.3.3（`install-v3.3.*.sh`） |
 | Go 工具链 | `golang:1.27.4`，`CGO_ENABLED=0 GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local` |
 | 运行镜像 | `idleleo-e2e:24.04`（`688fabaf2d84`）、`idleleo-e2e:debian12`（`f67ddd3cc98d`）、`nginx:1.27`（1.27.5 + openssl）、`golang:1.27.4` |
 | Xray 候选 | `xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328` |
@@ -81,7 +81,7 @@ HEAD 红测 3 项失败（缺 fragment / 仅有 isolate 端口时仍报 `active`
 Go CLI，各自真实 Xray、Nginx、systemd。L0 退出码、L1 文件、L2 结构、
 L3 运行态、L4 真实业务请求、L6 重复运行逐层比较。
 
-### 3.1 M1–M10 安装矩阵（`FINAL-M-20261121`）
+### 3.1 M1–M10 安装矩阵（`FINAL-M2-20261121`）
 
 首轮与幂等轮两侧 rc=0，L4 全部 `ok`：
 
@@ -98,11 +98,11 @@ L3 运行态、L4 真实业务请求、L6 重复运行逐层比较。
 | M9 none ws | rc=0 ws:ok×2 | rc=0 ws:ok×2 | DUAL_SIDE_PASS |
 | M10 relay stream | rc=0 relay:ok×2 | rc=0 relay:ok×2 | DUAL_SIDE_PASS |
 
-证据：`tests/e2e-diff/evidence/FINAL-M-20261121/p2/install-matrix.md`。
+证据：`tests/e2e-diff/evidence/FINAL-M2-20261121/p2/install-matrix.md`。
 差异全部登记在 `expected_diffs.json` 的 ED-C01…C15（带 owner/批准/到期），
 没有未登记差异，也没有把 ED 当作 PASS 使用。
 
-### 3.2 E1–E8 编辑（`FINAL-M-20261121`）
+### 3.2 E1–E8 编辑（`FINAL-M2-20261121`）
 
 100 项检查全部 `allPassed=true`（E1 13、E2 13、E3 13、E4 13、E5 11、
 E6 10、E7 13、E8 14），每条都包含编辑前后配置、分享链接、运行态与
@@ -125,13 +125,13 @@ E6 10、E7 13、E8 14），每条都包含编辑前后配置、分享链接、�
 | OPS-01 | 查看用户 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
 | OPS-02 | 添加用户 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
 | OPS-03 | 删除用户 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
-| OPS-04 | 变更端口 | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-04/ops.json |
-| OPS-05 | 变更UUID/映射 | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-05/ops.json |
-| OPS-06 | 变更target | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-06/ops.json |
-| OPS-07 | 变更TLS版本 | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-07/ops.json |
+| OPS-04 | 变更端口 | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-04/ops.json |
+| OPS-05 | 变更UUID/映射 | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-05/ops.json |
+| OPS-06 | 变更target | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-06/ops.json |
+| OPS-07 | 变更TLS版本 | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-07/ops.json |
 | OPS-08 | SNI Guard | GO_ONLY | FINAL-RR-20261121/realroot/assertions.txt |
-| OPS-09 | Nginx负载均衡 | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-09/ops.json |
-| OPS-10 | serverNames | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-10/ops.json |
+| OPS-09 | Nginx负载均衡 | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-09/ops.json |
+| OPS-10 | serverNames | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-10/ops.json |
 | OPS-11 | 查看配置信息 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
 | OPS-12 | 实时访问日志 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
 | OPS-13 | 实时错误日志 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
@@ -140,11 +140,11 @@ E6 10、E7 13、E8 14），每条都包含编辑前后配置、分享链接、�
 | OPS-16 | 证书状态/有效期/自动更新 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
 | OPS-17a | 更新脚本 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
 | OPS-17b | 更新Nginx | GO_ONLY | FINAL-RR-20261121/realroot/assertions.txt |
-| OPS-17c | 配置自动更新 | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-17c/ops.json |
+| OPS-17c | 配置自动更新 | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-17c/ops.json |
 | OPS-18 | TCP加速 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
-| OPS-19 | Fail2ban | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-19/ops.json |
+| OPS-19 | Fail2ban | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-19/ops.json |
 | OPS-20 | 流量统计 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
-| OPS-21 | 流量阻断 | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-21/ops.json |
+| OPS-21 | 流量阻断 | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-21/ops.json |
 | OPS-22 | 清除日志 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
 | OPS-23 | 服务器网速 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
 | OPS-24 | 刷新GeoData | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
@@ -153,11 +153,11 @@ E6 10、E7 13、E8 14），每条都包含编辑前后配置、分享链接、�
 | OPS-27 | 清空证书文件 | GO_ONLY | FINAL-RR-20261121/realroot/assertions.txt |
 | OPS-28 | 卸载 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
 | OPS-29 | Rill AI 状态 | GO_ONLY | FINAL-OPS4-20261121/assertions.txt |
-| OPS-30 | 修改语言 | BASH_ONLY | FINAL-M-20261121/p2/OPS-30/ops.json |
-| OPS-31 | Reality负载均衡 | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-31/ops.json |
-| OPS-32 | 后端故障摘除（ws + reality 上游） | DUAL_SIDE_VERIFIED | FINAL-M-20261121/p2/OPS-32/ops.json |
+| OPS-30 | 修改语言 | BASH_ONLY | FINAL-M2-20261121/p2/OPS-30/ops.json |
+| OPS-31 | Reality负载均衡 | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-31/ops.json |
+| OPS-32 | 后端故障摘除（ws + reality 上游） | DUAL_SIDE_VERIFIED | FINAL-M2-20261121/p2/OPS-32/ops.json |
 
-- 双端证据：`FINAL-M-20261121/p2/OPS-*/ops.json`。
+- 双端证据：`FINAL-M2-20261121/p2/OPS-*/ops.json`。
 - Go 侧真实点检：`FINAL-OPS4-20261121/assertions.txt`（51 项）覆盖
   01/02/03/11/12/13/14/15/16/17a/18/20/22/23/24/25/26/28/29。
 - 真实 root：`FINAL-RR-20261121/realroot/assertions.txt`（26 项）覆盖
@@ -178,7 +178,7 @@ S1–S3 是旧编号，当前版本不再分发，本轮不作为可执行项。
 | --- | --- | --- |
 | S4 auto_update | 9/9 PASS（正常、重复、元数据缺失 fail-safe） | `FINAL-S-20261121/s/S4/` |
 | S5 ssl_update | 12/12 PASS（本地 Pebble 真实签发/续期/失败保持旧证书） | `FINAL-S-20261121/s/S5/` |
-| S6 geo_update | 首轮 7/9（重复运行因外网 11MB 资产超时）；隔离重跑 11/11 PASS | `FINAL-S-20261121/s/S6/`、`FINAL-S6B-20261121/s/` |
+| S6 geo_update | 17/17 PASS（本地校验和 origin；正常/重复/下载失败/坏字节/截断均保持旧资产） | `FINAL-S6D-20261121/s/` |
 | S7 acme.sh | 安装、`--version`、`--help`、缺状态失败 6/6 PASS；真实签发 BLOCKED（无公网域名/CA） | `FINAL-S-20261121/s/S7/` |
 | S8 tcp BBR | 13/13 PASS（plan/apply/重复 noop/rollback、无远端下载、旧脚本语法校验） | `FINAL-S-20261121/s/S8/` |
 | S9 superspeed | 6/6 PASS（本地端点吞吐、不可达失败干净退出、旧脚本语法校验） | `FINAL-S-20261121/s/S9/` |
@@ -192,6 +192,7 @@ runId 的绿色重跑，报告与账本分开引用，不混算。
 | --- | --- | --- |
 | Bash 3.3.6 接管 R1/R2/I1/I4/INJ | 106 PASS / 0 FAIL | `FINAL-R2-20261121/r1/assertions.txt` |
 | 真实历史 Bash 3.3.2 接管 | 13 PASS / 0 FAIL（安装→接管→配置字节不变→流量） | `FINAL-HIST2-20261121/r1/assertions.txt` |
+| 真实历史 Bash 3.3.3 接管 | 52 PASS / 0 FAIL（`source=/seed/historical.sh`、`shell=3.3.3`） | `FINAL-HIST3B-20261121/r1/assertions.txt` |
 | 双容器冷恢复 | source 8/8 + target 19/19；配置逐字节一致、权限/组、`xray -test`、服务、真实客户端、重启后仍通 | `goevo-coldrestore-FINAL-COLD-20261121/` |
 | P3 hot-user raw/ws/grpc/xhttp | 4 × 62/62，含旧凭据失效、热更新不重启、并发、SIGKILL 后恢复 | `goevo-p3-FINAL-P3-{raw,ws,grpc,xhttp}-20261121/` |
 | 多版本 Xray | v26.11.9 / v26.10.31 / v26.10.21：`xray -test` + 真实部署 + 客户端业务请求 PASS | `FINAL-VERSIONS2-20261121/versions/xray-versions.json` |
@@ -247,13 +248,30 @@ GeoData 非空且校验和匹配，`state.json` 记录 `result=ok`。
 | Test Install 历史静默退出 | PARTIAL | 本轮未复现；不以本地结果替代 CI |
 | OPS-30 语言 | BASH_ONLY | Go 无等价命令，Bash 功能未删除 |
 | 22 行 OPS 仅 Go 侧 | GO_ONLY | Bash 菜单无对应非交互入口；逐行登记，不造映射 |
+| 冷恢复配置覆盖 | NOT_DONE | 只跑 Reality；TLS/relay/multi 代表配置与端到端 SIGKILL/ENOSPC/EROFS/lock 注入未做 |
+| Bash 用户/私钥菜单 | NOT_DONE | E1–E8 为 Go-only；用户增删、shortId/私钥重建未逐一驱动 Bash 菜单 |
+| XHTTP 斜杠边界 | NOT_DONE | 空白输入已修；尾斜杠/重复斜杠的真实数据面未在最终 SHA 重跑 |
 
 ## 7. 结论
 
 | 范围 | 结论 |
 | --- | --- |
-| Docker 开发候选 | `GO_FOR_DOCKER_QUALIFIED_CANDIDATE`：Docker 可验证的适用项全部通过，账本 0 FAIL / 0 BLOCKED / 0 NOT_RUN，P0/P1 已用真实双端运行闭合 |
+| Docker 开发候选 | `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`：M/OPS/S/R/P3/soak/CI 已绿，但冷恢复多配置、Bash 用户/私钥菜单、XHTTP 斜杠边界仍未完成（见 §6） |
 | 正式发布 / 合并 / tag | `NO_GO_NOT_AUTHORIZED`：任务书禁止；独立 VPS、公网 ACME、外部 IPv6 未验证 |
 
 保持 Go 唯一管理核心；本轮只修安全缺陷与测试/证据工具，没有新增产品
 功能、没有架构重构、没有恢复 XTLS ONLY、没有触碰生产 VPS。
+
+## 8. 2026-11-21 补强（第二轮）
+
+| 项 | 结果 | 证据 |
+| --- | --- | --- |
+| F28/F08/F18 最终 SHA 重跑 | 57/0、129/0、178/0（干净 worktree + 真实 xray） | `artifacts/intake-20261121/s1/features-final/run.log` |
+| 第二历史 Bash 版本 | v3.3.3：52 PASS / 0 FAIL，`source=/seed/historical.sh`、`shell=3.3.3` | `FINAL-HIST3B-20261121/r1/assertions.txt` |
+| 历史驱动缺陷 | `E2E_HISTORICAL_INSTALLER` 未映射到 `E2E_INSTALL_SRC`，旧 HIST3 实际跑的是 3.3.6；已修复并删除无效证据 | `tests/e2e-diff/run_r1_upgrade.sh` |
+| S6 故障与热更新 | 17/17：本地校验和 origin，正常/重复/下载失败/坏字节/截断，旧资产不变 | `FINAL-S6D-20261121/s/assertions.txt` |
+| OPS-04 强度 | 双端：443 释放、8443 监听、Go share 端口 8443、新端口 L4、幂等重放、越界端口拒绝且零写入 | `FINAL-M2-20261121/p2/OPS-04/ops.json` |
+| OPS-10 强度 | 双端：`nginx -t`、443 L4、仅 serverNames 片段可变、其他片段字节不变 | `FINAL-M2-20261121/p2/OPS-10/ops.json` |
+| 全矩阵复跑 | M1–M10、E1–E8、OPS 11 双端 + 1 Bash-only；FINAL-M2 | `FINAL-M2-20261121/p2/` |
+| amd64 | `linux/amd64` 构建 + `internal/xraycfg`/`internal/deploy` 测试通过 | `artifacts/intake-20261121/s0/amd64-gate.log` |
+| 环境证据 | OS/systemd/bash/nginx/xray 版本与 sha256、Bash pin（短 pin 无法本地解析） | `artifacts/intake-20261121/s0/environment-final.json` |

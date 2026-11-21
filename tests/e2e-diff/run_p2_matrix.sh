@@ -956,6 +956,22 @@ ops_snapshot() { # <server> <dir> <tag>
         'sha256sum /etc/idleleo/language.conf 2>/dev/null || echo absent' \
         >"$dir/$tag.language.sha256"
     docker exec "$server" systemctl is-active xray >"$dir/$tag.active.txt" 2>&1
+    docker exec "$server" sh -c \
+        'command -v ss >/dev/null 2>&1 && ss -ltn || netstat -ltn 2>/dev/null' \
+        >"$dir/$tag.listens.txt"
+    docker exec "$server" sh -c '
+        bin=""
+        for p in nginx /usr/local/nginx/sbin/nginx /etc/idleleo/nginx/sbin/nginx \
+                 $(find / -maxdepth 6 -type f -name nginx -perm -u+x 2>/dev/null | head -3); do
+            if command -v "$p" >/dev/null 2>&1 || [ -x "$p" ]; then bin="$p"; break; fi
+        done
+        [ -n "$bin" ] || { echo "no nginx binary"; exit 1; }
+        "$bin" -t
+    ' >"$dir/$tag.nginx-test.txt" 2>&1
+    echo $? >"$dir/$tag.nginx-test.rc"
+    docker exec "$server" sh -c \
+        'find /etc/idleleo/conf/nginx -maxdepth 1 -type f -name "*.conf" -exec sha256sum {} + 2>/dev/null | sort' \
+        >"$dir/$tag.fragments.sha256"
 }
 
 ops_generic_verdict() { # <ops-id>
@@ -1048,6 +1064,21 @@ elif oid == "OPS-04":
     g_listen = [x for x in nginx_config("go", "after") if x.startswith("listen")]
     b_active = (read(snap("bash", "after", "active.txt")) or "").strip()
     g_active = (read(snap("go", "after", "active.txt")) or "").strip()
+
+    def listening(side, tag, port):
+        for line in lines(snap(side, tag, "listens.txt")):
+            if re.search(r":%d\b" % port, line):
+                return True
+        return False
+
+    def share_port(side):
+        try:
+            data = json.loads(read(os.path.join(base, side, "share-8443.json")) or "{}")
+        except ValueError:
+            return None
+        match = re.search(r"@[^\s:]+:(\d+)", data.get("shareUri") or "")
+        return int(match.group(1)) if match else None
+
     if bash_rc != 0:
         reasons.append("bash port change rc=%s" % bash_rc)
     if go_rc != 0:
@@ -1058,8 +1089,58 @@ elif oid == "OPS-04":
         reasons.append("go nginx does not listen on 8443: %s" % g_listen)
     if b_active != "active" or g_active != "active":
         reasons.append("xray not active (bash=%s go=%s)" % (b_active, g_active))
+    # The old public port must be released, and the share link must carry the
+    # new public port; otherwise a "successful" edit still strands clients.
+    for side in ("bash", "go"):
+        if listening(side, "after", 443):
+            reasons.append("%s still listens on 443" % side)
+        if listening(side, "after", 8443) is False:
+            reasons.append("%s listener table lacks 8443" % side)
+    # The Go install can render a share link; the Bash install only writes the
+    # same port into Nginx, so a missing Bash share is recorded, not invented.
+    b_share = share_port("bash")
+    g_share = share_port("go")
+    if g_share != 8443:
+        reasons.append("go share port is %s, expected 8443" % g_share)
+    if b_share is not None and b_share != 8443:
+        reasons.append("bash share port is %s, expected 8443" % b_share)
+    # Bash only moves the public port, so its loopback inbound must not change.
+    b_in_before = lines(snap("bash", "before", "inbound-ports.txt"))
+    b_in_after = lines(snap("bash", "after", "inbound-ports.txt"))
+    if b_in_before != b_in_after:
+        reasons.append("bash loopback inbound changed: %s -> %s" % (b_in_before, b_in_after))
+    # A real client must complete a business request through the new port.
+    b_l4 = read_rc(os.path.join(base, "bash", "L4-8443.rc"))
+    g_l4 = read_rc(os.path.join(base, "go", "L4-8443.rc"))
+    if b_l4 != 0:
+        reasons.append("bash L4 through 8443 rc=%s" % b_l4)
+    if g_l4 != 0:
+        reasons.append("go L4 through 8443 rc=%s" % g_l4)
+    # Re-applying the same port is a no-op; an invalid port is refused and
+    # writes nothing. Both are compared against the first successful edit.
+    b_first = read_rc(os.path.join(base, "bash", "ops-first.rc"))
+    if b_first != 0 or bash_rc != 0:
+        reasons.append("bash repeat rc first=%s second=%s" % (b_first, bash_rc))
+    if (read(snap("bash", "after2", "config.sorted.json")) or "") != \
+            (read(snap("bash", "after", "config.sorted.json")) or ""):
+        reasons.append("bash repeat rewrote the runtime config")
+    g_repeat = read_rc(os.path.join(base, "go", "11-repeat.rc"))
+    g_negative = read_rc(os.path.join(base, "go", "12-negative.rc"))
+    if g_repeat != 0:
+        reasons.append("go repeat rc=%s" % g_repeat)
+    if g_negative == 0:
+        reasons.append("go accepted an out-of-range port")
+    if (read(snap("go", "after2", "config.sorted.json")) or "") != \
+            (read(snap("go", "after", "config.sorted.json")) or ""):
+        reasons.append("go repeat/negative rewrote the runtime config")
     report.update({"nginxListen": {"bash": b_listen, "go": g_listen},
-                   "active": {"bash": b_active, "go": g_active}})
+                   "active": {"bash": b_active, "go": g_active},
+                   "listening443": {"bash": listening("bash", "after", 443),
+                                    "go": listening("go", "after", 443)},
+                   "sharePort": {"bash": share_port("bash"), "go": share_port("go")},
+                   "l4": {"bash": b_l4, "go": g_l4},
+                   "repeat": {"bashFirst": b_first, "bashSecond": bash_rc,
+                              "goRepeat": g_repeat, "goNegative": g_negative}})
     verdict = "BLOCKER" if reasons else "PASS"
 elif oid == "OPS-05":
     b_before = lines(snap("bash", "before", "client-ids.txt"))
@@ -1156,6 +1237,40 @@ elif oid == "OPS-10":
         reasons.append("bash nested menu did not create %s" % fragment)
     if not g_after:
         reasons.append("go nginx fragment lacks %s" % fragment)
+    # Reload health and real traffic: the write must leave a valid, loaded
+    # Nginx and keep existing clients working.
+    for side in ("bash", "go"):
+        nrc = read_rc(os.path.join(base, side, "after.nginx-test.rc"))
+        if nrc != 0:
+            reasons.append("%s nginx -t rc=%s" % (side, nrc))
+        l4 = read_rc(os.path.join(base, side, "L4-443.rc"))
+        if l4 != 0:
+            reasons.append("%s L4 after serverNames rc=%s" % (side, l4))
+
+    def frags(side, tag):
+        out = {}
+        for line in lines(snap(side, tag, "fragments.sha256")):
+            digest, _, path = line.partition("  ")
+            if path:
+                out[path.strip()] = digest.strip()
+        return out
+
+    for side in ("bash", "go"):
+        before_f = frags(side, "before")
+        after_f = frags(side, "after")
+        changed = sorted(p for p in before_f if p in after_f and before_f[p] != after_f[p])
+        removed = sorted(p for p in before_f if p not in after_f)
+        # The target's own serverNames list is the intended write; every other
+        # fragment must keep its bytes.
+        legal = [p for p in changed if "serverNames" in p]
+        unexpected = [p for p in changed if "serverNames" not in p]
+        if unexpected:
+            reasons.append("%s rewrote unrelated fragments: %s" % (side, unexpected))
+        if removed:
+            reasons.append("%s removed fragments: %s" % (side, removed))
+        report.setdefault("fragments", {})[side] = {
+            "changed": changed, "legalServerNames": legal,
+            "removed": removed, "added": sorted(set(after_f) - set(before_f))}
     report["nginxServerNames"] = {"bashBefore": b_before, "goBefore": g_before,
                                   "bash": b_after, "go": g_after,
                                   "fragment": fragment}
@@ -1197,6 +1312,15 @@ print(verdict)
 PY
 }
 
+ops_l4() { # <server> <dir> <net> <port>
+    local server=$1 dir=$2 net=$3 port=$4
+    E2E_L4_URL="http://example.com/" E2E_L4_MARKER="Example Domain" E2E_L4_PORT="$port" \
+        bash "$SUITE/collect/l4.sh" "$server" "e2e-$RUN_ID-$server-l4-$port" \
+            "$IMAGE_TAG" "$net" reality "$DOMAIN" "$WORK/seed/xray" \
+            "$WORK/secret/$server-l4-$port" "$dir/L4-$port" >"$dir/L4-$port.log" 2>&1
+    echo $? >"$dir/L4-$port.rc"
+}
+
 ops_simple_job() { # <ops-id> <base-scenario> <go-mode>
     local oid=$1 sid=$2 gmode=$3
     OPS_NET="e2e-$RUN_ID-$oid"
@@ -1211,6 +1335,20 @@ ops_simple_job() { # <ops-id> <base-scenario> <go-mode>
         ops_snapshot "$bserver" "$bdir" before
         ops_bash_menu "$bserver" "$bdir" "$oid"
         ops_snapshot "$bserver" "$bdir" after
+        if [[ "$oid" == "OPS-04" ]]; then
+            ops_l4 "$bserver" "$bdir" "$OPS_NET" "$OPS_PORT_ALT"
+            # Re-applying the same port must stay green and rewrite nothing.
+            mv "$bdir/ops.rc" "$bdir/ops-first.rc"
+            mv "$bdir/ops.out" "$bdir/ops-first.out"
+            cp "$bdir/ops.log" "$bdir/ops-first.log" 2>/dev/null || true
+            # The repeat is a no-op check; fail fast instead of hanging 900s.
+            local saved_timeout="${E2E_TIMEOUT:-900}"
+            E2E_TIMEOUT=180 ops_bash_menu "$bserver" "$bdir" "$oid"
+            E2E_TIMEOUT="$saved_timeout"
+            ops_snapshot "$bserver" "$bdir" after2
+        elif [[ "$oid" == "OPS-10" ]]; then
+            ops_l4 "$bserver" "$bdir" "$OPS_NET" 443
+        fi
     else
         echo '{"status":"harness-error","reason":"container start failed"}' >"$bdir/harness.json"
     fi
@@ -1233,6 +1371,22 @@ ops_simple_job() { # <ops-id> <base-scenario> <go-mode>
             OPS-30) echo 0 >"$gdir/10-op.rc" ;;
         esac
         ops_snapshot "$gserver" "$gdir" after
+        if [[ "$oid" == "OPS-04" ]]; then
+            ops_l4 "$gserver" "$gdir" "$OPS_NET" "$OPS_PORT_ALT"
+            # The managed CLI must render the new public port in the link.
+            docker exec "$gserver" /usr/local/bin/idleleo xray share \
+                --path /etc/idleleo/conf/xray/config.json \
+                --host "$DOMAIN" --public-port "$OPS_PORT_ALT" --json \
+                >"$gdir/share-8443.json" 2>"$gdir/share-8443.err" || true
+            ops_go_cli "$gserver" "$gdir" 11-repeat xray config edit --port 8444 \
+                --public-port "$OPS_PORT_ALT" --yes --no-probe --container --json
+            # An out-of-range port must be refused without touching the tree.
+            ops_go_cli "$gserver" "$gdir" 12-negative xray config edit --port 70000 \
+                --yes --no-probe --container --json
+            ops_snapshot "$gserver" "$gdir" after2
+        elif [[ "$oid" == "OPS-10" ]]; then
+            ops_l4 "$gserver" "$gdir" "$OPS_NET" 443
+        fi
     else
         echo '{"status":"harness-error","reason":"container start failed"}' >"$gdir/harness.json"
     fi

@@ -1,0 +1,44 @@
+{
+  "capturedAt": "2026-11-20T18:10:07.990314+00:00",
+  "branch": "work/go-hardening-parity-20261119",
+  "head": "c0f382f2bbc805556b0dd72b4a800af51de2312c",
+  "dirty": "M internal/cli/xrayedit.go\n M internal/deploy/certclear.go\n M internal/deploy/certclear_test.go\n M internal/deploy/guard.go\n M internal/deploy/guard_test.go\n M internal/xraycfg/edit.go\n M internal/xraycfg/edit_test.go\n?? artifacts/intake-20261121/\n?? tests/e2e-diff/drivers/cert_clear_cases.sh\n?? tests/e2e-diff/drivers/guard_cases.sh\n?? tests/e2e-diff/evidence/FINAL-M-20261121/\n?? tests/e2e-diff/evidence/FINAL-OPS-20261121/",
+  "goToolchain": "golang:1.27.4 (container; GOTOOLCHAIN=local, GOFLAGS=-mod=vendor, GOPROXY=off)",
+  "docker": "29.8.2 arm64",
+  "hostArch": "arm64",
+  "images": {
+    "idleleo-e2e:debian12": "f67ddd3cc98d",
+    "idleleo-e2e:24.04": "688fabaf2d84",
+    "golang:1.27.4": "5e8afd493a71",
+    "nginx:1.27": "6784fb0834aa"
+  },
+  "bashPin": {
+    "version": "v3.3.6",
+    "short": "0fa7052e",
+    "full": null,
+    "resolvableInRepo": false,
+    "note": "短 pin 取自独立审计报告与开发报告；本仓库不含该上游对象，无法本地解析完整 SHA",
+    "worktreeInstallSha256": "509ed4b836c62d845bdc56551d2583f8c650c6cbb633455af56e1067e7b2ce94"
+  },
+  "seedBinarySha256": "2d5ae472318af02457e65a73643b90a0b626fc1a7b9e0b317583626466e395d6",
+  "fixedBinarySha256": "f7c5701ee3b2e2e3434fc0adcc8c591cef6c84ffd636b1ce4c60b88b22834818",
+  "collectedAt": "2026-11-21",
+  "os": {
+    "name": "Ubuntu 24.04.5 LTS",
+    "kernel": "7.2.12-orbstack (container host)",
+    "arch": "aarch64"
+  },
+  "systemd": "255 (255.4-1ubuntu8.19)",
+  "bash": "GNU bash 5.2.21(1)-release",
+  "xray": {
+    "version": "26.10.31 (a4a3dff, go1.27.3 linux/arm64)",
+    "sha256": "5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328",
+    "source": "~/.cache/xray-audit/share/xray-bin/xray"
+  },
+  "nginx": {
+    "version": "1.27.5 (nginx:1.27)",
+    "sha256": "653bfd40798a15850e342ef568ab18a883a273d3c1dfd8dd0ae3a57d7545f420",
+    "customTarballSha256": "dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79"
+  },
+  "dockerHost": "29.8.2"
+}

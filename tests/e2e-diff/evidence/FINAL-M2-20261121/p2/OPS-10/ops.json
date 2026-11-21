@@ -1,0 +1,38 @@
+{
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "fragments": {
+    "bash": {
+      "added": [],
+      "changed": [],
+      "legalServerNames": [],
+      "removed": []
+    },
+    "go": {
+      "added": [],
+      "changed": [],
+      "legalServerNames": [],
+      "removed": []
+    }
+  },
+  "id": "OPS-10",
+  "nginxServerNames": {
+    "bash": [
+      "ops10.example.com reality;"
+    ],
+    "bashBefore": [],
+    "fragment": "ops10.example.com reality;",
+    "go": [
+      "ops10.example.com reality;"
+    ],
+    "goBefore": []
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "verdict": "PASS"
+}
