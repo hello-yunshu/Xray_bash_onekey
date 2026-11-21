@@ -12,7 +12,7 @@
 | 分支 | `work/go-hardening-parity-20261119` |
 | 审计 HEAD | `c0f382f2bbc805556b0dd72b4a800af51de2312c` |
 | 本轮产品代码提交 | `96f77eae8849e1f1a73f0d8e6dfaaac922255f03` |
-| 本轮证据 / 测试工具 head | `814a375755b3beffe7e3e784aeab56c656e9cb99`（账本 `codeSha` 同值；产品代码自 `96f77eae` 未变，后续提交只含脚本/证据/文档） |
+| 本轮证据 / 测试工具 head | `a502780cb7484b6d5240657884d12a09370b86bc`（账本 `codeSha` 同值；产品代码自 `96f77eae` 未变，后续提交只含脚本/证据/文档） |
 | 固定 Bash | v3.3.6 `0fa7052e`；真实历史安装器 v3.3.2、v3.3.3（`install-v3.3.*.sh`） |
 | Go 工具链 | `golang:1.27.4`，`CGO_ENABLED=0 GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local` |
 | 运行镜像 | `idleleo-e2e:24.04`（`688fabaf2d84`）、`idleleo-e2e:debian12`（`f67ddd3cc98d`）、`nginx:1.27`（1.27.5 + openssl）、`golang:1.27.4` |

@@ -236,8 +236,8 @@
     "blockedIds": [],
     "notRun": 0,
     "notRunIds": [],
-    "generatedAt": "2026-11-21T06:35:17+00:00",
-    "codeSha": "61bb32bf31ca3b4c547cde174ca84c4a90f14df0",
+    "generatedAt": "2026-11-21T06:37:52+00:00",
+    "codeSha": "a502780cb7484b6d5240657884d12a09370b86bc",
     "source": "tests/e2e-diff/ledger.json"
   },
   "summary": {
@@ -492,7 +492,7 @@
   },
   "round20261121": {
     "candidateSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
-    "evidenceHead": "814a375755b3beffe7e3e784aeab56c656e9cb99",
+    "evidenceHead": "a502780cb7484b6d5240657884d12a09370b86bc",
     "auditBaseline": "c0f382f2bbc805556b0dd72b4a800af51de2312c",
     "report": "docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261121.md",
     "evidence": {
@@ -579,7 +579,7 @@
       "codeSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
       "codeShaWorkflows": 7,
       "codeShaSuccess": 7,
-      "evidenceHead": "814a375755b3beffe7e3e784aeab56c656e9cb99",
+      "evidenceHead": "a502780cb7484b6d5240657884d12a09370b86bc",
       "finalHead": "c3d4f90431ca3b4c547cde174ca84c4a90f14df0",
       "finalHeadWorkflows": 7,
       "finalHeadSuccess": 7,

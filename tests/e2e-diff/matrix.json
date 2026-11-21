@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "frozenAt": "2026-11-13T17:21:00+08:00",
-  "repoCommit": "61bb32bf",
+  "repoCommit": "a502780c",
   "branch": "develop/go-native",
   "sourcePlan": "docs/plans/bash-vs-go-docker-differential-impl.md",
   "decisions": {
@@ -91,8 +91,8 @@
     ],
     "notRunIds": [],
     "generatedFrom": "tests/e2e-diff/ledger.json",
-    "generatedAt": "2026-11-21T06:35:17+00:00",
-    "codeSha": "61bb32bf31ca3b4c547cde174ca84c4a90f14df0"
+    "generatedAt": "2026-11-21T06:37:52+00:00",
+    "codeSha": "a502780cb7484b6d5240657884d12a09370b86bc"
   },
   "install": [
     {
