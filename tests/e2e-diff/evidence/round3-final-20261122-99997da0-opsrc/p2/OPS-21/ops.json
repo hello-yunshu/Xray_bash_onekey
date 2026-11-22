@@ -1,0 +1,76 @@
+{
+  "id": "OPS-21",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "sides": {
+    "bash": {
+      "checks": {
+        "adsBlocked": true,
+        "applyRcZero": true,
+        "baselineControl": true,
+        "controlAfterApply": true,
+        "controlAfterOff": true,
+        "countryBlocked": true,
+        "customRuleApplied": false,
+        "fallbackDirect": true,
+        "noCatchAllBlocked": true,
+        "offRcZero": true,
+        "offRestored": true,
+        "privateBlocked": true,
+        "rulesAdded": true,
+        "serviceAliveAfterApply": true
+      },
+      "failed": [],
+      "reasons": [],
+      "status": "pass"
+    },
+    "go": {
+      "checks": {
+        "adsBlocked": true,
+        "adsBlockedAfterEdit": true,
+        "applyRcZero": true,
+        "baselineControl": true,
+        "controlAfterApply": true,
+        "controlAfterEdit": true,
+        "controlAfterOff": true,
+        "countryBlocked": true,
+        "customListConfigured": true,
+        "customListKept": true,
+        "customRuleApplied": true,
+        "customRuleRemoved": true,
+        "editBlockReported": true,
+        "editOwnedRulesKept": true,
+        "editRcZero": true,
+        "editRoutingIdentical": true,
+        "editUserRuleKept": true,
+        "editUuidApplied": true,
+        "fallbackDirect": true,
+        "noCatchAllBlocked": true,
+        "offRcZero": true,
+        "offRestored": true,
+        "privateBlocked": true,
+        "realityOriginLocal": true,
+        "rulesAdded": true,
+        "serviceAliveAfterApply": true
+      },
+      "failed": [],
+      "reasons": [],
+      "status": "pass"
+    }
+  },
+  "stepRc": {
+    "bash": {
+      "apply": 0,
+      "off": 0
+    },
+    "go": {
+      "apply": 0,
+      "edit": 0,
+      "off": 0
+    }
+  },
+  "verdict": "PASS"
+}

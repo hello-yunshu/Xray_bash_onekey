@@ -1,0 +1,6 @@
+state=xray/node tls=Reality transport=raw configDrift=0 warnings=2 alerts=0
+port=443 protocol=vless listen=0.0.0.0 tag=VLESS-Reality-in
+port=10085 protocol=dokodemo-door listen=127.0.0.1 tag=api
+certificate=/etc/idleleo/cert/xray.crt missing
+lastChange=1795362384361036613-882 state=COMMITTED target=/etc/idleleo/conf/xray/config.json at=2026-11-22T15:46:24Z
+recentFailures=0 restartCount=0

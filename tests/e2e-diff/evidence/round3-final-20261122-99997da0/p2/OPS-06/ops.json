@@ -1,0 +1,29 @@
+{
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-06",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "serverNames": {
+    "bash": [
+      "www.cloudflare.com"
+    ],
+    "go": [
+      "www.cloudflare.com"
+    ]
+  },
+  "targets": {
+    "bash": [
+      "www.cloudflare.com:443"
+    ],
+    "go": [
+      "www.cloudflare.com:443"
+    ]
+  },
+  "verdict": "PASS"
+}

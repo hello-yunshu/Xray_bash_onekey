@@ -1,0 +1,13 @@
+{
+  "id": "OPS-24",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "Bash GeoData menu refreshes from the hard-coded public GitHub release; this isolated job has no public origin",
+    "bash output shows the GeoData menu, bytes=277183",
+    "go schedule status rc=0; real Go geodata refresh is covered by the ops sweep with a local origin"
+  ],
+  "verdict": "BLOCKED"
+}

@@ -1,0 +1,36 @@
+18:42:54 run_id=round3-soak-20261122 iterations=31 interval=60s min=1800s
+18:43:13 iter=1 ok active=active test=0 listen=1 rss=36500KiB l4=ok/577B
+18:44:16 iter=2 ok active=active test=0 listen=1 rss=15176KiB l4=ok/577B
+18:45:18 iter=3 ok active=active test=0 listen=1 rss=24624KiB l4=ok/577B
+18:46:19 iter=4 ok active=active test=0 listen=1 rss=22148KiB l4=ok/577B
+18:47:22 iter=5 ok active=active test=0 listen=1 rss=18828KiB l4=ok/577B
+18:48:23 iter=6 ok active=active test=0 listen=1 rss=20836KiB l4=ok/577B
+18:49:25 iter=7 ok active=active test=0 listen=1 rss=18644KiB l4=ok/577B
+18:50:26 iter=8 ok active=active test=0 listen=1 rss=16148KiB l4=ok/577B
+18:51:27 iter=9 ok active=active test=0 listen=1 rss=16136KiB l4=ok/577B
+18:52:29 iter=10 ok active=active test=0 listen=1 rss=18620KiB l4=ok/577B
+18:53:30 iter=11 ok active=active test=0 listen=1 rss=19876KiB l4=ok/577B
+18:54:32 iter=12 ok active=active test=0 listen=1 rss=17508KiB l4=ok/577B
+18:55:34 iter=13 ok active=active test=0 listen=1 rss=18912KiB l4=ok/577B
+18:56:37 iter=14 ok active=active test=0 listen=1 rss=18928KiB l4=ok/577B
+18:57:45 iter=15 ok active=active test=0 listen=1 rss=18944KiB l4=ok/577B
+18:58:47 iter=16 ok active=active test=0 listen=1 rss=19796KiB l4=ok/577B
+18:59:48 iter=17 ok active=active test=0 listen=1 rss=17364KiB l4=ok/577B
+19:00:49 iter=18 ok active=active test=0 listen=1 rss=17380KiB l4=ok/577B
+19:01:52 iter=19 ok active=active test=0 listen=1 rss=17412KiB l4=ok/577B
+19:02:54 iter=20 ok active=active test=0 listen=1 rss=17808KiB l4=ok/577B
+19:03:56 iter=21 ok active=active test=0 listen=1 rss=19956KiB l4=ok/577B
+19:04:57 iter=22 ok active=active test=0 listen=1 rss=16992KiB l4=ok/577B
+19:05:59 iter=23 ok active=active test=0 listen=1 rss=16972KiB l4=ok/577B
+19:07:00 iter=24 ok active=active test=0 listen=1 rss=17136KiB l4=ok/577B
+19:08:05 iter=25 ok active=active test=0 listen=1 rss=17184KiB l4=ok/577B
+19:09:07 iter=26 ok active=active test=0 listen=1 rss=19456KiB l4=ok/577B
+19:10:08 iter=27 ok active=active test=0 listen=1 rss=18308KiB l4=ok/577B
+19:11:10 iter=28 ok active=active test=0 listen=1 rss=17388KiB l4=ok/577B
+19:12:11 iter=29 ok active=active test=0 listen=1 rss=17452KiB l4=ok/577B
+19:13:15 iter=30 ok active=active test=0 listen=1 rss=16404KiB l4=ok/577B
+19:14:16 iter=31 ok active=active test=0 listen=1 rss=19100KiB l4=ok/577B
+19:14:16 elapsed=1870s client_ok=31 client_fail=0
+19:14:16 schedule cycle check (interval=15s)
+19:14:51 schedule timer=active runs=2 geodata=1
+19:14:51 verdict=PASS iterations=31/31 elapsed=1870s

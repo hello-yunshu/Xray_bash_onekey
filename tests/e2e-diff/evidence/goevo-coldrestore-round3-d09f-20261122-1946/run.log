@@ -1,0 +1,37 @@
+run_id=round3-d09f-20261122-1946 scenarios=relay
+commit=d13abf2161872e204a626cf6a90b8b3e93390003
+image=idleleo-e2e:24.04
+image_id=sha256:3ebd8b9498be5539df091bffdc55e92ad8684ccc2e4e89bb8980e7b9355fe912
+building idleleo
+idleleo_sha256=1b190ac8ad63bf5f5ff3fcf07d2d482834ea0f3075e6209471b0dc7949bed146
+building the local TLS target
+arch=arm64
+xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 arch=arm64
+nginx_cache=hit build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+[relay] source: starting e2e-round3-d09f-20261122-1946-cold-source-relay
+[relay] source: installing Go manager
+systemd_state=running
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --role relay --target 1.2.3.4:18080 --listen-port 443 --listen 0.0.0.0 --container
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+[relay] source: driver
+driver_start=2026-11-22T10:41:06Z mode=source scenario=relay root=/
+driver_done assertions=7 pass / 0 fail
+[relay] source_driver_rc=0
+[relay] source: destroying e2e-round3-d09f-20261122-1946-cold-source-relay
+[relay] target: starting e2e-round3-d09f-20261122-1946-cold-target-relay
+[relay] target: installing a fresh Go manager
+systemd_state=running
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --role relay --target 1.2.3.4:18080 --listen-port 8443 --listen 0.0.0.0 --container
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+[relay] target: driver
+driver_start=2026-11-22T10:41:08Z mode=target scenario=relay root=/
+driver_done assertions=15 pass / 0 fail
+[relay] target_driver_rc=0
+evidence=tests/e2e-diff/evidence/goevo-coldrestore-round3-d09f-20261122-1946
+RESULT: PASS

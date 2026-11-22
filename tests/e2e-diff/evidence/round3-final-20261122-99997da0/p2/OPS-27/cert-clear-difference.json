@@ -1,0 +1,34 @@
+{
+  "approved": false,
+  "bashCertList": {
+    "after": [],
+    "before": [
+      "thirdparty.crt",
+      "thirdparty.key"
+    ]
+  },
+  "canaryKeptByGo": true,
+  "canaryRemovedByBash": true,
+  "goCertList": {
+    "after": [
+      "thirdparty.crt",
+      "thirdparty.key"
+    ],
+    "before": [
+      "thirdparty.crt",
+      "thirdparty.key"
+    ]
+  },
+  "id": "OPS-27",
+  "note": "unapproved behavioural difference; the row is NOT dual-side verified",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "Bash backup menu 7>3 deletes the whole certificate directory after one confirm; Go requires managed ownership proof",
+    "Bash removed the third-party canary (rm -rf entire cert dir)",
+    "Go kept the third-party canary (no managed ownership)"
+  ],
+  "result": "DIFF"
+}

@@ -51,6 +51,19 @@ if [[ -n "$NGINX_ARCH" && -f "$NGINX_CACHE/release-manifest.json" && -f "$NGINX_
     printf '{"nginx_build_online_version":"%s"}\n' "$NGINX_BUILD" >"$WORK/seed/nginx/versions.json"
     NGINX_ENVS=(-e IDLELEO_NGINX_CACHE=/seed/nginx -e E2E_NGINX_BUILD="$NGINX_BUILD")
 fi
+# The Bash installer also fetches its Xray config template from the release raw
+# tree. Seed the tracked templates so a raw.githubusercontent.com timeout cannot
+# turn a takeover regression into a false failure; the installer still validates
+# the JSON it reads.
+mkdir -p "$WORK/seed/release/config"
+for _tpl in vless_reality.json vless_tls.json; do
+    if [[ -f "$ROOT/config/$_tpl" ]]; then
+        cp "$ROOT/config/$_tpl" "$WORK/seed/release/config/$_tpl"
+    fi
+done
+if [[ "$(ls -A "$WORK/seed/release/config" 2>/dev/null | wc -l)" -gt 0 ]]; then
+    NGINX_ENVS+=(-e IDLELEO_RELEASE_CACHE=/seed/release)
+fi
 # Historical migration: point the driver at a real older installer (mounted as
 # /seed/historical.sh) instead of the tracked one. No snapshot is fabricated.
 if [[ -n "${E2E_HISTORICAL_INSTALLER:-}" ]]; then
@@ -304,7 +317,7 @@ run_r2() { # run_r2 <sid> <profile> <bash-arg> <l4-profile> <l4-transport>
     snap "$c" "$out/pre"
     docker exec "$c" install -m 0755 /seed/idleleo /usr/local/bin/idleleo
     docker exec "$c" install -m 0755 /seed/idleleo-recover /usr/local/bin/idleleo-recover
-    local -a envs=(-e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY)
+    local -a envs=(-e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY ${NGINX_ENVS[@]+"${NGINX_ENVS[@]}"})
     # Fault injection: a prepare that hits ENOSPC must leave no journal, plan,
     # snapshot or entry change behind, and a clean prepare must then succeed.
     docker exec "${envs[@]}" "$c" /usr/local/bin/idleleo bridge prepare \
@@ -390,7 +403,7 @@ run_injections() { # run_injections <sid> <profile> <bash-arg> <go-args...>
     local -a goargs=("$@")
     local net="e2e-$RUN_ID-$sid-inj-net" c="e2e-$RUN_ID-$sid-inj"
     local out="$EVID/$sid/INJ" cfg=/etc/idleleo/conf/xray/config.json
-    local -a envs=(-e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY)
+    local -a envs=(-e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY ${NGINX_ENVS[@]+"${NGINX_ENVS[@]}"})
     docker network create "$net" >/dev/null 2>&1 || true
     log "[$sid/INJ] start"
     if ! start_server "$c" "$out/bash" "$net"; then

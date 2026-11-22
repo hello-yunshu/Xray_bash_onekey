@@ -294,7 +294,7 @@
       "OPS-31",
       "OPS-32"
     ],
-    "generatedAt": "2026-11-22T10:52:40+00:00",
+    "generatedAt": "2026-11-22T16:09:20+00:00",
     "codeSha": "test",
     "source": "tests/e2e-diff/ledger.json"
   },

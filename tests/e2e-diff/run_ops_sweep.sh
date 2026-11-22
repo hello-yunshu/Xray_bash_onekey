@@ -195,13 +195,19 @@ run_op OPS-03 1 xray user remove --sandbox / --email e2e@example.com \
 run_op OPS-11 1 show --json
 run_op OPS-12 0 service logs --unit xray --lines 5
 run_op OPS-13 0 service logs --unit nginx --lines 5
-# stats only answers once the loopback API is enabled; enabling it is itself
-# part of the operator flow these rows describe.
-run_op OPS-14a 1 xray api enable --sandbox / --validator /usr/local/bin/xray --service "$HOOK" --container --json
-# The install does not configure stats/api.listen, so these rows are refusals:
-# the command must say exactly that instead of returning an empty result.
+# Before the loopback API exists, stats must refuse with the documented code
+# instead of returning an empty result.
 run_refusal OPS-14 3 "stats/api.listen is not configured" stats --json
 run_refusal OPS-20 3 "stats/api.listen is not configured" stats --json
+# Enabling the API also configures stats/api.listen, so the same command must
+# then answer from the live loopback API (this is the operator flow).
+run_op OPS-14a 1 xray api enable --sandbox / --validator /usr/local/bin/xray --service "$HOOK" --container --json
+run_op OPS-14b 1 stats --json
+assert "$(python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$EVID/ops/OPS-14b/out.txt" >/dev/null 2>&1 && echo 0 || echo 1)" \
+    "OPS-14 stats answers with parseable JSON once the API is enabled"
+run_op OPS-20a 1 stats --json
+assert "$(python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$EVID/ops/OPS-20a/out.txt" >/dev/null 2>&1 && echo 0 || echo 1)" \
+    "OPS-20 stats answers with parseable JSON once the API is enabled"
 run_op OPS-15 0 service restart --container
 assert "$([ "$(active_xray)" = "active" ] && echo 0 || echo 1)" "OPS-15 xray active after restart"
 run_op OPS-18 1 tcp status --json

@@ -1,0 +1,11 @@
+{
+  "id": "OPS-29",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "both sides returned Rill status"
+  ],
+  "verdict": "PASS"
+}

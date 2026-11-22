@@ -1,0 +1,10 @@
+{
+  "server": "https://speed.cloudflare.com",
+  "downMbps": 2.89,
+  "bytes": 1048576,
+  "durationMs": 2905,
+  "samplesMbps": [
+    2.89
+  ],
+  "startedAt": "2026-11-22T15:53:43.992191801Z"
+}

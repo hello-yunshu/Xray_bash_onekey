@@ -1,0 +1,28 @@
+{
+  "checks": [
+    "unit active",
+    "xray -test rc=0",
+    "port 443 listening",
+    "NRestarts==0",
+    "RSS under cap",
+    "client Reality handshake + HTTP business request",
+    "two real idleleo-schedule.timer cycles"
+  ],
+  "clientProbes": {
+    "failed": 0,
+    "ok": 31
+  },
+  "elapsedSeconds": 1870,
+  "expectedIterations": 31,
+  "failedIteration": null,
+  "firstFailureReason": null,
+  "intervalSeconds": 60,
+  "iterations": 31,
+  "minimumSeconds": 1800,
+  "rssCapMiB": 512,
+  "scheduleCycles": {
+    "runs": 2,
+    "timer": "active"
+  },
+  "verdict": "PASS"
+}

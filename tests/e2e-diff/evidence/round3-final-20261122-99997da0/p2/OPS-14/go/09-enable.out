@@ -1,0 +1,16 @@
+{
+  "changed": true,
+  "entry": {
+    "id": "1795353048135191367-340",
+    "state": "COMMITTED",
+    "target": "/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/usr/local/bin/e2e-service-apply",
+    "oldSha256": "2431707b5ad0f40c9168d8a6906d1b648f7858e974c128a251e92c82c02d4cc5",
+    "newSha256": "9673d4e88dd9cc2b3aca3a1e92c72e829c30d315f5001ba7d0e634af04bb9277",
+    "startedAt": "2026-11-22T13:10:48Z",
+    "updatedAt": "2026-11-22T13:10:48Z"
+  },
+  "port": 10085,
+  "reachable": true,
+  "server": "127.0.0.1:10085"
+}

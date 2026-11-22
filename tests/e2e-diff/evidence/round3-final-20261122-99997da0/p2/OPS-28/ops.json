@@ -1,0 +1,26 @@
+{
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-28",
+  "observed": {
+    "bash": {
+      "active": "inactive",
+      "config": "absent",
+      "e2eLogSize": "missing",
+      "sniPolicy": ""
+    },
+    "go": {
+      "active": "inactive",
+      "config": "absent",
+      "e2eLogSize": "missing"
+    }
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "verdict": "PASS"
+}

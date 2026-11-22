@@ -1,0 +1,99 @@
+20:36:19 run_id=round3-final-20261122-99997da0
+20:36:20 image_id=sha256:04f6b31e366d373fc6ee6554e46a19a0e2f5bf4caab5d1c68dc6b107998f2c8d
+20:36:20 building idleleo
+20:36:25 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=ec04a844df52bf79b70d6fd02e18f22cafc313b2583d27543a3d5d156fd13f41
+20:36:26 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+20:36:26 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+20:36:26 release_cache=seeded templates=vless_reality.json,vless_tls.json
+20:36:26 release_cache=hit
+20:36:26 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+20:36:26 apt_cache=hit (OPS offline apt)
+20:36:26 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+20:36:26 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+20:36:29 argv-verify written
+20:36:29 [M3] start
+20:36:29 [M4] start
+20:36:29 [M5] start
+20:36:29 [M1] start
+20:36:29 [M2] start
+20:37:20 [M5] done
+20:37:33 [M4] done
+20:37:58 [M1] done
+20:38:12 [M2] done
+20:38:19 [M3] done
+20:38:19 [M7] start
+20:38:19 [M8] start
+20:38:19 [M6] start
+20:38:19 [M10] start
+20:38:19 [M9] start
+20:38:21 [M8] pebble ready
+20:38:43 [M10] done
+20:39:28 [M9] done
+20:39:33 [M6] done
+20:39:41 [M8] done
+20:39:51 [M7] done
+20:39:52 [E3] start
+20:39:52 [E1] start
+20:39:52 [E6] start
+20:39:52 [E4] start
+20:39:52 [E2] start
+20:39:52 [E5] start
+20:39:52 [E8] start
+20:39:52 [E7] start
+20:40:09 [E5] done
+20:40:11 [E6] done
+20:40:17 [E2] done
+20:40:19 [E3] done
+20:40:25 [E4] done
+20:40:32 [E1] done
+20:41:01 [E7] done
+20:41:07 [E8] done
+20:41:07 [OPS-19] start
+20:42:23 [OPS-19] verdict=PASS
+20:42:24 [OPS-21] start
+20:44:31 [OPS-21] verdict=PASS
+20:44:31 [OPS-09] start upstream=ws
+20:45:06 [OPS-09] verdict=PASS
+20:45:06 [OPS-31] start upstream=reality
+20:46:20 [OPS-31] verdict=PASS
+20:46:20 [OPS-32] start upstream=ws
+20:49:27 [OPS-32/ws] verdict=PASS
+20:49:27 [OPS-32] start upstream=reality
+20:53:03 [OPS-32/reality] verdict=HARNESS-ERROR
+20:53:03 [OPS-32] verdict=HARNESS-ERROR
+20:53:04 [OPS-USERS] start
+20:54:26 [OPS-USERS] OPS-01/02 written; shortIdClean=False
+20:54:26 [OPS-04] start
+20:55:51 [OPS-04] verdict=PASS
+20:55:51 [OPS-05] start
+20:56:56 [OPS-05] verdict=PASS
+20:56:56 [OPS-06] start
+20:58:27 [OPS-06] verdict=PASS
+20:58:27 [OPS-07] start
+20:59:28 [OPS-07] verdict=PASS
+20:59:28 [OPS-10] start
+21:00:52 [OPS-10] verdict=PASS
+21:00:52 [OPS-17c] start
+21:01:47 [OPS-17c] verdict=PASS
+21:01:47 [OPS-30] start
+21:02:46 [OPS-30] verdict=BASH-ONLY
+21:02:46 [OPS-08] start
+21:03:47 [OPS-08] verdict=PASS
+21:03:48 [OPS-11] start
+21:04:38 [OPS-11] verdict=PASS
+21:04:38 [OPS-15] start
+21:05:27 [OPS-15] verdict=PASS
+21:05:27 [OPS-16] start
+21:05:48 [OPS-16] verdict=DIFF
+21:05:48 [OPS-20] start
+21:06:44 [OPS-20] verdict=PASS
+21:06:45 [OPS-22] start
+21:07:43 [OPS-22] verdict=PASS
+21:07:43 [OPS-27] start
+21:08:39 [OPS-27] difference=DIFF
+21:08:39 [OPS-28] start
+21:09:31 [OPS-28] verdict=PASS
+21:09:31 [observe] start
+21:13:28 [observe] verdicts written
+21:13:28 scope: installs=[M1,M2,M3,M4,M5,M6,M7,M8,M9,M10] edits=[E1,E2,E3,E4,E5,E6,E7,E8] ops=[OPS-19,OPS-21,OPS-09,OPS-31,OPS-32,OPS-01,OPS-02,OPS-03,OPS-04,OPS-05,OPS-06,OPS-07,OPS-10,OPS-17c,OPS-30,OPS-08,OPS-11,OPS-15,OPS-16,OPS-20,OPS-22,OPS-27,OPS-28,OPS-OBSERVE]
+21:13:29 P2 finished: tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2

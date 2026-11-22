@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-11-22T10:39:49Z",
+  "includeGeodata": true,
+  "sourceArch": "arm64",
+  "sourceVersion": "0.2.0-phase04",
+  "managedResources": [
+    "etc/idleleo/conf",
+    "etc/idleleo/cert",
+    "etc/idleleo/v1",
+    "etc/idleleo/info",
+    "etc/idleleo/alerts",
+    "etc/idleleo/share/xray"
+  ],
+  "restoreLimits": [
+    "only etc/idleleo/{conf,cert,v1,info,alerts} and opt-in geo assets",
+    "regular files only; symlinks, devices and path escapes are rejected",
+    "the whole archive must expand to at most 4 GiB",
+    "the staged xray config must pass the managed validator before any swap"
+  ],
+  "entries": [
+    {
+      "path": "etc/idleleo/cert/xray.crt",
+      "mode": 416,
+      "size": 615,
+      "sha256": "11f07da496a31dca2eff2994634530ee65ed77355f715fe7a3c9d379f4863597"
+    },
+    {
+      "path": "etc/idleleo/cert/xray.key",
+      "mode": 416,
+      "size": 241,
+      "sha256": "38f1e251d07959fa8f39b74c35635f5c8fff3cac47dd0b012a6c5692dd70c6bd"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/00-xray.conf",
+      "mode": 416,
+      "size": 1554,
+      "sha256": "ad65f2a41e3de4f08b208eb83a96a8c973d56f972aaf36a1c38a95971fb0780c"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/01-xray-80.conf",
+      "mode": 416,
+      "size": 420,
+      "sha256": "3dd5ee23b9b6f891a5f66ced858e0d4d0c7ae6c852d23568c3f507300d6e7078"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/02-xray-server.conf",
+      "mode": 416,
+      "size": 135,
+      "sha256": "f2db9aaaa1312db9a51d3b0d516a019db9f048a54df63837eda2ebed7bc05a22"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/127.0.0.1.wsServers",
+      "mode": 416,
+      "size": 62,
+      "sha256": "055d51a04e8e43811a707b1d100cf121f70b72d2312f41bb8b118855529c2c14"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/nginx.default",
+      "mode": 416,
+      "size": 2630,
+      "sha256": "28924d8c868aedb98e996bd4af1e3c4342d532e59f0ed7bd0e406905e0fb2fa0"
+    },
+    {
+      "path": "etc/idleleo/conf/xray/config.json",
+      "mode": 416,
+      "size": 1390,
+      "sha256": "77598f13568c9cc10810088bd4915170af9c523d9b6b70cd28c37d3c3eac2cfa"
+    },
+    {
+      "path": "etc/idleleo/v1/metadata.json",
+      "mode": 420,
+      "size": 708,
+      "sha256": "317bdcce9fd4a4a7b803a769b9e5ff5fbf5f8e95d8e5f7644ddb44ed36ea98bb"
+    },
+    {
+      "path": "etc/idleleo/v1/nginx.json",
+      "mode": 420,
+      "size": 391,
+      "sha256": "390fb7339a6e4e30fa890e5708248f9b270c1464aced8fc425967d757611dec4"
+    }
+  ],
+  "skipped": [
+    "etc/idleleo/info (absent)",
+    "etc/idleleo/alerts (absent)",
+    "etc/idleleo/share/xray (absent)"
+  ]
+}

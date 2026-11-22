@@ -1,0 +1,20 @@
+{
+  "approved": false,
+  "bash": {
+    "entry": "install.sh menu live tail",
+    "rc": 124,
+    "seededMarkerVisible": true
+  },
+  "go": {
+    "entry": "idleleo service logs (journald snapshot)",
+    "outputBytes": 802,
+    "rc": 0
+  },
+  "id": "OPS-12",
+  "note": "Live tail is unbounded; the finite Go snapshot is not an equivalent command. External approval is required before treating this as equal.",
+  "reasons": [
+    "Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot"
+  ],
+  "result": "DIFF",
+  "source": "/var/log/xray/access.log"
+}

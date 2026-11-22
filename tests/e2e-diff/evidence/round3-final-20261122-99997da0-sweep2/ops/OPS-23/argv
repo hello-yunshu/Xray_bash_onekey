@@ -1,0 +1,1 @@
+speedtest --server http://e2e-round3-final-20261122-99997da0-sweep2-origin --bytes 1048576 --samples 1 --json

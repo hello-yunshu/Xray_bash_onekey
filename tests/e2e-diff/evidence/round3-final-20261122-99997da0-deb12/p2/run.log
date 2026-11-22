@@ -1,0 +1,18 @@
+00:02:18 run_id=round3-final-20261122-99997da0-deb12
+00:02:32 image_id=sha256:e78fde9dd3f35d1a445287e050607343eabc02ad26ad95d927d91d5a10c522a8
+00:02:32 building idleleo
+00:02:37 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=ec04a844df52bf79b70d6fd02e18f22cafc313b2583d27543a3d5d156fd13f41
+00:02:38 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+00:02:38 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+00:02:38 release_cache=seeded templates=vless_reality.json,vless_tls.json
+00:02:38 release_cache=hit
+00:02:38 apt_cache=skipped (no OPS scenario selected)
+00:02:38 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+00:02:38 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+00:02:41 argv-verify written
+00:02:41 [M1] start
+00:02:41 [M4] start
+00:05:37 [M4] done
+00:06:22 [M1] done
+00:06:22 scope: installs=[M1,M4] edits=[] ops=[]
+00:06:22 P2 finished: tests/e2e-diff/evidence/round3-final-20261122-99997da0-deb12/p2

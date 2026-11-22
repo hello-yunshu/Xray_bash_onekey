@@ -184,3 +184,48 @@ Test Install 历史静默退出仍为 PARTIAL。
 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；正式发布、合并
 `main`/`develop/go-native`、tag 为 `NO_GO_NOT_AUTHORIZED`（独立 VPS、
 公网 ACME、外部 IPv6 未验证，且任务书禁止）。
+
+## 9. Round 3 final state (candidate `99997da0f8772a814a61c32516d49d75a9de2672`)
+
+Independent re-audit D01–D10 is closed against this candidate. Product code was
+frozen at `99997da0`; the only later changes are test drivers, evidence,
+scripts and documentation.
+
+- P0 certificate deletion (`internal/deploy/certclear.go`, `internal/acme/acme.go`):
+  dynamic-variable paths are no longer skipped (whole scan fails closed),
+  ownership is proven only by `.managed-by-idleleo` content hashes, directory
+  deletion requires per-file ownership with no live reference, and ACME state
+  is removed only when the leaf DER hash matches the certificate being deleted.
+- P0 guard (`internal/deploy/guard.go`): `active` requires process identity,
+  liveness and a start time after the policy files (or a content-fingerprint
+  reload record); "file written" is no longer treated as "runtime effective".
+- Ledger (`tests/e2e-diff/collect/build_ledger.py`): failures, non-zero exits,
+  contradictory evidence and undeclared/incomplete evidence can no longer be
+  swallowed; declared differences without external approval stay FAIL.
+  Contract tests: 14/14.
+
+Full regression at the frozen SHA:
+
+| Area | Result |
+| --- | --- |
+| Go gofmt/vet/build/test/race (golang:1.27.4) | ALL-OK |
+| M1–M10 / E1–E8 dual matrix | complete (`round3-final-20261122-99997da0`) |
+| R1/R2 takeover + M4 injections | 104 PASS; 2 harness-only I4 fails superseded by `...-injfix` 26/0 |
+| Go OPS sweep | 57/0 (`...-sweep2`) |
+| Real-root Nginx OPS-08/17b/27 | 26/0 (`...-realroot`) |
+| P3 hot reload | 62/0 PASS |
+| S scripts / ACME | 64/0 |
+| Xray v26.11.9 / v26.10.31 / v26.10.21 | all PASS |
+| Debian 12 M1/M4 dual, round1+round2 | install_exit=0 |
+| Soak 1870 s | 31/31, client_ok=31/0, timer active runs=2 |
+| Cold restore reality/TLS/relay/multi | all RESULT: PASS |
+| Injection suite | 42/0 |
+
+OPS ledger (34 rows, no reduction): 20 DUAL_SIDE_VERIFIED, 5 GO_ONLY
+(OPS-17a/17b/18/23/24), 8 FAIL (unapproved declared differences:
+OPS-03/12/13/14/16/25/26/27), 1 BASH_ONLY (OPS-30), 0 BLOCKED, 0 NOT_RUN.
+
+**Conclusion: NO-GO.** The candidate is safe to keep developing but must not be
+released until the product owner approves the eight declared differences or the
+five Go-only rows gain real Bash-side evidence. No merge, tag, release or
+production VPS operation was performed.

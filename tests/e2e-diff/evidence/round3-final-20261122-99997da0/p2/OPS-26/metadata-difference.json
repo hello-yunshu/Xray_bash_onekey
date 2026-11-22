@@ -1,0 +1,24 @@
+{
+  "approved": false,
+  "bash": {
+    "entry": "install.sh --backup/--restore (tar tree)",
+    "rc": 0,
+    "restoreCanary": true
+  },
+  "go": {
+    "entry": "idleleo metadata import --from install_config.json",
+    "outputBytes": 597,
+    "rc": 0,
+    "state": "IMPORTED"
+  },
+  "id": "OPS-26",
+  "note": "Tar restore rewrites the managed tree; metadata import records the legacy tree as the single source of truth and never overwrites an existing metadata file. Both paths succeeded here; external approval is required before treating them as equal.",
+  "reasons": [
+    "Bash restore/import operates on the managed tree (tar archive); Go restore/import operates on JSON metadata",
+    "bash rc=0",
+    "go rc=0",
+    "restore canary present=True",
+    "go import state=IMPORTED"
+  ],
+  "result": "DIFF"
+}

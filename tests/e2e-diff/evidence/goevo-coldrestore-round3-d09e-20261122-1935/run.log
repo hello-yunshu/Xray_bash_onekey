@@ -1,0 +1,39 @@
+run_id=round3-d09e-20261122-1935 scenarios=tls
+commit=d13abf2161872e204a626cf6a90b8b3e93390003
+image=idleleo-e2e:24.04
+image_id=sha256:f1ee6157c04ee60c95bf50306290923477ef21755aa1323876db180a3a6387a8
+building idleleo
+idleleo_sha256=1b190ac8ad63bf5f5ff3fcf07d2d482834ea0f3075e6209471b0dc7949bed146
+building the local TLS target
+arch=arm64
+xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 arch=arm64
+nginx_cache=hit build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+[tls] source: starting e2e-round3-d09e-20261122-1935-cold-source-tls
+[tls] source: installing Go manager
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=preinstalled sha256=11f07da496a31dca2eff2994634530ee65ed77355f715fe7a3c9d379f4863597
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+[tls] source: driver
+driver_start=2026-11-22T10:39:49Z mode=source scenario=tls root=/
+driver_done assertions=7 pass / 0 fail
+[tls] source_driver_rc=0
+[tls] source: destroying e2e-round3-d09e-20261122-1935-cold-source-tls
+[tls] target: starting e2e-round3-d09e-20261122-1935-cold-target-tls
+[tls] target: installing a fresh Go manager
+systemd_state=running
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=preinstalled sha256=f0435128a82eddcad52c8010fe639069b777911f8bd9f2e7108c28fc8e0f660d
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+[tls] target: driver
+driver_start=2026-11-22T10:39:51Z mode=target scenario=tls root=/
+driver_done assertions=21 pass / 0 fail
+[tls] target_driver_rc=0
+evidence=tests/e2e-diff/evidence/goevo-coldrestore-round3-d09e-20261122-1935
+RESULT: PASS

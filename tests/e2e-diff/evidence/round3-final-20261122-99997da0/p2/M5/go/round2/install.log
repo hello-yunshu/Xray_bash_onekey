@@ -1,0 +1,6 @@
+installed: mode=tls transport=grpc tls=TLS
+config=/etc/idleleo/conf/xray/config.json sha256=7bf215c74b1498f1a0175441b724329ce97a96430e7028371a767c84ee6754e9
+service active=active enabled=enabled
+nginx managed=true verified=true dir=/etc/idleleo/conf/nginx
+warning=nginx version: nginx version: nginx/1.30.6
+warning=nginx-syntax-verified; routing verified only by the Docker e2e harness

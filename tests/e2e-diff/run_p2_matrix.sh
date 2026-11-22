@@ -2560,6 +2560,7 @@ go_status = read_json(os.path.join(go_dir, "02-status.out"))
 go_before = read_json(os.path.join(go_dir, "04-banned-before.out"))
 go_after = read_json(os.path.join(go_dir, "06-banned-after.out"))
 bash_unban_rc = read_rc(os.path.join(bash_dir, "05-unban.rc"))
+go_unban_rc = read_rc(os.path.join(go_dir, "05-unban.rc"))
 go_unban = read_json(os.path.join(go_dir, "05-unban.out"))
 
 harness = []
@@ -2573,7 +2574,7 @@ if bash_list_before is None or bash_list_after is None:
     harness.append("missing bash --fail2ban-list observation")
 if go_status is None or go_before is None or go_after is None:
     harness.append("missing go fail2ban observation")
-if bash_unban_rc is None or go_unban is None:
+if bash_unban_rc is None or go_unban_rc is None or go_unban is None:
     harness.append("missing unban observation")
 
 b_jails, g_jails = bash_jails(bash_list_before), go_jails(go_status)
@@ -2614,6 +2615,7 @@ report = {
     "id": "OPS-19",
     "verdict": verdict,
     "bothInstallRc": {"bash": bash_install_rc, "go": go_install_rc},
+    "opsRc": {"bash": bash_unban_rc, "go": go_unban_rc},
     "jails": {"bash": b_jails, "go": g_jails},
     "bannedBefore": bool(b_before and g_before),
     "unbanned": bool(b_unbanned and g_unbanned),
@@ -2704,8 +2706,28 @@ sides = {"bash": os.path.join(base, "bash", "block-bash", "result.json"),
          "go": os.path.join(base, "go", "block-go", "result.json")}
 required = {"bash": bash_required, "go": go_required}
 
+
+def read_rc(path):
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return int(fh.read().strip())
+    except (OSError, ValueError):
+        return None
+
+
+steps = {}
 results, harness, reasons = {}, [], []
 for side, path in sides.items():
+    block_dir = os.path.dirname(path)
+    side_steps = {"apply": read_rc(os.path.join(block_dir, "apply.rc")),
+                  "off": read_rc(os.path.join(block_dir, "off.rc"))}
+    if side == "go":
+        side_steps["edit"] = read_rc(os.path.join(block_dir, "edit.rc"))
+    steps[side] = side_steps
+    if side_steps["apply"] is None or side_steps["off"] is None:
+        harness.append("%s: missing apply/off exit code; the action is unproven" % side)
+    elif side_steps["apply"] != 0 or side_steps["off"] != 0:
+        reasons.append("%s: action rc apply=%s off=%s" % (side, side_steps["apply"], side_steps["off"]))
     harness_path = os.path.join(base, side, "harness.json")
     if os.path.exists(harness_path):
         try:
@@ -2756,6 +2778,8 @@ report = {
     "id": "OPS-21",
     "verdict": verdict,
     "reasons": harness + reasons,
+    "opsRc": {side: (steps.get(side) or {}).get("apply") for side in sides},
+    "stepRc": steps,
     "sides": {side: brief(side) for side in sides},
 }
 with open(os.path.join(base, "ops.json"), "w", encoding="utf-8") as fh:
@@ -3039,6 +3063,7 @@ report = {
     "backend": {"host": host, "port": port, "weight": weight},
     "expectedLine": expected,
     "bothInstallRc": {"bash": b_install, "go": g_install},
+    "opsRc": {"bash": b_add_rc, "go": g_add_rc},
     "addRc": {"bash": b_add_rc, "go": g_add_rc},
     "removeRc": {"bash": b_rm_rc, "go": g_rm_rc},
     "backends": {"bash": backend_lines(b_add_files), "go": backend_lines(g_add_files)},
@@ -3163,8 +3188,18 @@ OPS32_B_PORT="${E2E_OPS32_B_PORT:-9002}"
 OPS32_WEIGHT="${E2E_OPS32_WEIGHT:-50}"
 OPS32_PUBLIC_PORT="${E2E_OPS32_PUBLIC_PORT:-443}"
 OPS32_WARMUP="${E2E_OPS32_WARMUP:-20}"
-OPS32_BURST="${E2E_OPS32_BURST:-60}"
-OPS32_STEADY="${E2E_OPS32_STEADY:-24}"
+# max_fails counters are per nginx worker, and the front runs worker_processes
+# auto. A 60-request burst can hand each worker only one connect() failure, so
+# no worker reaches max_fails=2 and passive removal is unobservable (seen in
+# round3-final-20261122-99997da0). 480 requests keep the same one-second burst
+# while giving every worker enough samples to trip the counter.
+OPS32_BURST="${E2E_OPS32_BURST:-480}"
+# The steady phase must outlive fail_timeout (10s) several times: a worker that
+# marked the dead peer down re-admits it after the window, so a short 12s
+# steady phase can end before any worker logs its second connect() failure.
+# Six windows (120 x 0.5s = 60s) make the per-worker max_fails evidence
+# observable without touching the product configuration.
+OPS32_STEADY="${E2E_OPS32_STEADY:-120}"
 OPS32_STEADY_INTERVAL="${E2E_OPS32_STEADY_INTERVAL:-0.5}"
 OPS32_RECOVERY="${E2E_OPS32_RECOVERY:-120}"
 OPS32_RECOVERY_INTERVAL="${E2E_OPS32_RECOVERY_INTERVAL:-0.5}"
@@ -3572,6 +3607,14 @@ report["bothInstallRc"] = {
                     for name, rep in sorted(upstreams.items()))
     for side in ("bash", "go")
 }
+# A side is verified only when every upstream recorded a zero action exit code;
+# a missing code stays None so the ledger refuses to call the row complete.
+summary_rc = {}
+for side in ("bash", "go"):
+    values = [((rep or {}).get("opsRc") or {}).get(side) for rep in upstreams.values()]
+    summary_rc[side] = (0 if values and all(value == 0 for value in values)
+                        else next((value for value in values if value not in (None, 0)), None))
+report["opsRc"] = summary_rc
 with open(os.path.join(base, "ops.json"), "w", encoding="utf-8") as fh:
     json.dump(report, fh, indent=2, sort_keys=True)
     fh.write("\n")

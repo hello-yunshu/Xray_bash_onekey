@@ -1,0 +1,11 @@
+{
+  "runId": "round3-d09h-20261122-2012",
+  "scenarios": {
+    "multi": {
+      "archiveSHA256": "0b645b24a619c730c6843158011bb90b6b38f3df53ac86aa8987b558955c6066",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    }
+  },
+  "schemaVersion": 1
+}

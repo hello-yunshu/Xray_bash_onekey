@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "legacyVersion": "3.3.6",
+  "xrayVersion": "26.10.31",
+  "role": "node",
+  "tls": "TLS",
+  "transport": "onlyws",
+  "nginxRequired": true,
+  "port": 443,
+  "userCount": 1,
+  "runtimePath": "/etc/idleleo/conf/xray/config.json",
+  "runtimeSha256": "0a660d30c520528630d7196aeea0203c6d4d9cef41c73913bf6b27bdd4f989c9",
+  "runtimeBytes": 1406,
+  "customDns": true,
+  "customRouting": true,
+  "customOutbounds": true,
+  "customItems": [
+    {
+      "kind": "nginx-fragment",
+      "path": "etc/idleleo/conf/nginx/00-xray.conf",
+      "detail": "project-external nginx fragment; confirm the merge manually before activation"
+    },
+    {
+      "kind": "nginx-fragment",
+      "path": "etc/idleleo/conf/nginx/01-xray-80.conf",
+      "detail": "project-external nginx fragment; confirm the merge manually before activation"
+    },
+    {
+      "kind": "nginx-fragment",
+      "path": "etc/idleleo/conf/nginx/02-xray-server.conf",
+      "detail": "project-external nginx fragment; confirm the merge manually before activation"
+    },
+    {
+      "kind": "nginx-fragment",
+      "path": "etc/idleleo/conf/nginx/127.0.0.1.wsServers",
+      "detail": "project-external nginx fragment; confirm the merge manually before activation"
+    },
+    {
+      "kind": "nginx-fragment",
+      "path": "etc/idleleo/conf/nginx/nginx.default",
+      "detail": "project-external nginx fragment; confirm the merge manually before activation"
+    }
+  ],
+  "certFiles": [
+    {
+      "path": ".user-managed",
+      "sha256": "6dac71c6af8369fb9cde7d2c14adab6028cc04c7815ea2ec1def602e6ed4302d",
+      "mode": "-rw-r-----"
+    },
+    {
+      "path": "xray.crt",
+      "sha256": "ca15d7bee6a404fad5b2bf56260543b711b4786959f2444d83f73378a8920fb0",
+      "mode": "-rw-r-----"
+    },
+    {
+      "path": "xray.key",
+      "sha256": "289ce7d0022d7e01434af2f4591529ba033f904e6e73568e762cf9819b5f732f",
+      "mode": "-rw-r-----"
+    }
+  ],
+  "nginxFiles": [
+    {
+      "path": "00-xray.conf",
+      "sha256": "f73711458e4eb35b0a7909c56d5c00a36eadb786de338bc20ee4cd6178e0e884",
+      "mode": "-rw-r-----"
+    },
+    {
+      "path": "01-xray-80.conf",
+      "sha256": "1a151bafcb5c20138d58cf098d95dff901f630674a98417e0bb434b9dbdf1bab",
+      "mode": "-rw-r-----"
+    },
+    {
+      "path": "02-xray-server.conf",
+      "sha256": "3fc3b044b56439f0ee71b4250fc147ea48647c2a200f6fd0e5d32b6f83b7ca0d",
+      "mode": "-rw-r-----"
+    },
+    {
+      "path": "127.0.0.1.wsServers",
+      "sha256": "de6fb4508e234f89ce9a134d35c26d7e1d0b56bd383aa418f289ed8ad369d37d",
+      "mode": "-rw-r-----"
+    },
+    {
+      "path": "nginx.default",
+      "sha256": "28924d8c868aedb98e996bd4af1e3c4342d532e59f0ed7bd0e406905e0fb2fa0",
+      "mode": "-rw-r-----"
+    }
+  ],
+  "units": {
+    "nginx": {
+      "path": "/etc/systemd/system/nginx.service",
+      "present": true,
+      "sha256": "d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d",
+      "execStart": "/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf"
+    },
+    "xray": {
+      "path": "/etc/systemd/system/xray.service",
+      "present": true,
+      "sha256": "cfc75dd93d5b1f043732d86f26e71f81378eb14d0a53f0b2f91d4001d5f6e189",
+      "user": "root",
+      "execStart": "/usr/local/bin/xray run -config /etc/idleleo/conf/xray/config.json"
+    }
+  },
+  "entry": {
+    "path": "/usr/bin/idleleo",
+    "exists": true,
+    "isSymlink": true,
+    "linkTarget": "/etc/idleleo/install.sh",
+    "sha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "isGoBridge": false
+  },
+  "legacyScript": {
+    "path": "/etc/idleleo/install.sh",
+    "sha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf"
+  },
+  "geoLegacyCron": false,
+  "projectCronLines": 0,
+  "relayConf": {
+    "path": ""
+  },
+  "rill": {
+    "installed": false,
+    "observationAgeSeconds": 0,
+    "status": "absent",
+    "enabled": false
+  },
+  "permissionFixes": [
+    {
+      "path": "etc/idleleo/cert/xray.key",
+      "oldMode": "0640",
+      "newMode": "0640",
+      "oldGid": 996,
+      "newGid": 996,
+      "reason": "private key is group/other readable"
+    }
+  ],
+  "findings": [
+    {
+      "code": "permissions-etc-idleleo-cert-xray.key",
+      "severity": "fix",
+      "message": "private key is group/other readable: 0640 -> 0640"
+    }
+  ],
+  "verdict": "needs-fix"
+}

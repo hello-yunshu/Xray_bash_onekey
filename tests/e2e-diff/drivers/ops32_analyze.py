@@ -411,6 +411,12 @@ for side in sides:
     if add_rcs != [0, 0]:
         harness.append("%s: balance add rc=%s (backend creation failed)"
                        % (side, add_rcs))
+    # The balance-add commands are the scenario's own actions; their exit codes
+    # are what the acceptance ledger compares across both sides. A side that did
+    # not record them is incomplete evidence, never a silent pass.
+    report.setdefault("opsRc", {})[side] = (
+        0 if add_rcs == [0, 0]
+        else next((rc for rc in add_rcs if rc not in (None, 0)), None))
     if state.get("killFailed"):
         problems.append("%s: backend A never went down" % side)
     if state.get("restartFailed"):
