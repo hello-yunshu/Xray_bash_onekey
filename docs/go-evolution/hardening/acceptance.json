@@ -209,7 +209,7 @@
   ],
   "ops": {
     "total": 34,
-    "dualSideVerified": 13,
+    "dualSideVerified": 8,
     "dualSideVerifiedIds": [
       "OPS-01",
       "OPS-02",
@@ -217,27 +217,60 @@
       "OPS-05",
       "OPS-06",
       "OPS-07",
-      "OPS-09",
       "OPS-10",
-      "OPS-17c",
+      "OPS-17c"
+    ],
+    "goOnly": 19,
+    "fail": 1,
+    "failIds": [
+      "OPS-03"
+    ],
+    "bashOnly": 1,
+    "bashOnlyIds": [
+      "OPS-30"
+    ],
+    "blocked": 5,
+    "blockedIds": [
+      "OPS-09",
       "OPS-19",
       "OPS-21",
       "OPS-31",
       "OPS-32"
     ],
-    "goOnly": 20,
-    "fail": 0,
-    "failIds": [],
-    "bashOnly": 1,
-    "bashOnlyIds": [
-      "OPS-30"
-    ],
-    "blocked": 0,
-    "blockedIds": [],
     "notRun": 0,
     "notRunIds": [],
-    "generatedAt": "2026-11-21T06:37:52+00:00",
-    "codeSha": "a502780cb7484b6d5240657884d12a09370b86bc",
+    "approvedDiff": 0,
+    "approvedDiffIds": [],
+    "unresolvedIds": [
+      "OPS-03",
+      "OPS-08",
+      "OPS-09",
+      "OPS-11",
+      "OPS-12",
+      "OPS-13",
+      "OPS-14",
+      "OPS-15",
+      "OPS-16",
+      "OPS-17a",
+      "OPS-17b",
+      "OPS-18",
+      "OPS-19",
+      "OPS-20",
+      "OPS-21",
+      "OPS-22",
+      "OPS-23",
+      "OPS-24",
+      "OPS-25",
+      "OPS-26",
+      "OPS-27",
+      "OPS-28",
+      "OPS-29",
+      "OPS-30",
+      "OPS-31",
+      "OPS-32"
+    ],
+    "generatedAt": "2026-11-22T09:49:52+00:00",
+    "codeSha": "64aed994da5f28c56f1348789c08cc23869e3f2b",
     "source": "tests/e2e-diff/ledger.json"
   },
   "summary": {
@@ -596,5 +629,92 @@
       "XHTTP blank input is fixed; trailing-slash and duplicate-slash real data-plane probes are NOT_DONE at the final SHA",
       "Test Install historical silent exit remains PARTIAL: not reproduced locally, CI result not replaced"
     ]
+  },
+  "round20261122": {
+    "candidateSha": "64aed994da5f28c56f1348789c08cc23869e3f2b",
+    "candidateNote": "本轮产品修改与证据的代码提交（64aed994 系列），文档在此提交后记录",
+    "branch": "work/go-hardening-parity-20261119",
+    "report": "docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261122.md",
+    "verdict": "NO-GO",
+    "productFixes": {
+      "P0-1-cert-ownership": {
+        "files": [
+          "internal/deploy/certclear.go",
+          "internal/acme/acme.go"
+        ],
+        "summary": "动态 ${var} 路径与不完整扫描 fail-closed；所有权只认内容哈希绑定记录；ACME 需叶证书 DER SHA-256 完全一致",
+        "tests": [
+          "internal/deploy/certclear_round3_test.go",
+          "internal/acme/acme_test.go",
+          "tests/e2e-diff/drivers/cert_clear_cases.sh"
+        ]
+      },
+      "P0-2-guard-runtime": {
+        "files": [
+          "internal/deploy/guard.go"
+        ],
+        "summary": "active 需进程身份、存活、启动时间晚于策略文件或内容指纹匹配的 reload 记录；否则降级",
+        "tests": [
+          "internal/deploy/guard_round3_test.go"
+        ]
+      },
+      "D10-xhttp-path": {
+        "files": [
+          "internal/xraycfg/edit.go",
+          "internal/xraycfg/xraycfg.go"
+        ],
+        "summary": "统一拒绝任意 Unicode 空白与控制字符",
+        "tests": [
+          "internal/xraycfg/edit_test.go",
+          "internal/xraycfg/xraycfg_test.go"
+        ]
+      },
+      "OPS-03-shortid": {
+        "files": [
+          "internal/xraycfg/users.go",
+          "internal/cli/xray.go"
+        ],
+        "summary": "删除用户后说明 inbound 级 shortId 不可归属、全部保留",
+        "tests": [
+          "internal/xraycfg/xraycfg_test.go"
+        ]
+      },
+      "ledger-hardening": {
+        "files": [
+          "tests/e2e-diff/collect/build_ledger.py"
+        ],
+        "summary": "FAIL 优先、DIFF 需外部批准、缺 rc 或 ops.json 不接受、已声明差异不丢失",
+        "tests": [
+          "tests/e2e-diff/collect/test_build_ledger.py"
+        ]
+      }
+    },
+    "evidence": {
+      "goToolchain": "golang:1.27.4 go vet ./... + go build ./cmd/idleleo ./cmd/idleleo-recover + go test ./... -count=1 全部通过",
+      "opsGoSweep": "tests/e2e-diff/evidence/round3-fix-20261122-1742/assertions.txt (51 PASS / 0 FAIL)",
+      "opsRealRoot": "tests/e2e-diff/evidence/round3-fix-20261122-realroot2/realroot/assertions.txt (26 PASS / 0 FAIL)",
+      "ledgerContractTests": "python3 tests/e2e-diff/collect/test_build_ledger.py -q (13/13 OK)",
+      "ledger": "tests/e2e-diff/ledger.json"
+    },
+    "ledger": {
+      "total": 34,
+      "dualSideVerified": 8,
+      "goOnly": 19,
+      "fail": 1,
+      "bashOnly": 1,
+      "blocked": 5,
+      "approvedDiff": 0,
+      "strictExitCode": 1
+    },
+    "unresolved": [
+      "OPS-03 shortId：Bash 删除、Go 保留，差异未获外部批准，账本记 FAIL",
+      "OPS-27：Bash action 37 整目录 rm -rf，Go 仅在所有权可证明时删除；安全加固差异未获批准，仅 Go 侧证据",
+      "OPS-09/19/21/31/32：旧 ops.json 声明 PASS 但无双端退出码，新账本记 BLOCKED",
+      "完整 34 项 OPS 双端对照与 Phase 3 冻结后统一回归未在本轮完成"
+    ],
+    "notRerunThisRound": [
+      "冷恢复、soak 1800s、多 Xray 版本、第二发行版、S 系列脚本、迁移/接管"
+    ],
+    "auditBaseline": "28463d4fca9f361710183d8e4563d3b8f8c43c76"
   }
 }
