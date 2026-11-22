@@ -11,6 +11,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -240,7 +241,7 @@ func applyRestoreFile(root, stage string, f *restoreFile) error {
 	// Ownership comes from the target host, never from source metadata. The
 	// service account group keeps the file readable after a cold restore.
 	if os.Geteuid() == 0 {
-		if gid, ok := serviceGroupID(); ok {
+		if gid, ok := restoreGroupID(f.Path); ok {
 			if err := os.Chown(dst, -1, gid); err != nil {
 				return err
 			}
@@ -374,6 +375,22 @@ func Recover(ctx context.Context, root string, opts RecoverOptions) (RecoverRepo
 		rep.Warnings = append(rep.Warnings, "unknown restore journal state: "+rec.State)
 		return rep, fmt.Errorf("unknown restore journal state %q", rec.State)
 	}
+}
+
+// restoreGroupID picks the group the target host uses for this restored file.
+// Certificates belong to the managed Nginx worker group when that front is
+// installed, because the 0640 key mode is only safe with that exact group; all
+// other managed files stay with the Xray service group.
+func restoreGroupID(rel string) (int, bool) {
+	rel = filepath.ToSlash(rel)
+	if rel == "etc/idleleo/cert" || strings.HasPrefix(rel, "etc/idleleo/cert/") {
+		if g, err := user.LookupGroup("idleleo-nginx"); err == nil {
+			if gid, err := strconv.Atoi(g.Gid); err == nil {
+				return gid, true
+			}
+		}
+	}
+	return serviceGroupID()
 }
 
 // serviceGroupID resolves the target host's service group. A missing group is

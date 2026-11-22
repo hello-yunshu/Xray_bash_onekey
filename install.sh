@@ -5144,6 +5144,17 @@ verify_nginx_layered_permissions() {
 }
 
 modify_nginx_port() {
+    # Menu actions (e.g. changing the SNI guard policy) can call the config
+    # writers before basic_information has populated `port`. An empty value
+    # would turn "listen 443 reuseport ..." into "listen reuseport ..." and
+    # make nginx refuse to start. The port is unchanged on these paths, so
+    # leave the existing listen lines alone instead of rewriting them blank.
+    if [[ -z "${port:-}" ]]; then
+        if [[ -f "${xray_install_config_file}" ]]; then
+            port=$(jq -r '.port // empty' "${xray_install_config_file}" 2>/dev/null)
+        fi
+        [[ -z "${port:-}" || "${port}" == "null" ]] && return 0
+    fi
     if [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
         sed -i "s/^\( *\)listen.*so_keepalive=on.*/\1listen ${port} reuseport so_keepalive=on backlog=65535;/" "${nginx_conf}"
         judge "Nginx port $(gettext "修改")"
@@ -15074,7 +15085,12 @@ function restore_directories() {
         fi
     fi
 
-    if ! cp -a "${staging}/." "${restore_root}/"; then
+    # Overlay atomically per file. A plain `cp -a` opens the destination with
+    # O_TRUNC, so restoring over a live install fails with ETXTBSY on the
+    # running xray/nginx binaries (the menu does not stop services). Replacing
+    # the destination first keeps the running processes on their old inode and
+    # makes the documented "restore while services run" path actually succeed.
+    if ! cp -a --remove-destination "${staging}/." "${restore_root}/"; then
         rm -rf "${staging}" "${_legacy_geo_source}"
         log_echo "${Error} ${RedBG} $(gettext "恢复") $(gettext "失败") ${Font}"
         return 1

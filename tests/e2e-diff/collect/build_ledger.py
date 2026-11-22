@@ -41,7 +41,14 @@ INCOMPLETE_VERDICTS = {"BLOCKED", "SKIP", "NOT_RUN"}
 # A driver may record a known behavioural difference without writing ops.json.
 # Those declarations are real evidence and must not disappear: they are treated
 # exactly like an EXPECTED_DIFF verdict (approval required, otherwise FAIL).
-DIFF_DECLARATION_FILES = ("shortid-difference.json", "difference.json", "diff.json")
+DIFF_DECLARATION_FILES = (
+    "shortid-difference.json",
+    "cert-clear-difference.json",
+    "log-source-difference.json",
+    "metadata-difference.json",
+    "difference.json",
+    "diff.json",
+)
 DECLARED_DIFF_VERDICTS = DIFF_VERDICTS | {"DIFF"}
 
 

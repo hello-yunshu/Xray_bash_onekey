@@ -870,6 +870,7 @@ ops_bash_cli() {
 # One Go-side sub-command; stdout stays JSON for the verdict parser.
 ops_go_cli() {
     local server=$1 out=$2 name=$3; shift 3
+    mkdir -p "$out"
     docker exec -e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY \
         "$server" idleleo "$@" >"$out/$name.out" 2>"$out/$name.err"
     echo $? >"$out/$name.rc"
@@ -1424,6 +1425,823 @@ ops_simple_job() { # <ops-id> <base-scenario> <go-mode>
     docker network rm "$OPS_NET" >/dev/null 2>&1 || true
 
     log "[$oid] verdict=$(ops_generic_verdict "$oid")"
+}
+
+# --- state/query OPS rows (round 3 D07 remainder) --------------------------
+# OPS-08/11/15/20/22/28 are driven through the real install.sh menu on the Bash
+# side and the real idleleo CLI on the Go side. A row is PASS only when both
+# sides were observed in this job and their post-state agrees with the
+# contract; a missing side or rc=124 is HARNESS-ERROR.
+ops_state_probe() { # <server> <dir> <tag>
+    local server=$1 dir=$2 tag=$3
+    docker exec "$server" sh -c \
+        'if [ -e /var/log/xray/e2e.log ]; then stat -c %s /var/log/xray/e2e.log; else echo missing; fi' \
+        >"$dir/$tag.e2e-log-size.txt" 2>/dev/null || true
+    docker exec "$server" sh -c \
+        'grep -o "\"unknown_sni_policy\"[^,}]*" /etc/idleleo/conf/install_config.json 2>/dev/null | tail -1' \
+        >"$dir/$tag.sni-policy.txt" 2>/dev/null || true
+    docker exec "$server" sh -c \
+        'cat /etc/idleleo/conf/nginx/03-isolate.conf 2>/dev/null; echo "---"; grep -h "default" /etc/idleleo/conf/nginx/00-xray.conf 2>/dev/null' \
+        >"$dir/$tag.sni-files.txt" 2>/dev/null || true
+    docker exec "$server" sh -c 'systemctl is-active nginx 2>/dev/null || true' \
+        >"$dir/$tag.nginx-active.txt" 2>/dev/null || true
+    docker exec "$server" sh -c \
+        'if [ -e /etc/idleleo/conf/xray/config.json ]; then echo present; else echo absent; fi' \
+        >"$dir/$tag.config-exists.txt" 2>/dev/null || true
+    docker exec "$server" sh -c \
+        'ls -1 /etc/idleleo/cert 2>/dev/null | sort' \
+        >"$dir/$tag.cert-list.txt" 2>/dev/null || true
+}
+
+ops_state_job() { # <ops-id>
+    local oid=$1 sid=M1 gmode=reality
+    case "$oid" in
+        OPS-08) sid=M2; gmode=reality-nginx ;;
+    esac
+    OPS_NET="e2e-$RUN_ID-$oid"
+    local base="$EVID/$oid" bdir="$EVID/$oid/bash" gdir="$EVID/$oid/go"
+    mkdir -p "$bdir" "$gdir"
+    docker network create "$OPS_NET" >/dev/null 2>&1 || true
+    log "[$oid] start"
+
+    local bserver="e2e-$RUN_ID-$oid-bash"
+    if start_server "$bserver" "$oid" bash "$bdir" "$OPS_NET"; then
+        ops_bash_base "$bserver" "$bdir" "$sid"
+        if [[ "$oid" == "OPS-22" ]]; then
+            docker exec "$bserver" sh -c \
+                'mkdir -p /var/log/xray && printf "round3-seed\n" > /var/log/xray/e2e.log' \
+                >/dev/null 2>&1 || true
+        fi
+        ops_snapshot "$bserver" "$bdir" before
+        ops_state_probe "$bserver" "$bdir" before
+        ops_bash_menu "$bserver" "$bdir" "$oid"
+        ops_snapshot "$bserver" "$bdir" after
+        ops_state_probe "$bserver" "$bdir" after
+    else
+        echo '{"status":"harness-error","reason":"container start failed"}' >"$bdir/harness.json"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" >/dev/null 2>&1 || true
+
+    local gserver="e2e-$RUN_ID-$oid-go"
+    if start_server "$gserver" "$oid" go "$gdir" "$OPS_NET"; then
+        ops_go_base "$gserver" "$gdir" "$gmode"
+        if [[ "$oid" == "OPS-22" ]]; then
+            docker exec "$gserver" sh -c \
+                'mkdir -p /var/log/xray && printf "round3-seed\n" > /var/log/xray/e2e.log' \
+                >/dev/null 2>&1 || true
+        fi
+        if [[ "$oid" == "OPS-20" ]]; then
+            docker exec "$gserver" sh -c \
+                'printf "#!/bin/sh\nexec systemctl restart xray\n" > /usr/local/bin/e2e-service-apply && chmod 0755 /usr/local/bin/e2e-service-apply' \
+                >/dev/null 2>&1 || true
+        fi
+        ops_snapshot "$gserver" "$gdir" before
+        ops_state_probe "$gserver" "$gdir" before
+        case "$oid" in
+            OPS-08)
+                ops_go_cli "$gserver" "$gdir" 10-op xray guard set --policy isolate --container --json
+                ops_go_cli "$gserver" "$gdir" 11-show xray guard show --json
+                ;;
+            OPS-11) ops_go_cli "$gserver" "$gdir" 10-op show --json ;;
+            OPS-15) ops_go_cli "$gserver" "$gdir" 10-op service restart --container ;;
+            OPS-20)
+                ops_go_cli "$gserver" "$gdir" 10-enable xray api enable --sandbox / \
+                    --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply \
+                    --container --json
+                ops_go_cli "$gserver" "$gdir" 10-op stats --json
+                ;;
+            OPS-22) ops_go_cli "$gserver" "$gdir" 10-op xray logs clean --yes --container --json ;;
+            OPS-28) ops_go_cli "$gserver" "$gdir" 10-op xray uninstall --purge --container --json ;;
+        esac
+        ops_snapshot "$gserver" "$gdir" after
+        ops_state_probe "$gserver" "$gdir" after
+    else
+        echo '{"status":"harness-error","reason":"container start failed"}' >"$gdir/harness.json"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$gserver" >/dev/null 2>&1 || true
+    docker network rm "$OPS_NET" >/dev/null 2>&1 || true
+
+    log "[$oid] verdict=$(ops_state_verdict "$oid")"
+}
+
+ops_state_verdict() { # <ops-id>
+    local oid=$1 base="$EVID/$1"
+    python3 - "$base" "$oid" <<'PY'
+import json
+import os
+import sys
+
+base, oid = sys.argv[1], sys.argv[2]
+
+
+def read(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.read()
+    except OSError:
+        return None
+
+
+def rc(path):
+    raw = read(path)
+    if raw is None:
+        return None
+    try:
+        return int(raw.strip())
+    except ValueError:
+        return None
+
+
+def jload(path):
+    try:
+        return json.loads(read(path) or "")
+    except ValueError:
+        return None
+
+
+def text(path):
+    return (read(path) or "").strip()
+
+
+def probe(side, tag, name):
+    return text(os.path.join(base, side, "%s.%s.txt" % (tag, name)))
+
+
+bash_install = rc(os.path.join(base, "bash", "install.rc"))
+go_install = rc(os.path.join(base, "go", "go-install.rc"))
+bash_rc = rc(os.path.join(base, "bash", "ops.rc"))
+go_rc = rc(os.path.join(base, "go", "10-op.rc"))
+
+harness = []
+for name, value in (("bash install rc", bash_install), ("go install rc", go_install),
+                    ("bash ops rc", bash_rc), ("go ops rc", go_rc)):
+    if value is None:
+        harness.append("missing %s" % name)
+if bash_rc == 124 or go_rc == 124:
+    harness.append("driver rc=124")
+
+reasons = []
+if not harness:
+    if bash_rc != 0:
+        reasons.append("bash menu rc=%s" % bash_rc)
+    if go_rc != 0:
+        reasons.append("go command rc=%s" % go_rc)
+
+    if oid == "OPS-08":
+        b_policy = probe("bash", "after", "sni-policy")
+        g_show = jload(os.path.join(base, "go", "11-show.out")) or {}
+        if "isolate" not in b_policy:
+            reasons.append("bash install_config sni policy is not isolate: %r" % b_policy)
+        if g_show.get("policy") != "isolate":
+            reasons.append("go guard show policy=%r (want isolate)" % g_show.get("policy"))
+        if g_show.get("status") not in ("configured", "active"):
+            reasons.append("go guard status=%r (want configured/active)" % g_show.get("status"))
+        for side in ("bash", "go"):
+            files = probe(side, "after", "sni-files")
+            if "ssl_reject_handshake on" not in files:
+                reasons.append("%s has no isolate TLS-reject fragment" % side)
+            if probe(side, "after", "nginx-active") != "active":
+                reasons.append("%s nginx is not active after the policy change" % side)
+
+    elif oid == "OPS-11":
+        b_out = text(os.path.join(base, "bash", "ops.out"))
+        g_show = jload(os.path.join(base, "go", "10-op.out"))
+        if not b_out:
+            reasons.append("bash show produced no output")
+        elif not any(k in b_out for k in ("协议", "port", "域名", "UUID", "mode")):
+            reasons.append("bash show output lacks the expected fields")
+        if not isinstance(g_show, (dict, list)) or not g_show:
+            reasons.append("go show --json is empty or not JSON")
+
+    elif oid == "OPS-15":
+        for side in ("bash", "go"):
+            if probe(side, "after", "active") != "active":
+                reasons.append("%s xray is not active after restart" % side)
+
+    elif oid == "OPS-20":
+        if rc(os.path.join(base, "go", "10-enable.rc")) != 0:
+            reasons.append("go xray api enable rc=%s" % rc(os.path.join(base, "go", "10-enable.rc")))
+        g_stats = jload(os.path.join(base, "go", "10-op.out"))
+        if g_stats is None:
+            reasons.append("go stats --json is not parseable")
+        for side in ("bash", "go"):
+            cfg = text(os.path.join(base, side, "after.config.sorted.json"))
+            if '"api"' not in cfg or '"listen"' not in cfg:
+                reasons.append("%s config lacks the stats/api listener" % side)
+
+    elif oid == "OPS-22":
+        for side in ("bash", "go"):
+            size = probe(side, "after", "e2e-log-size")
+            if size not in ("0", "missing"):
+                reasons.append("%s e2e log not truncated (size=%s)" % (side, size))
+
+    elif oid == "OPS-28":
+        for side in ("bash", "go"):
+            if probe(side, "after", "active") == "active":
+                reasons.append("%s xray still active after uninstall" % side)
+            if probe(side, "after", "config-exists") != "absent":
+                reasons.append("%s runtime config still present after purge" % side)
+
+if harness:
+    verdict, reasons = "HARNESS-ERROR", harness
+elif reasons:
+    verdict = "FAIL"
+else:
+    verdict = "PASS"
+
+out = os.path.join(base, "ops.json")
+report = {
+    "id": oid,
+    "verdict": verdict,
+    "reasons": reasons,
+    "bothInstallRc": {"bash": bash_install, "go": go_install},
+    "opsRc": {"bash": bash_rc, "go": go_rc},
+    "observed": {
+        "bash": {
+            "active": probe("bash", "after", "active"),
+            "config": probe("bash", "after", "config-exists"),
+            "sniPolicy": probe("bash", "after", "sni-policy"),
+            "e2eLogSize": probe("bash", "after", "e2e-log-size"),
+        },
+        "go": {
+            "active": probe("go", "after", "active"),
+            "config": probe("go", "after", "config-exists"),
+            "e2eLogSize": probe("go", "after", "e2e-log-size"),
+        },
+    },
+}
+with open(out, "w", encoding="utf-8") as fh:
+    json.dump(report, fh, indent=2, sort_keys=True)
+    fh.write("\n")
+print(verdict)
+PY
+}
+
+# --- observe-only OPS rows (round 3 D07 remainder) -------------------------
+# These rows are not equivalence candidates in this round. They are still
+# executed on both sides so the recorded DIFF/BLOCKED verdict cites real
+# output instead of the absence of a Bash entry point.
+ops_bash_capture() { # <server> <dir> <label> <timeout> <shell-command>
+    local server=$1 dir=$2 label=$3 limit=$4 script=$5
+    mkdir -p "$dir"
+    docker exec -i "$server" timeout "$limit" bash -c "$script" \
+        >"$dir/$label.out" 2>"$dir/$label.err"
+    echo $? >"$dir/$label.rc"
+}
+
+ops_bash_pipe() { # <server> <dir> <label> <timeout> <input> [install.sh args...]
+    local server=$1 dir=$2 label=$3 limit=$4 input=$5; shift 5
+    mkdir -p "$dir"
+    printf '%b' "$input" | docker exec -i "$server" timeout "$limit" \
+        bash /etc/idleleo/install.sh "$@" >"$dir/$label.out" 2>"$dir/$label.err"
+    echo $? >"$dir/$label.rc"
+}
+
+ops_observe_job() {
+    OPS_NET="e2e-$RUN_ID-observe"
+    local base="$EVID/observe" bdir="$EVID/observe/bash" gdir="$EVID/observe/go"
+    mkdir -p "$bdir" "$gdir"
+    docker network create "$OPS_NET" >/dev/null 2>&1 || true
+    log "[observe] start"
+
+    local bserver="e2e-$RUN_ID-observe-bash" gserver="e2e-$RUN_ID-observe-go"
+    start_server "$bserver" observe bash "$bdir" "$OPS_NET" || {
+        echo '{"status":"harness-error"}' >"$bdir/harness.json"
+    }
+    start_server "$gserver" observe go "$gdir" "$OPS_NET" || {
+        echo '{"status":"harness-error"}' >"$gdir/harness.json"
+    }
+    ops_bash_base "$bserver" "$bdir" M2
+    ops_go_base "$gserver" "$gdir" reality-nginx
+    for side in "$bserver" "$gserver"; do
+        docker exec "$side" sh -c 'mkdir -p /var/log/xray
+            printf "e2e-access-marker\n" >> /var/log/xray/access.log
+            printf "e2e-error-marker\n" >> /var/log/xray/error.log' >/dev/null 2>&1 || true
+    done
+
+    local d
+    # OPS-12/13: real live-tail vs finite journal snapshot.
+    ops_bash_capture "$bserver" "$EVID/OPS-12/bash" run 6 'exec bash /etc/idleleo/install.sh -xa 20'
+    ops_go_cli "$gserver" "$EVID/OPS-12/go" 10-op service logs --unit xray --lines 20
+    ops_bash_capture "$bserver" "$EVID/OPS-13/bash" run 6 'exec bash /etc/idleleo/install.sh -xe 20'
+    ops_go_cli "$gserver" "$EVID/OPS-13/go" 10-op service logs --unit xray --lines 20
+
+    # OPS-14: iftop live UI vs stats query. The Go stats API is not enabled by a
+    # default install, so enable it first; otherwise the row would compare a
+    # working Bash UI against a command that was never given its API.
+    ops_bash_pipe "$bserver" "$EVID/OPS-14/bash" run 8 '3\n4\n'
+    docker exec "$gserver" sh -c \
+        'printf "#!/bin/sh\nexec systemctl restart xray\n" > /usr/local/bin/e2e-service-apply && chmod 0755 /usr/local/bin/e2e-service-apply' \
+        >/dev/null 2>&1 || true
+    ops_go_cli "$gserver" "$EVID/OPS-14/go" 09-enable xray api enable --sandbox / \
+        --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply \
+        --container --json
+    ops_go_cli "$gserver" "$EVID/OPS-14/go" 10-op stats --json
+
+    # OPS-16 runs in its own job on a real TLS install (a Reality-only node has
+    # no certificate), see ops_cert_job.
+
+    # OPS-18: interactive host BBR switch vs tcp status.
+    ops_bash_pipe "$bserver" "$EVID/OPS-18/bash" run 20 '6\n1\n'
+    ops_go_cli "$gserver" "$EVID/OPS-18/go" 10-op tcp status --json
+
+    # OPS-23: Bash menu 6>6 delegates to the idleleo binary.
+    ops_bash_pipe "$bserver" "$EVID/OPS-23/bash" run 30 '6\n6\n'
+    ops_go_cli "$gserver" "$EVID/OPS-23/go" 10-op speedtest --json \
+        --server https://www.cloudflare.com --bytes 1024 --samples 1 --timeout 10s
+
+    # OPS-24: interactive GeoData menu vs schedule status.
+    ops_bash_pipe "$bserver" "$EVID/OPS-24/bash" run 40 '6\n7\n'
+    ops_go_cli "$gserver" "$EVID/OPS-24/go" 10-op schedule status --json
+
+    # OPS-25/26 are appended after OPS-17b: the Go metadata import turns the
+    # Bash tree into a Go-managed tree, which would change later Bash-only
+    # observations. A canary file inside the backed-up tree proves the restore
+    # really rewrote the live tree instead of merely returning 0.
+
+    # OPS-29: Rill status from both sides.
+    ops_bash_capture "$bserver" "$EVID/OPS-29/bash" run 30 'exec bash /etc/idleleo/install.sh --rill-agent-status'
+    ops_go_cli "$gserver" "$EVID/OPS-29/go" 10-op rill status --json
+
+    # OPS-17a/17b: update checks need the public distribution / a trusted
+    # local package; still execute to prove the offline/fail-closed path.
+    ops_bash_pipe "$bserver" "$EVID/OPS-17a/bash" run 30 '5\n1\n'
+    ops_go_cli "$gserver" "$EVID/OPS-17a/go" 10-op update status --json
+    ops_bash_pipe "$bserver" "$EVID/OPS-17b/bash" run 30 '5\n3\n\n'
+    ops_go_cli "$gserver" "$EVID/OPS-17b/go" 10-op update nginx --manifest /nonexistent/manifest.json --json --container --no-restart
+
+    # OPS-25: Bash tar backup vs Go metadata export.
+    docker exec "$bserver" sh -c \
+        'printf "ops25-canary\n" > /etc/idleleo/conf/ops25-canary.txt' >/dev/null 2>&1 || true
+    ops_bash_pipe "$bserver" "$EVID/OPS-25/bash" run 90 'e2e-ops25\n' --backup
+    ops_go_cli "$gserver" "$EVID/OPS-25/go" 10-op metadata export --out /tmp/e2e-metadata.json --json
+
+    # OPS-26: Bash tar restore vs Go legacy metadata import. The canary is
+    # removed before the restore; only a real restore brings it back.
+    docker exec "$bserver" rm -f /etc/idleleo/conf/ops25-canary.txt >/dev/null 2>&1 || true
+    ops_bash_pipe "$bserver" "$EVID/OPS-26/bash" run 120 '' --restore
+    docker exec "$bserver" sh -c 'cat /etc/idleleo/conf/ops25-canary.txt 2>/dev/null' \
+        >"$EVID/OPS-26/bash/canary.txt" 2>/dev/null || true
+    # The legacy import target is a Bash-installed tree with no Go metadata yet.
+    docker exec "$bserver" install -m 0755 /seed/idleleo /usr/local/bin/idleleo >/dev/null 2>&1 || true
+    ops_go_cli "$bserver" "$EVID/OPS-26/go" 10-op metadata import \
+        --from install_config.json --container --json
+
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" "$gserver" >/dev/null 2>&1 || true
+    docker network rm "$OPS_NET" >/dev/null 2>&1 || true
+
+    ops_observe_verdict
+    log "[observe] verdicts written"
+}
+
+ops_observe_verdict() {
+    python3 - "$EVID" <<'PY'
+import json
+import os
+import sys
+
+evid = sys.argv[1]
+
+
+def read(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.read()
+    except OSError:
+        return ""
+
+
+def rc(path):
+    try:
+        return int(read(path).strip())
+    except ValueError:
+        return None
+
+
+def write(oid, verdict, reasons, extra=None):
+    entry = {
+        "id": oid,
+        "verdict": verdict,
+        "reasons": reasons,
+        "opsRc": {
+            "bash": rc(os.path.join(evid, oid, "bash", "run.rc")) if os.path.isdir(os.path.join(evid, oid, "bash")) else None,
+            "go": rc(os.path.join(evid, oid, "go", "10-op.rc")),
+        },
+    }
+    if extra:
+        entry.update(extra)
+    path = os.path.join(evid, oid)
+    os.makedirs(path, exist_ok=True)
+    with open(os.path.join(path, "ops.json"), "w", encoding="utf-8") as fh:
+        json.dump(entry, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+    return entry
+
+
+def write_doc(oid, name, payload):
+    path = os.path.join(evid, oid)
+    os.makedirs(path, exist_ok=True)
+    with open(os.path.join(path, name), "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+
+
+def out(oid, side, name):
+    return read(os.path.join(evid, oid, side, name + ".out"))
+
+
+def bash_exists(oid):
+    return os.path.isdir(os.path.join(evid, oid, "bash"))
+
+
+# Live-tail Bash vs finite journal Go: the content is real on both sides, but
+# one is an unbounded stream and the other a bounded query.
+for oid, marker, logfile in (
+    ("OPS-12", "e2e-access-marker", "/var/log/xray/access.log"),
+    ("OPS-13", "e2e-error-marker", "/var/log/xray/error.log"),
+):
+    b = out(oid, "bash", "run")
+    g = out(oid, "go", "10-op")
+    reasons = ["Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot"]
+    if marker not in b:
+        reasons.append("Bash live stream did not surface the seeded %s line" % marker)
+    if not g.strip():
+        reasons.append("Go journal snapshot is empty")
+    entry = write(oid, "DIFF", reasons)
+    write_doc(oid, "log-source-difference.json", {
+        "id": oid,
+        "result": "DIFF",
+        "approved": False,
+        "source": logfile,
+        "bash": {
+            "entry": "install.sh menu live tail",
+            "rc": entry["opsRc"]["bash"],
+            "seededMarkerVisible": marker in b,
+        },
+        "go": {
+            "entry": "idleleo service logs (journald snapshot)",
+            "rc": entry["opsRc"]["go"],
+            "outputBytes": len(g.encode()),
+        },
+        "reasons": reasons,
+        "note": "Live tail is unbounded; the finite Go snapshot is not an equivalent command. External approval is required before treating this as equal.",
+    })
+
+# iftop vs stats query.
+b14 = out("OPS-14", "bash", "run")
+g14 = out("OPS-14", "go", "10-op")
+write("OPS-14", "DIFF", [
+    "Bash entry is the interactive iftop UI; Go is a bounded stats query",
+    "bash output bytes=%d" % len(b14.encode()),
+    "go api enable rc=%s" % rc(os.path.join(evid, "OPS-14", "go", "09-enable.rc")),
+    "go stats rc=%s" % rc(os.path.join(evid, "OPS-14", "go", "10-op.rc")),
+])
+
+# OPS-16 is verified in ops_cert_job on a real TLS install.
+
+# Host BBR cannot be proven from inside a container.
+write("OPS-18", "BLOCKED", [
+    "Bash entry is an interactive host BBR switch; a container cannot change or prove the host kernel",
+    "Go tcp status rc=%s" % rc(os.path.join(evid, "OPS-18", "go", "10-op.rc")),
+])
+
+# Bash no longer has an independent speedtest: menu 6>6 delegates to idleleo.
+b23 = out("OPS-23", "bash", "run")
+write("OPS-23", "BLOCKED", [
+    "Bash menu 6>6 delegates to the idleleo Go binary, so this is not an independent Bash implementation",
+    "delegation observed=%s" % ("idleleo" in b23 or "命令未找到" in b23 or "command not found" in b23),
+])
+
+# GeoData: the Bash menu downloads from the hard-coded public GitHub release and
+# needs live internet; the isolated container only reaches its local peers. The
+# Go geodata job is verified separately by run_ops_sweep.sh against a pinned
+# local origin, so this row stays BLOCKED here rather than claiming parity.
+b24 = out("OPS-24", "bash", "run")
+write("OPS-24", "BLOCKED", [
+    "Bash GeoData menu refreshes from the hard-coded public GitHub release; this isolated job has no public origin",
+    "bash output shows the GeoData menu, bytes=%d" % len(b24.encode()),
+    "go schedule status rc=%s; real Go geodata refresh is covered by the ops sweep with a local origin"
+    % rc(os.path.join(evid, "OPS-24", "go", "10-op.rc")),
+])
+
+# Artifact types differ: a tar tree with a real restore vs JSON metadata import.
+# The canary proves the Bash restore rewrote the live tree; the Go import read
+# the same legacy tree and created the single-source-of-truth metadata.
+for oid, what in (("OPS-25", "backup"), ("OPS-26", "restore/import")):
+    b = out(oid, "bash", "run")
+    g = out(oid, "go", "10-op")
+    reasons = [
+        "Bash %s operates on the managed tree (tar archive); Go %s operates on JSON metadata"
+        % (what, what),
+        "bash rc=%s" % rc(os.path.join(evid, oid, "bash", "run.rc")),
+        "go rc=%s" % rc(os.path.join(evid, oid, "go", "10-op.rc")),
+    ]
+    extra = {}
+    if oid == "OPS-26":
+        canary = read(os.path.join(evid, oid, "bash", "canary.txt"))
+        restored = canary.strip() == "ops25-canary"
+        try:
+            imported = json.loads(g).get("state", "")
+        except ValueError:
+            imported = ""
+        reasons.append("restore canary present=%s" % restored)
+        reasons.append("go import state=%s" % (imported or "unknown"))
+        extra["restoreCanary"] = restored
+        extra["goImportState"] = imported
+    write(oid, "DIFF", reasons, extra)
+    if oid == "OPS-26":
+        write_doc(oid, "metadata-difference.json", {
+            "id": oid,
+            "result": "DIFF",
+            "approved": False,
+            "bash": {"entry": "install.sh --backup/--restore (tar tree)",
+                     "rc": rc(os.path.join(evid, oid, "bash", "run.rc")),
+                     "restoreCanary": canary.strip() == "ops25-canary"},
+            "go": {"entry": "idleleo metadata import --from install_config.json",
+                   "rc": rc(os.path.join(evid, oid, "go", "10-op.rc")),
+                   "state": imported,
+                   "outputBytes": len(g.encode())},
+            "reasons": reasons,
+            "note": "Tar restore rewrites the managed tree; metadata import records the legacy tree as the single source of truth and never overwrites an existing metadata file. Both paths succeeded here; external approval is required before treating them as equal.",
+        })
+
+# Rill status is a genuine read-only query on both sides.
+b29, g29 = out("OPS-29", "bash", "run"), out("OPS-29", "go", "10-op")
+r29 = {"bash": rc(os.path.join(evid, "OPS-29", "bash", "run.rc")),
+       "go": rc(os.path.join(evid, "OPS-29", "go", "10-op.rc"))}
+if r29["bash"] == 0 and r29["go"] == 0 and b29.strip() and g29.strip():
+    write("OPS-29", "PASS", ["both sides returned Rill status"])
+else:
+    write("OPS-29", "DIFF", ["Rill status could not be proven on both sides: rc=%r" % r29])
+
+# Update checks need public distribution / a trusted local package.
+write("OPS-17a", "BLOCKED", [
+    "update check requires the public distribution; this job has no pinned manifest",
+    "bash rc=%s go rc=%s" % (rc(os.path.join(evid, "OPS-17a", "bash", "run.rc")),
+                             rc(os.path.join(evid, "OPS-17a", "go", "10-op.rc"))),
+])
+write("OPS-17b", "BLOCKED", [
+    "Nginx update needs the fixed local trusted package used by the real-root job",
+    "bash rc=%s go rc=%s" % (rc(os.path.join(evid, "OPS-17b", "bash", "run.rc")),
+                             rc(os.path.join(evid, "OPS-17b", "go", "10-op.rc"))),
+])
+PY
+}
+
+
+# OPS-16: certificate status. Both sides run on a real TLS install, because a
+# Reality-only node has no certificate and the Bash menu refuses the operation.
+# A self-signed pair is seeded for both sides; the Bash menu and the Go renewal
+# preflight are different operations, so the row stays an unapproved DIFF with
+# recorded certificate facts, never a PASS.
+ops_cert_job() {
+    local oid=OPS-16
+    OPS_NET="e2e-$RUN_ID-$oid"
+    local bdir="$EVID/$oid/bash" gdir="$EVID/$oid/go"
+    mkdir -p "$bdir" "$gdir"
+    docker network create "$OPS_NET" >/dev/null 2>&1 || true
+    log "[$oid] start"
+
+    local bserver="e2e-$RUN_ID-$oid-bash"
+    if start_server "$bserver" "$oid" bash "$bdir" "$OPS_NET"; then
+        run_bash_round M4 "$OPS_NET" "$bserver" "$bdir" 1 "" tls "-1" "" 1
+        ops_cert_facts "$bserver" "$bdir/cert-facts.txt"
+        # 4>2>1 status, 4>2>2 validity, then unwind the three menus.
+        ops_bash_pipe "$bserver" "$bdir" run 60 '4\n2\n1\n0\n2\n2\n0\n0\n0\n'
+    else
+        echo '{"status":"harness-error","reason":"container start failed"}' >"$bdir/harness.json"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" >/dev/null 2>&1 || true
+
+    local gserver="e2e-$RUN_ID-$oid-go" go_argv_json
+    go_argv_json=$(matrix_get M4 go.argv)
+    if [[ -n "$go_argv_json" ]] && start_server "$gserver" "$oid" go "$gdir" "$OPS_NET"; then
+        local -a GO_ARGV=()
+        while IFS= read -r line; do GO_ARGV+=("$line"); done < <(json_list "$go_argv_json")
+        run_go_round M4 "$gserver" "$gdir" 1 "" tls "${GO_ARGV[@]}"
+        ops_cert_facts "$gserver" "$gdir/cert-facts.txt"
+        ops_go_cli "$gserver" "$gdir" 10-op xray cert renew --dry-run --json \
+            --domain "$DOMAIN" --webroot /var/lib/idleleo/acme \
+            --cert-out /etc/idleleo/cert/xray.crt --key-out /etc/idleleo/cert/xray.key
+    else
+        echo '{"status":"harness-error","reason":"container or M4 argv unavailable"}' >"$gdir/harness.json"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$gserver" >/dev/null 2>&1 || true
+    docker network rm "$OPS_NET" >/dev/null 2>&1 || true
+
+    log "[$oid] verdict=$(ops_cert_verdict)"
+}
+
+ops_cert_facts() { # <server> <out-file>
+    docker exec "$1" sh -c '
+        f=/etc/idleleo/cert/xray.crt
+        if [ ! -f "$f" ]; then echo "present=false"; exit 0; fi
+        echo "present=true"
+        openssl x509 -in "$f" -noout -subject -enddate 2>&1
+        if openssl x509 -in "$f" -noout -checkend 0 >/dev/null 2>&1; then
+            echo "notExpired=true"
+        else
+            echo "notExpired=false"
+        fi
+        sha256sum "$f" | awk "{print \"sha256=\" \$1}"
+    ' >"$2" 2>&1 || true
+}
+
+ops_cert_verdict() {
+    python3 - "$EVID/OPS-16" <<'PY'
+import json
+import os
+import sys
+
+base = sys.argv[1]
+
+
+def read(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.read()
+    except OSError:
+        return ""
+
+
+def rc(path):
+    try:
+        return int(read(path).strip())
+    except ValueError:
+        return None
+
+
+bash_facts = read(os.path.join(base, "bash", "cert-facts.txt"))
+go_facts = read(os.path.join(base, "go", "cert-facts.txt"))
+go_out = read(os.path.join(base, "go", "10-op.out"))
+state = ""
+if '"certificateFile"' in go_out:
+    try:
+        data = json.loads(go_out)
+        if data.get("missing"):
+            state = "missing"
+        elif data.get("userManaged"):
+            state = "user-managed"
+        elif data.get("due"):
+            state = "due"
+        else:
+            state = "not-due"
+    except ValueError:
+        state = ""
+
+reasons = [
+    "Bash menu 4>2>1/4>2>2 shows certificate status/validity; Go 'cert renew --dry-run' is a renewal preflight",
+    "bash rc=%s" % rc(os.path.join(base, "bash", "run.rc")),
+    "go rc=%s" % rc(os.path.join(base, "go", "10-op.rc")),
+    "bash certificate present=%s" % ("present=true" in bash_facts),
+    "go certificate present=%s notExpired=%s state=%s"
+    % ("present=true" in go_facts, "notExpired=true" in go_facts, state or "unknown"),
+]
+entry = {
+    "id": "OPS-16",
+    "verdict": "DIFF",
+    "reasons": reasons,
+    "opsRc": {
+        "bash": rc(os.path.join(base, "bash", "run.rc")),
+        "go": rc(os.path.join(base, "go", "10-op.rc")),
+    },
+    "certificate": {
+        "bashPresent": "present=true" in bash_facts,
+        "goPresent": "present=true" in go_facts,
+        "goNotExpired": "notExpired=true" in go_facts,
+        "goState": state,
+    },
+}
+with open(os.path.join(base, "ops.json"), "w", encoding="utf-8") as fh:
+    json.dump(entry, fh, indent=2, sort_keys=True)
+    fh.write("\n")
+print("DIFF")
+PY
+}
+
+# Bash backup menu 7>3 authorizes rm -rf of the whole certificate directory
+# after one interactive confirm. Go only removes entries whose
+# .managed-by-idleleo sha256 ownership proves they belong to this project.
+# Both sides are executed on the same fixture; the third-party canary proves
+# the difference and the row stays an UNAPPROVED difference (never a PASS).
+ops_certclear_job() {
+    local oid=OPS-27
+    OPS_NET="e2e-$RUN_ID-$oid"
+    local base="$EVID/$oid" bdir="$EVID/$oid/bash" gdir="$EVID/$oid/go"
+    mkdir -p "$bdir" "$gdir"
+    docker network create "$OPS_NET" >/dev/null 2>&1 || true
+    log "[$oid] start"
+
+    local bserver="e2e-$RUN_ID-$oid-bash"
+    if start_server "$bserver" "$oid" bash "$bdir" "$OPS_NET"; then
+        ops_bash_base "$bserver" "$bdir" M2
+        ops_cert_canary "$bserver"
+        ops_state_probe "$bserver" "$bdir" before
+        ops_bash_menu "$bserver" "$bdir" "$oid"
+        ops_state_probe "$bserver" "$bdir" after
+    else
+        echo '{"status":"harness-error","reason":"container start failed"}' >"$bdir/harness.json"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" >/dev/null 2>&1 || true
+
+    local gserver="e2e-$RUN_ID-$oid-go"
+    if start_server "$gserver" "$oid" go "$gdir" "$OPS_NET"; then
+        ops_go_base "$gserver" "$gdir" reality-nginx
+        ops_cert_canary "$gserver"
+        ops_state_probe "$gserver" "$gdir" before
+        ops_go_cli "$gserver" "$gdir" 10-op xray cert clear --yes --container --json
+        ops_state_probe "$gserver" "$gdir" after
+    else
+        echo '{"status":"harness-error","reason":"container start failed"}' >"$gdir/harness.json"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$gserver" >/dev/null 2>&1 || true
+    docker network rm "$OPS_NET" >/dev/null 2>&1 || true
+
+    log "[$oid] difference=$(ops_certclear_verdict)"
+}
+
+# A certificate and key that no management metadata references.
+ops_cert_canary() { # <server>
+    docker exec "$1" sh -c '
+        mkdir -p /etc/idleleo/cert
+        openssl req -x509 -newkey rsa:2048 -nodes -days 365 \
+            -subj "/CN=thirdparty.example.com" \
+            -keyout /etc/idleleo/cert/thirdparty.key \
+            -out /etc/idleleo/cert/thirdparty.crt >/dev/null 2>&1
+    ' >/dev/null 2>&1 || true
+}
+
+ops_certclear_verdict() {
+    local base="$EVID/OPS-27"
+    python3 - "$base" <<'PY'
+import json
+import os
+import sys
+
+base = sys.argv[1]
+
+
+def read(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as fh:
+            return fh.read()
+    except OSError:
+        return ""
+
+
+def rc(path):
+    try:
+        return int(read(path).strip())
+    except ValueError:
+        return None
+
+
+def entries(side, tag):
+    return sorted(x for x in read(os.path.join(base, side, "%s.cert-list.txt" % tag)).splitlines() if x)
+
+
+bash_rc = rc(os.path.join(base, "bash", "ops.rc"))
+go_rc = rc(os.path.join(base, "go", "10-op.rc"))
+b_before, b_after = entries("bash", "before"), entries("bash", "after")
+g_before, g_after = entries("go", "before"), entries("go", "after")
+
+harness = []
+if bash_rc is None or go_rc is None:
+    harness.append("missing execution rc")
+if bash_rc == 124 or go_rc == 124:
+    harness.append("driver rc=124")
+
+canary = "thirdparty.crt"
+bash_kept = canary in b_after
+go_kept = canary in g_after
+reasons = [
+    "Bash backup menu 7>3 deletes the whole certificate directory after one confirm; Go requires managed ownership proof",
+]
+if not bash_kept:
+    reasons.append("Bash removed the third-party canary (rm -rf entire cert dir)")
+if go_kept:
+    reasons.append("Go kept the third-party canary (no managed ownership)")
+elif canary not in g_before:
+    reasons.append("Go fixture lost the canary before the command ran")
+
+report = {
+    "id": "OPS-27",
+    "result": "HARNESS-ERROR" if harness else "DIFF",
+    "reasons": harness + reasons,
+    "opsRc": {"bash": bash_rc, "go": go_rc},
+    "bashCertList": {"before": b_before, "after": b_after},
+    "goCertList": {"before": g_before, "after": g_after},
+    "canaryKeptByGo": go_kept,
+    "canaryRemovedByBash": not bash_kept,
+    "approved": False,
+    "note": "unapproved behavioural difference; the row is NOT dual-side verified",
+}
+out = os.path.join(base, "cert-clear-difference.json")
+with open(out, "w", encoding="utf-8") as fh:
+    json.dump(report, fh, indent=2, sort_keys=True)
+    fh.write("\n")
+print(report["result"])
+PY
 }
 
 ops_users_verdict() { # <base>
@@ -2791,6 +3609,10 @@ ops_job() {
         OPS-10) ops_simple_job OPS-10 M2 reality-nginx ;;
         OPS-17c) ops_simple_job OPS-17c M1 reality ;;
         OPS-30) ops_simple_job OPS-30 M1 reality ;;
+        OPS-08|OPS-11|OPS-15|OPS-20|OPS-22|OPS-28) ops_state_job "$1" ;;
+        OPS-16) ops_cert_job ;;
+        OPS-27) ops_certclear_job ;;
+        OPS-OBSERVE) ops_observe_job ;;
         *) log "[$1] no execution path in this runner; not claiming a verdict" ;;
     esac
 }
@@ -2839,7 +3661,8 @@ fi
 OIDS=()
 for oid in OPS-19 OPS-21 OPS-09 OPS-31 OPS-32 \
            OPS-01 OPS-02 OPS-03 \
-           OPS-04 OPS-05 OPS-06 OPS-07 OPS-10 OPS-17c OPS-30; do
+           OPS-04 OPS-05 OPS-06 OPS-07 OPS-10 OPS-17c OPS-30 \
+           OPS-08 OPS-11 OPS-15 OPS-16 OPS-20 OPS-22 OPS-27 OPS-28 OPS-OBSERVE; do
     if [[ -z "$ONLY" ]]; then
         OIDS+=("$oid")
     else

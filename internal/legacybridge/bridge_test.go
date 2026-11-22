@@ -245,6 +245,19 @@ func TestAuditPortConflictBlocked(t *testing.T) {
 	}
 }
 
+func TestAuditNginxFrontedPublicPortIsNotAConflict(t *testing.T) {
+	root := sandbox(t, "reality-nginx")
+	// The real installer records the public port (443, held by nginx) while the
+	// Xray inbound listens on a loopback upstream (9443). That must not be
+	// reported as a port conflict.
+	writeFile(t, filepath.Join(root, "etc/idleleo/conf/install_config.json"),
+		`{"tls":"Reality","port":443,"reality_add_nginx":"on","shell_version":"3.3.6"}`, 0o640)
+	a, _ := AuditMigration(root)
+	if hasFinding(a, "runtime-port-conflict") {
+		t.Fatalf("nginx-fronted install falsely reported a port conflict: %v", a.Findings)
+	}
+}
+
 func TestAuditRealityKeyMissingBlocked(t *testing.T) {
 	root := sandbox(t, "reality-direct")
 	writeFile(t, filepath.Join(root, "etc/idleleo/conf/xray/config.json"),

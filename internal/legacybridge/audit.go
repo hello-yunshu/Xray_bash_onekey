@@ -393,7 +393,11 @@ func (a *Audit) scanRuntime(root string, lc legacyConfig) error {
 	if a.TLS == "Reality" && !realityKey {
 		a.block("reality-key-missing", "Reality is configured but the runtime config has no privateKey")
 	}
-	if a.TLS == "Reality" && lc.Port > 0 {
+	// The public port belongs to nginx when a managed nginx fronts Xray: the
+	// Xray inbound listens on a loopback upstream (9443 in the real installer),
+	// so comparing install_config.port against inbound ports falsely blocks a
+	// legitimate nginx+Reality import.
+	if a.TLS == "Reality" && lc.Port > 0 && !a.NginxRequired {
 		ports := inboundPorts(doc)
 		if len(ports) > 0 && !ports[lc.Port] {
 			a.block("runtime-port-conflict", fmt.Sprintf("install_config port %d is not present in the runtime inbounds", lc.Port))

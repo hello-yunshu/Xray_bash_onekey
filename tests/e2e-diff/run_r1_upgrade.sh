@@ -32,6 +32,25 @@ source "$ROOT/tests/go-parity/lib/docker_common.sh"
 
 mkdir -p "$EVID" "$WORK/seed/cert" "$WORK/secret"
 : >"$EVID/assertions.txt"
+
+# The Bash TLS install downloads a managed Nginx. Seed the verified offline
+# cache so a GitHub CDN hiccup cannot fail the takeover matrix.
+NGINX_BUILD="${E2E_NGINX_BUILD:-2026.10.15.7679}"
+case "$(docker_arch)" in
+    amd64) NGINX_ARCH=x86 ;;
+    arm64) NGINX_ARCH=arm ;;
+    *) NGINX_ARCH="" ;;
+esac
+NGINX_ASSET="xray-nginx-custom-${NGINX_ARCH}.tar.gz"
+NGINX_CACHE="${E2E_NGINX_CACHE:-$HOME/.cache/xray-audit/nginx/$NGINX_BUILD}"
+NGINX_ENVS=()
+if [[ -n "$NGINX_ARCH" && -f "$NGINX_CACHE/release-manifest.json" && -f "$NGINX_CACHE/$NGINX_ASSET" ]]; then
+    mkdir -p "$WORK/seed/nginx"
+    cp "$NGINX_CACHE/release-manifest.json" "$WORK/seed/nginx/"
+    cp "$NGINX_CACHE/$NGINX_ASSET" "$WORK/seed/nginx/"
+    printf '{"nginx_build_online_version":"%s"}\n' "$NGINX_BUILD" >"$WORK/seed/nginx/versions.json"
+    NGINX_ENVS=(-e IDLELEO_NGINX_CACHE=/seed/nginx -e E2E_NGINX_BUILD="$NGINX_BUILD")
+fi
 # Historical migration: point the driver at a real older installer (mounted as
 # /seed/historical.sh) instead of the tracked one. No snapshot is fabricated.
 if [[ -n "${E2E_HISTORICAL_INSTALLER:-}" ]]; then
@@ -165,7 +184,8 @@ run_r1() { # run_r1 <sid> <profile> <bash-arg> <l4-profile> <l4-transport> <go-a
         log "[$sid/R1] container failed"; assert 1 "$sid R1 container started"; return
     fi
 
-    docker exec -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
+    docker exec "${NGINX_ENVS[@]}" \
+        -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
         -e E2E_PROFILE="$profile" -e E2E_ARG="$barg" -e E2E_MENU="" \
         -e E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-}" \
         -e E2E_TRANSPORT=1 -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" \
@@ -269,7 +289,8 @@ run_r2() { # run_r2 <sid> <profile> <bash-arg> <l4-profile> <l4-transport>
     if ! start_server "$c" "$out/bash" "$net"; then
         log "[$sid/R2] container failed"; assert 1 "$sid R2 container started"; return
     fi
-    docker exec -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
+    docker exec "${NGINX_ENVS[@]}" \
+        -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
         -e E2E_PROFILE="$profile" -e E2E_ARG="$barg" -e E2E_MENU="" \
         -e E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-}" \
         -e E2E_TRANSPORT=1 -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" \
@@ -375,7 +396,8 @@ run_injections() { # run_injections <sid> <profile> <bash-arg> <go-args...>
     if ! start_server "$c" "$out/bash" "$net"; then
         log "[$sid/INJ] container failed"; assert 1 "$sid INJ container started"; return
     fi
-    docker exec -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
+    docker exec "${NGINX_ENVS[@]}" \
+        -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
         -e E2E_PROFILE="$profile" -e E2E_ARG="$barg" -e E2E_MENU="" \
         -e E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-}" \
         -e E2E_TRANSPORT=1 -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" \

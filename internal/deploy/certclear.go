@@ -439,10 +439,10 @@ func refsContainDir(refs map[string][]string, dir string) bool {
 // certificate is kept, because deleting an unproven file could break a live
 // server on the next reload.
 type certReferenceScan struct {
-	refs       map[string][]string
-	warnings   []string
+	refs           map[string][]string
+	warnings       []string
 	incompleteSeen map[string]bool
-	failClosed bool
+	failClosed     bool
 }
 
 // collectCertReferences gathers every certificate path referenced by the

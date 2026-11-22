@@ -81,8 +81,12 @@ elif [[ "$PROFILE" == "tls" ]]; then
         install -m 0640 /seed/cert/xray.crt /etc/idleleo/cert/xray.crt
         install -m 0640 /seed/cert/xray.key /etc/idleleo/cert/xray.key
         log "seeded_cert=yes sha256=$(sha256sum /etc/idleleo/cert/xray.crt | awk '{print $1}')"
+    elif [[ -f /etc/idleleo/cert/xray.crt && -f /etc/idleleo/cert/xray.key ]]; then
+        # Cold-restore runs generate a per-container pair first, so a restore
+        # has to replace this node's certificate with the archived one.
+        log "seeded_cert=preinstalled sha256=$(sha256sum /etc/idleleo/cert/xray.crt | awk '{print $1}')"
     else
-        log "FATAL: tls profile requires /seed/cert/xray.crt and xray.key"
+        log "FATAL: tls profile requires a certificate pair (seed or preinstalled)"
         exit 2
     fi
 fi

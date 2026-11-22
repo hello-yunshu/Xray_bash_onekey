@@ -158,6 +158,18 @@ class LedgerContractTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 1)
         self.assertEqual(self.row(ledger, "OPS-10")["status"], "FAIL")
 
+    def test_cert_clear_difference_without_ops_json_is_not_dropped(self):
+        # OPS-27's driver writes cert-clear-difference.json instead of ops.json;
+        # the safety difference must surface as a failure, never vanish.
+        write(os.path.join(self.matrix, "p2", "OPS-27", "cert-clear-difference.json"),
+              {"id": "OPS-27", "result": "DIFF",
+               "reasons": ["Bash rm -rf removes the third-party canary"]})
+        proc, ledger = self.run_ledger(matrix=self.matrix)
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        row = self.row(ledger, "OPS-27")
+        self.assertEqual(row["status"], "FAIL")
+        self.assertIn("third-party canary", " ".join(row["reasons"]))
+
     def test_allow_incomplete_keeps_evidence_visible(self):
         sweep = os.path.join(self.root, "sweep")
         write(os.path.join(sweep, "assertions.txt"), "PASS\tOPS-11 add user\n")

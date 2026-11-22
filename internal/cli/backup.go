@@ -181,22 +181,56 @@ func restoreServiceApply(paths host.Paths) func(context.Context) error {
 				return fmt.Errorf("nginx -t exited %d: %s", res.ExitCode, firstLine(res.Stderr))
 			}
 		}
-		res, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{"restart", "xray"}, Timeout: 90 * time.Second})
-		if err != nil {
-			return err
+		// A relay node runs Nginx only, while every Xray node (Reality, TLS,
+		// multi-transport) runs both. The restored state must reload whichever
+		// units actually exist instead of assuming one layout.
+		restarted := false
+		for _, unit := range []string{"xray", "nginx"} {
+			if !unitExists(ctx, unit) {
+				continue
+			}
+			if unit == "nginx" && !nginxOwned(ctx, paths) {
+				continue
+			}
+			res, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{"restart", unit}, Timeout: 90 * time.Second})
+			if err != nil {
+				return err
+			}
+			if res.ExitCode != 0 {
+				return fmt.Errorf("systemctl restart %s exited %d: %s", unit, res.ExitCode, firstLine(res.Stderr))
+			}
+			active, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{"is-active", "--quiet", unit}, Timeout: 15 * time.Second})
+			if err != nil {
+				return err
+			}
+			if active.ExitCode != 0 {
+				return fmt.Errorf("%s service is not active after restore (exit %d)", unit, active.ExitCode)
+			}
+			restarted = true
 		}
-		if res.ExitCode != 0 {
-			return fmt.Errorf("systemctl restart xray exited %d: %s", res.ExitCode, firstLine(res.Stderr))
-		}
-		active, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{"is-active", "--quiet", "xray"}, Timeout: 15 * time.Second})
-		if err != nil {
-			return err
-		}
-		if active.ExitCode != 0 {
-			return fmt.Errorf("xray service is not active after restore (exit %d)", active.ExitCode)
+		if !restarted {
+			return fmt.Errorf("the restored state has no xray or nginx service unit")
 		}
 		return nil
 	}
+}
+
+// unitExists reports whether systemd knows the unit, so a relay host without an
+// Xray unit restores cleanly and an Xray-only host without Nginx keeps working.
+func unitExists(ctx context.Context, unit string) bool {
+	res, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{"cat", unit}, Timeout: 15 * time.Second})
+	return err == nil && res.ExitCode == 0
+}
+
+// nginxOwned avoids restarting an unrelated Nginx that merely happens to be
+// installed. The managed tree records its own metadata, and the Bash layout
+// leaves the service running.
+func nginxOwned(ctx context.Context, paths host.Paths) bool {
+	if _, err := os.Stat(filepath.Join(paths.Root, "etc/idleleo/v1/nginx.json")); err == nil {
+		return true
+	}
+	active, err := host.Run(ctx, host.ExecSpec{Path: "systemctl", Args: []string{"is-active", "--quiet", "nginx"}, Timeout: 15 * time.Second})
+	return err == nil && active.ExitCode == 0
 }
 
 func firstLine(s string) string {

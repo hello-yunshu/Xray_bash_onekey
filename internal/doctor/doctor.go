@@ -361,11 +361,34 @@ func checkModes(paths host.Paths) Check {
 	}
 	key := filepath.Join(paths.Root, "etc/idleleo/cert/xray.key")
 	if fi, err := os.Stat(key); err == nil {
-		if fi.Mode().Perm()&0o077 != 0 {
-			return Check{ID: "permissions", Status: StatusFail, Message: "private key is accessible beyond its owner", Detail: fmt.Sprintf("mode %04o", fi.Mode().Perm())}
+		perm := fi.Mode().Perm()
+		switch {
+		case perm&0o007 != 0:
+			return Check{ID: "permissions", Status: StatusFail, Message: "private key is world-accessible", Detail: fmt.Sprintf("mode %04o", perm)}
+		case perm&0o070 != 0 && !managedNginxKey(fi, perm):
+			return Check{ID: "permissions", Status: StatusFail, Message: "private key is accessible beyond its owner", Detail: fmt.Sprintf("mode %04o", perm)}
 		}
 	}
 	return Check{ID: "permissions", Status: StatusOK, Message: "config and key permissions are restrictive"}
+}
+
+// managedNginxKey accepts the one group-readable mode the manager itself
+// installs: 0640 owned by root:<nginx worker group>. The managed front reads
+// the key as that group, and the nginx installer separately proves the worker
+// cannot rewrite it. Everything else that grants group access is a failure.
+func managedNginxKey(fi os.FileInfo, perm os.FileMode) bool {
+	if perm != 0o640 {
+		return false
+	}
+	st, ok := fi.Sys().(*syscall.Stat_t)
+	if !ok {
+		return false
+	}
+	group, err := user.LookupGroupId(strconv.Itoa(int(st.Gid)))
+	if err != nil {
+		return false
+	}
+	return group.Name == "idleleo-nginx"
 }
 
 // checkServiceAccess proves that the service account can still read the

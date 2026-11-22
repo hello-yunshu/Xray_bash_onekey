@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -120,18 +122,55 @@ func statsCommand(ctx context.Context, opts Options, cfg config, args []string) 
 
 func statsListen(doc map[string]any) string {
 	api, _ := doc["api"].(map[string]any)
-	if api == nil {
-		return ""
-	}
-	switch v := api["listen"].(type) {
-	case string:
-		return v
-	case []any:
-		for _, item := range v {
-			if s, ok := item.(string); ok {
+	if api != nil {
+		if s := listenValue(api["listen"]); s != "" {
+			return s
+		}
+		// `api enable` models the API as an inbound tagged "api" (the form the
+		// Bash installer also writes) instead of using api.listen. Xray accepts
+		// both, so resolve the tagged inbound before refusing to query.
+		if tag, _ := api["tag"].(string); tag != "" {
+			if s := inboundListen(doc, tag); s != "" {
 				return s
 			}
 		}
+	}
+	return inboundListen(doc, "api")
+}
+
+func listenValue(v any) string {
+	switch s := v.(type) {
+	case string:
+		return s
+	case []any:
+		for _, item := range s {
+			if str, ok := item.(string); ok && str != "" {
+				return str
+			}
+		}
+	}
+	return ""
+}
+
+func inboundListen(doc map[string]any, tag string) string {
+	inbounds, _ := doc["inbounds"].([]any)
+	for _, raw := range inbounds {
+		inbound, _ := raw.(map[string]any)
+		if inbound == nil {
+			continue
+		}
+		if t, _ := inbound["tag"].(string); t != tag {
+			continue
+		}
+		port, _ := inbound["port"].(float64)
+		if port <= 0 {
+			return ""
+		}
+		host, _ := inbound["listen"].(string)
+		if host == "" || host == "0.0.0.0" || host == "::" {
+			host = "127.0.0.1"
+		}
+		return net.JoinHostPort(host, strconv.Itoa(int(port)))
 	}
 	return ""
 }
