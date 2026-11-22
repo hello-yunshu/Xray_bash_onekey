@@ -338,6 +338,58 @@ func TestGenerateIPv6ShareAuthority(t *testing.T) {
 	}
 }
 
+func TestRemoveUserKeepsUnattributableShortIDs(t *testing.T) {
+	g, err := Generate(Spec{Mode: ModeReality, Domain: "example.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	added, _, err := AddUser(g.Config, 0, AddUserSpec{
+		UUID: "11111111-2222-4333-8444-555555555555", Email: "u2@idleleo", ShortID: "abcd1234",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := realityShortIDs(t, added)
+	removed, _, err := RemoveUser(added, 0, "u2@idleleo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	after := realityShortIDs(t, removed)
+	if len(before) != len(after) {
+		t.Fatalf("shortIds must not be guessed away: before=%v after=%v", before, after)
+	}
+	for i := range before {
+		if before[i] != after[i] {
+			t.Fatalf("shortIds changed on removal: before=%v after=%v", before, after)
+		}
+	}
+	if ShortIDRemovalNotice(removed, 0) == "" {
+		t.Fatal("removal must explain that inbound-level shortIds were retained")
+	}
+}
+
+func realityShortIDs(t *testing.T, raw []byte) []string {
+	t.Helper()
+	root, err := decode(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	in, err := inboundAt(root, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stream, _ := in["streamSettings"].(map[string]any)
+	reality, _ := stream["realitySettings"].(map[string]any)
+	ids, _ := reality["shortIds"].([]any)
+	out := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if s, ok := id.(string); ok {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
 func TestUserLifecyclePreservesCustomFields(t *testing.T) {
 	g, err := Generate(Spec{Mode: ModeReality, Domain: "example.com"})
 	if err != nil {

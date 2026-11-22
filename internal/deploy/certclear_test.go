@@ -19,6 +19,7 @@ func TestClearCertificatesKeepsInUseCertificate(t *testing.T) {
 	certDir := filepath.Join(root, "etc/idleleo/cert")
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("key"))
+	writeManagedMarkerHashes(t, certDir, filepath.Join(certDir, "xray.crt"), filepath.Join(certDir, "xray.key"))
 	confDir := filepath.Join(root, "etc/idleleo/conf/nginx")
 	writeGuardTestFile(t, filepath.Join(confDir, "00-xray.conf"),
 		[]byte("server {\n    ssl_certificate     /etc/idleleo/cert/xray.crt;\n    ssl_certificate_key /etc/idleleo/cert/xray.key;\n}\n"))
@@ -43,6 +44,7 @@ func TestClearCertificatesRemovesOnlyUnusedProjectMaterial(t *testing.T) {
 	certDir := filepath.Join(root, "etc/idleleo/cert")
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("project cert"))
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("project key"))
+	writeManagedMarkerHashes(t, certDir, filepath.Join(certDir, "xray.crt"), filepath.Join(certDir, "xray.key"))
 	// A third-party file dropped into the managed directory has no ownership
 	// proof and must survive.
 	writeGuardTestFile(t, filepath.Join(certDir, "third-party.pem"), []byte("third party"))
@@ -93,6 +95,7 @@ func TestClearCertificatesRemovesProjectArchiveDirectory(t *testing.T) {
 	root := sandbox(t)
 	archive := filepath.Join(root, "etc/idleleo/cert/archive")
 	writeGuardTestFile(t, filepath.Join(archive, "xray.crt"), []byte("project"))
+	writeManagedMarkerHashes(t, archive, filepath.Join(archive, "xray.crt"))
 
 	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root})
 	if err != nil {
@@ -125,6 +128,7 @@ func TestClearCertificatesDryRunChangesNothing(t *testing.T) {
 	root := sandbox(t)
 	certDir := filepath.Join(root, "etc/idleleo/cert")
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
+	writeManagedMarkerHashes(t, certDir, filepath.Join(certDir, "xray.crt"))
 
 	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root, DryRun: true})
 	if err != nil {
@@ -159,6 +163,7 @@ func TestClearCertificatesRollsBackPartialFailure(t *testing.T) {
 	certDir := filepath.Join(root, "etc/idleleo/cert")
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("key"))
+	writeManagedMarkerHashes(t, certDir, filepath.Join(certDir, "xray.crt"), filepath.Join(certDir, "xray.key"))
 
 	calls := 0
 	old := renameCertFile
@@ -229,6 +234,7 @@ func TestClearCertificatesDetectsInlineDirectives(t *testing.T) {
 	certDir := filepath.Join(root, "etc/idleleo/cert")
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("key"))
+	writeManagedMarkerHashes(t, certDir, filepath.Join(certDir, "xray.crt"), filepath.Join(certDir, "xray.key"))
 	confDir := filepath.Join(root, "etc/idleleo/conf/nginx")
 	writeGuardTestFile(t, filepath.Join(confDir, "00-site.conf"),
 		[]byte("server { listen 9443 ssl; ssl_certificate /etc/idleleo/cert/xray.crt; ssl_certificate_key /etc/idleleo/cert/xray.key; }\n"))
@@ -255,6 +261,7 @@ func TestClearCertificatesFollowsExternalInclude(t *testing.T) {
 	certDir := filepath.Join(root, "etc/idleleo/cert")
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("key"))
+	writeManagedMarkerHashes(t, certDir, filepath.Join(certDir, "xray.crt"), filepath.Join(certDir, "xray.key"))
 	writeGuardTestFile(t, filepath.Join(root, "usr/local/nginx/conf/nginx.conf"),
 		[]byte("http {\n    include /opt/third/site.conf;\n}\n"))
 	writeGuardTestFile(t, filepath.Join(root, "opt/third/site.conf"),
@@ -304,6 +311,7 @@ func TestClearCertificatesFailsClosedOnVariablePath(t *testing.T) {
 	certDir := filepath.Join(root, "etc/idleleo/cert")
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("key"))
+	writeManagedMarkerHashes(t, certDir, filepath.Join(certDir, "xray.crt"), filepath.Join(certDir, "xray.key"))
 	writeGuardTestFile(t, filepath.Join(root, "etc/idleleo/conf/nginx/00-site.conf"),
 		[]byte("server {\n    ssl_certificate $ssl_server_name.crt;\n}\n"))
 
@@ -326,6 +334,7 @@ func TestClearCertificatesScansEveryXrayConfig(t *testing.T) {
 	certDir := filepath.Join(root, "etc/idleleo/cert")
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.crt"), []byte("cert"))
 	writeGuardTestFile(t, filepath.Join(certDir, "xray.key"), []byte("key"))
+	writeManagedMarkerHashes(t, certDir, filepath.Join(certDir, "xray.crt"), filepath.Join(certDir, "xray.key"))
 	writeGuardTestFile(t, filepath.Join(root, "etc/idleleo/conf/xray/config.json"),
 		[]byte(`{"inbounds":[]}`))
 	writeGuardTestFile(t, filepath.Join(root, "etc/idleleo/conf/xray/second.json"),

@@ -2,7 +2,9 @@ package deploy
 
 import (
 	"context"
+	"crypto/sha256"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
@@ -13,6 +15,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/nginx"
@@ -30,22 +33,24 @@ const (
 
 	certActionDelete = "delete"
 	certActionKeep   = "keep"
+
+	// certMarkerName is the manager's ownership record. The record is only
+	// trusted together with the content hashes it lists: a marker file, a
+	// certificate file name or the managed path alone proves nothing.
+	certMarkerName  = ".managed-by-idleleo"
+	certUserMarker  = ".user-managed"
+	maxScanDepth    = 16
+	maxDirWalkDepth = 8
 )
 
-// managedPairNames are the default pairs the Bash installer and the Go manager
-// create inside the managed directory. A file with one of these names is
-// project-owned even without a marker.
-var managedPairNames = map[string]bool{
-	"xray.crt": true, "xray.key": true,
-	"decoy.crt": true, "decoy.key": true,
-}
-
-// certDirective is deliberately not anchored to the start of a line: real
-// Nginx accepts several directives on one physical line, so a line-anchored
-// pattern silently misses every directive after the first.
-var certDirective = regexp.MustCompile(`(ssl_certificate_key|ssl_certificate|ssl_trusted_certificate|ssl_client_certificate)[ \t]+([^;{}]+);`)
+// certDirective captures the whole argument up to the terminating semicolon,
+// including ${...} expansions and directives that span physical lines. The
+// body is validated separately: anything the parser cannot prove is a literal,
+// non-variable path fails closed.
+var certDirective = regexp.MustCompile(`(ssl_certificate_key|ssl_certificate|ssl_trusted_certificate|ssl_client_certificate)[ \t\r\n]+([^;]*);`)
 var jsonCertField = regexp.MustCompile(`"(certificateFile|keyFile|certFile|certKeyFile)"\s*:\s*"([^"]+)"`)
-var nginxIncludeDirective = regexp.MustCompile(`\binclude[ \t]+([^;{}]+);`)
+var nginxIncludeDirective = regexp.MustCompile(`\binclude[ \t\r\n]+([^;]*);`)
+var managedHashLine = regexp.MustCompile(`(?m)^sha256=([0-9a-f]{64})$`)
 
 // ClearCertsSpec is one "clear every managed certificate" request.
 //
@@ -133,7 +138,7 @@ func ClearCertificates(ctx context.Context, spec ClearCertsSpec) (ClearCertsRepo
 	rep.Warnings = append(rep.Warnings, scan.warnings...)
 
 	var moves []certMove
-	local, err := planManagedDir(paths, dir, scan, meta, &rep)
+	local, err := planManagedDir(dir, scan, &rep)
 	if err != nil {
 		return rep, err
 	}
@@ -144,7 +149,7 @@ func ClearCertificates(ctx context.Context, spec ClearCertsSpec) (ClearCertsRepo
 		home, _ = os.UserHomeDir()
 	}
 	if home != "" {
-		acmeMoves, err := planACMEState(home, &rep)
+		acmeMoves, err := planACMEState(home, scan, &rep)
 		if err != nil {
 			return rep, err
 		}
@@ -217,7 +222,7 @@ func loadCertMetadata(paths host.Paths) (store.Metadata, bool) {
 	return meta, true
 }
 
-func planManagedDir(paths host.Paths, dir string, scan certReferenceScan, meta store.Metadata, rep *ClearCertsReport) ([]certMove, error) {
+func planManagedDir(dir string, scan certReferenceScan, rep *ClearCertsReport) ([]certMove, error) {
 	refs := scan.refs
 	if dir == "" {
 		rep.Missing = true
@@ -236,19 +241,26 @@ func planManagedDir(paths host.Paths, dir string, scan certReferenceScan, meta s
 	}
 	sort.Slice(entries, func(i, j int) bool { return entries[i].Name() < entries[j].Name() })
 
-	userManaged := fileExists(filepath.Join(dir, ".user-managed"))
-	managerOwned := fileExists(filepath.Join(dir, ".managed-by-idleleo"))
-	scheduleCerts := configuredScheduleCerts(paths)
-	ownedResources := map[string]bool{}
-	for _, rel := range meta.OwnedResources {
-		if p, err := paths.Join(rel, false); err == nil {
-			ownedResources[filepath.Clean(p)] = true
+	userManaged := fileExists(filepath.Join(dir, certUserMarker))
+	proofCache := map[string]map[string]bool{}
+	proofFor := func(d string) map[string]bool {
+		if proof, ok := proofCache[d]; ok {
+			return proof
 		}
+		proof := readCertOwnershipProof(d, rep)
+		proofCache[d] = proof
+		return proof
 	}
 
 	var moves []certMove
 	for _, entry := range entries {
-		target := filepath.Join(dir, entry.Name())
+		name := entry.Name()
+		if name == certMarkerName || name == certUserMarker {
+			// Ownership records are never deletion candidates; a fully owned
+			// directory takes them along as one transaction unit.
+			continue
+		}
+		target := filepath.Join(dir, name)
 		info, err := os.Lstat(target)
 		if err != nil {
 			if os.IsNotExist(err) {
@@ -265,28 +277,22 @@ func planManagedDir(paths host.Paths, dir string, scan certReferenceScan, meta s
 				keepEntry(rep, target, "directory", certOwnerUser, false, nil, "the .user-managed marker forbids automatic removal")
 				continue
 			}
-			files, used, unknown, hasLink := scanCertDir(target, refs, managerOwned, scheduleCerts, ownedResources)
+			files, used, badReason := examineCertDir(target, refs, proofFor, 0)
 			inUse := len(used) > 0 || refsContainDir(refs, target)
-			if scan.failClosed && (managerOwned || files > 0) {
-				keepEntry(rep, target, "directory", certOwnerUnknown, inUse, used,
-					"the effective configuration could not be fully scanned; refusing to remove a project directory")
-				continue
-			}
-			if hasLink || unknown {
-				reason := "directory holds a symlink or a file whose ownership is not proven; refusing to remove it"
-				keepEntry(rep, target, "directory", certOwnerUnknown, inUse, used, reason)
-				continue
-			}
-			if inUse {
+			switch {
+			case inUse:
 				keepEntry(rep, target, "directory", certOwnerProject, true, used, "referenced by an effective configuration")
-				continue
-			}
-			if managerOwned || files > 0 {
-				addPlan(rep, target, "directory", certOwnerProject, false, nil, certActionDelete, "")
+			case badReason != "":
+				keepEntry(rep, target, "directory", certOwnerUnknown, false, used, badReason)
+			case scan.failClosed:
+				keepEntry(rep, target, "directory", certOwnerProject, false, used,
+					"the effective configuration could not be fully scanned; refusing to remove a project directory")
+			case files == 0:
+				keepEntry(rep, target, "directory", certOwnerUnknown, false, nil, "empty directory has no ownership record")
+			default:
+				addPlan(rep, target, "directory", certOwnerProject, false, nil, certActionDelete, "every file is bound to this project by its ownership record and no configuration references it")
 				moves = append(moves, certMove{From: target, Kind: "dir"})
-				continue
 			}
-			keepEntry(rep, target, "directory", certOwnerUnknown, false, nil, "ownership is not proven")
 			continue
 		}
 		if !info.Mode().IsRegular() {
@@ -295,14 +301,18 @@ func planManagedDir(paths host.Paths, dir string, scan certReferenceScan, meta s
 		}
 		used := refs[filepath.Clean(target)]
 		inUse := len(used) > 0
-		owner := classifyManagedFile(target, userManaged, managerOwned, scheduleCerts, ownedResources)
+		owned := proofFor(dir)[filepath.Clean(target)]
+		owner := certOwnerUnknown
+		if owned {
+			owner = certOwnerProject
+		}
 		switch {
 		case inUse:
 			keepEntry(rep, target, "file", certOwnerProject, true, used, "referenced by an effective configuration")
 		case userManaged:
 			keepEntry(rep, target, "file", certOwnerUser, false, nil, "the .user-managed marker forbids automatic removal")
-		case owner != certOwnerProject:
-			keepEntry(rep, target, "file", owner, false, nil, "ownership is not proven; not removed")
+		case !owned:
+			keepEntry(rep, target, "file", owner, false, nil, "ownership is not proven by the manager's ownership record; not removed")
 		case scan.failClosed:
 			keepEntry(rep, target, "file", owner, false, nil,
 				"the effective configuration could not be fully scanned; cannot prove this certificate is unused")
@@ -314,40 +324,103 @@ func planManagedDir(paths host.Paths, dir string, scan certReferenceScan, meta s
 	return moves, nil
 }
 
-// scanCertDir reports whether a directory contains project-owned files, an
-// unknown file, or a symlink. It never follows links.
-func scanCertDir(dir string, refs map[string][]string, managerOwned bool, scheduleCerts, ownedResources map[string]bool) (files int, used []string, unknown, hasLink bool) {
-	_ = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+// readCertOwnershipProof returns the files in dir whose current content hash is
+// listed in the manager's ownership record. A marker alone (including a legacy
+// marker without hashes) proves nothing, and neither does a file name or the
+// directory it happens to live in.
+func readCertOwnershipProof(dir string, rep *ClearCertsReport) map[string]bool {
+	owned := map[string]bool{}
+	marker := filepath.Join(dir, certMarkerName)
+	raw, err := os.ReadFile(marker)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			rep.Warnings = append(rep.Warnings, "cannot read the ownership record "+marker+": "+err.Error())
+		}
+		return owned
+	}
+	hashes := map[string]bool{}
+	for _, m := range managedHashLine.FindAllStringSubmatch(string(raw), -1) {
+		hashes[m[1]] = true
+	}
+	if len(hashes) == 0 {
+		rep.Warnings = append(rep.Warnings,
+			"the ownership record "+marker+" has no content hashes; files in that directory are preserved")
+		return owned
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		rep.Warnings = append(rep.Warnings, "cannot read "+dir+" while checking ownership: "+err.Error())
+		return owned
+	}
+	for _, entry := range entries {
+		name := entry.Name()
+		if name == certMarkerName || name == certUserMarker || entry.IsDir() || entry.Type()&os.ModeSymlink != 0 || !entry.Type().IsRegular() {
+			continue
+		}
+		path := filepath.Join(dir, name)
+		sum, err := certFileSHA256(path)
 		if err != nil {
-			if path == dir {
-				unknown = true
+			rep.Warnings = append(rep.Warnings, "cannot hash "+path+" while checking ownership: "+err.Error())
+			continue
+		}
+		if hashes[sum] {
+			owned[filepath.Clean(path)] = true
+		}
+	}
+	return owned
+}
+
+// examineCertDir proves that every regular file in a directory tree is bound to
+// this project by its own content hash and that none of them is referenced by
+// an effective configuration. Any doubt keeps the directory.
+func examineCertDir(dir string, refs map[string][]string, proofFor func(string) map[string]bool, depth int) (files int, used []string, reason string) {
+	if depth > maxDirWalkDepth {
+		return files, used, "the certificate directory tree is deeper than the supported limit; refusing to remove it"
+	}
+	proof := proofFor(dir)
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return files, used, "cannot read " + dir + " while proving ownership: " + err.Error()
+	}
+	for _, entry := range entries {
+		name := entry.Name()
+		if name == certMarkerName || name == certUserMarker {
+			continue
+		}
+		path := filepath.Join(dir, name)
+		if entry.Type()&os.ModeSymlink != 0 {
+			return files, used, "the certificate directory holds a symlink; refusing to remove it"
+		}
+		if entry.IsDir() {
+			childFiles, childUsed, childReason := examineCertDir(path, refs, proofFor, depth+1)
+			files += childFiles
+			used = append(used, childUsed...)
+			if childReason != "" {
+				return files, used, childReason
 			}
-			return nil
+			continue
 		}
-		if path == dir {
-			return nil
-		}
-		if d.Type()&os.ModeSymlink != 0 {
-			hasLink = true
-			return nil
-		}
-		if d.IsDir() {
-			return nil
+		if !entry.Type().IsRegular() {
+			return files, used, "the certificate directory holds a special file; refusing to remove it"
 		}
 		files++
 		if refs[filepath.Clean(path)] != nil {
 			used = append(used, filepath.Clean(path))
 		}
-		if !d.Type().IsRegular() {
-			unknown = true
-			return nil
+		if !proof[filepath.Clean(path)] {
+			return files, used, "ownership of " + path + " is not proven by the manager's ownership record; refusing to remove the directory"
 		}
-		if classifyManagedFile(path, false, managerOwned, scheduleCerts, ownedResources) != certOwnerProject {
-			unknown = true
-		}
-		return nil
-	})
-	return files, used, unknown, hasLink
+	}
+	return files, used, ""
+}
+
+func certFileSHA256(path string) (string, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:]), nil
 }
 
 func refsContainDir(refs map[string][]string, dir string) bool {
@@ -360,57 +433,6 @@ func refsContainDir(refs map[string][]string, dir string) bool {
 	return false
 }
 
-func classifyManagedFile(path string, userManaged, managerOwned bool, scheduleCerts, ownedResources map[string]bool) string {
-	if userManaged {
-		return certOwnerUser
-	}
-	if managerOwned {
-		return certOwnerProject
-	}
-	if managedPairNames[filepath.Base(path)] {
-		return certOwnerProject
-	}
-	if scheduleCerts[filepath.Clean(path)] {
-		return certOwnerProject
-	}
-	if ownedResources[filepath.Clean(path)] {
-		return certOwnerProject
-	}
-	if strings.HasPrefix(filepath.Base(path), ".") {
-		// Project markers and sidecar files live in the managed directory.
-		return certOwnerProject
-	}
-	return certOwnerUnknown
-}
-
-func configuredScheduleCerts(paths host.Paths) map[string]bool {
-	out := map[string]bool{}
-	cfgPath, err := paths.Join(schedule.ConfigRel, false)
-	if err != nil {
-		return out
-	}
-	raw, err := os.ReadFile(cfgPath)
-	if err != nil {
-		return out
-	}
-	var cfg struct {
-		CertFile    string `json:"certFile"`
-		CertKeyFile string `json:"certKeyFile"`
-	}
-	if json.Unmarshal(raw, &cfg) != nil {
-		return out
-	}
-	for _, rel := range []string{cfg.CertFile, cfg.CertKeyFile} {
-		if rel == "" {
-			continue
-		}
-		if p, err := paths.Join(rel, false); err == nil {
-			out[filepath.Clean(p)] = true
-		}
-	}
-	return out
-}
-
 // certReferenceScan is the result of following the effective configuration.
 // failClosed means at least one reference could not be proven: a variable path,
 // an unreadable file or a missing include. In that state every project-owned
@@ -419,6 +441,7 @@ func configuredScheduleCerts(paths host.Paths) map[string]bool {
 type certReferenceScan struct {
 	refs       map[string][]string
 	warnings   []string
+	incompleteSeen map[string]bool
 	failClosed bool
 }
 
@@ -436,7 +459,11 @@ func collectCertReferences(paths host.Paths, meta store.Metadata) certReferenceS
 	var scanFile func(path string, depth int)
 	scanFile = func(path string, depth int) {
 		clean := filepath.Clean(path)
-		if visited[clean] || depth > 16 {
+		if visited[clean] {
+			return
+		}
+		if depth > maxScanDepth {
+			scan.incomplete("the include chain at " + clean + " exceeds the supported nesting depth")
 			return
 		}
 		visited[clean] = true
@@ -452,8 +479,8 @@ func collectCertReferences(paths host.Paths, meta store.Metadata) certReferenceS
 			if target == "" {
 				continue
 			}
-			if strings.Contains(target, "$") {
-				scan.incomplete("the include path in " + clean + " uses a variable")
+			if strings.ContainsAny(target, "$}{") {
+				scan.incomplete("the include path in " + clean + " uses a variable or brace expression")
 				continue
 			}
 			resolved := resolveNginxPath(paths, prefix, target)
@@ -467,6 +494,10 @@ func collectCertReferences(paths host.Paths, meta store.Metadata) certReferenceS
 				found, globErr := filepath.Glob(resolved)
 				if globErr != nil {
 					scan.incomplete("the include glob in " + clean + " is invalid")
+					continue
+				}
+				if len(found) == 0 {
+					scan.incomplete("the include glob in " + clean + " matches no configuration")
 					continue
 				}
 				matches = found
@@ -491,6 +522,8 @@ func collectCertReferences(paths host.Paths, meta store.Metadata) certReferenceS
 	if mainConf, err := paths.Join(filepath.Join(nginx.InstallDirRel, "conf", "nginx.conf"), false); err == nil {
 		if _, statErr := os.Stat(mainConf); statErr == nil {
 			scanFile(mainConf, 0)
+		} else if managedNginxInstalled(paths) {
+			scan.incomplete("the managed main configuration " + mainConf + " is missing")
 		}
 	}
 	for _, rel := range []string{nginx.ConfDirRel, filepath.Join(nginx.InstallDirRel, "conf")} {
@@ -500,9 +533,7 @@ func collectCertReferences(paths host.Paths, meta store.Metadata) certReferenceS
 		}
 		_ = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
 			if err != nil {
-				if path != dir {
-					scan.incomplete("cannot read configuration " + path)
-				}
+				scan.incomplete("cannot read configuration " + path)
 				return nil
 			}
 			if d.IsDir() {
@@ -528,7 +559,11 @@ func collectCertReferences(paths host.Paths, meta store.Metadata) certReferenceS
 	}
 	if xrayDir, err := paths.Join("etc/idleleo/conf/xray", false); err == nil {
 		_ = filepath.WalkDir(xrayDir, func(path string, d os.DirEntry, err error) error {
-			if err != nil || d.IsDir() || !d.Type().IsRegular() {
+			if err != nil {
+				scan.incomplete("cannot read Xray configuration " + path)
+				return nil
+			}
+			if d.IsDir() || !d.Type().IsRegular() {
 				return nil
 			}
 			if strings.HasSuffix(path, ".json") {
@@ -565,6 +600,13 @@ func collectCertReferences(paths host.Paths, meta store.Metadata) certReferenceS
 
 func (s *certReferenceScan) incomplete(reason string) {
 	s.failClosed = true
+	if s.incompleteSeen == nil {
+		s.incompleteSeen = map[string]bool{}
+	}
+	if s.incompleteSeen[reason] {
+		return
+	}
+	s.incompleteSeen[reason] = true
 	s.warnings = append(s.warnings, reason+"; certificates whose use cannot be proven will be kept")
 }
 
@@ -573,8 +615,12 @@ func (s *certReferenceScan) add(paths host.Paths, prefix, raw, source string) {
 	if raw == "" {
 		return
 	}
-	if strings.Contains(raw, "$") {
-		s.incomplete("a certificate directive in " + source + " uses a variable path")
+	if strings.ContainsAny(raw, "$}{") {
+		s.incomplete("a certificate directive in " + source + " uses a variable or brace expression")
+		return
+	}
+	if strings.IndexFunc(raw, unicode.IsSpace) >= 0 {
+		s.incomplete("a certificate directive in " + source + " contains embedded whitespace and cannot be parsed safely")
 		return
 	}
 	p := resolveNginxPath(paths, prefix, raw)
@@ -663,10 +709,31 @@ func managedNginxInstalled(paths host.Paths) bool {
 	return err == nil && fi.Mode().IsRegular()
 }
 
-// planACMEState removes only acme.sh domain directories whose certificate is
-// already proven project-owned. Account keys, CA state and unknown domains are
-// always preserved.
-func planACMEState(home string, rep *ClearCertsReport) ([]certMove, error) {
+// planACMEState removes only acme.sh domain directories that can be matched,
+// by certificate identity, to a certificate this manager has proven it owns and
+// has already planned to remove. Account keys, CA state, user-managed pairs and
+// domains whose acme.sh certificate does not match are always preserved.
+func planACMEState(home string, scan certReferenceScan, rep *ClearCertsReport) ([]certMove, error) {
+	preserveAll := ""
+	if scan.failClosed {
+		preserveAll = "the effective configuration could not be fully scanned"
+	} else if rep.Dir != "" && fileExists(filepath.Join(rep.Dir, certUserMarker)) {
+		preserveAll = "the certificate directory is marked .user-managed"
+	}
+	deletable := map[string]bool{}
+	for _, entry := range rep.Planned {
+		if entry.Action != certActionDelete || entry.Kind != "file" {
+			continue
+		}
+		if !strings.HasSuffix(entry.Path, ".crt") && !strings.HasSuffix(entry.Path, ".pem") {
+			continue
+		}
+		fp, err := certFingerprint(entry.Path)
+		if err != nil {
+			continue
+		}
+		deletable[fp] = true
+	}
 	root := filepath.Join(home, ".acme.sh")
 	entries, err := os.ReadDir(root)
 	if err != nil {
@@ -675,68 +742,66 @@ func planACMEState(home string, rep *ClearCertsReport) ([]certMove, error) {
 		}
 		return nil, nil
 	}
-	domains := projectCertDomains(rep.Dir)
-	if len(domains) == 0 {
-		rep.Warnings = append(rep.Warnings, "no project certificate domain could be identified; acme.sh state left untouched")
+	if preserveAll != "" {
+		rep.Warnings = append(rep.Warnings, "acme.sh state is preserved because "+preserveAll)
+		for _, entry := range entries {
+			if entry.IsDir() && entry.Type()&os.ModeSymlink == 0 && strings.HasSuffix(entry.Name(), "_ecc") {
+				keepEntry(rep, filepath.Join(root, entry.Name()), "acme-directory", certOwnerUnknown, false, nil,
+					"preserved because "+preserveAll)
+			}
+		}
+		return nil, nil
+	}
+	if len(deletable) == 0 {
+		rep.Warnings = append(rep.Warnings,
+			"no removable project certificate identity is available; acme.sh state left untouched")
+		for _, entry := range entries {
+			if entry.IsDir() && entry.Type()&os.ModeSymlink == 0 && strings.HasSuffix(entry.Name(), "_ecc") {
+				keepEntry(rep, filepath.Join(root, entry.Name()), "acme-directory", certOwnerUser, false, nil,
+					"no project ownership record binds this ACME state to a certificate being removed; preserving it")
+			}
+		}
 		return nil, nil
 	}
 	var moves []certMove
 	for _, entry := range entries {
-		if !entry.IsDir() || !strings.HasSuffix(entry.Name(), "_ecc") {
+		if !entry.IsDir() || entry.Type()&os.ModeSymlink != 0 || !strings.HasSuffix(entry.Name(), "_ecc") {
 			continue
 		}
 		target := filepath.Join(root, entry.Name())
-		if entry.Type()&os.ModeSymlink != 0 {
-			keepEntry(rep, target, "acme-directory", certOwnerUnknown, false, nil, "symlink left untouched")
-			continue
-		}
 		domain := strings.TrimSuffix(entry.Name(), "_ecc")
-		if !domains[domain] {
+		cerPath := filepath.Join(target, domain+".cer")
+		fp, err := certFingerprint(cerPath)
+		if err != nil || !deletable[fp] {
 			keepEntry(rep, target, "acme-directory", certOwnerUser, false, nil,
-				"ACME domain is not one of this project's certificates; preserving it")
+				"no project ownership record binds this ACME state to a certificate being removed; preserving it")
 			continue
 		}
-		addPlan(rep, target, "acme-directory", certOwnerProject, false, nil, certActionDelete, "")
+		addPlan(rep, target, "acme-directory", certOwnerProject, false, nil, certActionDelete,
+			"ACME state holds the identical certificate that this project issued and is removing")
 		moves = append(moves, certMove{From: target, Kind: "acme"})
 	}
 	return moves, nil
 }
 
-// projectCertDomains extracts the DNS names of project-owned certificates in
-// the managed directory. It is the ownership proof used for acme.sh state.
-func projectCertDomains(dir string) map[string]bool {
-	out := map[string]bool{}
-	if dir == "" {
-		return out
-	}
-	entries, err := os.ReadDir(dir)
+// certFingerprint returns the SHA-256 digest of the DER certificate. It accepts
+// PEM (including chains) and raw DER, so it can compare the managed certificate
+// with acme.sh's own copy.
+func certFingerprint(path string) (string, error) {
+	raw, err := os.ReadFile(path)
 	if err != nil {
-		return out
+		return "", err
 	}
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".crt") {
-			continue
-		}
-		raw, err := os.ReadFile(filepath.Join(dir, entry.Name()))
-		if err != nil {
-			continue
-		}
-		block, _ := pem.Decode(raw)
-		if block == nil || block.Type != "CERTIFICATE" {
-			continue
-		}
-		cert, err := x509.ParseCertificate(block.Bytes)
-		if err != nil {
-			continue
-		}
-		for _, name := range cert.DNSNames {
-			out[strings.ToLower(name)] = true
-		}
-		if cert.Subject.CommonName != "" {
-			out[strings.ToLower(cert.Subject.CommonName)] = true
-		}
+	der := raw
+	if block, _ := pem.Decode(raw); block != nil {
+		der = block.Bytes
 	}
-	return out
+	cert, err := x509.ParseCertificate(der)
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(cert.Raw)
+	return hex.EncodeToString(sum[:]), nil
 }
 
 func addPlan(rep *ClearCertsReport, path, kind, owner string, inUse bool, used []string, action, reason string) {

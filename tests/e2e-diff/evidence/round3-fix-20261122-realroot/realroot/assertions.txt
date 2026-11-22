@@ -1,0 +1,26 @@
+PASS	OPS-17b update nginx exits 0 (rc=0)
+PASS	OPS-17b reports an update action
+PASS	OPS-17b reads the installed 1.27.5
+PASS	OPS-17b installs the manifest 1.30.6
+PASS	OPS-17b verifies the artifact digest
+PASS	OPS-17b passes the nginx -t health check
+PASS	OPS-17b activated binary reports 1.30.6
+PASS	OPS-17b kept a backup of the previous tree
+PASS	OPS-08 guard configured-isolate
+PASS	OPS-08 guard missing-fragment
+PASS	OPS-08 guard missing-main
+PASS	OPS-08 guard unreadable-main
+PASS	OPS-08 guard active-running
+PASS	OPS-08 guard reject-configured
+PASS	OPS-08 guard driver exits 0 (rc=0)
+PASS	OPS-27 cert-clear inline-multi
+PASS	OPS-27 cert-clear external-include
+PASS	OPS-27 cert-clear symlink-alias
+PASS	OPS-27 cert-clear variable-path
+PASS	OPS-27 cert-clear xray-second-config
+FAIL	OPS-27 cert-clear unused-pair: CASE unused-pair FAIL (expected rc=0 removed=2 canary=1 after=0, got rc=0 removed=0 canary=1 after=0)
+PASS	OPS-27 cert-clear broken-config
+PASS	OPS-27 cert-clear quoted-inline
+FAIL	OPS-27 cert-clear invalid-nginx-refuse: CASE invalid-nginx-refuse FAIL (expected rc=refused before=broken kept=1, got rc=ok before=broken kept=1)
+FAIL	OPS-27 cert-clear rollback-fault: CASE rollback-fault FAIL (expected rc=refused kept=1 after=0, got rc=ok kept=1 after=0)
+FAIL	OPS-27 cert-clear driver exits 0 (rc=1)

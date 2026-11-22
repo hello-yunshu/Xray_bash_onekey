@@ -1,0 +1,146 @@
+package deploy
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
+)
+
+func stubInspectNginxProcess(t *testing.T, fn func(bin string, pid int) (nginxProcess, error)) {
+	t.Helper()
+	old := inspectNginxProcess
+	inspectNginxProcess = fn
+	t.Cleanup(func() { inspectNginxProcess = old })
+}
+
+func seedRunningNginx(t *testing.T, root string) string {
+	t.Helper()
+	bin := filepath.Join(root, "usr/local/nginx/sbin/nginx")
+	writeGuardTestFile(t, bin, []byte("#!/bin/sh\n"))
+	writeGuardTestFile(t, filepath.Join(root, "usr/local/nginx/logs/nginx.pid"), []byte("4242\n"))
+	return bin
+}
+
+// D04 repro: the managed master is alive, but the policy files were edited
+// afterwards and never reloaded. This must not be reported as active.
+func TestInspectSNIGuardDoesNotClaimActiveWithoutReloadProof(t *testing.T) {
+	root := seedGuardInstall(t)
+	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
+		t.Fatal(err)
+	}
+	bin := seedRunningNginx(t, root)
+	stubInspectNginxProcess(t, func(gotBin string, pid int) (nginxProcess, error) {
+		return nginxProcess{Alive: true, Exe: gotBin, Started: time.Now().Add(-time.Hour)}, nil
+	})
+	// A hand edit after the master started. The content change also invalidates
+	// any reload record that was bound to the previous fragment.
+	frag := filepath.Join(root, nginxDirRel, "03-isolate.conf")
+	writeGuardTestFile(t, frag, []byte(isolateFragment()+"# hand edit after reload\n"))
+	future := time.Now().Add(time.Minute)
+	if err := os.Chtimes(frag, future, future); err != nil {
+		t.Fatal(err)
+	}
+
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "runtime-unverified" {
+		t.Fatalf("an unreloaded policy change must not be active: %+v", st)
+	}
+	if !strings.Contains(strings.Join(st.Warnings, " "), "not been reloaded") &&
+		!strings.Contains(strings.Join(st.Warnings, " "), "predates") {
+		t.Fatalf("the operator must be told why the policy is unverified: %v", st.Warnings)
+	}
+	if !st.MetadataSynced {
+		t.Fatal("metadata still matches the files here; only the runtime is unverified")
+	}
+	_ = bin
+}
+
+func TestInspectSNIGuardReportsActiveWhenMasterStartedAfterFiles(t *testing.T) {
+	root := seedGuardInstall(t)
+	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
+		t.Fatal(err)
+	}
+	seedRunningNginx(t, root)
+	stubInspectNginxProcess(t, func(bin string, pid int) (nginxProcess, error) {
+		return nginxProcess{Alive: true, Exe: bin, Started: time.Now().Add(time.Minute)}, nil
+	})
+
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "active" {
+		t.Fatalf("a master started after the files loaded them: %+v", st)
+	}
+}
+
+func TestInspectSNIGuardReportsActiveAfterVerifiedReloadRecord(t *testing.T) {
+	root := seedGuardInstall(t)
+	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
+		t.Fatal(err)
+	}
+	seedRunningNginx(t, root)
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := writeGuardRuntimeRecord(paths, SNIPolicyIsolate, guardRuntimeEvidence(paths)); err != nil {
+		t.Fatal(err)
+	}
+	stubInspectNginxProcess(t, func(bin string, pid int) (nginxProcess, error) {
+		return nginxProcess{Alive: true, Exe: bin, Started: time.Now().Add(-time.Hour)}, nil
+	})
+
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "active" {
+		t.Fatalf("a content-bound reload record proves the load: %+v", st)
+	}
+}
+
+func TestInspectSNIGuardRejectsForeignProcess(t *testing.T) {
+	root := seedGuardInstall(t)
+	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
+		t.Fatal(err)
+	}
+	seedRunningNginx(t, root)
+	stubInspectNginxProcess(t, func(bin string, pid int) (nginxProcess, error) {
+		return nginxProcess{Alive: true, Exe: "/usr/bin/sleep", Started: time.Now().Add(time.Hour)}, nil
+	})
+
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "runtime-unverified" {
+		t.Fatalf("an unrelated pid must not prove the managed Nginx policy: %+v", st)
+	}
+}
+
+func TestInspectSNIGuardMetadataSyncedFalseOnDrift(t *testing.T) {
+	root := seedGuardInstall(t)
+	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
+		t.Fatal(err)
+	}
+	meta := loadGuardTestMetadata(t, root)
+	meta.SNIGuard.Policy = SNIPolicyReject
+	writeGuardTestFile(t, filepath.Join(root, "etc/idleleo/v1/metadata.json"), mustJSON(t, meta))
+
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "drift" || st.MetadataSynced {
+		t.Fatalf("metadata must not be reported as synced while it drifts: %+v", st)
+	}
+}

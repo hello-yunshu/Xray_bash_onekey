@@ -16,8 +16,10 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -169,7 +171,7 @@ func Issue(ctx context.Context, cfg Config) (Result, error) {
 	// Ownership is recorded only after the new pair is live and accepted by the
 	// service. Doing it earlier would clear the user-managed marker even when a
 	// failed reload rolled the operator's certificate back into place.
-	if err := markManaged(cfg.CertFile, cfg.CertGroup); err != nil {
+	if err := markManaged(cfg.CertFile, cfg.KeyFile, cfg.CertGroup); err != nil {
 		return res, err
 	}
 	if err := clearUserManaged(cfg.CertFile); err != nil {
@@ -659,11 +661,13 @@ func ManagedMarker(certFile string) string {
 	return filepath.Join(filepath.Dir(certFile), managedMarker)
 }
 
-// markManaged records that this manager issued the installed pair. The marker
-// lives in the certificate directory, which the layered model makes group
-// readable, so it must be chowned like the pair itself or the next
-// `verify_nginx_layered_permissions` pass would reject it.
-func markManaged(certFile, group string) error {
+// markManaged records that this manager issued the installed pair. The record
+// carries the content hashes of the certificate and key so a later cleanup can
+// prove ownership by file identity instead of trusting a name, a domain or the
+// directory marker alone. It lives in the certificate directory, which the
+// layered model makes group readable, so it must be chowned like the pair itself
+// or the next `verify_nginx_layered_permissions` pass would reject it.
+func markManaged(certFile, keyFile, group string) error {
 	dir := filepath.Dir(certFile)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
@@ -682,6 +686,16 @@ func markManaged(certFile, group string) error {
 		mode = 0o640
 	}
 	body := []byte("managed-by=idleleo\n")
+	for _, file := range []string{certFile, keyFile} {
+		if file == "" {
+			continue
+		}
+		sum, err := fileSHA256(file)
+		if err != nil {
+			return fmt.Errorf("hash %s for the ownership record: %w", file, err)
+		}
+		body = append(body, []byte("sha256="+sum+"\n")...)
+	}
 	if err := os.WriteFile(ManagedMarker(certFile), body, mode); err != nil {
 		return err
 	}
@@ -698,6 +712,15 @@ func clearUserManaged(certFile string) error {
 		return err
 	}
 	return nil
+}
+
+func fileSHA256(path string) (string, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:]), nil
 }
 
 // migrateLegacyAccount moves account state out of <cert dir>/acme, where the

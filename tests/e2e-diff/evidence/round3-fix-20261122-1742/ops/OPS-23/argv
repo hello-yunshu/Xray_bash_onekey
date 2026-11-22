@@ -1,0 +1,1 @@
+speedtest --server http://e2e-round3-fix-20261122-1742-origin --bytes 1048576 --samples 1 --json

@@ -342,6 +342,34 @@ func TestEditXHTTPPathRejectsBlankInput(t *testing.T) {
 	}
 }
 
+// D10: NBSP, ideographic space and other Unicode spaces passed the ASCII check
+// and were silently trimmed or embedded into the rendered configuration.
+func TestEditXHTTPPathRejectsUnicodeWhitespace(t *testing.T) {
+	raw := editBase(t)
+	for _, in := range []string{
+		"/custom\u00a0path", // NBSP in the middle
+		"\u3000/custom",     // ideographic space
+		"/custom/ ",         // trailing ASCII space
+		"/custom\u2003",     // em space
+		"/custom\x0bpath",   // vertical tab
+	} {
+		if _, _, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},
+			EditRequest{Transport: TransportXHTTP, XHTTPPath: in, XHTTPPathSet: true}); err == nil {
+			t.Fatalf("xhttp path %q must be rejected", in)
+		}
+	}
+}
+
+func TestGenerateRejectsUnicodeWhitespaceXHTTPPath(t *testing.T) {
+	_, err := Generate(Spec{
+		Mode: ModeReality, Domain: "node.example.com",
+		Transport: TransportXHTTP, Path: "/custom\u00a0path",
+	})
+	if err == nil || !strings.Contains(err.Error(), "xhttp path") {
+		t.Fatalf("generate must reject a Unicode-whitespace xhttp path, got %v", err)
+	}
+}
+
 func TestEditTargetAndServerNames(t *testing.T) {
 	raw := editBase(t)
 	g, _, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},

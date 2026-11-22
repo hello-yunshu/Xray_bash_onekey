@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 // EditDefaults carries the install facts that the runtime config does not
@@ -304,18 +305,29 @@ func hasChange(changed []string, names ...string) bool {
 	return false
 }
 
+// ValidateXHTTPPath refuses any value that would render an unusable Xray path.
+// unicode.IsSpace covers NBSP, ideographic space and the other Unicode spaces a
+// plain ASCII ` \t\r\n` check silently accepts; control characters are refused
+// for the same reason.
+func ValidateXHTTPPath(p string) error {
+	if p == "" {
+		return fmt.Errorf("xhttp path must not be empty")
+	}
+	if i := strings.IndexFunc(p, func(r rune) bool { return unicode.IsSpace(r) || unicode.IsControl(r) }); i >= 0 {
+		return fmt.Errorf("xhttp path must not contain whitespace or control characters (byte %d)", i)
+	}
+	return nil
+}
+
 // normalizeXHTTPPath mirrors the Bash installer, which always renders the path
 // as "/<path>". A trailing slash is preserved: a real Xray 26.10.31 client
 // normalizes it in both directions, so only the leading slash is required.
+// Whitespace is never trimmed: validation rejects it first.
 func normalizeXHTTPPath(p string) string {
-	p = strings.TrimSpace(p)
-	if p == "" {
+	if p == "" || strings.HasPrefix(p, "/") {
 		return p
 	}
-	if !strings.HasPrefix(p, "/") {
-		return "/" + p
-	}
-	return p
+	return "/" + p
 }
 
 // shareHostFor mirrors the host Generate uses for the share link.
@@ -495,8 +507,8 @@ func applyEditRequest(spec *Spec, base EditDefaults, req EditRequest) ([]string,
 		if spec.Transport == TransportMulti {
 			return nil, fmt.Errorf("the multi transport fixes the xhttp path; use a single xhttp transport to change it")
 		}
-		if req.XHTTPPath == "" || strings.ContainsAny(req.XHTTPPath, " \t\r\n") {
-			return nil, fmt.Errorf("--xhttp-path must be a non-empty path without whitespace")
+		if err := ValidateXHTTPPath(req.XHTTPPath); err != nil {
+			return nil, fmt.Errorf("--xhttp-path: %w", err)
 		}
 		spec.Path = normalizeXHTTPPath(req.XHTTPPath)
 		changed = append(changed, "xhttp-path")

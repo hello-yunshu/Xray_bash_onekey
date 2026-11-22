@@ -317,6 +317,14 @@ func Generate(spec Spec) (Generated, error) {
 	if !strings.HasPrefix(spec.Path, "/") {
 		spec.Path = "/" + spec.Path
 	}
+	if spec.Transport == TransportXHTTP {
+		// Install, generate, edit and share-link import all converge here, so a
+		// Unicode space cannot slip into the rendered configuration through any
+		// entry point.
+		if err := ValidateXHTTPPath(spec.Path); err != nil {
+			return Generated{}, err
+		}
+	}
 	if spec.ServiceName == "" {
 		spec.ServiceName = defaultGRPCService
 	}

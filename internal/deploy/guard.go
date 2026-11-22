@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -18,6 +19,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"syscall"
@@ -276,6 +278,14 @@ func SetSNIGuard(ctx context.Context, spec SNIGuardSpec) (SNIGuardReport, error)
 	if err := journalMarkCommitted(paths, &journal); err != nil {
 		return rep, err
 	}
+	if rep.Reloaded {
+		// Only a successful reload justifies "the running Nginx loaded these
+		// files". The record is bound to the content hashes, so any later hand
+		// edit makes the status fall back to runtime-unverified.
+		if err := writeGuardRuntimeRecord(paths, rep.Policy, guardRuntimeEvidence(paths)); err != nil {
+			rep.Warnings = append(rep.Warnings, "the reload completed but the runtime verification record could not be written: "+err.Error())
+		}
+	}
 	return rep, nil
 }
 
@@ -429,12 +439,20 @@ func InspectSNIGuard(root string) (SNIGuardStatus, error) {
 		st.Policy = SNIPolicyReject
 	}
 	st.Enabled = true
-	// Files are consistent. "active" additionally requires a running Nginx that
-	// loaded them; otherwise the truthful state is "configured".
-	st.Status = "active"
-	if !nginxRunning(root) {
-		st.Status = "configured"
-		st.Warnings = append(st.Warnings, "the policy files are consistent but the managed Nginx is not running; reporting configured, not active")
+	// "active" is a runtime claim: it needs a live managed Nginx whose identity
+	// and load state can be proven. Anything less is reported truthfully as
+	// configured or runtime-unverified instead of pretending the policy applies.
+	if verified, alive, reason := nginxPolicyRuntimeVerified(paths, st.Evidence, st.Policy); verified {
+		st.Status = "active"
+	} else {
+		if alive {
+			st.Status = "runtime-unverified"
+		} else {
+			st.Status = "configured"
+		}
+		if reason != "" {
+			st.Warnings = append(st.Warnings, reason)
+		}
 	}
 
 	if metaErr != nil {
@@ -446,8 +464,8 @@ func InspectSNIGuard(root string) (SNIGuardStatus, error) {
 		st.Warnings = append(st.Warnings, "metadata has no sniGuard record; showing deployed artifacts, nothing was rewritten")
 		return st, nil
 	}
-	st.MetadataSynced = true
 	if !meta.SNIGuard.Enabled {
+		st.MetadataSynced = false
 		if st.Enabled {
 			st.Status = "drift"
 			st.Warnings = append(st.Warnings, "metadata says sniGuard is disabled but the deployed front still applies a policy")
@@ -457,41 +475,195 @@ func InspectSNIGuard(root string) (SNIGuardStatus, error) {
 		return st, nil
 	}
 	if meta.SNIGuard.Policy != st.Policy {
+		st.MetadataSynced = false
 		st.Status = "drift"
 		st.Warnings = append(st.Warnings, fmt.Sprintf("metadata policy %q does not match deployed policy %q", meta.SNIGuard.Policy, st.Policy))
 		return st, nil
 	}
 	if st.DecoyDomain == "" {
 		st.DecoyDomain = meta.SNIGuard.DecoyDomain
+	} else if meta.SNIGuard.DecoyDomain != "" && st.DecoyDomain != meta.SNIGuard.DecoyDomain {
+		st.MetadataSynced = false
+		st.Status = "drift"
+		st.Warnings = append(st.Warnings, fmt.Sprintf("metadata decoy domain %q does not match the deployed domain %q", meta.SNIGuard.DecoyDomain, st.DecoyDomain))
+		return st, nil
 	}
-	if st.Status != "configured" {
-		st.Status = "active"
-	}
+	// Only now is every artifact/metadata comparison known to agree.
+	st.MetadataSynced = true
 	return st, nil
 }
 
-// nginxRunning reports whether the managed Nginx master is alive. A missing
-// binary or pid file is not evidence of an applied policy, so the caller must
-// report "configured" instead of "active".
-func nginxRunning(root string) bool {
-	bin := filepath.Join(root, filepath.FromSlash(nginx.InstallDirRel), "sbin", "nginx")
+// nginxProcess is the verifiable identity of the managed Nginx master.
+type nginxProcess struct {
+	Alive   bool
+	Exe     string
+	Started time.Time
+}
+
+// inspectNginxProcess is a variable so tests can simulate a managed master
+// without starting Nginx; production always reads the real /proc entry.
+var inspectNginxProcess = readNginxProcess
+
+// nginxPolicyRuntimeVerified proves three things before "active" is claimed:
+// the pid belongs to the managed Nginx binary, that process is alive, and it
+// either started after the current policy files were written or a successful
+// reload recorded exactly these file hashes.
+func nginxPolicyRuntimeVerified(paths host.Paths, evidence []string, policy string) (verified, alive bool, reason string) {
+	bin := filepath.Join(paths.Root, filepath.FromSlash(nginx.InstallDirRel), "sbin", "nginx")
 	if fi, err := os.Stat(bin); err != nil || !fi.Mode().IsRegular() {
-		return false
+		return false, false, "the managed Nginx binary is missing; reporting configured, not active"
 	}
-	pidFile := filepath.Join(root, filepath.FromSlash(nginx.InstallDirRel), "logs", "nginx.pid")
+	pidFile := filepath.Join(paths.Root, filepath.FromSlash(nginx.InstallDirRel), "logs", "nginx.pid")
 	raw, err := os.ReadFile(pidFile)
 	if err != nil {
-		return false
+		return false, false, "the managed Nginx pid file is missing; reporting configured, not active"
 	}
 	pid, err := strconv.Atoi(strings.TrimSpace(string(raw)))
 	if err != nil || pid <= 0 {
-		return false
+		return false, false, "the managed Nginx pid file is invalid; reporting configured, not active"
 	}
-	proc, err := os.FindProcess(pid)
+	proc, err := inspectNginxProcess(bin, pid)
+	if err != nil || !proc.Alive {
+		return false, false, "the managed Nginx is not running; reporting configured, not active"
+	}
+	if proc.Exe != "" && !samePath(proc.Exe, bin) {
+		return false, true, fmt.Sprintf("pid %d runs %s, not the managed Nginx; reporting runtime-unverified", pid, proc.Exe)
+	}
+	newest := newestModTime(evidence)
+	if !proc.Started.IsZero() && (newest.IsZero() || !proc.Started.Before(newest)) {
+		return true, true, ""
+	}
+	record, err := readGuardRuntimeRecord(paths)
+	if err == nil && record.Policy == policy && record.Digest == guardEvidenceDigest(evidence) {
+		return true, true, ""
+	}
+	return false, true, "the running Nginx predates the current policy files and no verified reload record matches them; reporting runtime-unverified"
+}
+
+func samePath(a, b string) bool {
+	ra, errA := filepath.EvalSymlinks(a)
+	rb, errB := filepath.EvalSymlinks(b)
+	if errA != nil || errB != nil {
+		return filepath.Clean(a) == filepath.Clean(b)
+	}
+	return ra == rb
+}
+
+func newestModTime(paths []string) time.Time {
+	var newest time.Time
+	for _, path := range paths {
+		if fi, err := os.Stat(path); err == nil && fi.ModTime().After(newest) {
+			newest = fi.ModTime()
+		}
+	}
+	return newest
+}
+
+// readNginxProcess reads /proc to verify the pid belongs to the managed binary
+// and to learn when it started. Without /proc (non-Linux) identity and load
+// state cannot be proven, which the caller reports as unverified.
+func readNginxProcess(bin string, pid int) (nginxProcess, error) {
+	proc := nginxProcess{}
+	exe, err := os.Readlink(fmt.Sprintf("/proc/%d/exe", pid))
 	if err != nil {
-		return false
+		return proc, fmt.Errorf("cannot read /proc/%d/exe: %w", pid, err)
 	}
-	return proc.Signal(syscall.Signal(0)) == nil
+	proc.Exe = exe
+	proc.Alive = processAlive(pid)
+	if !proc.Alive {
+		return proc, nil
+	}
+	if fi, err := os.Stat(fmt.Sprintf("/proc/%d", pid)); err == nil {
+		proc.Started = fi.ModTime()
+	}
+	return proc, nil
+}
+
+func processAlive(pid int) bool {
+	proc, err := os.FindProcess(pid)
+	return err == nil && proc.Signal(syscall.Signal(0)) == nil
+}
+
+type guardRuntimeRecord struct {
+	SchemaVersion int    `json:"schemaVersion"`
+	Policy        string `json:"policy"`
+	Digest        string `json:"digest"`
+	VerifiedAt    string `json:"verifiedAt"`
+}
+
+const guardRuntimeRecordSchema = 1
+
+func guardRuntimeRecordPath(paths host.Paths) string {
+	return filepath.Join(paths.Root, "var/lib/idleleo/state/guard-runtime.json")
+}
+
+func guardRuntimeEvidence(paths host.Paths) []string {
+	evidence := []string{
+		filepath.Join(paths.Root, filepath.FromSlash(nginx.InstallDirRel), "conf", "nginx.conf"),
+		filepath.Join(paths.Root, filepath.FromSlash(nginxDirRel), nginx.MainConf),
+	}
+	for _, frag := range []string{guardDecoyFrag, guardIsolateFrag} {
+		path := filepath.Join(paths.Root, filepath.FromSlash(nginxDirRel), frag)
+		if fileExists(path) {
+			evidence = append(evidence, path)
+		}
+	}
+	return evidence
+}
+
+func guardEvidenceDigest(evidence []string) string {
+	// The inspection and apply paths discover the same files in different
+	// orders; the digest must describe the content, not the discovery order.
+	files := append([]string(nil), evidence...)
+	sort.Strings(files)
+	h := sha256.New()
+	for _, path := range files {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		h.Write([]byte(filepath.Clean(path)))
+		h.Write([]byte{0})
+		h.Write(raw)
+	}
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+func writeGuardRuntimeRecord(paths host.Paths, policy string, evidence []string) error {
+	path := guardRuntimeRecordPath(paths)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	record := guardRuntimeRecord{
+		SchemaVersion: guardRuntimeRecordSchema,
+		Policy:        policy,
+		Digest:        guardEvidenceDigest(evidence),
+		VerifiedAt:    time.Now().UTC().Format(time.RFC3339),
+	}
+	raw, err := json.MarshalIndent(record, "", "  ")
+	if err != nil {
+		return err
+	}
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, append(raw, '\n'), 0o644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
+func readGuardRuntimeRecord(paths host.Paths) (guardRuntimeRecord, error) {
+	var record guardRuntimeRecord
+	raw, err := os.ReadFile(guardRuntimeRecordPath(paths))
+	if err != nil {
+		return record, err
+	}
+	if err := json.Unmarshal(raw, &record); err != nil {
+		return record, err
+	}
+	if record.SchemaVersion != guardRuntimeRecordSchema {
+		return record, fmt.Errorf("unsupported guard runtime record schema %d", record.SchemaVersion)
+	}
+	return record, nil
 }
 
 func normalizeSNIPolicy(policy string) (string, error) {

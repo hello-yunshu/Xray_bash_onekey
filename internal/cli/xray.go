@@ -711,14 +711,24 @@ func xrayUser(ctx context.Context, opts Options, cfg config, a *app.App, args []
 				"server": endpoint.Server, "inbound": endpoint.InboundTag,
 			}
 		}
+		notice := ""
+		if action == "remove" {
+			notice = xraycfg.ShortIDRemovalNotice(raw, inbound)
+		}
 		if cfg.json {
 			payload := map[string]any{"entry": entry, "user": view}
 			if hot {
 				payload["hot"] = hotReport
 			}
+			if notice != "" {
+				payload["notice"] = notice
+			}
 			return writeJSON(opts, payload)
 		}
 		fmt.Fprintf(opts.Out, "%s: %s (%s)\n", entry.State, view.UUID, entry.ID)
+		if notice != "" {
+			fmt.Fprintln(opts.Out, notice)
+		}
 		if hot {
 			fmt.Fprintf(opts.Out, "hot: applied to %s without restart\n", endpoint.Server)
 		}

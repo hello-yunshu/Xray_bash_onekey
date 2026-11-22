@@ -36,6 +36,19 @@ genpair() { # cert key
         -subj /CN=node.example.com -addext subjectAltName=DNS:node.example.com >/dev/null 2>&1
 }
 
+# ownpair writes the content-hash ownership record that `idleleo xray cert issue`
+# installs. The cleanup may only delete a pair whose ownership it can prove, so a
+# project-owned fixture has to declare itself the same way the product does.
+# Directory/path/filename alone deliberately proves nothing.
+ownpair() { # cert key
+    dir=$(dirname "$1")
+    {
+        echo "managed-by=idleleo"
+        sha256sum "$1" | awk '{print "sha256="$1}'
+        sha256sum "$2" | awk '{print "sha256="$1}'
+    } >"$dir/.managed-by-idleleo"
+}
+
 nginx_t() { "$NGINX" -t -p /usr/local/nginx/ -c "$MAIN" >/tmp/nginx-t.log 2>&1; }
 
 clear_certs() {
@@ -173,6 +186,7 @@ report xray-second-config "rc=0 before=0 after=0 kept=1 removed=0" "rc=$rc befor
 reset
 base_main
 genpair /etc/idleleo/cert/xray.crt /etc/idleleo/cert/xray.key
+ownpair /etc/idleleo/cert/xray.crt /etc/idleleo/cert/xray.key
 printf 'third-party\n' >/etc/idleleo/cert/third-party.pem
 cat >>"$MAIN" <<'CONF'
 http {
@@ -230,6 +244,7 @@ report quoted-inline "rc=0 before=0 after=0 kept=1 removed=0" "rc=$rc before=$be
 reset
 base_main
 genpair /etc/idleleo/cert/xray.crt /etc/idleleo/cert/xray.key
+ownpair /etc/idleleo/cert/xray.crt /etc/idleleo/cert/xray.key
 cat >>"$MAIN" <<'CONF'
 this_is_not_a_directive;
 http {
@@ -250,6 +265,7 @@ report invalid-nginx-refuse "rc=refused before=broken kept=1" "rc=$rc_state befo
 reset
 base_main
 genpair /etc/idleleo/cert/xray.crt /etc/idleleo/cert/xray.key
+ownpair /etc/idleleo/cert/xray.crt /etc/idleleo/cert/xray.key
 cat >>"$MAIN" <<'CONF'
 http {
     server { listen 9080; location / { return 200 "ok\n"; } }
