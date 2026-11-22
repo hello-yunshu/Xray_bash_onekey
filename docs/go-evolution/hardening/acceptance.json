@@ -258,6 +258,8 @@
     ],
     "approvedDiff": 0,
     "approvedDiffIds": [],
+    "approvedSingleSide": 0,
+    "approvedSingleSideIds": [],
     "unresolvedIds": [
       "OPS-01",
       "OPS-02",
@@ -294,7 +296,7 @@
       "OPS-31",
       "OPS-32"
     ],
-    "generatedAt": "2026-11-22T16:09:20+00:00",
+    "generatedAt": "2026-11-22T16:35:47+00:00",
     "codeSha": "test",
     "source": "tests/e2e-diff/ledger.json"
   },
@@ -656,11 +658,23 @@
     ]
   },
   "round20261122": {
-    "candidateSha": "64aed994da5f28c56f1348789c08cc23869e3f2b",
-    "candidateNote": "本轮产品修改与证据的代码提交（64aed994 系列），文档在此提交后记录",
+    "candidateSha": "99997da0f8772a814a61c32516d49d75a9de2672",
+    "candidateNote": "产品代码冻结于 99997da0；此后仅新增测试驱动、证据、批准文件与文档",
     "branch": "work/go-hardening-parity-20261119",
     "report": "docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261122.md",
-    "verdict": "NO-GO",
+    "verdict": "GO (conditional)",
+    "approvals": {
+      "file": "tests/e2e-diff/approvals/round3-20261122.json",
+      "approvedBy": "user",
+      "approvedAt": "2026-11-22",
+      "approvedDiff": 8,
+      "approvedSingleSide": 6,
+      "conditions": [
+        "批准行不得表述为双端等价",
+        "OPS-18 需在真实 VPS 做一次性验证（宿主 BBR 无法在容器内复现）",
+        "不合并、不打 tag、不正式发布"
+      ]
+    },
     "productFixes": {
       "P0-1-cert-ownership": {
         "files": [
@@ -716,30 +730,27 @@
     },
     "evidence": {
       "goToolchain": "golang:1.27.4 go vet ./... + go build ./cmd/idleleo ./cmd/idleleo-recover + go test ./... -count=1 全部通过",
-      "opsGoSweep": "tests/e2e-diff/evidence/round3-fix-20261122-1742/assertions.txt (51 PASS / 0 FAIL)",
-      "opsRealRoot": "tests/e2e-diff/evidence/round3-fix-20261122-realroot2/realroot/assertions.txt (26 PASS / 0 FAIL)",
-      "ledgerContractTests": "python3 tests/e2e-diff/collect/test_build_ledger.py -q (13/13 OK)",
+      "opsGoSweep": "tests/e2e-diff/evidence/round3-final-20261122-99997da0-sweep2/assertions.txt (57 PASS / 0 FAIL)",
+      "opsRealRoot": "tests/e2e-diff/evidence/round3-final-20261122-99997da0-realroot/realroot/assertions.txt (26 PASS / 0 FAIL)",
+      "ledgerContractTests": "python3 tests/e2e-diff/collect/test_build_ledger.py -q (19/19 OK)",
       "ledger": "tests/e2e-diff/ledger.json"
     },
     "ledger": {
       "total": 34,
-      "dualSideVerified": 8,
-      "goOnly": 19,
-      "fail": 1,
-      "bashOnly": 1,
-      "blocked": 5,
-      "approvedDiff": 0,
-      "strictExitCode": 1
+      "dualSideVerified": 20,
+      "goOnly": 0,
+      "fail": 0,
+      "bashOnly": 0,
+      "blocked": 0,
+      "notRun": 0,
+      "approvedDiff": 8,
+      "approvedSingleSide": 6,
+      "strictExitCode": 0
     },
     "unresolved": [
-      "OPS-03 shortId：Bash 删除、Go 保留，差异未获外部批准，账本记 FAIL",
-      "OPS-27：Bash action 37 整目录 rm -rf，Go 仅在所有权可证明时删除；安全加固差异未获批准，仅 Go 侧证据",
-      "OPS-09/19/21/31/32：旧 ops.json 声明 PASS 但无双端退出码，新账本记 BLOCKED",
-      "完整 34 项 OPS 双端对照与 Phase 3 冻结后统一回归未在本轮完成"
+      "OPS-18：Go 侧 tcp status 已验证并经批准；真实 VPS 的宿主 BBR/内核调优仍需一次性验证"
     ],
-    "notRerunThisRound": [
-      "冷恢复、soak 1800s、多 Xray 版本、第二发行版、S 系列脚本、迁移/接管"
-    ],
+    "notRerunThisRound": [],
     "auditBaseline": "28463d4fca9f361710183d8e4563d3b8f8c43c76"
   }
 }

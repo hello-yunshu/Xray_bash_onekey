@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "round": "round3-20261122",
+  "codeSha": "99997da0f8772a814a61c32516d49d75a9de2672",
+  "approvedBy": "user",
+  "approvedAt": "2026-11-22",
+  "decision": "按推荐批准：接受 8 项已记录的差异、5 项单侧证据与 OPS-18 的 Go 侧证据（真实 VPS 待验证）",
+  "approved": [
+    {
+      "id": "OPS-03",
+      "approvedBy": "user",
+      "reason": "shortId 清理差异已记录在 shortid-difference.json：add/show/remove 两端均 rc=0，删除后 Bash 残留 1 个、Go 残留 2 个 shortId。按已知差异批准，不视为双端等价，后续如需可单独修 Go 清理逻辑。",
+      "scope": "documented-difference:shortid-residue"
+    },
+    {
+      "id": "OPS-12",
+      "approvedBy": "user",
+      "reason": "Bash 菜单是无限 tail -f 实时流（非交互运行 rc=124），Go 输出有界 journald 快照且 rc=0。交互流无法与有限命令做等价比较，按已记录差异批准；Go 侧日志可用性已由有限快照证明。",
+      "scope": "documented-difference:interactive-log-stream"
+    },
+    {
+      "id": "OPS-13",
+      "approvedBy": "user",
+      "reason": "与 OPS-12 同一原因：Bash 错误日志为无限 tail -f（rc=124），Go 输出有界的 journald 错误日志快照（rc=0）。按已记录差异批准，不视为双端等价。",
+      "scope": "documented-difference:interactive-error-log-stream"
+    },
+    {
+      "id": "OPS-14",
+      "approvedBy": "user",
+      "reason": "Bash 入口是交互式 iftop UI，Go 是 api enable + stats 的有界查询（均 rc=0）。交互 UI 与有界统计查询不是等价命令，按已记录差异批准。",
+      "scope": "documented-difference:interactive-traffic-ui"
+    },
+    {
+      "id": "OPS-16",
+      "approvedBy": "user",
+      "reason": "Bash 4>2>1/4>2>2 显示证书状态与有效期；Go 以 cert renew --dry-run 做续期预检，两端 rc=0 且证书 present/notExpired 一致。命令契约不同但安全结果一致，按已记录差异批准。",
+      "scope": "documented-difference:cert-status-vs-renew-preflight"
+    },
+    {
+      "id": "OPS-25",
+      "approvedBy": "user",
+      "reason": "Bash 备份操作受管目录树（tar），Go 备份管理 JSON 元数据，两端 rc=0。Go 以元数据为唯一管理核心是既定设计，按已记录差异批准。",
+      "scope": "documented-difference:backup-tar-vs-metadata"
+    },
+    {
+      "id": "OPS-26",
+      "approvedBy": "user",
+      "reason": "Bash 恢复/导入重写受管目录树（tar），Go 从 install_config.json 导入为 JSON 元数据且不覆盖既有元数据；两端 rc=0、恢复金丝雀存在。Go 的元数据单一事实来源是既定设计，按已记录差异批准。",
+      "scope": "documented-difference:restore-tar-vs-metadata"
+    },
+    {
+      "id": "OPS-27",
+      "approvedBy": "user",
+      "reason": "Bash 7>3 确认一次即 rm -rf 整个证书目录（第三方金丝雀被删），Go 要求受管所有权证明并保留第三方证书。批准 Go 的保守删除行为，禁止为对齐 Bash 而回退为 rm -rf。",
+      "scope": "documented-difference:conservative-cert-delete"
+    },
+    {
+      "id": "OPS-17a",
+      "approvedBy": "user",
+      "reason": "Bash 更新入口是交互菜单，Go 以 update status --json 提供可验证的非交互更新通道；公共发布清单路径已由 Go 侧断言证明（rc=0、可解析 JSON）。按单侧证据批准。",
+      "scope": "go-side-only:public-release-manifest"
+    },
+    {
+      "id": "OPS-17b",
+      "approvedBy": "user",
+      "reason": "Bash 更新 Nginx 依赖交互菜单；Go update nginx 使用固定本地发布包完成更新：安装清单版本、校验摘要、nginx -t 通过、保留备份。按 Go 侧单侧证据批准。",
+      "scope": "go-side-only:fixed-local-package"
+    },
+    {
+      "id": "OPS-18",
+      "approvedBy": "user",
+      "reason": "tcp status --json 在容器内 rc=0 且可解析；宿主 BBR/内核调优无法在容器内等价复现。批准 Go 侧证据，但保留真实 VPS 一次性验证项，不计为双端等价。",
+      "scope": "host-bbr-requires-real-vps"
+    },
+    {
+      "id": "OPS-23",
+      "approvedBy": "user",
+      "reason": "speedtest 依赖外部下载源；在受控本地 origin 上 Go 侧完成 1 MiB 全量测速并输出可解析 JSON/吞吐量（rc=0）。按单侧证据批准，真实公网测速不作验收前提。",
+      "scope": "go-side-only:external-download"
+    },
+    {
+      "id": "OPS-24",
+      "approvedBy": "user",
+      "reason": "GeoData 刷新依赖外部下载；Go 侧 schedule install/run 从受控本地 origin 拉取并经 sha256 校验写入 geoip.dat/geosite.dat（rc=0）。按单侧证据批准。",
+      "scope": "go-side-only:external-download"
+    },
+    {
+      "id": "OPS-30",
+      "approvedBy": "user",
+      "reason": "语言切换目前仅由 Bash 菜单实现（rc=0），Go CLI 无等价命令。按 Bash 侧单侧证据批准为已知缺口，不视为双端等价，也不得据此宣称该功能已迁移。",
+      "scope": "bash-side-only:language-switch"
+    }
+  ]
+}

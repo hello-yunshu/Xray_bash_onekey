@@ -34,9 +34,13 @@ ASSERT_ID = re.compile(r"\b(PPS-[0-9]{2}[a-c]?|OPS-[0-9]{2}[a-c]?)\b")
 # a difference is never silently accepted; DIFF/EXPECTED_DIFF only enter the
 # ledger as APPROVED_DIFF when an out-of-band approval file names the row.
 PASS_VERDICTS = {"PASS", "MATCH", "GOOD"}
-FAIL_VERDICTS = {"FAIL", "MISMATCH", "GAP", "DIFF", "ERROR"}
-DIFF_VERDICTS = {"EXPECTED_DIFF", "ALLOWED_DIFF"}
+FAIL_VERDICTS = {"FAIL", "MISMATCH", "GAP", "ERROR"}
+DIFF_VERDICTS = {"EXPECTED_DIFF", "ALLOWED_DIFF", "DIFF"}
 INCOMPLETE_VERDICTS = {"BLOCKED", "SKIP", "NOT_RUN"}
+
+# A row counts as resolved for acceptance when the two sides were verified or
+# when a human explicitly accepted the recorded difference/single-side evidence.
+RESOLVED_STATUSES = {"DUAL_SIDE_VERIFIED", "APPROVED_DIFF", "APPROVED_SINGLE_SIDE"}
 
 # A driver may record a known behavioural difference without writing ops.json.
 # Those declarations are real evidence and must not disappear: they are treated
@@ -49,7 +53,7 @@ DIFF_DECLARATION_FILES = (
     "difference.json",
     "diff.json",
 )
-DECLARED_DIFF_VERDICTS = DIFF_VERDICTS | {"DIFF"}
+DECLARED_DIFF_VERDICTS = DIFF_VERDICTS
 
 
 class EvidenceError(Exception):
@@ -76,6 +80,21 @@ def load_approvals(path):
             raise EvidenceError("approval for %s needs approvedBy and reason" % item["id"])
         out[item["id"]] = item
     return out
+
+
+def single_side_approval(approvals, op_id, evidence_path):
+    """Return the approval that makes one-sided evidence acceptable.
+
+    The ledger never accepts single-side evidence on its own. Such an approval
+    must also carry a scope, so the report can say which side was verified and
+    what is still unverified instead of implying dual-side equivalence.
+    """
+    approval = approvals[op_id]
+    if not str(approval.get("scope") or "").strip():
+        raise EvidenceError(
+            "approval for %s would accept single-side evidence but has no scope (%s)"
+            % (op_id, evidence_path))
+    return approval
 
 
 def read_json(path):
@@ -199,7 +218,11 @@ def matrix_results(root, approvals):
             else:
                 status = "DUAL_SIDE_VERIFIED"
         elif verdict == "BASH_ONLY":
-            status = "BASH_ONLY"
+            if op_id in approvals:
+                status = "APPROVED_SINGLE_SIDE"
+                base["approval"] = single_side_approval(approvals, op_id, evidence_path)
+            else:
+                status = "BASH_ONLY"
         elif verdict in INCOMPLETE_VERDICTS:
             status = "BLOCKED"
         else:
@@ -210,13 +233,15 @@ def matrix_results(root, approvals):
     return out
 
 
-def sweep_results(root):
+def sweep_results(root, approvals=None):
     """Parse assertions.txt from an ops sweep: an ID passes with no FAIL.
 
     A declared sweep without a readable assertions.txt, with malformed lines, or
     with no OPS assertion at all is rejected instead of silently contributing an
-    empty (and therefore green-looking) result.
+    empty (and therefore green-looking) result. A clean Go-only row still needs
+    an explicit scoped approval before it counts as resolved.
     """
+    approvals = approvals or {}
     out = {}
     if not root:
         return out
@@ -253,7 +278,7 @@ def sweep_results(root):
     for op_id, entry in per_id.items():
         if entry["pass"] == 0 and entry["fail"] == 0:
             continue
-        out[op_id] = {
+        row = {
             "status": "GO_ONLY" if entry["fail"] == 0 else "FAIL",
             "verdict": "PASS" if entry["fail"] == 0 else "FAIL",
             "goExit": 0 if entry["fail"] == 0 else 1,
@@ -263,6 +288,10 @@ def sweep_results(root):
             "runId": os.path.basename(os.path.normpath(root)),
             "layer": "L0-L2 Go CLI evidence",
         }
+        if row["status"] == "GO_ONLY" and op_id in approvals:
+            row["status"] = "APPROVED_SINGLE_SIDE"
+            row["approval"] = single_side_approval(approvals, op_id, path)
+        out[op_id] = row
     return out
 
 
@@ -274,7 +303,8 @@ def main():
                     help="run_ops_sweep.sh / run_ops_realroot.sh output tree (repeatable)")
     ap.add_argument("--code-sha", default="")
     ap.add_argument("--approved-diffs", default="",
-                    help="explicit approval JSON for declared differences; without it a diff is a FAIL")
+                    help="explicit approval JSON for declared differences and single-side rows; "
+                         "without it both remain FAIL/single-side")
     ap.add_argument("--allow-incomplete", action="store_true",
                     help="exit 0 even when rows are not dual-side verified (never for final acceptance)")
     ap.add_argument("--out", default="tests/e2e-diff/ledger.json")
@@ -285,7 +315,7 @@ def main():
     try:
         approvals = load_approvals(args.approved_diffs)
         matrix_runs = [matrix_results(root, approvals) for root in args.matrix_evidence]
-        sweep_runs = [sweep_results(root) for root in args.ops_evidence]
+        sweep_runs = [sweep_results(root, approvals) for root in args.ops_evidence]
     except EvidenceError as exc:
         print("ledger error: %s" % exc, file=sys.stderr)
         return 2
@@ -298,9 +328,10 @@ def main():
         "BLOCKED": 1,
         "BASH_ONLY": 2,
         "GO_ONLY": 3,
-        "DUAL_SIDE_VERIFIED": 4,
-        "APPROVED_DIFF": 5,
-        "FAIL": 6,
+        "APPROVED_SINGLE_SIDE": 4,
+        "DUAL_SIDE_VERIFIED": 5,
+        "APPROVED_DIFF": 6,
+        "FAIL": 7,
     }
     chosen = {}
     for record in matrix_runs + sweep_runs:
@@ -345,7 +376,8 @@ def main():
     blocked_ids = [e["id"] for e in results if e["status"] == "BLOCKED"]
     not_run_ids = [e["id"] for e in results if e["status"] == "NOT_RUN"]
     approved_diff_ids = [e["id"] for e in results if e["status"] == "APPROVED_DIFF"]
-    unresolved = [e["id"] for e in results if e["status"] != "DUAL_SIDE_VERIFIED"]
+    approved_single_side_ids = [e["id"] for e in results if e["status"] == "APPROVED_SINGLE_SIDE"]
+    unresolved = [e["id"] for e in results if e["status"] not in RESOLVED_STATUSES]
 
     sha = args.code_sha or os.popen("git rev-parse HEAD").read().strip()
     generated = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
@@ -362,6 +394,7 @@ def main():
             "BLOCKED": len(blocked_ids),
             "NOT_RUN": len(not_run_ids),
             "APPROVED_DIFF": len(approved_diff_ids),
+            "APPROVED_SINGLE_SIDE": len(approved_single_side_ids),
         },
         "dualSideVerifiedIds": dual_ids,
         "goOnlyIds": go_ids,
@@ -370,6 +403,7 @@ def main():
         "blockedIds": blocked_ids,
         "notRunIds": not_run_ids,
         "approvedDiffIds": approved_diff_ids,
+        "approvedSingleSideIds": approved_single_side_ids,
         "unresolvedIds": unresolved,
         "sources": {
             "matrixEvidence": [repo_path(p) for p in args.matrix_evidence],
@@ -397,6 +431,8 @@ def main():
         "notRunIds": not_run_ids,
         "approvedDiff": len(approved_diff_ids),
         "approvedDiffIds": approved_diff_ids,
+        "approvedSingleSide": len(approved_single_side_ids),
+        "approvedSingleSideIds": approved_single_side_ids,
         "unresolvedIds": unresolved,
         "generatedAt": generated,
         "codeSha": sha,
@@ -415,11 +451,13 @@ def main():
             "blockedOps": summary["blocked"],
             "notRunOps": summary["notRun"],
             "approvedDiffOps": summary["approvedDiff"],
+            "approvedSingleSideOps": summary["approvedSingleSide"],
             "dualSideVerifiedIds": dual_ids,
             "goOnlyIds": go_ids,
             "failIds": fail_ids,
             "bashOnlyIds": bash_ids,
             "approvedDiffIds": approved_diff_ids,
+            "approvedSingleSideIds": approved_single_side_ids,
             "notRunIds": not_run_ids,
             "generatedFrom": "tests/e2e-diff/ledger.json",
             "generatedAt": generated,
@@ -441,7 +479,7 @@ def main():
         print("ledger: FAIL rows present: %s" % ", ".join(fail_ids), file=sys.stderr)
         return 1
     if unresolved and not args.allow_incomplete:
-        print("ledger: %d row(s) are not dual-side verified: %s"
+        print("ledger: %d row(s) have neither dual-side verification nor an external approval: %s"
               % (len(unresolved), ", ".join(unresolved)), file=sys.stderr)
         return 2
     return 0

@@ -117,10 +117,75 @@ class LedgerContractTest(unittest.TestCase):
     def test_approved_diff_is_never_counted_as_verified(self):
         ops(self.matrix, "OPS-07", "EXPECTED_DIFF")
         approvals = os.path.join(self.root, "approvals.json")
-        write(approvals, {"approved": [{"id": "OPS-07", "approvedBy": "product-owner", "reason": "known ok"}]})
-        proc, ledger = self.run_ledger(matrix=self.matrix, approvals=approvals)
-        self.assertEqual(proc.returncode, 2, proc.stderr)
+        write(approvals, {"approved": [{"id": "OPS-07", "approvedBy": "product-owner",
+                                        "reason": "known ok", "scope": "documented difference"}]})
+        # Other rows have no evidence, so relax only the exit code; the approval
+        # itself must still remove OPS-07 from the unresolved set.
+        proc, ledger = self.run_ledger(matrix=self.matrix, approvals=approvals, allow_incomplete=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(self.row(ledger, "OPS-07")["status"], "APPROVED_DIFF")
+        self.assertNotIn("OPS-07", ledger["dualSideVerifiedIds"])
+        self.assertNotIn("OPS-07", ledger["unresolvedIds"])
+
+    def test_raw_diff_verdict_needs_approval_like_declared_diff(self):
+        # Drivers write verdict=DIFF for documented differences (OPS-12/13/14/16/25/26).
+        ops(self.matrix, "OPS-12", "DIFF")
+        proc, ledger = self.run_ledger(matrix=self.matrix)
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assertEqual(self.row(ledger, "OPS-12")["status"], "FAIL")
+
+        approvals = os.path.join(self.root, "approvals.json")
+        write(approvals, {"approved": [{"id": "OPS-12", "approvedBy": "product-owner",
+                                        "reason": "documented difference", "scope": "log source"}]})
+        proc, ledger = self.run_ledger(matrix=self.matrix, approvals=approvals, allow_incomplete=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(self.row(ledger, "OPS-12")["status"], "APPROVED_DIFF")
+        self.assertNotIn("OPS-12", ledger["unresolvedIds"])
+
+    def test_approved_single_side_is_resolved_but_not_dual(self):
+        sweep = os.path.join(self.root, "sweep")
+        write(os.path.join(sweep, "assertions.txt"), "PASS\tOPS-18 tcp tuning\n")
+        approvals = os.path.join(self.root, "approvals.json")
+        write(approvals, {"approved": [{"id": "OPS-18", "approvedBy": "product-owner",
+                                        "reason": "go side proven", "scope": "host-bbr-requires-real-vps"}]})
+        proc, ledger = self.run_ledger(ops_dirs=[sweep], approvals=approvals, allow_incomplete=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        row = self.row(ledger, "OPS-18")
+        self.assertEqual(row["status"], "APPROVED_SINGLE_SIDE")
+        self.assertEqual(row["approval"]["scope"], "host-bbr-requires-real-vps")
+        self.assertNotIn("OPS-18", ledger["dualSideVerifiedIds"])
+        self.assertNotIn("OPS-18", ledger["unresolvedIds"])
+        self.assertEqual(ledger["counts"]["APPROVED_SINGLE_SIDE"], 1)
+
+    def test_single_side_approval_without_scope_is_rejected(self):
+        sweep = os.path.join(self.root, "sweep")
+        write(os.path.join(sweep, "assertions.txt"), "PASS\tOPS-23 speed test\n")
+        approvals = os.path.join(self.root, "approvals.json")
+        write(approvals, {"approved": [{"id": "OPS-23", "approvedBy": "product-owner",
+                                        "reason": "go side proven"}]})
+        proc, _ = self.run_ledger(ops_dirs=[sweep], approvals=approvals)
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("scope", proc.stderr)
+
+    def test_approval_cannot_rescue_a_failed_row(self):
+        sweep = os.path.join(self.root, "sweep")
+        write(os.path.join(sweep, "assertions.txt"), "FAIL\tOPS-24 geo refresh broke\n")
+        approvals = os.path.join(self.root, "approvals.json")
+        write(approvals, {"approved": [{"id": "OPS-24", "approvedBy": "product-owner",
+                                        "reason": "ignore", "scope": "external download"}]})
+        proc, ledger = self.run_ledger(ops_dirs=[sweep], approvals=approvals)
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assertEqual(self.row(ledger, "OPS-24")["status"], "FAIL")
+
+    def test_approved_bash_only_row_is_single_side(self):
+        ops(self.matrix, "OPS-30", "BASH-ONLY")
+        approvals = os.path.join(self.root, "approvals.json")
+        write(approvals, {"approved": [{"id": "OPS-30", "approvedBy": "product-owner",
+                                        "reason": "bash-only contract", "scope": "language switch"}]})
+        proc, ledger = self.run_ledger(matrix=self.matrix, approvals=approvals, allow_incomplete=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(self.row(ledger, "OPS-30")["status"], "APPROVED_SINGLE_SIDE")
+        self.assertNotIn("OPS-30", ledger["unresolvedIds"])
 
     def test_failure_in_any_run_wins(self):
         good = os.path.join(self.root, "good")

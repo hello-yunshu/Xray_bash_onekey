@@ -202,7 +202,8 @@ scripts and documentation.
 - Ledger (`tests/e2e-diff/collect/build_ledger.py`): failures, non-zero exits,
   contradictory evidence and undeclared/incomplete evidence can no longer be
   swallowed; declared differences without external approval stay FAIL.
-  Contract tests: 14/14.
+  Contract tests: 19/19 (adds scoped single-side approvals; an approval can
+  never rescue FAIL/BLOCKED).
 
 Full regression at the frozen SHA:
 
@@ -221,11 +222,20 @@ Full regression at the frozen SHA:
 | Cold restore reality/TLS/relay/multi | all RESULT: PASS |
 | Injection suite | 42/0 |
 
-OPS ledger (34 rows, no reduction): 20 DUAL_SIDE_VERIFIED, 5 GO_ONLY
-(OPS-17a/17b/18/23/24), 8 FAIL (unapproved declared differences:
-OPS-03/12/13/14/16/25/26/27), 1 BASH_ONLY (OPS-30), 0 BLOCKED, 0 NOT_RUN.
+OPS ledger (34 rows, no reduction): 20 DUAL_SIDE_VERIFIED, 8 APPROVED_DIFF
+(OPS-03/12/13/14/16/25/26/27), 6 APPROVED_SINGLE_SIDE (OPS-17a/17b/18/23/24/30),
+0 GO_ONLY, 0 BASH_ONLY, 0 FAIL, 0 BLOCKED, 0 NOT_RUN. Strict-mode exit code: 0.
 
-**Conclusion: NO-GO.** The candidate is safe to keep developing but must not be
-released until the product owner approves the eight declared differences or the
-five Go-only rows gain real Bash-side evidence. No merge, tag, release or
-production VPS operation was performed.
+The user approved the recommended disposition on 2026-11-22
+(`tests/e2e-diff/approvals/round3-20261122.json`). Each approved row keeps
+`approvedBy`, `reason` and `scope`; approved rows are explicitly not counted as
+dual-side verified.
+
+**Conclusion: GO (conditional).** Docker-level acceptance passes: both P0
+certificate fixes and the guard runtime fix are proven, and the ledger no longer
+swallows failures, differences or incomplete evidence. Conditions carried with
+this GO: the eight approved differences and six approved single-side rows must be
+reported as such (never as 34/34 dual verification), and OPS-18 still needs a
+one-time check on a real VPS because host BBR cannot be reproduced in a
+container. The task book's release/merge restrictions are unchanged: no merge,
+tag, formal release or production VPS operation was performed.
