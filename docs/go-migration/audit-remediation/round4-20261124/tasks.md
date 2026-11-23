@@ -27,7 +27,7 @@
 - [x] 更新 `FINAL_AUDIT_20261124.md`（业务事实、复跑、账本、未闭合项）
 - [x] 更新 `defects.json` 与 `evidence-index.json`（新 run provenance、R4-B4）
 - [x] 追加 `TRAE_PROGRESS.md`
-- [ ] 提交并 push `work/go-hardening-parity-20261119`
+- [x] 提交并 push `work/go-hardening-parity-20261119`（`164ed649`）
 - [x] 不做：合并主线、tag、发布、生产 VPS、自行批准差异
 
 ## 完成标准
