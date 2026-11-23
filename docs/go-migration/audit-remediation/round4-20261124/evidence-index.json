@@ -38,6 +38,34 @@
       }
     },
     {
+      "runId": "round4-bizfacts2-50415119",
+      "role": "supplemental-business-facts",
+      "path": "tests/e2e-diff/evidence/round4-bizfacts2-50415119",
+      "command": "E2E_RUN_ID=round4-bizfacts2-50415119 E2E_ONLY=OPS-01,OPS-04,OPS-08,OPS-10,OPS-32 bash tests/e2e-diff/run_p2_matrix.sh",
+      "scope": "在 50415119 的独立 worktree 上运行；OPS-32/01/04/10 通过并写出 details；OPS-08 首版判定器 NameError，未产出 ops.json（失败保留）",
+      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
+      "image": "sha256:a45a231a1449bb185360cc900ca9e976ed83140621f4678645c70d13c0480390",
+      "startedAt": "2026-11-23T19:25:24Z",
+      "finishedAt": "2026-11-23T19:39:57Z",
+      "result": {"runExit": 0, "passedRows": ["OPS-32", "OPS-01", "OPS-04", "OPS-10"]}
+    },
+    {
+      "runId": "round4-bizfacts3-50415119",
+      "role": "supplemental-business-facts",
+      "path": "tests/e2e-diff/evidence/round4-bizfacts3-50415119",
+      "command": "E2E_RUN_ID=round4-bizfacts3-50415119 E2E_ONLY=OPS-08 bash tests/e2e-diff/run_p2_matrix.sh",
+      "scope": "修复判定器作用域与已知 SNI 取值后重跑 OPS-08；双端 PASS，sniProbe 来自真实 openssl 探测",
+      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+      "driverSha": "560a0aeb7f0fe0b2aa83b037855f1a5beab9459f363056cb57013ddc1d18d0d0",
+      "image": "sha256:20b016b46af698aab864bf57351d1114aa2f0e0658ef37aeee18f622919f3055",
+      "startedAt": "2026-11-23T19:42:15Z",
+      "finishedAt": "2026-11-23T19:43:18Z",
+      "result": {"runExit": 0, "passedRows": ["OPS-08"]}
+    },
+    {
       "runId": "round4-final-50415119-sweep",
       "role": "go-only-sweep",
       "path": "tests/e2e-diff/evidence/round4-final-50415119-sweep",
@@ -99,7 +127,15 @@
     {
       "id": "R4-B2/B3",
       "tests": "docs/go-migration/audit-remediation/round4-20261124/repro/b2-b3-contract-tests.log",
-      "ledgerBuild": "docs/go-migration/audit-remediation/round4-20261124/repro/ledger-build-50415119.log"
+      "ledgerBuild": "docs/go-migration/audit-remediation/round4-20261124/repro/ledger-build-bizfacts.log"
+    },
+    {
+      "id": "R4-B4",
+      "logs": [
+        "docs/go-migration/audit-remediation/round4-20261124/logs/bizfacts2.console.log",
+        "docs/go-migration/audit-remediation/round4-20261124/logs/bizfacts3.console.log"
+      ],
+      "note": "首轮 OPS-08 判定器 NameError 原样保留；修复后同一候选 worktree 上重跑通过"
     }
   ],
   "officialArtifacts": [
@@ -109,11 +145,11 @@
   ],
   "ledger": {
     "counts": {
-      "DUAL_SIDE_VERIFIED": 13,
-      "GO_ONLY": 3,
+      "DUAL_SIDE_VERIFIED": 19,
+      "GO_ONLY": 1,
       "FAIL": 13,
       "BASH_ONLY": 0,
-      "BLOCKED": 5,
+      "BLOCKED": 1,
       "NOT_RUN": 0,
       "APPROVED_DIFF": 0,
       "APPROVED_SINGLE_SIDE": 0

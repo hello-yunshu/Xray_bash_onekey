@@ -1165,6 +1165,25 @@ elif oid == "OPS-04":
     if (read(snap("go", "after2", "config.sorted.json")) or "") != \
             (read(snap("go", "after", "config.sorted.json")) or ""):
         reasons.append("go repeat/negative rewrote the runtime config")
+    def connectivity_ok(side):
+        try:
+            data = json.loads(read(os.path.join(
+                base, side, "L4-8443", "connectivity.json")) or "{}")
+        except ValueError:
+            return False
+        return data.get("ok") is True
+
+    def bash_share():
+        return (read(os.path.join(base, "bash", "share-bash.uri")) or "").strip()
+
+    def go_share():
+        try:
+            data = json.loads(read(os.path.join(
+                base, "go", "share-8443.json")) or "{}")
+        except ValueError:
+            return ""
+        return str(data.get("shareUri") or "").strip()
+
     report.update({"nginxListen": {"bash": b_listen, "go": g_listen},
                    "active": {"bash": b_active, "go": g_active},
                    "listening443": {"bash": listening("bash", "after", 443),
@@ -1173,6 +1192,19 @@ elif oid == "OPS-04":
                    "l4": {"bash": b_l4, "go": g_l4},
                    "repeat": {"bashFirst": b_first, "bashSecond": bash_rc,
                               "goRepeat": g_repeat, "goNegative": g_negative}})
+    # Business facts: the new public port is really listening, a real VLESS
+    # client completed a request through it, and the install rendered a share
+    # link carrying that port. Missing observations stay missing (no invention).
+    report["details"] = {
+        side: {
+            "portListening": listening(side, "after", 8443),
+            "clientConnected": (
+                read_rc(os.path.join(base, side, "L4-8443.rc")) == 0
+                and connectivity_ok(side)),
+            "shareInfo": bash_share() if side == "bash" else go_share(),
+        }
+        for side in ("bash", "go")
+    }
     verdict = "BLOCKER" if reasons else "PASS"
 elif oid == "OPS-05":
     b_before = lines(snap("bash", "before", "client-ids.txt"))
@@ -1306,6 +1338,12 @@ elif oid == "OPS-10":
     report["nginxServerNames"] = {"bashBefore": b_before, "goBefore": g_before,
                                   "bash": b_after, "go": g_after,
                                   "fragment": fragment}
+    # Business fact: the accepted SNI really reached the rendered fragment on
+    # each side. Empty means the write never landed, so the row stays blocked.
+    report["details"] = {
+        "bash": {"serverNames": b_after},
+        "go": {"serverNames": g_after},
+    }
     verdict = "BLOCKER" if reasons else "PASS"
 elif oid == "OPS-17c":
     b_cron = read(snap("bash", "after", "cron.txt")) or ""
@@ -1353,6 +1391,19 @@ ops_l4() { # <server> <dir> <net> <port>
     echo $? >"$dir/L4-$port.rc"
 }
 
+# ops_l4_user proves the user the job just added is the one that connects. The
+# client builder is pinned to that email, so a stale clients[0] cannot pass.
+ops_l4_user() { # <server> <dir> <net>
+    local server=$1 dir=$2 net=$3
+    E2E_L4_URL="http://example.com/" E2E_L4_MARKER="Example Domain" \
+        E2E_L4_EMAIL="$OPS_USER_EMAIL" \
+        bash "$SUITE/collect/l4.sh" "$server" "e2e-$RUN_ID-$server-l4-user" \
+            "$IMAGE_TAG" "$net" reality "$DOMAIN" "$WORK/seed/xray" \
+            "$WORK/secret/$server-l4-user" "$dir/L4-user" \
+            >"$dir/L4-user.log" 2>&1
+    echo $? >"$dir/L4-user.rc"
+}
+
 ops_simple_job() { # <ops-id> <base-scenario> <go-mode>
     local oid=$1 sid=$2 gmode=$3
     OPS_NET="e2e-$RUN_ID-$oid"
@@ -1369,6 +1420,14 @@ ops_simple_job() { # <ops-id> <base-scenario> <go-mode>
         ops_snapshot "$bserver" "$bdir" after
         if [[ "$oid" == "OPS-04" ]]; then
             ops_l4 "$bserver" "$bdir" "$OPS_NET" "$OPS_PORT_ALT"
+            # The Bash menu has no share command, but install.sh -s really
+            # renders one. Capture it while the container still exists; an
+            # unparsable output stays empty instead of being invented.
+            docker exec "$bserver" bash /etc/idleleo/install.sh -s \
+                >"$bdir/share-bash.txt" 2>&1
+            echo $? >"$bdir/share-bash.rc"
+            grep -oE 'vless://[^[:space:]]+' "$bdir/share-bash.txt" |
+                head -n 1 >"$bdir/share-bash.uri" || true
             # Re-applying the same port must stay green and rewrite nothing.
             mv "$bdir/ops.rc" "$bdir/ops-first.rc"
             mv "$bdir/ops.out" "$bdir/ops-first.out"
@@ -1452,6 +1511,23 @@ ops_state_probe() { # <server> <dir> <tag>
     docker exec "$server" sh -c \
         'ls -1 /etc/idleleo/cert 2>/dev/null | sort' \
         >"$dir/$tag.cert-list.txt" 2>/dev/null || true
+    if [[ "$tag" == "after" ]]; then
+        # Real TLS probes on the public listener: the accepted SNI of this side
+        # must still reach the runtime, an unknown SNI must be rejected by the
+        # isolate policy. The accepted SNI is the reality server name the driver
+        # actually rendered, not an assumption.
+        local known_sni
+        known_sni=$(head -n 1 "$dir/$tag.reality-server-names.txt" 2>/dev/null | tr -d '\r')
+        [[ -n "$known_sni" ]] || known_sni="$DOMAIN"
+        docker exec "$server" timeout 20 openssl s_client \
+            -connect 127.0.0.1:443 -servername "$known_sni" -brief </dev/null \
+            >"$dir/$tag.sni-known.txt" 2>&1
+        echo $? >"$dir/$tag.sni-known.rc"
+        docker exec "$server" timeout 20 openssl s_client \
+            -connect 127.0.0.1:443 -servername e2e-unknown.invalid -brief </dev/null \
+            >"$dir/$tag.sni-unknown.txt" 2>&1
+        echo $? >"$dir/$tag.sni-unknown.rc"
+    fi
 }
 
 ops_state_job() { # <ops-id>
@@ -1574,6 +1650,7 @@ bash_rc = rc(os.path.join(base, "bash", "ops.rc"))
 go_rc = rc(os.path.join(base, "go", "10-op.rc"))
 
 harness = []
+biz_details = {}
 for name, value in (("bash install rc", bash_install), ("go install rc", go_install),
                     ("bash ops rc", bash_rc), ("go ops rc", go_rc)):
     if value is None:
@@ -1603,6 +1680,37 @@ if not harness:
                 reasons.append("%s has no isolate TLS-reject fragment" % side)
             if probe(side, "after", "nginx-active") != "active":
                 reasons.append("%s nginx is not active after the policy change" % side)
+        # Real TLS probes, recorded per side. A known SNI has to complete a
+        # handshake through the front; an unknown SNI has to be refused. The
+        # policy label is derived from the probe output, not assumed.
+        details = {}
+        for side in ("bash", "go"):
+            known_out = read(os.path.join(base, side, "after.sni-known.txt"))
+            unknown_out = read(os.path.join(base, side, "after.sni-unknown.txt"))
+            known_rc = rc(os.path.join(base, side, "after.sni-known.rc"))
+            unknown_rc = rc(os.path.join(base, side, "after.sni-unknown.rc"))
+            if known_rc is None or unknown_rc is None:
+                continue
+            known_ok = known_rc == 0 and "CONNECTION ESTABLISHED" in (known_out or "")
+            unknown_open = ("CONNECTION ESTABLISHED" in (unknown_out or "")
+                            or "Verify return code" in (unknown_out or ""))
+            unknown_rejected = not unknown_open and unknown_rc != 0
+            if unknown_rejected:
+                policy = ("ssl_reject_handshake"
+                          if "ssl_reject_handshake on" in probe(side, "after", "sni-files")
+                          else "handshake-failed")
+            else:
+                policy = "accepted"
+            details[side] = {
+                "sniProbe": {
+                    "knownSniOk": known_ok,
+                    "unknownSniPolicy": policy,
+                    "knownRc": known_rc,
+                    "unknownRc": unknown_rc,
+                }
+            }
+        if details:
+            biz_details = details
 
     elif oid == "OPS-11":
         b_out = text(os.path.join(base, "bash", "ops.out"))
@@ -1671,6 +1779,8 @@ report = {
         },
     },
 }
+if biz_details:
+    report["details"] = biz_details
 with open(out, "w", encoding="utf-8") as fh:
     json.dump(report, fh, indent=2, sort_keys=True)
     fh.write("\n")
@@ -2298,6 +2408,18 @@ def snap(side, tag, kind):
     return set(lines(os.path.join(base, side, "%s.%s.txt" % (tag, kind))))
 
 
+def l4_ok(side):
+    """True only when the probe bound to the added email completed a request."""
+    if rc(os.path.join(base, side, "L4-user.rc")) != 0:
+        return False
+    try:
+        data = json.loads(text(os.path.join(
+            base, side, "L4-user", "connectivity.json")) or "{}")
+    except ValueError:
+        return False
+    return data.get("ok") is True
+
+
 obs = {}
 for side in ("bash", "go"):
     obs[side] = {
@@ -2334,6 +2456,7 @@ details = {
         "addRc": obs[side]["addRc"],
         "showRc": obs[side]["showRc"],
         "removeRc": obs[side]["removeRc"],
+        "clientConnected": l4_ok(side),
     }
     for side in ("bash", "go")
 }
@@ -2376,6 +2499,9 @@ elif not isinstance(go_show, list) or not any(
     reasons.append("go user list lacks the added email/UUID")
 if not healthy("added"):
     reasons.append("xray -test/service not healthy after add")
+for side in ("bash", "go"):
+    if not l4_ok(side):
+        reasons.append("%s added user did not complete a VLESS request" % side)
 write("OPS-01", "PASS" if not reasons else "FAIL", reasons,
       obs["bash"]["showRc"], obs["go"]["showRc"])
 
@@ -2393,6 +2519,9 @@ for side in ("bash", "go"):
                        % (side, len(obs[side]["beforeSids"]), len(obs[side]["addedSids"])))
 if not healthy("added"):
     reasons.append("xray -test/service not healthy after add")
+for side in ("bash", "go"):
+    if not l4_ok(side):
+        reasons.append("%s added user did not complete a VLESS request" % side)
 write("OPS-02", "PASS" if not reasons else "FAIL", reasons,
       obs["bash"]["addRc"], obs["go"]["addRc"])
 
@@ -2456,6 +2585,7 @@ ops_users_job() {
         ops_bash_user_menu "$bserver" "$bdir" add
         ops_snapshot "$bserver" "$bdir" added
         ops_health "$bserver" "$bdir" added
+        ops_l4_user "$bserver" "$bdir" "$OPS_NET"
         ops_bash_user_menu "$bserver" "$bdir" show
         ops_bash_user_menu "$bserver" "$bdir" remove
         ops_snapshot "$bserver" "$bdir" removed
@@ -2478,6 +2608,7 @@ ops_users_job() {
             --container --json
         ops_snapshot "$gserver" "$gdir" added
         ops_health "$gserver" "$gdir" added
+        ops_l4_user "$gserver" "$gdir" "$OPS_NET"
         ops_go_cli "$gserver" "$gdir" 11-show xray user list \
             --path /etc/idleleo/conf/xray/config.json --json
         ops_go_cli "$gserver" "$gdir" remove xray user remove --sandbox / \
@@ -3616,6 +3747,27 @@ for side in ("bash", "go"):
     summary_rc[side] = (0 if values and all(value == 0 for value in values)
                         else next((value for value in values if value not in (None, 0)), None))
 report["opsRc"] = summary_rc
+
+
+def side_detail(side):
+    """Fold the measured removal/recovery facts of both upstreams per side."""
+    removed, recovered = {}, {}
+    for name in sorted(upstreams):
+        rep = upstreams.get(name) or {}
+        removed[name] = (rep.get("removedAt") or {}).get(side)
+        stable = (rep.get("stableRecovery") or {}).get(side) or {}
+        recovered[name] = stable.get("reached")
+    return {
+        "faultRemoved": all(value not in (None, "") for value in removed.values()),
+        "recovered": all(value is True for value in recovered.values()),
+        "removedAt": removed,
+        "recoveredAt": {name: (((upstreams.get(name) or {}).get(
+            "stableRecovery") or {}).get(side) or {}).get("at")
+                        for name in sorted(upstreams)},
+    }
+
+
+report["details"] = {side: side_detail(side) for side in ("bash", "go")}
 with open(os.path.join(base, "ops.json"), "w", encoding="utf-8") as fh:
     json.dump(report, fh, indent=2, sort_keys=True)
     fh.write("\n")

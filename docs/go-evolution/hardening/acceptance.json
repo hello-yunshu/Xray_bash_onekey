@@ -209,12 +209,17 @@
   ],
   "ops": {
     "total": 34,
-    "dualSideVerified": 13,
+    "dualSideVerified": 19,
     "dualSideVerifiedIds": [
+      "OPS-01",
+      "OPS-02",
+      "OPS-04",
       "OPS-05",
       "OPS-06",
       "OPS-07",
+      "OPS-08",
       "OPS-09",
+      "OPS-10",
       "OPS-11",
       "OPS-15",
       "OPS-17c",
@@ -223,9 +228,10 @@
       "OPS-22",
       "OPS-28",
       "OPS-29",
-      "OPS-31"
+      "OPS-31",
+      "OPS-32"
     ],
-    "goOnly": 3,
+    "goOnly": 1,
     "fail": 13,
     "failIds": [
       "OPS-03",
@@ -244,13 +250,9 @@
     ],
     "bashOnly": 0,
     "bashOnlyIds": [],
-    "blocked": 5,
+    "blocked": 1,
     "blockedIds": [
-      "OPS-04",
-      "OPS-08",
-      "OPS-10",
-      "OPS-17b",
-      "OPS-32"
+      "OPS-17b"
     ],
     "notRun": 0,
     "notRunIds": [],
@@ -259,12 +261,7 @@
     "approvedSingleSide": 0,
     "approvedSingleSideIds": [],
     "unresolvedIds": [
-      "OPS-01",
-      "OPS-02",
       "OPS-03",
-      "OPS-04",
-      "OPS-08",
-      "OPS-10",
       "OPS-12",
       "OPS-13",
       "OPS-14",
@@ -278,10 +275,9 @@
       "OPS-25",
       "OPS-26",
       "OPS-27",
-      "OPS-30",
-      "OPS-32"
+      "OPS-30"
     ],
-    "generatedAt": "2026-11-23T19:14:01+00:00",
+    "generatedAt": "2026-11-23T19:46:06+00:00",
     "codeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
     "source": "tests/e2e-diff/ledger.json"
   },

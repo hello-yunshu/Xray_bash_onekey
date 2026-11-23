@@ -40,6 +40,11 @@ CERT_PIN="${E2E_L4_CERT:-/etc/idleleo/cert/xray.crt}"
 # A port change moves the public listener; the probe must dial the new port
 # instead of the install default.
 SERVER_PORT="${E2E_L4_PORT:-443}"
+# E2E_L4_EMAIL/E2E_L4_UUID bind the probe to one user entry. The new-user OPS
+# rows set them so a successful request proves the added client, not any
+# pre-existing one.
+L4_EMAIL="${E2E_L4_EMAIL:-}"
+L4_UUID="${E2E_L4_UUID:-}"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET_URL="${E2E_L4_URL:-http://example.com/}"
 MARKER="${E2E_L4_MARKER:-Example Domain}"
@@ -71,6 +76,9 @@ EXTRA=()
 if [[ "$PROFILE" == "none" ]] || { [[ "$PROFILE" == "reality" ]] && [[ "$TRANSPORT" != "reality" && "$TRANSPORT" != "auto" ]]; }; then
     EXTRA+=(--use-inbound-port)
 fi
+SELECT=()
+[[ -n "$L4_EMAIL" ]] && SELECT+=(--email "$L4_EMAIL")
+[[ -n "$L4_UUID" ]] && SELECT+=(--uuid "$L4_UUID")
 docker exec "$SERVER" python3 /src/tests/e2e-diff/collect/client_config.py \
     --config /etc/idleleo/conf/xray/config.json \
     --mode "$PROFILE" \
@@ -79,6 +87,7 @@ docker exec "$SERVER" python3 /src/tests/e2e-diff/collect/client_config.py \
     --server-port "$SERVER_PORT" \
     --domain "$DOMAIN" \
     ${EXTRA[@]+"${EXTRA[@]}"} \
+    ${SELECT[@]+"${SELECT[@]}"} \
     --cert "$CERT_PIN" \
     --output /tmp/e2e-client.json >"$OUT/client-config.log" 2>&1 || fail "client config generation failed"
 docker cp "$SERVER:/tmp/e2e-client.json" "$SECRET_DIR/client.json" >/dev/null 2>&1 || fail "cannot extract client config"

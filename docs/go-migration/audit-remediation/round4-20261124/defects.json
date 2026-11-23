@@ -124,24 +124,43 @@
         "本轮新证据与旧指纹不匹配：12 行保持 FAIL/待重新批准，未自行批准"
       ],
       "status": "CLOSED_TOOLING_APPROVAL_PENDING"
+    },
+    {
+      "id": "R4-B4",
+      "title": "OPS 驱动运行 PASS 但未把已测得的业务事实写入 ops.json；OPS-08 首版判定器另有 report 作用域错误",
+      "severity": "P2",
+      "reproduced": true,
+      "reproduction": "round4-full-50415119 与 round4-bizfacts2-50415119：OPS-04/08/10/32 的 ops.json 缺 details；OPS-08 首轮因 NameError: report 未生成 ops.json",
+      "fixed": true,
+      "validation": [
+        "tests/e2e-diff/run_p2_matrix.sh::ops_generic_verdict 写 OPS-04 portListening/clientConnected/shareInfo 与 OPS-10 serverNames",
+        "tests/e2e-diff/run_p2_matrix.sh::ops_state_probe/ops_state_verdict 写 OPS-08 真实 sniProbe",
+        "tests/e2e-diff/run_p2_matrix.sh::ops32_merge 写 OPS-32 faultRemoved/recovered",
+        "tests/e2e-diff/collect/client_config.py::select_client 与 l4.sh 按 email 绑定新增用户",
+        "tests/e2e-diff/run_p2_matrix.sh::ops_users_job/ops_users_verdict 写 OPS-01/02 clientConnected",
+        "round4-bizfacts2-50415119 与 round4-bizfacts3-50415119 双端 PASS，账本升为 DUAL"
+      ],
+      "status": "CLOSED"
     }
   ],
   "openRisks": [
     {
       "id": "R4-OPEN-01",
-      "title": "OPS-01/02 缺少真实新用户业务连接证据，未达 DUAL_SIDE_VERIFIED",
+      "title": "OPS-01/02 真实新用户业务连接证据",
       "severity": "P1",
-      "status": "EVIDENCE_GAP"
+      "status": "CLOSED",
+      "closedBy": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-01/ops.json（双端 clientConnected=true）"
     },
     {
       "id": "R4-OPEN-02",
-      "title": "OPS-04/08 证据缺少端口监听/SNI 数据面业务事实，账本 BLOCKED",
+      "title": "OPS-04/08/10/32 的端口、分享链接、SNI、故障移除/恢复业务事实",
       "severity": "P1",
-      "status": "EVIDENCE_GAP"
+      "status": "CLOSED",
+      "closedBy": "round4-bizfacts2/3 的 ops.json details 与账本 DUAL"
     },
     {
       "id": "R4-OPEN-03",
-      "title": "12 行差异/单侧证据的批准绑定了旧证据指纹，新候选需用户重新批准",
+      "title": "13 行差异/单侧证据的批准绑定了旧证据指纹，新候选需用户重新批准",
       "severity": "P1",
       "status": "APPROVAL_PENDING"
     },
@@ -150,6 +169,24 @@
       "title": "生产 VPS、公网 ACME/IPv6、宿主 BBR、掉电恢复未验证",
       "severity": "P1",
       "status": "VPS_DEFERRED"
+    },
+    {
+      "id": "R4-OPEN-05",
+      "title": "OPS-17b Bash 分支超时 124，依赖本地可信 Nginx 包",
+      "severity": "P2",
+      "status": "ENV_LIMITED"
+    },
+    {
+      "id": "R4-OPEN-06",
+      "title": "E1–E8 仅有 Go 侧证据；Bash 私钥重建菜单未覆盖",
+      "severity": "P1",
+      "status": "COVERAGE_GAP"
+    },
+    {
+      "id": "R4-OPEN-07",
+      "title": "OPS-20 只有 Go 单侧 trafficBytes，Bash 侧流量未采集",
+      "severity": "P2",
+      "status": "EVIDENCE_GAP"
     }
   ]
 }

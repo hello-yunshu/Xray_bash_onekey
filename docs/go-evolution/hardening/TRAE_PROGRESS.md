@@ -152,8 +152,20 @@ PR #182 保持 draft。
 `docs/go-migration/audit-remediation/FINAL_AUDIT_20261124.md`、
 `round4-20261124/{defects.json,evidence-index.json,repro/,logs/}`。
 
-未闭合：OPS-01/02/04/08/10/32 缺业务事实（BLOCKED/GO_ONLY）；13 行差异或单侧
-证据需用户对本次候选重新批准；OPS-17b Bash 超时；E1–E8 仅 Go 侧；生产 VPS/
+### 追加：补齐真实业务事实证据（同一候选 `50415119`，独立 worktree）
+
+| 项目 | 结果 | 证据 |
+| --- | --- | --- |
+| OPS-01/02 | 新增用户后由该 email 发起真实 VLESS 请求成功；双端 `clientConnected=true`、增删计数真实 | `round4-bizfacts2-50415119/p2/OPS-01/ops.json` |
+| OPS-04 | 双端 `portListening=true`、`clientConnected=true`、`shareInfo` 非空 | 同上 `OPS-04/ops.json` |
+| OPS-10 | 双端 `serverNames=ops10.example.com reality;` | 同上 `OPS-10/ops.json` |
+| OPS-32 | 两个上游均观测到 `removedAt`/`stableRecovery`；双端 `faultRemoved=true`、`recovered=true` | 同上 `OPS-32/ops.json` |
+| OPS-08 首轮 | 判定器 `NameError: report` 未产出 `ops.json`，失败原样保留 | `round4-bizfacts2-50415119/p2/OPS-08/` |
+| OPS-08 重跑 | 真实 `openssl s_client`：已知 SNI 握手成功，未知 SNI 被 `ssl_reject_handshake` 拒绝 | `round4-bizfacts3-50415119/p2/OPS-08/ops.json` |
+| 账本 | 19 DUAL / 1 GO_ONLY / 13 FAIL / 1 BLOCKED / 0 NOT_RUN，退出码 1 | `tests/e2e-diff/ledger.json` |
+
+未闭合：13 行差异或单侧证据需用户对本次候选重新批准（含 OPS-03 真实 shortId
+残留差异）；OPS-17b Bash 超时；OPS-20 仅 Go 单侧；E1–E8 仅 Go 侧；生产 VPS/
 公网 CA/IPv6/宿主 BBR/掉电恢复未验证；DIFF 行“预期 rc”未实现。
 
 **结论**：Docker 开发候选 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；

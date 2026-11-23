@@ -1,23 +1,28 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T19:14:01+00:00",
+  "generatedAt": "2026-11-23T19:46:06+00:00",
   "codeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
   "opsTotal": 34,
   "counts": {
-    "DUAL_SIDE_VERIFIED": 13,
-    "GO_ONLY": 3,
+    "DUAL_SIDE_VERIFIED": 19,
+    "GO_ONLY": 1,
     "FAIL": 13,
     "BASH_ONLY": 0,
-    "BLOCKED": 5,
+    "BLOCKED": 1,
     "NOT_RUN": 0,
     "APPROVED_DIFF": 0,
     "APPROVED_SINGLE_SIDE": 0
   },
   "dualSideVerifiedIds": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-04",
     "OPS-05",
     "OPS-06",
     "OPS-07",
+    "OPS-08",
     "OPS-09",
+    "OPS-10",
     "OPS-11",
     "OPS-15",
     "OPS-17c",
@@ -26,11 +31,10 @@
     "OPS-22",
     "OPS-28",
     "OPS-29",
-    "OPS-31"
+    "OPS-31",
+    "OPS-32"
   ],
   "goOnlyIds": [
-    "OPS-01",
-    "OPS-02",
     "OPS-20"
   ],
   "failIds": [
@@ -50,22 +54,13 @@
   ],
   "bashOnlyIds": [],
   "blockedIds": [
-    "OPS-04",
-    "OPS-08",
-    "OPS-10",
-    "OPS-17b",
-    "OPS-32"
+    "OPS-17b"
   ],
   "notRunIds": [],
   "approvedDiffIds": [],
   "approvedSingleSideIds": [],
   "unresolvedIds": [
-    "OPS-01",
-    "OPS-02",
     "OPS-03",
-    "OPS-04",
-    "OPS-08",
-    "OPS-10",
     "OPS-12",
     "OPS-13",
     "OPS-14",
@@ -79,12 +74,13 @@
     "OPS-25",
     "OPS-26",
     "OPS-27",
-    "OPS-30",
-    "OPS-32"
+    "OPS-30"
   ],
   "sources": {
     "matrixEvidence": [
-      "tests/e2e-diff/evidence/round4-full-50415119"
+      "tests/e2e-diff/evidence/round4-full-50415119",
+      "tests/e2e-diff/evidence/round4-bizfacts2-50415119",
+      "tests/e2e-diff/evidence/round4-bizfacts3-50415119"
     ],
     "opsEvidence": [
       "tests/e2e-diff/evidence/round4-final-50415119-sweep"
@@ -92,16 +88,20 @@
   },
   "results": [
     {
-      "status": "GO_ONLY",
       "verdict": "PASS",
-      "goExit": null,
-      "expectedRc": null,
-      "goExitRecorded": false,
+      "bashExit": 0,
+      "goExit": 0,
       "reasons": [],
-      "assertions": 2,
-      "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
-      "runId": "round4-final-50415119-sweep",
-      "layer": "L0-L2 Go CLI evidence",
+      "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-01/ops.json",
+      "runId": "round4-bizfacts2-50415119",
+      "layer": "L0-L4 driver evidence",
+      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
+      "supersedes": null,
+      "fixedBy": null,
+      "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-01",
       "history": [
         {
@@ -109,6 +109,12 @@
           "status": "BLOCKED",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-01/ops.json"
+        },
+        {
+          "runId": "round4-bizfacts2-50415119",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-01/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",
@@ -128,16 +134,20 @@
       "notes": null
     },
     {
-      "status": "GO_ONLY",
       "verdict": "PASS",
-      "goExit": null,
-      "expectedRc": null,
-      "goExitRecorded": false,
+      "bashExit": 0,
+      "goExit": 0,
       "reasons": [],
-      "assertions": 2,
-      "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
-      "runId": "round4-final-50415119-sweep",
-      "layer": "L0-L2 Go CLI evidence",
+      "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-02/ops.json",
+      "runId": "round4-bizfacts2-50415119",
+      "layer": "L0-L4 driver evidence",
+      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
+      "supersedes": null,
+      "fixedBy": null,
+      "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-02",
       "history": [
         {
@@ -145,6 +155,12 @@
           "status": "BLOCKED",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-02/ops.json"
+        },
+        {
+          "runId": "round4-bizfacts2-50415119",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-02/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",
@@ -183,6 +199,12 @@
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-03/shortid-difference.json"
         },
         {
+          "runId": "round4-bizfacts2-50415119",
+          "status": "FAIL",
+          "verdict": "DIFF",
+          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-03/shortid-difference.json"
+        },
+        {
           "runId": "round4-final-50415119-sweep",
           "status": "FAIL",
           "verdict": "PASS",
@@ -204,21 +226,32 @@
       "verdict": "PASS",
       "bashExit": 0,
       "goExit": 0,
-      "reasons": [
-        "bash side has no business evidence block",
-        "go side has no business evidence block"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/ops.json",
-      "runId": "round4-full-50415119",
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-04/ops.json",
+      "runId": "round4-bizfacts2-50415119",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
       "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
       "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
+      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
       "supersedes": null,
       "fixedBy": null,
-      "status": "BLOCKED",
+      "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-04",
+      "history": [
+        {
+          "runId": "round4-full-50415119",
+          "status": "BLOCKED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/ops.json"
+        },
+        {
+          "runId": "round4-bizfacts2-50415119",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-04/ops.json"
+        }
+      ],
       "name": "变更端口",
       "bashEntry": "2>2>2",
       "goCommand": "idleleo xray config edit --port 8444 --public-port 8443 --yes --no-probe --container --json",
@@ -317,21 +350,38 @@
       "verdict": "PASS",
       "bashExit": 0,
       "goExit": 0,
-      "reasons": [
-        "bash side has no business evidence block",
-        "go side has no business evidence block"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/ops.json",
-      "runId": "round4-full-50415119",
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/round4-bizfacts3-50415119/p2/OPS-08/ops.json",
+      "runId": "round4-bizfacts3-50415119",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
       "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
       "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
+      "driverSha": "560a0aeb7f0fe0b2aa83b037855f1a5beab9459f363056cb57013ddc1d18d0d0",
       "supersedes": null,
       "fixedBy": null,
-      "status": "BLOCKED",
+      "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-08",
+      "history": [
+        {
+          "runId": "round4-full-50415119",
+          "status": "BLOCKED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/ops.json"
+        },
+        {
+          "runId": "round4-bizfacts2-50415119",
+          "status": "BLOCKED",
+          "verdict": null,
+          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-08/ops.json"
+        },
+        {
+          "runId": "round4-bizfacts3-50415119",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round4-bizfacts3-50415119/p2/OPS-08/ops.json"
+        }
+      ],
       "name": "SNI Guard",
       "bashEntry": "2>2>5",
       "goCommand": "idleleo xray guard set --policy isolate --json",
@@ -374,21 +424,32 @@
       "verdict": "PASS",
       "bashExit": 0,
       "goExit": 0,
-      "reasons": [
-        "bash side has no business evidence block",
-        "go side has no business evidence block"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-10/ops.json",
-      "runId": "round4-full-50415119",
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-10/ops.json",
+      "runId": "round4-bizfacts2-50415119",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
       "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
       "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
+      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
       "supersedes": null,
       "fixedBy": null,
-      "status": "BLOCKED",
+      "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-10",
+      "history": [
+        {
+          "runId": "round4-full-50415119",
+          "status": "BLOCKED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-10/ops.json"
+        },
+        {
+          "runId": "round4-bizfacts2-50415119",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-10/ops.json"
+        }
+      ],
       "name": "serverNames",
       "bashEntry": "2>3>2",
       "goCommand": "idleleo xray config edit --server-names ops10.example.com --yes --no-probe --container --json",
@@ -1258,21 +1319,32 @@
       "verdict": "PASS",
       "bashExit": 0,
       "goExit": 0,
-      "reasons": [
-        "bash side has no business evidence block",
-        "go side has no business evidence block"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-32/ops.json",
-      "runId": "round4-full-50415119",
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-32/ops.json",
+      "runId": "round4-bizfacts2-50415119",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
       "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
       "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
+      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
       "supersedes": null,
       "fixedBy": null,
-      "status": "BLOCKED",
+      "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-32",
+      "history": [
+        {
+          "runId": "round4-full-50415119",
+          "status": "BLOCKED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-32/ops.json"
+        },
+        {
+          "runId": "round4-bizfacts2-50415119",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-32/ops.json"
+        }
+      ],
       "name": "后端故障摘除（ws + reality 上游）",
       "bashEntry": "2>3>1",
       "goCommand": "idleleo xray balance list --upstream ws --json",
