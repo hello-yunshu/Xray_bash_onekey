@@ -120,5 +120,7 @@
     },
     "exitCode": 1,
     "note": "FAIL 行全部为已记录差异/单侧证据等待用户对本次候选重新批准，或 OPS-03 的 shortId 残留差异；没有把任何未证实行写成通过"
-  }
+  },
+  "evidenceCommit": "2f607180140b8504423b85fdc9110b9ccbe5d332",
+  "productDiffBetweenCandidateAndEvidenceCommit": 0
 }

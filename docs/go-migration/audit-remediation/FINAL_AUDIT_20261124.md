@@ -3,7 +3,8 @@
 - 日期：2026-11-24
 - 分支：`work/go-hardening-parity-20261119`
 - 审计基线：`8f9673ce9d5ec485bb360cb932a5ce381475885e`
-- 本轮候选（被推送 HEAD）：`5041511998575851eb5cb16533e9fe999d29d5a8`
+- 本轮候选（产品代码 SHA）：`5041511998575851eb5cb16533e9fe999d29d5a8`
+- 证据/报告提交：`2f607180140b8504423b85fdc9110b9ccbe5d332`（`git diff 50415119..2f607180 -- cmd internal install.sh` 为空，即不含产品代码变更）
 - 产品代码修复提交：`8a457bec`（A1/A2/B1/B2/B3 + provenance）；`50415119` 仅修改验收运行器的 provenance 写入路径与测试，不改产品代码
 - 结论：`NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；`RELEASE_AUTHORIZED = NO`
 
