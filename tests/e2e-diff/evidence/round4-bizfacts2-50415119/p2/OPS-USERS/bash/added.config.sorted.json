@@ -1,0 +1,87 @@
+{
+  "dns": {
+    "disableCache": false,
+    "servers": [
+      "https+local://dns.google/dns-query",
+      "https+local://cloudflare-dns.com/dns-query",
+      "https+local://doh.opendns.com/dns-query",
+      "198.51.100.10",
+      "198.51.100.10",
+      "198.51.100.10",
+      "localhost"
+    ]
+  },
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 9443,
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "email": "eff5@hey.run",
+            "flow": "xtls-rprx-vision",
+            "id": "0ab8e45d-be7d-54a5-add3-49fad16930db",
+            "level": 0
+          },
+          {
+            "email": "user2@example.com",
+            "flow": "xtls-rprx-vision",
+            "id": "a70fc16f-e63b-5b8f-a731-3cf5b09b84c3",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "raw",
+        "realitySettings": {
+          "minClientVer": "1.0.0",
+          "privateKey": "REDACTED",
+          "serverNames": [
+            "www.cloudflare.com"
+          ],
+          "shortIds": [
+            "4a0b4b051651bfe6",
+            "94ed51dcb00fca93"
+          ],
+          "target": "www.cloudflare.com:443"
+        },
+        "security": "reality"
+      },
+      "tag": "VLESS-Reality-in"
+    }
+  ],
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIPv4v6"
+        }
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blocked"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "inboundTag": [
+          "VLESS-Reality-in"
+        ],
+        "outboundTag": "direct",
+        "type": "field"
+      }
+    ]
+  }
+}
