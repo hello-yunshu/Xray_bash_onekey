@@ -135,7 +135,10 @@ if [[ -d "$EVID" && -n "$(ls -A "$EVID" 2>/dev/null)" ]]; then
     exit 2
 fi
 STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-log "run_id=$RUN_ID"
+# The install fixtures pin 26.10.31; seed exactly that runtime so the installer
+# does not compare a newer "latest" binary against the pin and force a reinstall.
+export IDLELEO_XRAY_VERSION="${E2E_XRAY_VERSION:-26.10.31}"
+log "run_id=$RUN_ID xray_seed=v${IDLELEO_XRAY_VERSION}"
 if [[ -n "${E2E_BLOCK_HOSTS:-}" ]]; then
     log "blocked_hosts=${E2E_BLOCK_HOSTS} (pinned to 127.0.0.1 for offline proof)"
 fi
