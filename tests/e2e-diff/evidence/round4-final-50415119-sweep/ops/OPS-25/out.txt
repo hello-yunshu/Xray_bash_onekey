@@ -1,0 +1,3 @@
+exported=/tmp/e2e-metadata.json
+metadata=/etc/idleleo/v1/metadata.json sha256=596e250f475db3586ad2ac54074123f12b9df77f0b98717a6a53076b53a54ccc
+runtime=etc/idleleo/conf/xray/config.json sha256=439e845c113d6e274ac8f556c8aa242d8fc08d21f1f4e18eb4513579dd92788d matchesMetadata=true

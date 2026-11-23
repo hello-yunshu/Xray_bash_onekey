@@ -1,0 +1,10 @@
+{
+  "server": "http://e2e-round4-final-50415119-sweep-origin",
+  "downMbps": 3667.19,
+  "bytes": 1048576,
+  "durationMs": 2,
+  "samplesMbps": [
+    3667.19
+  ],
+  "startedAt": "2026-11-23T18:35:10.933698461Z"
+}

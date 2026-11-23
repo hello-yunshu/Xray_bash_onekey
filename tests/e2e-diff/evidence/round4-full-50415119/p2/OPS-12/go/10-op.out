@@ -1,0 +1,5 @@
+Nov 23 19:09:32 e2e-round4-full-50415119-observe-go systemd[1]: Started xray.service - Xray Service.
+Nov 23 19:09:32 e2e-round4-full-50415119-observe-go xray[284]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+Nov 23 19:09:32 e2e-round4-full-50415119-observe-go xray[284]: A unified platform for anti-censorship.
+Nov 23 19:09:32 e2e-round4-full-50415119-observe-go xray[284]: 2026/11/23 19:09:32.011584 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 23 19:09:32 e2e-round4-full-50415119-observe-go xray[284]: 2026/11/23 19:09:32.015761 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW

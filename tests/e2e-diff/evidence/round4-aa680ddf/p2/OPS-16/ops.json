@@ -1,0 +1,32 @@
+{
+  "certificate": {
+    "bashPresent": true,
+    "goNotExpired": true,
+    "goPresent": true,
+    "goState": "not-due"
+  },
+  "id": "OPS-16",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "Bash menu 4>2>1/4>2>2 shows certificate status/validity; Go 'cert renew --dry-run' is a renewal preflight",
+    "bash rc=0",
+    "go rc=0",
+    "bash certificate present=True",
+    "go certificate present=True notExpired=True state=not-due"
+  ],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "driverSha": "7ac6c76e9350901fc5f8fd569f8ab83731ba27800fd292e6d067e12c40ee7f8c",
+    "finishedAt": "2026-11-23T18:25:28Z",
+    "image": "sha256:11834b6bd0dae7d69abe67fe5e37cc01b9ac9f55946cfdea46bf05348615ff95",
+    "layer": "L0-L4 docker matrix",
+    "productCodeSha": "aa680ddf687bd62cbcfc553e3bb8dd19347f0bfb",
+    "runId": "round4-aa680ddf",
+    "startedAt": "2026-11-23T18:21:05Z"
+  },
+  "verdict": "DIFF"
+}

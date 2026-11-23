@@ -1,0 +1,834 @@
+02:36:16 run_id=round4-full-50415119
+02:36:16 image_id=sha256:cfeff9d6182fb380d55ca48b2dcb060ccdefc29551068cea2f185b17f0382961
+02:36:16 building idleleo
+02:36:21 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b
+02:36:21 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+02:36:21 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+02:36:21 release_cache=seeded templates=vless_reality.json,vless_tls.json
+02:36:21 release_cache=hit
+02:36:22 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+02:36:22 apt_cache=hit (OPS offline apt)
+02:36:22 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+02:36:22 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+02:36:25 argv-verify written
+02:36:25 [M3] start
+02:36:25 [M5] start
+02:36:25 [M4] start
+02:36:25 [M2] start
+02:36:25 [M1] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+systemd_state=running
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+systemd_state=running
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_installer=yes source=/src/install.sh
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_release_helpers=yes version=3.3.6
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+done=tls install_exit=0
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport grpc --domain example.com --container
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport grpc --domain example.com --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+02:37:09 [M5] done
+install_exit=0
+done=reality install_exit=0
+install_exit=0
+done=reality install_exit=0
+02:37:12 [M4] done
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --transport ws --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality-nginx --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+install_exit=0
+done=reality install_exit=0
+02:37:54 [M1] done
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality-nginx --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --transport ws --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=reality install_exit=0
+02:38:06 [M2] done
+02:38:13 [M3] done
+02:38:14 [M10] start
+02:38:14 [M6] start
+02:38:14 [M7] start
+02:38:14 [M9] start
+02:38:14 [M8] start
+02:38:15 [M8] pebble ready
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+acme_mode=pebble idleleo=idleleo 0.2.0-phase04 (go)
+acme_schedule={   "schemaVersion": 1,   "configPath": "/etc/idleleo/schedule/jobs.json",   "servicePath": "/etc/systemd/system/idleleo-schedule.service",   "timerPath": "/etc/systemd/system/idleleo-schedule.timer",
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=none install_exit=0
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+systemd_state=running
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --role relay --target origin.example.com:443 --listen-port 443 --listen 0.0.0.0 --container
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+install_exit=0
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+systemd_state=running
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --role relay --target origin.example.com:443 --listen-port 443 --listen 0.0.0.0 --container
+round2_mode=keep-config
+install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+acme_mode=pebble idleleo=idleleo 0.2.0-phase04 (go)
+acme_schedule={   "schemaVersion": 1,   "configPath": "/etc/idleleo/schedule/jobs.json",   "servicePath": "/etc/systemd/system/idleleo-schedule.service",   "timerPath": "/etc/systemd/system/idleleo-schedule.timer",
+02:38:34 [M10] done
+install_exit=0
+done=none install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode none --transport ws --listen 0.0.0.0 --allow-non-loopback --container
+install_exit=0
+done=none install_exit=0
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode none --transport ws --listen 0.0.0.0 --allow-non-loopback --container
+round2_mode=keep-config
+install_exit=0
+done=none install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport xhttp --domain example.com --container
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+acme_directory=https://pebble:14000/dir
+acme_issue_exit=0
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+schedule_install_exit=0
+done=tls install_exit=0
+02:38:49 [M9] done
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport xhttp --domain example.com --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+acme_reuse=round2
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+02:38:59 [M6] done
+02:38:59 [M8] done
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws+grpc+xhttp --domain example.com --container
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws+grpc+xhttp --domain example.com --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+02:39:32 [M7] done
+02:39:33 [E2] start
+02:39:33 [E1] start
+02:39:33 [E3] start
+02:39:33 [E7] start
+02:39:33 [E4] start
+02:39:33 [E5] start
+02:39:33 [E8] start
+02:39:33 [E6] start
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+systemd_state=running
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+systemd_state=running
+systemd_state=running
+systemd_state=running
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+idleleo_version=idleleo 0.2.0-phase04 (go)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+install_exit=0
+install_exit=0
+install_exit=0
+done=reality install_exit=0
+done=reality install_exit=0
+done=reality install_exit=0
+done=reality install_exit=0
+install_exit=0
+install_exit=0
+done=reality install_exit=0
+done=reality install_exit=0
+install_exit=0
+install_exit=0
+done=tls install_exit=0
+done=tls install_exit=0
+{"afterSha": "f3d3b17eb0626be81ab6d8ce911967cbea5b13ed81b77e75adfc72a2314e405a", "allPassed": true, "backups": 0, "beforeSha": "f3d3b17eb0626be81ab6d8ce911967cbea5b13ed81b77e75adfc72a2314e405a", "checks": {"backupExists": false, "configChanged": false, "configRestored": true, "editRcNonZero": true, "editRcZero": false, "noBackup": true, "probeRefused": true, "probeReported": false, "rollbackReported": false, "serviceActive": true, "shareUriUpdated": false, "targetApplied": false, "uuidApplied": false}, "editRc": 2, "scenario": "E3", "service": "active", "wanted": ["probeRefused", "configRestored", "serviceActive", "noBackup"]}
+{"afterSha": "b4d849bb76942b6fa78bc125ef644bbcb8801d31aaed354761c56c7e10b6dd78", "allPassed": true, "backups": 1, "beforeSha": "b4d849bb76942b6fa78bc125ef644bbcb8801d31aaed354761c56c7e10b6dd78", "checks": {"backupExists": true, "configChanged": false, "configRestored": true, "editRcNonZero": true, "editRcZero": false, "noBackup": false, "probeRefused": false, "probeReported": false, "rollbackReported": true, "serviceActive": true, "shareUriUpdated": false, "targetApplied": false, "uuidApplied": false}, "editRc": 1, "scenario": "E2", "service": "active", "wanted": ["editRcNonZero", "rollbackReported", "configRestored", "serviceActive"]}
+{"afterSha": "b424eb2e62f9969884e329fbc0e536f2e5793e27aa99f23073b97b1650d37b27", "allPassed": true, "backups": 1, "beforeSha": "ee00debe10e0d3ffca514f24335c259b4ff946f9de87a607909ca5eccd495a1f", "checks": {"backupExists": true, "configChanged": true, "configRestored": false, "editRcNonZero": false, "editRcZero": true, "noBackup": false, "probeRefused": false, "probeReported": false, "rollbackReported": false, "serviceActive": true, "shareUriUpdated": true, "targetApplied": false, "uuidApplied": true}, "editRc": 0, "scenario": "E1", "service": "active", "wanted": ["editRcZero", "configChanged", "uuidApplied", "shareUriUpdated", "serviceActive", "backupExists"]}
+{"afterSha": "e601c7445f843c2ee712f6c23bc33b7bb9ef8c537ba3b408666521435bb789c8", "allPassed": true, "backups": 1, "beforeSha": "1b0a2779526b95f41a4c8d9c78b9ecbc08d48a1d4b2a9ca96b4a84692613bd6b", "checks": {"backupExists": true, "configChanged": true, "configRestored": false, "editRcNonZero": false, "editRcZero": true, "noBackup": false, "probeRefused": false, "probeReported": true, "rollbackReported": false, "serviceActive": true, "shareUriUpdated": false, "targetApplied": true, "uuidApplied": false}, "editRc": 0, "scenario": "E4", "service": "active", "wanted": ["editRcZero", "configChanged", "targetApplied", "probeReported", "serviceActive"]}
+02:39:52 [E3] done
+02:39:54 [E5] done
+02:39:58 [E1] done
+02:39:58 [E2] done
+02:39:59 [E4] done
+02:39:59 [E6] done
+allPassed=True checks=13
+02:40:29 [E7] done
+allPassed=True checks=14
+02:40:39 [E8] done
+02:40:39 [OPS-19] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+02:41:38 [OPS-19] verdict=PASS
+02:41:38 [OPS-21] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+02:43:22 [OPS-21] verdict=PASS
+02:43:22 [OPS-09] start upstream=ws
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+02:43:48 [OPS-09] verdict=PASS
+02:43:49 [OPS-31] start upstream=reality
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=xray install --binary /usr/local/bin/xray --mode reality-balance --role primary --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+02:44:40 [OPS-31] verdict=PASS
+02:44:40 [OPS-32] start upstream=ws
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+02:49:25 [OPS-32/ws] verdict=PASS
+02:49:25 [OPS-32] start upstream=reality
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=xray install --binary /usr/local/bin/xray --mode reality-balance --role primary --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+02:54:24 [OPS-32/reality] verdict=PASS
+02:54:24 [OPS-32] verdict=PASS
+02:54:24 [OPS-USERS] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+02:55:27 [OPS-USERS] OPS-01/02 written; shortIdClean=False
+02:55:27 [OPS-04] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+02:56:34 [OPS-04] verdict=PASS
+02:56:34 [OPS-05] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+02:57:27 [OPS-05] verdict=PASS
+02:57:27 [OPS-06] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+02:58:53 [OPS-06] verdict=PASS
+02:58:54 [OPS-07] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+02:59:55 [OPS-07] verdict=PASS
+02:59:55 [OPS-10] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:01:06 [OPS-10] verdict=PASS
+03:01:06 [OPS-17c] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:01:53 [OPS-17c] verdict=PASS
+03:01:53 [OPS-30] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:02:38 [OPS-30] verdict=BASH-ONLY
+03:02:39 [OPS-08] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:03:33 [OPS-08] verdict=PASS
+03:03:33 [OPS-11] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:04:18 [OPS-11] verdict=PASS
+03:04:18 [OPS-15] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:05:01 [OPS-15] verdict=PASS
+03:05:02 [OPS-16] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed50b4b06bee02e66871311101fcb136e8b13a0f0e41499f8616fef8d7c9d62e
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+03:05:24 [OPS-16] verdict=DIFF
+03:05:24 [OPS-20] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:06:16 [OPS-20] verdict=PASS
+03:06:17 [OPS-22] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:07:09 [OPS-22] verdict=PASS
+03:07:09 [OPS-27] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:08:05 [OPS-27] difference=DIFF
+03:08:05 [OPS-28] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:08:50 [OPS-28] verdict=PASS
+03:08:50 [observe] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+03:12:30 [observe] verdicts written
+stamped 38 verdict file(s) with run provenance
+03:12:30 scope: installs=[M1,M2,M3,M4,M5,M6,M7,M8,M9,M10] edits=[E1,E2,E3,E4,E5,E6,E7,E8] ops=[OPS-19,OPS-21,OPS-09,OPS-31,OPS-32,OPS-01,OPS-02,OPS-03,OPS-04,OPS-05,OPS-06,OPS-07,OPS-10,OPS-17c,OPS-30,OPS-08,OPS-11,OPS-15,OPS-16,OPS-20,OPS-22,OPS-27,OPS-28,OPS-OBSERVE]
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E1/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E1/go/edit/after-config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E1/go/edit/before-config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E2/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E2/go/edit/after-config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E2/go/edit/before-config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E3/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E3/go/edit/after-config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E3/go/edit/before-config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E4/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E4/go/edit/after-config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E4/go/edit/before-config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E5/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E5/go/edit/backup/config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E6/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E6/go/edit/backup/config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E7/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E7/go/edit/before-config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E8/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/E8/go/edit/before-config.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M1/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M1/bash/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M1/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M1/go/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M2/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M2/bash/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M2/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M2/go/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M3/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M3/bash/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M3/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M3/go/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M4/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M4/bash/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M4/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M4/go/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M5/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M5/bash/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M5/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M5/go/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M6/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M6/bash/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M6/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M6/go/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M7/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M7/bash/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M7/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M7/go/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M8/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M8/bash/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M8/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M8/go/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M9/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M9/bash/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M9/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/M9/go/round2/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/after.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/after2.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/after2.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/before.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/ops-first.log
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/ops-first.out
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/ops.log
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/bash/ops.out
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/go/after2.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-05/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-05/bash/after.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-05/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-05/bash/before.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-05/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-05/bash/ops.log
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-05/bash/ops.out
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-05/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-05/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-06/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-06/bash/after.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-06/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-06/bash/before.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-06/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-06/bash/ops.log
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-06/bash/ops.out
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-06/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-06/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-07/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-07/bash/after.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-07/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-07/bash/before.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-07/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-07/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-07/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/bash/after.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/bash/before.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/bash/ops.log
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/bash/ops.out
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-09/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-09/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-10/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-10/bash/after.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-10/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-10/bash/before.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-10/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-10/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-10/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-11/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-11/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-11/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-11/bash/ops.log
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-11/bash/ops.out
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-11/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-11/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-15/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-15/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-15/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-15/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-15/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-16/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-16/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17c/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17c/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17c/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17c/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17c/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-19/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-20/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-20/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-20/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-20/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-20/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-21/bash/block-bash/block.log
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-21/bash/block-bash/config-after-apply.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-21/bash/block.out
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-21/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-21/go/block-go/block.log
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-21/go/block-go/config-after-apply.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-21/go/block.out
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-21/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-22/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-22/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-22/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-22/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-22/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-27/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-28/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-28/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-28/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-30/bash/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-30/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-30/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-30/go/after.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-30/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-31/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-31/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-32/reality/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-32/reality/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-32/ws/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-32/ws/go/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/bash/added.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/bash/added.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/bash/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/bash/before.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/bash/config/config.sanitized.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/bash/removed.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/bash/removed.nginx-dump.txt
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/bash/show.out
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/bash/users-show.log
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/go/added.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/go/before.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-USERS/go/removed.config.sorted.json
+sanitize: /Users/yunshu/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/evidence/round4-full-50415119/p2/observe/bash/config/config.sanitized.json
+sanitize: 179 file(s) updated
+03:12:32 P2 finished: tests/e2e-diff/evidence/round4-full-50415119/p2
+EXIT=0

@@ -1,0 +1,49 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "port"
+  ],
+  "diff": [
+    "inbounds[0].port"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "b4d849bb76942b6fa78bc125ef644bbcb8801d31aaed354761c56c7e10b6dd78",
+  "newSha256": "d6eb3a47f71884109594e7fd0ec268eaf65dab783fd81562fa91857e57d902aa",
+  "backupDir": "/etc/idleleo/backup/edit-20261123T183946",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://387462e7-5c7d-4f08-adfd-1b2d7972c497@www.cloudflare.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=nL0QrTfwJRj6ug6rcQ25kl1CEygPZD0dtODxOmQLalw&sid=50d9800e&type=raw#idleleo-reality",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": [
+    "share links use the Reality SNI as the dial host because --host was not given; pass --host <address clients dial> to hand out a usable link"
+  ],
+  "shortIds": [
+    "50d9800e"
+  ],
+  "oldShareUri": "vless://387462e7-5c7d-4f08-adfd-1b2d7972c497@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=nL0QrTfwJRj6ug6rcQ25kl1CEygPZD0dtODxOmQLalw&sid=50d9800e&type=raw#idleleo-reality",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "b4d849bb76942b6fa78bc125ef644bbcb8801d31aaed354761c56c7e10b6dd78",
+    "newSha256": "d6eb3a47f71884109594e7fd0ec268eaf65dab783fd81562fa91857e57d902aa",
+    "changed": [
+      "port"
+    ],
+    "affectedServices": [
+      "xray"
+    ],
+    "disconnectRisk": "drops live client sessions until clients reconnect",
+    "validationSteps": [
+      "xray -test"
+    ],
+    "rollbackScope": "runtime config",
+    "ownership": "idleleo-managed",
+    "fingerprint": "f3f6544c73163ef4"
+  }
+}

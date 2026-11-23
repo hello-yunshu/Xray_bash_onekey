@@ -1,0 +1,88 @@
+# Official ledger rebuild (full matrix + Go sweep, candidate 50415119)
+$ python3 tests/e2e-diff/collect/build_ledger.py --code-sha 5041511998575851eb5cb16533e9fe999d29d5a8 \
+    --matrix-evidence tests/e2e-diff/evidence/round4-full-50415119 \
+    --ops-evidence tests/e2e-diff/evidence/round4-final-50415119-sweep \
+    --approved-diffs tests/e2e-diff/approvals/round3-20261122.json --allow-repo-write
+--- stdout ---
+{
+  "total": 34,
+  "dualSideVerified": 13,
+  "dualSideVerifiedIds": [
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-09",
+    "OPS-11",
+    "OPS-15",
+    "OPS-17c",
+    "OPS-19",
+    "OPS-21",
+    "OPS-22",
+    "OPS-28",
+    "OPS-29",
+    "OPS-31"
+  ],
+  "goOnly": 3,
+  "fail": 13,
+  "failIds": [
+    "OPS-03",
+    "OPS-12",
+    "OPS-13",
+    "OPS-14",
+    "OPS-16",
+    "OPS-17a",
+    "OPS-18",
+    "OPS-23",
+    "OPS-24",
+    "OPS-25",
+    "OPS-26",
+    "OPS-27",
+    "OPS-30"
+  ],
+  "bashOnly": 0,
+  "bashOnlyIds": [],
+  "blocked": 5,
+  "blockedIds": [
+    "OPS-04",
+    "OPS-08",
+    "OPS-10",
+    "OPS-17b",
+    "OPS-32"
+  ],
+  "notRun": 0,
+  "notRunIds": [],
+  "approvedDiff": 0,
+  "approvedDiffIds": [],
+  "approvedSingleSide": 0,
+  "approvedSingleSideIds": [],
+  "unresolvedIds": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-03",
+    "OPS-04",
+    "OPS-08",
+    "OPS-10",
+    "OPS-12",
+    "OPS-13",
+    "OPS-14",
+    "OPS-16",
+    "OPS-17a",
+    "OPS-17b",
+    "OPS-18",
+    "OPS-20",
+    "OPS-23",
+    "OPS-24",
+    "OPS-25",
+    "OPS-26",
+    "OPS-27",
+    "OPS-30",
+    "OPS-32"
+  ],
+  "generatedAt": "2026-11-23T19:14:01+00:00",
+  "codeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+  "source": "tests/e2e-diff/ledger.json"
+}
+--- stderr ---
+ledger: FAIL rows present: OPS-03, OPS-12, OPS-13, OPS-14, OPS-16, OPS-17a, OPS-18, OPS-23, OPS-24, OPS-25, OPS-26, OPS-27, OPS-30
+--- exit code ---
+1

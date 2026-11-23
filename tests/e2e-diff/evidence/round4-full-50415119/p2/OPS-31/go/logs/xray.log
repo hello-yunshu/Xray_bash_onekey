@@ -1,0 +1,6 @@
+<TS> e2e-round4-full-50415119-OPS-31-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round4-full-50415119-OPS-31-go xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-round4-full-50415119-OPS-31-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round4-full-50415119-OPS-31-go xray[<PID>]: 2026/11/23 18:44:39.218405 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round4-full-50415119-OPS-31-go xray[<PID>]: 2026/11/23 18:44:39.220507 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+2026/11/23 18:44:39.226982 [Warning] core: Xray 26.11.9 started

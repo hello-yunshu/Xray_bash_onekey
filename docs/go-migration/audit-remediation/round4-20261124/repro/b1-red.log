@@ -1,0 +1,7 @@
+# B1 red: ledger contract tests rewrite the tracked acceptance record at 8f9673ce
+$ cd /tmp/repro-8f9673ce && python3 -m unittest tests/e2e-diff/collect/test_build_ledger.py
+acceptance.json sha256 before = fd1a6dcf3460fe6462864f4d7fe88b03ab5482161532107b70146defb5d0a518
+acceptance.json sha256 after  = 61a6638466dc8ce075fe476e986728f74784731fff23587ea7250a5df2800d4f
+git status: M docs/go-evolution/hardening/acceptance.json
+observable corruption committed at the audited HEAD:
+{"codeSha": "test", "fail": 1, "failIds": ["OPS-08"], "notRun": 33, "generatedAt": "2026-11-22T16:35:47+00:00"}

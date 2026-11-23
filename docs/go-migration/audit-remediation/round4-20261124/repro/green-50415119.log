@@ -1,0 +1,10 @@
+=== RUN   TestReproUnregisteredIdenticalCopyIsKept
+--- PASS: TestReproUnregisteredIdenticalCopyIsKept (0.02s)
+=== RUN   TestReproUnboundReloadRecordDoesNotProveActive
+--- PASS: TestReproUnboundReloadRecordDoesNotProveActive (0.00s)
+=== RUN   TestReproNestedUserMarkerProtectsSubtree
+--- PASS: TestReproNestedUserMarkerProtectsSubtree (0.09s)
+=== RUN   TestReproThirdPartyACMEDirSurvives
+--- PASS: TestReproThirdPartyACMEDirSurvives (0.08s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.198s

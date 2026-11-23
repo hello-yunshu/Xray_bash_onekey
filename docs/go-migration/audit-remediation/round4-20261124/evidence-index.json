@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "round": "round4-20261124",
+  "branch": "work/go-hardening-parity-20261119",
+  "auditBaselineSha": "8f9673ce9d5ec485bb360cb932a5ce381475885e",
+  "candidateSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+  "environment": {
+    "host": "macOS / Docker Desktop (arm64)",
+    "e2eImage": "idleleo-e2e:24.04 (systemd container, real install/nginx/xray)",
+    "goImage": "golang:1.27.4",
+    "goFlags": "GOFLAGS=-mod=vendor GOPROXY=off GOTOOLCHAIN=local",
+    "xraySeedVersion": "26.11.9",
+    "xraySeedSha256": "c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a",
+    "bashScriptVersion": "3.3.6",
+    "nginxBuild": "2026.10.15.7679"
+  },
+  "artifacts": {
+    "idleleoBinarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "installShSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf"
+  },
+  "runs": [
+    {
+      "runId": "round4-full-50415119",
+      "role": "primary",
+      "path": "tests/e2e-diff/evidence/round4-full-50415119",
+      "command": "E2E_RUN_ID=round4-full-50415119 bash tests/e2e-diff/run_p2_matrix.sh",
+      "scope": "M1-M10 x {bash,go} x 2 rounds; E1-E8; OPS-01..32 双端",
+      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
+      "image": "sha256:cfeff9d6182fb380d55ca48b2dcb060ccdefc29551068cea2f185b17f0382961",
+      "startedAt": "2026-11-23T18:36:16Z",
+      "result": {
+        "installRcFiles": 40,
+        "installRcNonZero": 0,
+        "eScenariosAllPassed": 8,
+        "runExit": 0
+      }
+    },
+    {
+      "runId": "round4-final-50415119-sweep",
+      "role": "go-only-sweep",
+      "path": "tests/e2e-diff/evidence/round4-final-50415119-sweep",
+      "command": "E2E_RUN_ID=round4-final-50415119-sweep bash tests/e2e-diff/run_ops_sweep.sh",
+      "scope": "Go CLI assertions for all OPS rows",
+      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+      "driverSha": "feb9aefa16a733794736bcb17a7d7355a7049d430c084e1cf0dd6c094c291caa",
+      "image": "sha256:86926e8da06c8f97f90b0e06141fac05e1aea520b29b1a14be5e0d782977af7c",
+      "startedAt": "2026-11-23T18:34:57Z",
+      "result": {
+        "pass": 57,
+        "fail": 0,
+        "note": "单侧 Go CLI 结论；账本不据此生成退出码，goExit 记为未记录"
+      }
+    },
+    {
+      "runId": "round4-final-50415119",
+      "role": "superseded-by-full-run",
+      "path": "tests/e2e-diff/evidence/round4-final-50415119",
+      "command": "E2E_RUN_ID=round4-final-50415119 E2E_ONLY=OPS-01,OPS-02,OPS-03,OPS-04,OPS-08,OPS-16,OPS-27 bash tests/e2e-diff/run_p2_matrix.sh",
+      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+      "note": "先用 7 行子集确认修复后的运行器可写出完整 provenance；随后以全量 run 为准"
+    },
+    {
+      "runId": "round4-aa680ddf",
+      "role": "superseded",
+      "path": "tests/e2e-diff/evidence/round4-aa680ddf",
+      "productCodeSha": "aa680ddf687bd62cbcfc553e3bb8dd19347f0bfb",
+      "note": "同一产品代码，但运行器 provenance 写入路径有误；其后手工按 run.json 真实值补齐 8 个证据块。为排除手工步骤，已在 50415119 重跑，本目录只保留为失败/重跑历史，不进入正式账本"
+    },
+    {
+      "runId": "round4-2ac2f0c3",
+      "role": "failed-attempt",
+      "path": "tests/e2e-diff/evidence/round4-2ac2f0c3",
+      "note": "尝试通过带 tag 的下载固定 Xray 26.10.31；沙箱仅允许 releases/latest/download，带 tag 资产 404"
+    },
+    {
+      "runId": "round4-8a457bec",
+      "role": "failed-attempt",
+      "path": "tests/e2e-diff/evidence/round4-8a457bec",
+      "note": "harness 使用占位 installer ref，Xray 版本漂移触发重装并 404；no run.json provenance"
+    }
+  ],
+  "reproductions": [
+    {
+      "id": "R4-A1a/A1c/A2",
+      "script": "docs/go-migration/audit-remediation/round4-20261124/repro/round4_repro_test.go.txt",
+      "red": "docs/go-migration/audit-remediation/round4-20261124/repro/red-8f9673ce.log",
+      "green": "docs/go-migration/audit-remediation/round4-20261124/repro/green-50415119.log",
+      "note": "同一份测试文件在 8f9673ce 失败、在 50415119 通过；嵌套 user marker 用例在基线已通过，未复现，仅作纵深防御"
+    },
+    {
+      "id": "R4-B1",
+      "red": "docs/go-migration/audit-remediation/round4-20261124/repro/b1-red.log",
+      "green": "docs/go-migration/audit-remediation/round4-20261124/repro/b1-green.log",
+      "note": "基线运行账本测试会改写正式 acceptance.json；修复后 28 个测试前后逐字节不变"
+    },
+    {
+      "id": "R4-B2/B3",
+      "tests": "docs/go-migration/audit-remediation/round4-20261124/repro/b2-b3-contract-tests.log",
+      "ledgerBuild": "docs/go-migration/audit-remediation/round4-20261124/repro/ledger-build-50415119.log"
+    }
+  ],
+  "officialArtifacts": [
+    "tests/e2e-diff/ledger.json",
+    "tests/e2e-diff/matrix.json",
+    "docs/go-evolution/hardening/acceptance.json"
+  ],
+  "ledger": {
+    "counts": {
+      "DUAL_SIDE_VERIFIED": 13,
+      "GO_ONLY": 3,
+      "FAIL": 13,
+      "BASH_ONLY": 0,
+      "BLOCKED": 5,
+      "NOT_RUN": 0,
+      "APPROVED_DIFF": 0,
+      "APPROVED_SINGLE_SIDE": 0
+    },
+    "exitCode": 1,
+    "note": "FAIL 行全部为已记录差异/单侧证据等待用户对本次候选重新批准，或 OPS-03 的 shortId 残留差异；没有把任何未证实行写成通过"
+  }
+}

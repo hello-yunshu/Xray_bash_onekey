@@ -1,0 +1,14 @@
+{
+  "removed": [
+    "etc/systemd/system/xray.service",
+    "usr/local/bin/xray",
+    "etc/idleleo/v1/metadata.json",
+    "etc/idleleo/conf/xray/config.json",
+    "etc/idleleo/conf/nginx",
+    "var/log/xray"
+  ],
+  "serviceStopped": true,
+  "serviceDisabled": true,
+  "configPreserved": false,
+  "warnings": []
+}

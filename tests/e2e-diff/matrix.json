@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "frozenAt": "2026-11-13T17:21:00+08:00",
-  "repoCommit": "99997da0",
+  "repoCommit": "50415119",
   "branch": "develop/go-native",
   "sourcePlan": "docs/plans/bash-vs-go-docker-differential-impl.md",
   "decisions": {
@@ -42,61 +42,56 @@
   },
   "acceptance": {
     "opsTotal": 34,
-    "dualSideVerifiedOps": 20,
-    "goOnlyOps": 0,
-    "failOps": 0,
+    "dualSideVerifiedOps": 13,
+    "goOnlyOps": 3,
+    "failOps": 13,
     "bashOnlyOps": 0,
-    "blockedOps": 0,
+    "blockedOps": 5,
     "notRunOps": 0,
-    "approvedDiffOps": 8,
-    "approvedSingleSideOps": 6,
+    "approvedDiffOps": 0,
+    "approvedSingleSideOps": 0,
     "dualSideVerifiedIds": [
-      "OPS-01",
-      "OPS-02",
-      "OPS-04",
       "OPS-05",
       "OPS-06",
       "OPS-07",
-      "OPS-08",
       "OPS-09",
-      "OPS-10",
       "OPS-11",
       "OPS-15",
       "OPS-17c",
       "OPS-19",
-      "OPS-20",
       "OPS-21",
       "OPS-22",
       "OPS-28",
       "OPS-29",
-      "OPS-31",
-      "OPS-32"
+      "OPS-31"
     ],
-    "goOnlyIds": [],
-    "failIds": [],
-    "bashOnlyIds": [],
-    "approvedDiffIds": [
+    "goOnlyIds": [
+      "OPS-01",
+      "OPS-02",
+      "OPS-20"
+    ],
+    "failIds": [
       "OPS-03",
       "OPS-12",
       "OPS-13",
       "OPS-14",
       "OPS-16",
-      "OPS-25",
-      "OPS-26",
-      "OPS-27"
-    ],
-    "approvedSingleSideIds": [
       "OPS-17a",
-      "OPS-17b",
       "OPS-18",
       "OPS-23",
       "OPS-24",
+      "OPS-25",
+      "OPS-26",
+      "OPS-27",
       "OPS-30"
     ],
+    "bashOnlyIds": [],
+    "approvedDiffIds": [],
+    "approvedSingleSideIds": [],
     "notRunIds": [],
     "generatedFrom": "tests/e2e-diff/ledger.json",
-    "generatedAt": "2026-11-22T16:34:36+00:00",
-    "codeSha": "99997da0f8772a814a61c32516d49d75a9de2672"
+    "generatedAt": "2026-11-23T19:14:01+00:00",
+    "codeSha": "5041511998575851eb5cb16533e9fe999d29d5a8"
   },
   "install": [
     {

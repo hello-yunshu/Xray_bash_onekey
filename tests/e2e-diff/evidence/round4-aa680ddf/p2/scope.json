@@ -1,0 +1,18 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-08,OPS-16,OPS-27,OPS-01,OPS-02,OPS-04",
+  "ops": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-04",
+    "OPS-08",
+    "OPS-16",
+    "OPS-27"
+  ],
+  "runId": "round4-aa680ddf",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

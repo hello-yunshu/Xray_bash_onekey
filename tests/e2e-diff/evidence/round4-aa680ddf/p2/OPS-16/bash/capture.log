@@ -1,0 +1,15 @@
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=9afc4a1be237c2767abdefb16725bad9fab0d21d219c4c93d00796201cbc3770
+install_exit=0
+manifest entries=41
+runtime collected
+logs collected
+identity fingerprints written to /out/config/identity.json
+done=tls install_exit=0
+sanitized /out/install.log
+sanitized /out/expect.log
+sanitized /out/capture.log

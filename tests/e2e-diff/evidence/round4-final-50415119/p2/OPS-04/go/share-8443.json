@@ -1,0 +1,12 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "uuid": "28857229-d54d-4aec-83dc-fd2d1a87c7db",
+  "email": "me@hey.run",
+  "flow": "xtls-rprx-vision",
+  "host": "example.com",
+  "port": 8443,
+  "shareUri": "vless://28857229-d54d-4aec-83dc-fd2d1a87c7db@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=8rGkkkBkZttPN69-S4cQBcV6ili8zbXrhdgmBJ8Ex1U&sid=dd34fad0&type=raw#idleleo-reality",
+  "clashYaml": "proxies:\n  - name: \"idleleo-reality\"\n    type: vless\n    server: example.com\n    port: 8443\n    uuid: 28857229-d54d-4aec-83dc-fd2d1a87c7db\n    network: tcp\n    udp: true\n    tls: true\n    servername: example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: 8rGkkkBkZttPN69-S4cQBcV6ili8zbXrhdgmBJ8Ex1U\n      short-id: dd34fad0\n",
+  "warnings": []
+}

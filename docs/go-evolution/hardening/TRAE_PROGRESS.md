@@ -132,3 +132,29 @@ Test Install 历史静默退出仍为 PARTIAL。
 **结论**：Docker 开发候选 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`（上述
 NOT_DONE 未完成）；正式发布、合并、tag 仍为 `NO_GO_NOT_AUTHORIZED`。
 PR #182 保持 draft。
+
+## 2026-11-24 第四轮审计收尾修复与最终独立验收（`50415119`）
+
+| 阶段 | 内容 | 结果 | 证据 |
+| --- | --- | --- | --- |
+| S0 | 拉取远程、冻结基线 `8f9673ce`、核对审计发现仍在 | 完成 | 提交中的 `acceptance.json` 仍为 `codeSha=test`；批准 v1 无指纹 |
+| A1 | 证书所有权：路径+类型+摘要绑定、嵌套 marker 整树保护、第三方 ACME 保守保留 | 修复（`8a457bec`） | 同份复现测试基线 2 红、候选全绿：`docs/go-migration/audit-remediation/round4-20261124/repro/` |
+| A2 | Guard：`/proc/<pid>/stat` starttime + btime；reload 记录绑定 PID/StartTicks | 修复（`8a457bec`） | `TestReproUnboundReloadRecordDoesNotProveActive` 红→绿 |
+| B1 | 账本测试污染正式工件 | 修复（`8a457bec`） | 基线改写 `acceptance.json`；修复后 28 测试前后逐字节一致 |
+| B2 | provenance、业务事实、批准指纹/有效期、supersedes/fixedBy/history | 修复（`8a457bec`） | `test_build_ledger.py` 28/28 |
+| B3 | 批准来源/范围/指纹/有效期 | 工具修复；13 行 APPROVAL_PENDING | `approvals/round3-20261122.json` v2 |
+| 回归 | Docker 全量矩阵（候选 `50415119`） | 退出码 0；M1–M10 双端×2 轮 40 个 rc 全 0；E1–E8 8/8 allPassed；OPS 34 行全执行 | `tests/e2e-diff/evidence/round4-full-50415119/` |
+| 回归 | Go CLI sweep | 57 PASS / 0 FAIL | `tests/e2e-diff/evidence/round4-final-50415119-sweep/` |
+| 回归 | `go test -count=1 ./...`（`golang:1.27.4`） | 25 包 ok，0 FAIL | `round4-20261124/logs/go-test-50415119.log` |
+| 账本 | 严格 B2/B3 重建 | 13 DUAL / 3 GO_ONLY / 13 FAIL / 5 BLOCKED / 0 NOT_RUN，退出码 1 | `tests/e2e-diff/ledger.json`；三摘要一致 |
+
+本轮新增：`tests/e2e-diff/collect/guard_acceptance_artifacts.sh`、
+`docs/go-migration/audit-remediation/FINAL_AUDIT_20261124.md`、
+`round4-20261124/{defects.json,evidence-index.json,repro/,logs/}`。
+
+未闭合：OPS-01/02/04/08/10/32 缺业务事实（BLOCKED/GO_ONLY）；13 行差异或单侧
+证据需用户对本次候选重新批准；OPS-17b Bash 超时；E1–E8 仅 Go 侧；生产 VPS/
+公网 CA/IPv6/宿主 BBR/掉电恢复未验证；DIFF 行“预期 rc”未实现。
+
+**结论**：Docker 开发候选 `NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；
+`RELEASE_AUTHORIZED = NO`。未合并、未打 tag、未发布、未操作生产 VPS。
