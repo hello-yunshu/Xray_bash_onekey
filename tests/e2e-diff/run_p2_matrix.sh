@@ -134,6 +134,7 @@ if [[ -d "$EVID" && -n "$(ls -A "$EVID" 2>/dev/null)" ]]; then
     log "FATAL: $EVID already holds evidence; choose a new E2E_RUN_ID"
     exit 2
 fi
+STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 log "run_id=$RUN_ID"
 if [[ -n "${E2E_BLOCK_HOSTS:-}" ]]; then
     log "blocked_hosts=${E2E_BLOCK_HOSTS} (pinned to 127.0.0.1 for offline proof)"
@@ -3717,6 +3718,61 @@ if (( ${#OIDS[@]} > 0 )); then
         ops_job "$oid"
     done
 fi
+
+# Stamp every recorded verdict with the provenance the acceptance ledger
+# requires: frozen product commit, both shipped artefacts, the driver and the
+# container image. Evidence without this block is reported as BLOCKED by
+# build_ledger.py instead of being counted as a pass.
+python3 - "$EVID" "$RUN_ID" "$ROOT" "$WORK/seed/idleleo" "$IMAGE_ID" "$STARTED_AT" <<'PY'
+import glob
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import time
+
+evid, run_id, root, binary, image_id, started = sys.argv[1:7]
+
+def digest(path):
+    try:
+        with open(path, "rb") as fh:
+            return hashlib.sha256(fh.read()).hexdigest()
+    except OSError:
+        return None
+
+run = {
+    "productCodeSha": subprocess.check_output(
+        ["git", "-C", root, "rev-parse", "HEAD"], text=True).strip(),
+    "binarySha256": digest(binary),
+    "bashScriptSha256": digest(os.path.join(root, "install.sh")),
+    "driverSha": digest(os.path.join(root, "tests/e2e-diff/run_p2_matrix.sh")),
+    "runId": run_id,
+    "image": image_id,
+    "layer": "L0-L4 docker matrix",
+    "startedAt": started,
+    "finishedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+}
+with open(os.path.join(evid, "run.json"), "w", encoding="utf-8") as fh:
+    json.dump(run, fh, ensure_ascii=False, indent=2, sort_keys=True)
+    fh.write("\n")
+
+stamped = 0
+for path in glob.glob(os.path.join(evid, "p2", "OPS-*", "*.json")):
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError):
+        continue
+    if not isinstance(data, dict) or isinstance(data.get("run"), dict):
+        continue
+    data["run"] = run
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, ensure_ascii=False, indent=2, sort_keys=True)
+        fh.write("\n")
+    stamped += 1
+print("stamped %d verdict file(s) with run provenance" % stamped)
+PY
 
 # Record what this run actually executed. report.py treats a non-empty `only`
 # as a partial run and renders everything outside this scope as NOT-RUN, so an

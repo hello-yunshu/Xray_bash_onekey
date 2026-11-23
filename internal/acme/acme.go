@@ -685,16 +685,23 @@ func markManaged(certFile, keyFile, group string) error {
 		}
 		mode = 0o640
 	}
-	body := []byte("managed-by=idleleo\n")
+	// Ownership is bound to the relative path, the file type and the content
+	// digest. A bare digest would also claim an unregistered byte-identical copy
+	// somewhere in the same directory, which this manager never created.
+	body := []byte("managed-by=idleleo\nformat=2\n")
 	for _, file := range []string{certFile, keyFile} {
 		if file == "" {
 			continue
+		}
+		rel, err := filepath.Rel(dir, file)
+		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return fmt.Errorf("ownership record for %s must stay inside %s", file, dir)
 		}
 		sum, err := fileSHA256(file)
 		if err != nil {
 			return fmt.Errorf("hash %s for the ownership record: %w", file, err)
 		}
-		body = append(body, []byte("sha256="+sum+"\n")...)
+		body = append(body, []byte("file="+filepath.ToSlash(rel)+"\ttype=regular\tsha256="+sum+"\n")...)
 	}
 	if err := os.WriteFile(ManagedMarker(certFile), body, mode); err != nil {
 		return err

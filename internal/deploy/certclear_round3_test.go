@@ -71,9 +71,13 @@ func fileDigest(t *testing.T, path string) string {
 
 func writeManagedMarkerHashes(t *testing.T, dir string, files ...string) {
 	t.Helper()
-	body := "managed-by=idleleo\n"
+	body := "managed-by=idleleo\nformat=2\n"
 	for _, f := range files {
-		body += "sha256=" + fileDigest(t, f) + "\n"
+		rel, err := filepath.Rel(dir, f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		body += "file=" + filepath.ToSlash(rel) + "\ttype=regular\tsha256=" + fileDigest(t, f) + "\n"
 	}
 	writeGuardTestFile(t, filepath.Join(dir, ".managed-by-idleleo"), []byte(body))
 }
@@ -210,6 +214,93 @@ func TestClearCertificatesDirectoryMarkerIsNotBlanketOwnership(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(archive, "third-party.pem")); err != nil {
 		t.Fatalf("the canary must survive: %v", err)
+	}
+}
+
+// D03 (round 4): the same bytes under a different, unregistered name are not
+// project property. Only the path-bound entry may be removed.
+func TestClearCertificatesKeepsUnregisteredIdenticalCopy(t *testing.T) {
+	root := sandbox(t)
+	certDir := filepath.Join(root, "etc/idleleo/cert")
+	certPath, _ := writeOwnedPair(t, certDir, "xray.crt", "xray.key", time.Now().Add(90*24*time.Hour))
+	raw, err := os.ReadFile(certPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	copyPath := filepath.Join(certDir, "copy-of-xray.crt")
+	writeGuardTestFile(t, copyPath, raw)
+
+	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(copyPath); err != nil {
+		t.Fatalf("an unregistered byte-identical copy must survive: %v", err)
+	}
+	assertPlanned(t, rep, copyPath, certActionKeep, false)
+	if len(rep.Removed) != 2 {
+		t.Fatalf("only the registered pair may be removed, got %v", rep.Removed)
+	}
+}
+
+// D03 (round 4): a .user-managed marker nested below the managed directory must
+// protect its whole subtree, not be skipped.
+func TestClearCertificatesKeepsSubtreeWithNestedUserMarker(t *testing.T) {
+	root := sandbox(t)
+	vault := filepath.Join(root, "etc/idleleo/cert/vault")
+	inner := filepath.Join(vault, "keep")
+	innerCert := filepath.Join(inner, "private.pem")
+	writeGuardTestFile(t, innerCert, []byte("operator managed"))
+	writeGuardTestFile(t, filepath.Join(inner, ".user-managed"), []byte("managed-by=user\n"))
+	owned := filepath.Join(vault, "old.crt")
+	writeGuardTestFile(t, owned, []byte("project cert"))
+	writeManagedMarkerHashes(t, vault, owned)
+
+	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rep.Removed) != 0 {
+		t.Fatalf("a nested .user-managed marker must protect the subtree, removed %v", rep.Removed)
+	}
+	for _, path := range []string{owned, innerCert} {
+		if _, err := os.Stat(path); err != nil {
+			t.Fatalf("%s must survive: %v", path, err)
+		}
+	}
+	assertPlanned(t, rep, vault, certActionKeep, false)
+}
+
+// D02 (round 4): an identical leaf certificate in ~/.acme.sh does not prove
+// control of the renewal account. Without a path-bound project record inside
+// that directory, it stays untouched even when the project copy is removed.
+func TestClearCertificatesKeepsIdenticalACMEWithoutOwnershipRecord(t *testing.T) {
+	root := sandbox(t)
+	home := t.TempDir()
+	certDir := filepath.Join(root, "etc/idleleo/cert")
+	certPath, keyPath := writeOwnedPair(t, certDir, "xray.crt", "xray.key", time.Now().Add(90*24*time.Hour))
+	certPEM, err := os.ReadFile(certPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keyPEM, err := os.ReadFile(keyPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	acmeDir := filepath.Join(home, ".acme.sh", "owned.example.com_ecc")
+	writeGuardTestFile(t, filepath.Join(acmeDir, "owned.example.com.cer"), certPEM)
+	writeGuardTestFile(t, filepath.Join(acmeDir, "owned.example.com.key"), keyPEM)
+
+	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root, HomeDir: home})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(acmeDir); err != nil {
+		t.Fatalf("third-party ACME state must be preserved: %v", err)
+	}
+	assertPlanned(t, rep, acmeDir, certActionKeep, false)
+	if len(rep.Removed) != 2 {
+		t.Fatalf("the project pair is still removable, got %v", rep.Removed)
 	}
 }
 

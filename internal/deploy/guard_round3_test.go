@@ -92,11 +92,11 @@ func TestInspectSNIGuardReportsActiveAfterVerifiedReloadRecord(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := writeGuardRuntimeRecord(paths, SNIPolicyIsolate, guardRuntimeEvidence(paths)); err != nil {
+	if err := writeGuardRuntimeRecord(paths, SNIPolicyIsolate, guardRuntimeEvidence(paths), 4242, 12345); err != nil {
 		t.Fatal(err)
 	}
 	stubInspectNginxProcess(t, func(bin string, pid int) (nginxProcess, error) {
-		return nginxProcess{Alive: true, Exe: bin, Started: time.Now().Add(-time.Hour)}, nil
+		return nginxProcess{Alive: true, Exe: bin, Started: time.Now().Add(-time.Hour), PID: 4242, StartTicks: 12345}, nil
 	})
 
 	st, err := InspectSNIGuard(root)
@@ -124,6 +124,51 @@ func TestInspectSNIGuardRejectsForeignProcess(t *testing.T) {
 	}
 	if st.Status != "runtime-unverified" {
 		t.Fatalf("an unrelated pid must not prove the managed Nginx policy: %+v", st)
+	}
+}
+
+// D04 (round 4): a reload record from a previous master must not survive a
+// restart or pid reuse. The record is bound to pid + kernel start ticks.
+func TestInspectSNIGuardRejectsReloadRecordFromAnotherProcessInstance(t *testing.T) {
+	root := seedGuardInstall(t)
+	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
+		t.Fatal(err)
+	}
+	seedRunningNginx(t, root)
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Same pid, same content, but the recorded start ticks belong to the old
+	// process that has since been replaced.
+	if err := writeGuardRuntimeRecord(paths, SNIPolicyIsolate, guardRuntimeEvidence(paths), 4242, 111); err != nil {
+		t.Fatal(err)
+	}
+	stubInspectNginxProcess(t, func(bin string, pid int) (nginxProcess, error) {
+		return nginxProcess{Alive: true, Exe: bin, Started: time.Now().Add(-time.Hour), PID: 4242, StartTicks: 999}, nil
+	})
+
+	st, err := InspectSNIGuard(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Status != "runtime-unverified" {
+		t.Fatalf("a reload record from another process instance must not prove active: %+v", st)
+	}
+}
+
+// The kernel start time must come from /proc/<pid>/stat, not the /proc/<pid>
+// directory mtime.
+func TestProcessStartTimeComesFromProcStat(t *testing.T) {
+	ticks, started, err := processStartTime(os.Getpid())
+	if err != nil {
+		t.Skipf("no usable /proc on this host: %v", err)
+	}
+	if ticks == 0 {
+		t.Fatal("start ticks must be non-zero for a live process")
+	}
+	if started.IsZero() || started.After(time.Now().Add(time.Minute)) {
+		t.Fatalf("implausible process start time %v", started)
 	}
 }
 

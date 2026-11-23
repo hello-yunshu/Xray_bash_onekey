@@ -16,10 +16,13 @@ evidence stays NOT_RUN; the denominator is never reduced.
 
 import argparse
 import datetime
+import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
+import tempfile
 
 OPS_IDS = (
     ["OPS-%02d" % i for i in range(1, 17)]
@@ -78,8 +81,134 @@ def load_approvals(path):
             raise EvidenceError("approval file %s has an entry without an id" % path)
         if not item.get("approvedBy") or not item.get("reason"):
             raise EvidenceError("approval for %s needs approvedBy and reason" % item["id"])
+        if not str(item.get("scope") or "").strip():
+            raise EvidenceError("approval for %s has no scope" % item["id"])
         out[item["id"]] = item
     return out
+
+
+def file_sha256(path):
+    try:
+        with open(path, "rb") as fh:
+            return hashlib.sha256(fh.read()).hexdigest()
+    except OSError:
+        return None
+
+
+PROVENANCE_FIELDS = (
+    "productCodeSha", "binarySha256", "bashScriptSha256",
+    "driverSha", "runId", "layer", "startedAt",
+)
+
+
+def provenance_problems_run(run, code_sha, dirname):
+    """Return why a run block cannot bind evidence to the frozen candidate.
+
+    Exit codes and verdicts are not provenance. Without the product commit, the
+    two build artefacts, the driver commit and the run identity there is no way
+    to tell current evidence from a stale run of an older candidate.
+    """
+    if not isinstance(run, dict):
+        return ["no run provenance block; this evidence is not bound to a candidate build"]
+    problems = []
+    for key in PROVENANCE_FIELDS:
+        if not str(run.get(key) or "").strip():
+            problems.append("run provenance is missing %s" % key)
+    product = str(run.get("productCodeSha") or "")
+    if product and code_sha and product != code_sha:
+        problems.append("evidence was produced for product %s, not the frozen %s"
+                        % (product[:12], code_sha[:12]))
+    run_id = str(run.get("runId") or "")
+    if run_id and dirname and run_id != dirname:
+        problems.append("run provenance runId %r does not match evidence directory %r"
+                        % (run_id, dirname))
+    return problems
+
+
+def provenance_problems(data, code_sha, dirname):
+    return provenance_problems_run(data.get("run"), code_sha, dirname)
+
+
+def _positive(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0
+
+
+def _true(value):
+    return value is True
+
+
+def _nonempty(value):
+    return bool(value)
+
+
+def _sni_probe(value):
+    return (isinstance(value, dict)
+            and str(value.get("unknownSniPolicy") or "").strip() != ""
+            and value.get("knownSniOk") is True)
+
+
+# Facts the independent audit named explicitly. A PASS with both exit codes is
+# only a necessary condition; the row must also carry the observable business
+# result for each side. Rows without a contract still need provenance.
+BUSINESS_FACTS = {
+    "OPS-01": [("addedClients", _positive), ("removedClients", _positive), ("clientConnected", _true)],
+    "OPS-02": [("addedClients", _positive), ("removedClients", _positive), ("clientConnected", _true)],
+    "OPS-04": [("portListening", _true), ("clientConnected", _true), ("shareInfo", _nonempty)],
+    "OPS-08": [("sniProbe", _sni_probe)],
+    "OPS-10": [("serverNames", _nonempty)],
+    "OPS-20": [("trafficBytes", _positive)],
+    "OPS-25": [("restoreVerified", _true), ("checksumMatch", _true)],
+    "OPS-26": [("restoreVerified", _true), ("checksumMatch", _true)],
+    "OPS-32": [("faultRemoved", _true), ("recovered", _true)],
+}
+
+
+def business_problems(op_id, details):
+    facts = BUSINESS_FACTS.get(op_id)
+    if not facts:
+        return []
+    problems = []
+    for side in ("bash", "go"):
+        block = details.get(side) if isinstance(details, dict) else None
+        if not isinstance(block, dict):
+            problems.append("%s side has no business evidence block" % side)
+            continue
+        for key, predicate in facts:
+            if not predicate(block.get(key)):
+                problems.append("%s side lacks the required business fact %s" % (side, key))
+    return problems
+
+
+def approval_problems(approval, evidence_path, op_id):
+    """Validate that an approval names this row, this difference and a deadline."""
+    problems = []
+    if not approval.get("approvedBy") or not approval.get("reason"):
+        problems.append("approval for %s needs approvedBy and reason" % op_id)
+    scope = str(approval.get("scope") or "").strip()
+    if not scope:
+        problems.append("approval for %s has no scope" % op_id)
+    if str(approval.get("approvedBy") or "").lower() == "user" and not approval.get("provenance"):
+        problems.append("a user approval must cite a traceable provenance record, not only approvedBy=user")
+    if approval.get("opId") and approval["opId"] != op_id:
+        problems.append("approval opId %r does not match %s" % (approval["opId"], op_id))
+    expires = approval.get("expiresAt")
+    if expires:
+        try:
+            expiry = datetime.date.fromisoformat(str(expires)[:10])
+        except ValueError:
+            problems.append("approval expiresAt %r is not an ISO date" % expires)
+        else:
+            today = datetime.datetime.now(datetime.timezone.utc).date()
+            if expiry < today:
+                problems.append("approval expired on %s" % expires)
+    fingerprint = approval.get("fingerprint")
+    if not fingerprint:
+        problems.append("approval for %s has no evidence fingerprint; it cannot bind a specific difference" % op_id)
+    else:
+        actual = file_sha256(evidence_path)
+        if actual != fingerprint:
+            problems.append("approval fingerprint does not match the cited evidence for %s" % op_id)
+    return problems
 
 
 def single_side_approval(approvals, op_id, evidence_path):
@@ -105,6 +234,51 @@ def read_json(path):
         return None
 
 
+def git_toplevel():
+    try:
+        out = subprocess.check_output(
+            ["git", "rev-parse", "--show-toplevel"],
+            text=True, stderr=subprocess.DEVNULL).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return out or None
+
+
+def inside_repo(path, root):
+    if not root:
+        return False
+    try:
+        rel = os.path.relpath(os.path.abspath(path), root)
+    except ValueError:
+        return False
+    return not (rel == ".." or rel.startswith(".." + os.sep) or os.path.isabs(rel))
+
+
+def write_json_atomic(path, data):
+    """Write JSON with a same-directory temp file and an atomic rename.
+
+    A failed or interrupted run must never leave a partially written acceptance
+    summary behind; either the previous file survives or the complete new one
+    replaces it.
+    """
+    directory = os.path.dirname(os.path.abspath(path)) or "."
+    os.makedirs(directory, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=".ledger-", suffix=".tmp", dir=directory)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(data, fh, ensure_ascii=False, indent=2)
+            fh.write("\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
 def repo_path(path):
     """Record paths relative to the repo so the ledger carries no host path."""
     if not path:
@@ -126,17 +300,22 @@ def read_difference_declaration(dirpath):
     return None
 
 
-def matrix_results(root, approvals):
+def matrix_results(root, approvals, code_sha=""):
     """Read p2/OPS-*/ops.json verdicts from a matrix run.
 
     Every declared OPS directory produces a row. A missing/unreadable ops.json,
     an id that disagrees with the directory, or a verdict that cannot be
     classified becomes BLOCKED instead of disappearing. A failure or an
     unapproved difference always wins over a pass.
+
+    A verdict is never enough on its own: the row must also prove which commit
+    and artefacts produced it, and (for audited rows) carry the observable
+    business fact for both sides.
     """
     out = {}
     if not root:
         return out
+    run_id = os.path.basename(os.path.normpath(root))
     p2 = os.path.join(root, "p2")
     if not os.path.isdir(p2):
         raise EvidenceError("matrix evidence %s has no p2 directory" % root)
@@ -151,29 +330,31 @@ def matrix_results(root, approvals):
                 path, data = declaration
                 verdict = str(data.get("result") or data.get("verdict") or "").upper().replace("-", "_")
                 reasons = [str(r) for r in (data.get("reasons") or [])]
-                if name in approvals:
-                    out[name] = {
-                        "status": "APPROVED_DIFF", "verdict": verdict, "approval": approvals[name],
-                        "reasons": reasons, "evidence": repo_path(path),
-                        "runId": os.path.basename(os.path.normpath(root)),
-                        "layer": "L0-L4 driver evidence",
-                    }
+                prov = provenance_problems(data, code_sha, run_id)
+                base = {
+                    "verdict": verdict, "reasons": reasons,
+                    "evidence": repo_path(path), "runId": run_id,
+                    "layer": "L0-L4 driver evidence",
+                }
+                if prov:
+                    base.update(status="BLOCKED", reasons=reasons + prov)
+                elif name in approvals:
+                    problems = approval_problems(approvals[name], path, name)
+                    if problems:
+                        base.update(status="FAIL", reasons=reasons + problems)
+                    else:
+                        base.update(status="APPROVED_DIFF", approval=approvals[name])
                 else:
-                    out[name] = {
-                        "status": "FAIL", "verdict": verdict,
-                        "reasons": reasons + [
-                            "%s declares a difference but no external approval names %s" % (os.path.basename(path), name)],
-                        "evidence": repo_path(path),
-                        "runId": os.path.basename(os.path.normpath(root)),
-                        "layer": "L0-L4 driver evidence",
-                    }
+                    base.update(status="FAIL", reasons=reasons + [
+                        "%s declares a difference but no external approval names %s" % (os.path.basename(path), name)])
+                out[name] = base
                 continue
             out[name] = {
                 "status": "BLOCKED",
                 "verdict": None,
                 "reasons": ["ops.json is missing or unreadable; this row has no acceptable evidence"],
                 "evidence": repo_path(evidence_path),
-                "runId": os.path.basename(os.path.normpath(root)),
+                "runId": run_id,
                 "layer": "L0-L4 driver evidence",
             }
             continue
@@ -182,26 +363,42 @@ def matrix_results(root, approvals):
         reasons = [str(r) for r in (data.get("reasons") or [])]
         bash_rc = (data.get("opsRc") or {}).get("bash")
         go_rc = (data.get("opsRc") or {}).get("go")
+        run_block = data.get("run") if isinstance(data.get("run"), dict) else {}
         base = {
             "verdict": verdict or None,
             "bashExit": bash_rc,
             "goExit": go_rc,
             "reasons": reasons,
             "evidence": repo_path(evidence_path),
-            "runId": os.path.basename(os.path.normpath(root)),
+            "runId": run_id,
             "layer": "L0-L4 driver evidence",
+            "productCodeSha": run_block.get("productCodeSha"),
+            "binarySha256": run_block.get("binarySha256"),
+            "bashScriptSha256": run_block.get("bashScriptSha256"),
+            "driverSha": run_block.get("driverSha"),
+            "supersedes": run_block.get("supersedes"),
+            "fixedBy": run_block.get("fixedBy"),
         }
         if op_id != name:
             base.update(status="BLOCKED",
                         reasons=reasons + ["ops.json id %r does not match its directory %r" % (op_id, name)])
             out[name] = base
             continue
-        if verdict in FAIL_VERDICTS:
+        prov = provenance_problems(data, code_sha, run_id)
+        if prov:
+            status = "BLOCKED"
+            base["reasons"] = reasons + prov
+        elif verdict in FAIL_VERDICTS:
             status = "FAIL"
         elif verdict in DIFF_VERDICTS:
             if op_id in approvals:
-                status = "APPROVED_DIFF"
-                base["approval"] = approvals[op_id]
+                problems = approval_problems(approvals[op_id], evidence_path, op_id)
+                if problems:
+                    status = "FAIL"
+                    base["reasons"] = reasons + problems
+                else:
+                    status = "APPROVED_DIFF"
+                    base["approval"] = approvals[op_id]
             else:
                 status = "FAIL"
                 base["reasons"] = reasons + ["an expected/allowed difference was declared but no external approval names %s" % op_id]
@@ -216,11 +413,21 @@ def matrix_results(root, approvals):
                 status = "BLOCKED"
                 base["reasons"] = reasons + ["dual-side PASS is missing an exit code; evidence is incomplete"]
             else:
-                status = "DUAL_SIDE_VERIFIED"
+                facts = business_problems(op_id, data.get("details"))
+                if facts:
+                    status = "BLOCKED"
+                    base["reasons"] = reasons + facts
+                else:
+                    status = "DUAL_SIDE_VERIFIED"
         elif verdict == "BASH_ONLY":
             if op_id in approvals:
-                status = "APPROVED_SINGLE_SIDE"
-                base["approval"] = single_side_approval(approvals, op_id, evidence_path)
+                problems = approval_problems(approvals[op_id], evidence_path, op_id)
+                if problems:
+                    status = "FAIL"
+                    base["reasons"] = reasons + problems
+                else:
+                    status = "APPROVED_SINGLE_SIDE"
+                    base["approval"] = approvals[op_id]
             else:
                 status = "BASH_ONLY"
         elif verdict in INCOMPLETE_VERDICTS:
@@ -233,18 +440,24 @@ def matrix_results(root, approvals):
     return out
 
 
-def sweep_results(root, approvals=None):
+def sweep_results(root, approvals=None, code_sha=""):
     """Parse assertions.txt from an ops sweep: an ID passes with no FAIL.
 
     A declared sweep without a readable assertions.txt, with malformed lines, or
     with no OPS assertion at all is rejected instead of silently contributing an
     empty (and therefore green-looking) result. A clean Go-only row still needs
     an explicit scoped approval before it counts as resolved.
+
+    The sweep script never records the product exit code. The ledger keeps that
+    unknown (None) instead of inventing a zero; only the approval can resolve a
+    one-sided row, and it must be bound to this file.
     """
     approvals = approvals or {}
     out = {}
     if not root:
         return out
+    run_id = os.path.basename(os.path.normpath(root))
+    prov = provenance_problems_run(read_json(os.path.join(root, "run.json")), code_sha, run_id)
     path = os.path.join(root, "assertions.txt")
     if not os.path.isfile(path):
         raise EvidenceError("ops evidence %s has no assertions.txt" % root)
@@ -281,16 +494,26 @@ def sweep_results(root, approvals=None):
         row = {
             "status": "GO_ONLY" if entry["fail"] == 0 else "FAIL",
             "verdict": "PASS" if entry["fail"] == 0 else "FAIL",
-            "goExit": 0 if entry["fail"] == 0 else 1,
+            "goExit": None,
+            "expectedRc": None,
+            "goExitRecorded": False,
             "reasons": entry["failText"],
             "assertions": entry["pass"] + entry["fail"],
             "evidence": repo_path(path),
-            "runId": os.path.basename(os.path.normpath(root)),
+            "runId": run_id,
             "layer": "L0-L2 Go CLI evidence",
         }
-        if row["status"] == "GO_ONLY" and op_id in approvals:
-            row["status"] = "APPROVED_SINGLE_SIDE"
-            row["approval"] = single_side_approval(approvals, op_id, path)
+        if prov:
+            row["status"] = "BLOCKED"
+            row["reasons"] = entry["failText"] + prov
+        elif row["status"] == "GO_ONLY" and op_id in approvals:
+            problems = approval_problems(approvals[op_id], path, op_id)
+            if problems:
+                row["status"] = "FAIL"
+                row["reasons"] = entry["failText"] + problems
+            else:
+                row["status"] = "APPROVED_SINGLE_SIDE"
+                row["approval"] = approvals[op_id]
         out[op_id] = row
     return out
 
@@ -310,12 +533,15 @@ def main():
     ap.add_argument("--out", default="tests/e2e-diff/ledger.json")
     ap.add_argument("--matrix-json", default="tests/e2e-diff/matrix.json")
     ap.add_argument("--acceptance-json", default="docs/go-evolution/hardening/acceptance.json")
+    ap.add_argument("--allow-repo-write", action="store_true",
+                    help="allow writing the tracked ledger/matrix/acceptance artifacts; "
+                         "tests and ad-hoc runs must keep every output in a temp directory")
     args = ap.parse_args()
 
     try:
         approvals = load_approvals(args.approved_diffs)
-        matrix_runs = [matrix_results(root, approvals) for root in args.matrix_evidence]
-        sweep_runs = [sweep_results(root, approvals) for root in args.ops_evidence]
+        matrix_runs = [matrix_results(root, approvals, args.code_sha) for root in args.matrix_evidence]
+        sweep_runs = [sweep_results(root, approvals, args.code_sha) for root in args.ops_evidence]
     except EvidenceError as exc:
         print("ledger error: %s" % exc, file=sys.stderr)
         return 2
@@ -334,10 +560,34 @@ def main():
         "FAIL": 7,
     }
     chosen = {}
+    history = {}
     for record in matrix_runs + sweep_runs:
         for op_id, entry in record.items():
+            history.setdefault(op_id, []).append(entry)
             if op_id not in chosen or rank[entry["status"]] > rank[chosen[op_id]["status"]]:
                 chosen[op_id] = entry
+
+    # A failure stays a failure unless a later run of the same frozen candidate
+    # explicitly names the failed run it supersedes, states the fix commit and
+    # carries verified evidence. Silently dropping a red run is impossible.
+    for op_id, entries in history.items():
+        current = chosen.get(op_id)
+        if not current or current["status"] != "FAIL":
+            continue
+        failed = [e for e in entries if e["status"] == "FAIL"]
+        good = [e for e in entries if e["status"] in RESOLVED_STATUSES]
+        for candidate in good:
+            superseded = str(candidate.get("supersedes") or "").strip()
+            fixed_by = str(candidate.get("fixedBy") or "").strip()
+            if not superseded or not fixed_by:
+                continue
+            if not any(f.get("runId") == superseded for f in failed):
+                continue
+            merged = dict(candidate)
+            merged["supersededRuns"] = sorted({f.get("runId") for f in failed if f.get("runId")})
+            merged["fixedBy"] = fixed_by
+            chosen[op_id] = merged
+            break
 
     results = []
     for op_id in OPS_IDS:
@@ -349,6 +599,13 @@ def main():
             "layer": None,
         })
         entry["id"] = op_id
+        runs = history.get(op_id) or []
+        if len(runs) > 1:
+            entry["history"] = [
+                {"runId": r.get("runId"), "status": r.get("status"),
+                 "verdict": r.get("verdict"), "evidence": r.get("evidence")}
+                for r in runs
+            ]
         results.append(entry)
 
     # Every row records the real Bash menu entry, the Go command and the
@@ -411,10 +668,26 @@ def main():
         },
         "results": results,
     }
-    os.makedirs(os.path.dirname(args.out), exist_ok=True)
-    with open(args.out, "w", encoding="utf-8") as fh:
-        json.dump(ledger, fh, ensure_ascii=False, indent=2)
-        fh.write("\n")
+    matrix = read_json(args.matrix_json)
+    acceptance = read_json(args.acceptance_json)
+
+    # The three summaries are tracked repository artifacts. A test or an ad-hoc
+    # probe that forgets one path flag must fail instead of silently rewriting
+    # the official acceptance record; only an explicit final build opts in.
+    toplevel = git_toplevel()
+    targets = [args.out]
+    if matrix is not None:
+        targets.append(args.matrix_json)
+    if acceptance is not None:
+        targets.append(args.acceptance_json)
+    if not args.allow_repo_write:
+        offenders = [p for p in targets if inside_repo(p, toplevel)]
+        if offenders:
+            print("ledger error: refusing to overwrite tracked acceptance artifacts without "
+                  "--allow-repo-write: %s" % ", ".join(offenders), file=sys.stderr)
+            return 2
+
+    write_json_atomic(args.out, ledger)
 
     summary = {
         "total": len(OPS_IDS),
@@ -439,7 +712,6 @@ def main():
         "source": "tests/e2e-diff/ledger.json",
     }
 
-    matrix = read_json(args.matrix_json)
     if matrix is not None:
         matrix["repoCommit"] = sha[:8]
         matrix["acceptance"] = {
@@ -463,16 +735,11 @@ def main():
             "generatedAt": generated,
             "codeSha": sha,
         }
-        with open(args.matrix_json, "w", encoding="utf-8") as fh:
-            json.dump(matrix, fh, ensure_ascii=False, indent=2)
-            fh.write("\n")
+        write_json_atomic(args.matrix_json, matrix)
 
-    acceptance = read_json(args.acceptance_json)
     if acceptance is not None:
         acceptance["ops"] = summary
-        with open(args.acceptance_json, "w", encoding="utf-8") as fh:
-            json.dump(acceptance, fh, ensure_ascii=False, indent=2)
-            fh.write("\n")
+        write_json_atomic(args.acceptance_json, acceptance)
 
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     if fail_ids:

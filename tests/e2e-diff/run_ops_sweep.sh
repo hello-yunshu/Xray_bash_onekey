@@ -29,6 +29,7 @@ FAIL=0
 source "$ROOT/tests/go-parity/lib/docker_common.sh"
 
 mkdir -p "$EVID" "$WORK/seed/cert"
+STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 log() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$EVID/run.log"; }
 sha() { host_sha256 "$1"; }
 assert() { # assert <0|1> <message>
@@ -261,6 +262,41 @@ run_op OPS-28 1 xray uninstall --purge --container --json
 assert "$([ "$(active_xray)" != "active" ] && echo 0 || echo 1)" "OPS-28 xray stops after uninstall"
 assert "$(docker exec "$C" sh -c '[ ! -e /etc/idleleo/conf/xray/config.json ] && echo 0 || echo 1')" \
     "OPS-28 runtime config is removed by --purge"
+
+IMAGE_ID="$(docker image inspect -f '{{.Id}}' "$IMAGE_TAG" 2>/dev/null || true)"
+python3 - "$EVID" "$RUN_ID" "$ROOT" "$WORK/seed/idleleo" "$IMAGE_ID" "$STARTED_AT" <<'PY'
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import time
+
+evid, run_id, root, binary, image_id, started = sys.argv[1:7]
+
+def digest(path):
+    try:
+        with open(path, "rb") as fh:
+            return hashlib.sha256(fh.read()).hexdigest()
+    except OSError:
+        return None
+
+run = {
+    "productCodeSha": subprocess.check_output(
+        ["git", "-C", root, "rev-parse", "HEAD"], text=True).strip(),
+    "binarySha256": digest(binary),
+    "bashScriptSha256": digest(os.path.join(root, "install.sh")),
+    "driverSha": digest(os.path.join(root, "tests/e2e-diff/run_ops_sweep.sh")),
+    "runId": run_id,
+    "image": image_id,
+    "layer": "L0-L2 Go CLI sweep",
+    "startedAt": started,
+    "finishedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+}
+with open(os.path.join(evid, "run.json"), "w", encoding="utf-8") as fh:
+    json.dump(run, fh, ensure_ascii=False, indent=2, sort_keys=True)
+    fh.write("\n")
+PY
 
 log "run_end=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 log "$PASS PASS / $FAIL FAIL"

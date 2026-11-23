@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "round": "round3-20261122",
   "codeSha": "99997da0f8772a814a61c32516d49d75a9de2672",
   "approvedBy": "user",
@@ -10,85 +10,157 @@
       "id": "OPS-03",
       "approvedBy": "user",
       "reason": "shortId 清理差异已记录在 shortid-difference.json：add/show/remove 两端均 rc=0，删除后 Bash 残留 1 个、Go 残留 2 个 shortId。按已知差异批准，不视为双端等价，后续如需可单独修 Go 清理逻辑。",
-      "scope": "documented-difference:shortid-residue"
+      "scope": "documented-difference:shortid-residue",
+      "opId": "OPS-03",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "8d0f7b2662a9fc40671b5862a772764bfc66cc09443af075ba1f96babaef04f8",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2/OPS-03/shortid-difference.json"
     },
     {
       "id": "OPS-12",
       "approvedBy": "user",
       "reason": "Bash 菜单是无限 tail -f 实时流（非交互运行 rc=124），Go 输出有界 journald 快照且 rc=0。交互流无法与有限命令做等价比较，按已记录差异批准；Go 侧日志可用性已由有限快照证明。",
-      "scope": "documented-difference:interactive-log-stream"
+      "scope": "documented-difference:interactive-log-stream",
+      "opId": "OPS-12",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "ce88ab88a7907eadaf2dd100adef67a877fa8f819c059c78c6c7ad85f3464780",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2/OPS-12/ops.json"
     },
     {
       "id": "OPS-13",
       "approvedBy": "user",
       "reason": "与 OPS-12 同一原因：Bash 错误日志为无限 tail -f（rc=124），Go 输出有界的 journald 错误日志快照（rc=0）。按已记录差异批准，不视为双端等价。",
-      "scope": "documented-difference:interactive-error-log-stream"
+      "scope": "documented-difference:interactive-error-log-stream",
+      "opId": "OPS-13",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "bf9945638296314d5f3dbc59cc3d96d5758b94a5d98df6f9e4b3920cb967fc5c",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2/OPS-13/ops.json"
     },
     {
       "id": "OPS-14",
       "approvedBy": "user",
       "reason": "Bash 入口是交互式 iftop UI，Go 是 api enable + stats 的有界查询（均 rc=0）。交互 UI 与有界统计查询不是等价命令，按已记录差异批准。",
-      "scope": "documented-difference:interactive-traffic-ui"
+      "scope": "documented-difference:interactive-traffic-ui",
+      "opId": "OPS-14",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "566dadf4440411a1d120f7e1de963f4f9fbcd81aed56a217d352e7695d04186e",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2/OPS-14/ops.json"
     },
     {
       "id": "OPS-16",
       "approvedBy": "user",
       "reason": "Bash 4>2>1/4>2>2 显示证书状态与有效期；Go 以 cert renew --dry-run 做续期预检，两端 rc=0 且证书 present/notExpired 一致。命令契约不同但安全结果一致，按已记录差异批准。",
-      "scope": "documented-difference:cert-status-vs-renew-preflight"
+      "scope": "documented-difference:cert-status-vs-renew-preflight",
+      "opId": "OPS-16",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "4e9541eca9baeeacbb96690b1ac71ced2ab4a40630b695a05ceb2425f4ffdf05",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2/OPS-16/ops.json"
     },
     {
       "id": "OPS-25",
       "approvedBy": "user",
       "reason": "Bash 备份操作受管目录树（tar），Go 备份管理 JSON 元数据，两端 rc=0。Go 以元数据为唯一管理核心是既定设计，按已记录差异批准。",
-      "scope": "documented-difference:backup-tar-vs-metadata"
+      "scope": "documented-difference:backup-tar-vs-metadata",
+      "opId": "OPS-25",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "da074104643c900a4018d419bc26917644a2c395c77898869d61ae9a34903ab2",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2/OPS-25/ops.json"
     },
     {
       "id": "OPS-26",
       "approvedBy": "user",
       "reason": "Bash 恢复/导入重写受管目录树（tar），Go 从 install_config.json 导入为 JSON 元数据且不覆盖既有元数据；两端 rc=0、恢复金丝雀存在。Go 的元数据单一事实来源是既定设计，按已记录差异批准。",
-      "scope": "documented-difference:restore-tar-vs-metadata"
+      "scope": "documented-difference:restore-tar-vs-metadata",
+      "opId": "OPS-26",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "64d053b979c16bf5a91fcc42d11ace1eb569292ca659560b520e5fcdae83feaf",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2/OPS-26/ops.json"
     },
     {
       "id": "OPS-27",
       "approvedBy": "user",
       "reason": "Bash 7>3 确认一次即 rm -rf 整个证书目录（第三方金丝雀被删），Go 要求受管所有权证明并保留第三方证书。批准 Go 的保守删除行为，禁止为对齐 Bash 而回退为 rm -rf。",
-      "scope": "documented-difference:conservative-cert-delete"
+      "scope": "documented-difference:conservative-cert-delete",
+      "opId": "OPS-27",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "bf895129e310779246dca96cad17269d80f0a7eee6912b8979804ba91f89956e",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2/OPS-27/cert-clear-difference.json"
     },
     {
       "id": "OPS-17a",
       "approvedBy": "user",
       "reason": "Bash 更新入口是交互菜单，Go 以 update status --json 提供可验证的非交互更新通道；公共发布清单路径已由 Go 侧断言证明（rc=0、可解析 JSON）。按单侧证据批准。",
-      "scope": "go-side-only:public-release-manifest"
+      "scope": "go-side-only:public-release-manifest",
+      "opId": "OPS-17a",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "e9867b5105339c173d0a058016b6ee8d2af53fbb9328bd404fc2984b58a75ed4",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0-sweep2/assertions.txt"
     },
     {
       "id": "OPS-17b",
       "approvedBy": "user",
       "reason": "Bash 更新 Nginx 依赖交互菜单；Go update nginx 使用固定本地发布包完成更新：安装清单版本、校验摘要、nginx -t 通过、保留备份。按 Go 侧单侧证据批准。",
-      "scope": "go-side-only:fixed-local-package"
+      "scope": "go-side-only:fixed-local-package",
+      "opId": "OPS-17b",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "3f8ed0420a6fd66da7ccd0efce5c0da3ceddfe5898c71154c744713dbbdd202a",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0-realroot/realroot/assertions.txt"
     },
     {
       "id": "OPS-18",
       "approvedBy": "user",
       "reason": "tcp status --json 在容器内 rc=0 且可解析；宿主 BBR/内核调优无法在容器内等价复现。批准 Go 侧证据，但保留真实 VPS 一次性验证项，不计为双端等价。",
-      "scope": "host-bbr-requires-real-vps"
+      "scope": "host-bbr-requires-real-vps",
+      "opId": "OPS-18",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "e9867b5105339c173d0a058016b6ee8d2af53fbb9328bd404fc2984b58a75ed4",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0-sweep2/assertions.txt"
     },
     {
       "id": "OPS-23",
       "approvedBy": "user",
       "reason": "speedtest 依赖外部下载源；在受控本地 origin 上 Go 侧完成 1 MiB 全量测速并输出可解析 JSON/吞吐量（rc=0）。按单侧证据批准，真实公网测速不作验收前提。",
-      "scope": "go-side-only:external-download"
+      "scope": "go-side-only:external-download",
+      "opId": "OPS-23",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "e9867b5105339c173d0a058016b6ee8d2af53fbb9328bd404fc2984b58a75ed4",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0-sweep2/assertions.txt"
     },
     {
       "id": "OPS-24",
       "approvedBy": "user",
       "reason": "GeoData 刷新依赖外部下载；Go 侧 schedule install/run 从受控本地 origin 拉取并经 sha256 校验写入 geoip.dat/geosite.dat（rc=0）。按单侧证据批准。",
-      "scope": "go-side-only:external-download"
+      "scope": "go-side-only:external-download",
+      "opId": "OPS-24",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "e9867b5105339c173d0a058016b6ee8d2af53fbb9328bd404fc2984b58a75ed4",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0-sweep2/assertions.txt"
     },
     {
       "id": "OPS-30",
       "approvedBy": "user",
       "reason": "语言切换目前仅由 Bash 菜单实现（rc=0），Go CLI 无等价命令。按 Bash 侧单侧证据批准为已知缺口，不视为双端等价，也不得据此宣称该功能已迁移。",
-      "scope": "bash-side-only:language-switch"
+      "scope": "bash-side-only:language-switch",
+      "opId": "OPS-30",
+      "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+      "expiresAt": "2026-12-31",
+      "fingerprint": "1f386539e91a32e2535a984bebd60ab815ca706de9272f169d274dfba2495290",
+      "fingerprintOf": "tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2/OPS-30/ops.json"
     }
-  ]
+  ],
+  "provenance": "用户在 Trae 会话中回复“按推荐批准”（2026-11-22，本任务上一轮），该批准是会话内文本授权，未带外部签名；本文件只记录来源，不把它当作可独立验证的签名。",
+  "expiresAt": "2026-12-31"
 }

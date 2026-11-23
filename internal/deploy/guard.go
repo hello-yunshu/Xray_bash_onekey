@@ -280,9 +280,12 @@ func SetSNIGuard(ctx context.Context, spec SNIGuardSpec) (SNIGuardReport, error)
 	}
 	if rep.Reloaded {
 		// Only a successful reload justifies "the running Nginx loaded these
-		// files". The record is bound to the content hashes, so any later hand
-		// edit makes the status fall back to runtime-unverified.
-		if err := writeGuardRuntimeRecord(paths, rep.Policy, guardRuntimeEvidence(paths)); err != nil {
+		// files". The record is bound to the process instance that performed the
+		// reload (pid + kernel starttime) and to the content hashes, so a later
+		// restart, pid reuse or hand edit falls back to runtime-unverified.
+		if pid, ticks, pidErr := currentNginxIdentity(paths); pidErr != nil {
+			rep.Warnings = append(rep.Warnings, "the reload completed but the running Nginx instance could not be identified: "+pidErr.Error())
+		} else if err := writeGuardRuntimeRecord(paths, rep.Policy, guardRuntimeEvidence(paths), pid, ticks); err != nil {
 			rep.Warnings = append(rep.Warnings, "the reload completed but the runtime verification record could not be written: "+err.Error())
 		}
 	}
@@ -494,10 +497,16 @@ func InspectSNIGuard(root string) (SNIGuardStatus, error) {
 }
 
 // nginxProcess is the verifiable identity of the managed Nginx master.
+//
+// StartTicks is the kernel's per-process start time in clock ticks since boot
+// (field 22 of /proc/<pid>/stat). Together with PID it identifies one process
+// instance, so a reload record cannot be reused after a restart or pid reuse.
 type nginxProcess struct {
-	Alive   bool
-	Exe     string
-	Started time.Time
+	Alive      bool
+	Exe        string
+	Started    time.Time
+	PID        int
+	StartTicks uint64
 }
 
 // inspectNginxProcess is a variable so tests can simulate a managed master
@@ -531,13 +540,16 @@ func nginxPolicyRuntimeVerified(paths host.Paths, evidence []string, policy stri
 	}
 	newest := newestModTime(evidence)
 	if !proc.Started.IsZero() && (newest.IsZero() || !proc.Started.Before(newest)) {
+		// The master started after the policy files were last written, so its
+		// startup must have read exactly these files.
 		return true, true, ""
 	}
 	record, err := readGuardRuntimeRecord(paths)
-	if err == nil && record.Policy == policy && record.Digest == guardEvidenceDigest(evidence) {
+	if err == nil && record.Policy == policy && record.Digest == guardEvidenceDigest(evidence) &&
+		record.PID == pid && record.StartTicks != 0 && record.StartTicks == proc.StartTicks {
 		return true, true, ""
 	}
-	return false, true, "the running Nginx predates the current policy files and no verified reload record matches them; reporting runtime-unverified"
+	return false, true, "the running Nginx predates the current policy files and no verified reload record matches this process instance; reporting runtime-unverified"
 }
 
 func samePath(a, b string) bool {
@@ -562,8 +574,12 @@ func newestModTime(paths []string) time.Time {
 // readNginxProcess reads /proc to verify the pid belongs to the managed binary
 // and to learn when it started. Without /proc (non-Linux) identity and load
 // state cannot be proven, which the caller reports as unverified.
+//
+// The start time must come from /proc/<pid>/stat field 22 plus /proc/stat btime.
+// The /proc/<pid> directory mtime is not a process start time: it changes when
+// entries are created or removed and produced false "active" claims.
 func readNginxProcess(bin string, pid int) (nginxProcess, error) {
-	proc := nginxProcess{}
+	proc := nginxProcess{PID: pid}
 	exe, err := os.Readlink(fmt.Sprintf("/proc/%d/exe", pid))
 	if err != nil {
 		return proc, fmt.Errorf("cannot read /proc/%d/exe: %w", pid, err)
@@ -573,10 +589,85 @@ func readNginxProcess(bin string, pid int) (nginxProcess, error) {
 	if !proc.Alive {
 		return proc, nil
 	}
-	if fi, err := os.Stat(fmt.Sprintf("/proc/%d", pid)); err == nil {
-		proc.Started = fi.ModTime()
+	ticks, started, err := processStartTime(pid)
+	if err != nil {
+		return proc, err
 	}
+	proc.StartTicks = ticks
+	proc.Started = started
 	return proc, nil
+}
+
+// clockTicksPerSecond is USER_HZ. Linux exposes it as 100 on every supported
+// architecture; the value only scales the start timestamp, never a security
+// decision on its own.
+const clockTicksPerSecond = 100
+
+// processStartTime returns the kernel start ticks of pid and the wall-clock
+// time derived from the boot time recorded in /proc/stat.
+func processStartTime(pid int) (uint64, time.Time, error) {
+	raw, err := os.ReadFile(fmt.Sprintf("/proc/%d/stat", pid))
+	if err != nil {
+		return 0, time.Time{}, fmt.Errorf("cannot read /proc/%d/stat: %w", pid, err)
+	}
+	// The comm field is parenthesised and may contain spaces and parentheses;
+	// the remaining fields start after the last ')'.
+	end := strings.LastIndexByte(string(raw), ')')
+	if end < 0 || end+2 >= len(raw) {
+		return 0, time.Time{}, fmt.Errorf("/proc/%d/stat has no field list", pid)
+	}
+	fields := strings.Fields(string(raw[end+2:]))
+	// fields[0] is field 3 (state); starttime is field 22, i.e. index 19.
+	if len(fields) < 20 {
+		return 0, time.Time{}, fmt.Errorf("/proc/%d/stat is truncated", pid)
+	}
+	ticks, err := strconv.ParseUint(fields[19], 10, 64)
+	if err != nil {
+		return 0, time.Time{}, fmt.Errorf("/proc/%d/stat starttime: %w", pid, err)
+	}
+	boot, err := bootTime()
+	if err != nil {
+		return ticks, time.Time{}, err
+	}
+	return ticks, boot.Add(time.Duration(ticks) * time.Second / clockTicksPerSecond), nil
+}
+
+func bootTime() (time.Time, error) {
+	raw, err := os.ReadFile("/proc/stat")
+	if err != nil {
+		return time.Time{}, fmt.Errorf("cannot read /proc/stat: %w", err)
+	}
+	for _, line := range strings.Split(string(raw), "\n") {
+		if !strings.HasPrefix(line, "btime ") {
+			continue
+		}
+		secs, err := strconv.ParseInt(strings.TrimSpace(strings.TrimPrefix(line, "btime ")), 10, 64)
+		if err != nil {
+			return time.Time{}, fmt.Errorf("/proc/stat btime: %w", err)
+		}
+		return time.Unix(secs, 0), nil
+	}
+	return time.Time{}, errors.New("/proc/stat has no btime line")
+}
+
+// currentNginxIdentity returns the pid and start ticks of the managed master.
+// It deliberately bypasses the inspectNginxProcess seam: the reload record must
+// describe the real process, never a test double.
+func currentNginxIdentity(paths host.Paths) (int, uint64, error) {
+	pidFile := filepath.Join(paths.Root, filepath.FromSlash(nginx.InstallDirRel), "logs", "nginx.pid")
+	raw, err := os.ReadFile(pidFile)
+	if err != nil {
+		return 0, 0, err
+	}
+	pid, err := strconv.Atoi(strings.TrimSpace(string(raw)))
+	if err != nil || pid <= 0 {
+		return 0, 0, fmt.Errorf("invalid pid file %s", pidFile)
+	}
+	ticks, _, err := processStartTime(pid)
+	if err != nil {
+		return 0, 0, err
+	}
+	return pid, ticks, nil
 }
 
 func processAlive(pid int) bool {
@@ -588,10 +679,15 @@ type guardRuntimeRecord struct {
 	SchemaVersion int    `json:"schemaVersion"`
 	Policy        string `json:"policy"`
 	Digest        string `json:"digest"`
+	PID           int    `json:"pid"`
+	StartTicks    uint64 `json:"startTicks"`
 	VerifiedAt    string `json:"verifiedAt"`
 }
 
-const guardRuntimeRecordSchema = 1
+// Schema 2 binds the record to a process instance. A schema-1 record only named
+// content, so a restart or pid reuse could keep claiming "active"; those records
+// are deliberately ignored.
+const guardRuntimeRecordSchema = 2
 
 func guardRuntimeRecordPath(paths host.Paths) string {
 	return filepath.Join(paths.Root, "var/lib/idleleo/state/guard-runtime.json")
@@ -629,7 +725,7 @@ func guardEvidenceDigest(evidence []string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func writeGuardRuntimeRecord(paths host.Paths, policy string, evidence []string) error {
+func writeGuardRuntimeRecord(paths host.Paths, policy string, evidence []string, pid int, startTicks uint64) error {
 	path := guardRuntimeRecordPath(paths)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
@@ -638,6 +734,8 @@ func writeGuardRuntimeRecord(paths host.Paths, policy string, evidence []string)
 		SchemaVersion: guardRuntimeRecordSchema,
 		Policy:        policy,
 		Digest:        guardEvidenceDigest(evidence),
+		PID:           pid,
+		StartTicks:    startTicks,
 		VerifiedAt:    time.Now().UTC().Format(time.RFC3339),
 	}
 	raw, err := json.MarshalIndent(record, "", "  ")

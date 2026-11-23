@@ -50,7 +50,15 @@ const (
 var certDirective = regexp.MustCompile(`(ssl_certificate_key|ssl_certificate|ssl_trusted_certificate|ssl_client_certificate)[ \t\r\n]+([^;]*);`)
 var jsonCertField = regexp.MustCompile(`"(certificateFile|keyFile|certFile|certKeyFile)"\s*:\s*"([^"]+)"`)
 var nginxIncludeDirective = regexp.MustCompile(`\binclude[ \t\r\n]+([^;]*);`)
-var managedHashLine = regexp.MustCompile(`(?m)^sha256=([0-9a-f]{64})$`)
+
+// managedFileLine is the path-bound ownership entry written by the manager:
+//
+//	file=<relative path>\ttype=regular\tsha256=<hex>
+//
+// Content alone does not prove ownership: a byte-identical copy under a
+// different name must stay untouched. Only this format is trusted; a legacy
+// marker that lists bare hashes is preserved rather than interpreted.
+var managedFileLine = regexp.MustCompile(`(?m)^file=([^\t\n]+)\ttype=([a-z]+)\tsha256=([0-9a-f]{64})$`)
 
 // ClearCertsSpec is one "clear every managed certificate" request.
 //
@@ -324,10 +332,12 @@ func planManagedDir(dir string, scan certReferenceScan, rep *ClearCertsReport) (
 	return moves, nil
 }
 
-// readCertOwnershipProof returns the files in dir whose current content hash is
-// listed in the manager's ownership record. A marker alone (including a legacy
-// marker without hashes) proves nothing, and neither does a file name or the
-// directory it happens to live in.
+// readCertOwnershipProof returns the files in dir whose relative path, file
+// type and content hash are all listed in the manager's ownership record.
+//
+// A marker alone, a legacy marker that lists bare hashes, a file name or the
+// directory a file happens to live in prove nothing. Bytes are not governance:
+// an unregistered copy with identical content must never be claimed.
 func readCertOwnershipProof(dir string, rep *ClearCertsReport) map[string]bool {
 	owned := map[string]bool{}
 	marker := filepath.Join(dir, certMarkerName)
@@ -338,44 +348,65 @@ func readCertOwnershipProof(dir string, rep *ClearCertsReport) map[string]bool {
 		}
 		return owned
 	}
-	hashes := map[string]bool{}
-	for _, m := range managedHashLine.FindAllStringSubmatch(string(raw), -1) {
-		hashes[m[1]] = true
-	}
-	if len(hashes) == 0 {
-		rep.Warnings = append(rep.Warnings,
-			"the ownership record "+marker+" has no content hashes; files in that directory are preserved")
-		return owned
-	}
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		rep.Warnings = append(rep.Warnings, "cannot read "+dir+" while checking ownership: "+err.Error())
-		return owned
-	}
-	for _, entry := range entries {
-		name := entry.Name()
-		if name == certMarkerName || name == certUserMarker || entry.IsDir() || entry.Type()&os.ModeSymlink != 0 || !entry.Type().IsRegular() {
+	type proofEntry struct{ kind, sum string }
+	entriesByRel := map[string]proofEntry{}
+	for _, m := range managedFileLine.FindAllStringSubmatch(string(raw), -1) {
+		rel := strings.TrimSpace(m[1])
+		if rel == "" || filepath.IsAbs(rel) || strings.Contains(rel, "..") || strings.ContainsAny(rel, "\r\n\x00") {
+			rep.Warnings = append(rep.Warnings, "the ownership record "+marker+" has an unsafe path entry; ignoring it")
 			continue
 		}
-		path := filepath.Join(dir, name)
+		entriesByRel[filepath.ToSlash(filepath.Clean(filepath.FromSlash(rel)))] = proofEntry{kind: m[2], sum: m[3]}
+	}
+	if len(entriesByRel) == 0 {
+		rep.Warnings = append(rep.Warnings,
+			"the ownership record "+marker+" has no path-bound entries; files in that directory are preserved")
+		return owned
+	}
+	for rel, want := range entriesByRel {
+		path := filepath.Clean(filepath.Join(dir, filepath.FromSlash(rel)))
+		if !within(path, dir) {
+			rep.Warnings = append(rep.Warnings, "the ownership record "+marker+" points outside its directory; ignoring "+rel)
+			continue
+		}
+		info, err := os.Lstat(path)
+		if err != nil {
+			rep.Warnings = append(rep.Warnings, "cannot stat "+path+" while checking ownership: "+err.Error())
+			continue
+		}
+		if info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
+			rep.Warnings = append(rep.Warnings, "the ownership record "+marker+" names a non-regular file; ignoring "+rel)
+			continue
+		}
+		if want.kind != "" && want.kind != "regular" {
+			rep.Warnings = append(rep.Warnings, "the ownership record "+marker+" names an unsupported file type; ignoring "+rel)
+			continue
+		}
 		sum, err := certFileSHA256(path)
 		if err != nil {
 			rep.Warnings = append(rep.Warnings, "cannot hash "+path+" while checking ownership: "+err.Error())
 			continue
 		}
-		if hashes[sum] {
-			owned[filepath.Clean(path)] = true
+		if sum == want.sum {
+			owned[path] = true
 		}
 	}
 	return owned
 }
 
 // examineCertDir proves that every regular file in a directory tree is bound to
-// this project by its own content hash and that none of them is referenced by
+// this project by its own ownership entry and that none of them is referenced by
 // an effective configuration. Any doubt keeps the directory.
+//
+// A .user-managed marker at any depth forbids removing the whole subtree that
+// contains it: a nested operator-managed directory must never be carried along
+// by its parent's deletion.
 func examineCertDir(dir string, refs map[string][]string, proofFor func(string) map[string]bool, depth int) (files int, used []string, reason string) {
 	if depth > maxDirWalkDepth {
 		return files, used, "the certificate directory tree is deeper than the supported limit; refusing to remove it"
+	}
+	if fileExists(filepath.Join(dir, certUserMarker)) {
+		return files, used, "the nested .user-managed marker in " + dir + " forbids automatic removal of this subtree"
 	}
 	proof := proofFor(dir)
 	entries, err := os.ReadDir(dir)
@@ -384,14 +415,20 @@ func examineCertDir(dir string, refs map[string][]string, proofFor func(string) 
 	}
 	for _, entry := range entries {
 		name := entry.Name()
-		if name == certMarkerName || name == certUserMarker {
+		if name == certMarkerName {
 			continue
+		}
+		if name == certUserMarker {
+			return files, used, "the nested .user-managed marker in " + dir + " forbids automatic removal of this subtree"
 		}
 		path := filepath.Join(dir, name)
 		if entry.Type()&os.ModeSymlink != 0 {
 			return files, used, "the certificate directory holds a symlink; refusing to remove it"
 		}
 		if entry.IsDir() {
+			if subtreeHasUserMarker(path, depth+1) {
+				return files, used, "a .user-managed marker inside " + path + " forbids automatic removal of this subtree"
+			}
 			childFiles, childUsed, childReason := examineCertDir(path, refs, proofFor, depth+1)
 			files += childFiles
 			used = append(used, childUsed...)
@@ -412,6 +449,31 @@ func examineCertDir(dir string, refs map[string][]string, proofFor func(string) 
 		}
 	}
 	return files, used, ""
+}
+
+// subtreeHasUserMarker reports whether any directory at or below dir carries a
+// .user-managed marker. Unreadable levels and depth-limit overruns count as
+// present, so an unknown subtree is preserved instead of guessed away.
+func subtreeHasUserMarker(dir string, depth int) bool {
+	if depth > maxDirWalkDepth {
+		return true
+	}
+	if fileExists(filepath.Join(dir, certUserMarker)) {
+		return true
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return true
+	}
+	for _, entry := range entries {
+		if entry.Type()&os.ModeSymlink != 0 || !entry.IsDir() {
+			continue
+		}
+		if subtreeHasUserMarker(filepath.Join(dir, entry.Name()), depth+1) {
+			return true
+		}
+	}
+	return false
 }
 
 func certFileSHA256(path string) (string, error) {
@@ -771,14 +833,20 @@ func planACMEState(home string, scan certReferenceScan, rep *ClearCertsReport) (
 		target := filepath.Join(root, entry.Name())
 		domain := strings.TrimSuffix(entry.Name(), "_ecc")
 		cerPath := filepath.Join(target, domain+".cer")
+		keyPath := filepath.Join(target, domain+".key")
 		fp, err := certFingerprint(cerPath)
-		if err != nil || !deletable[fp] {
+		// Sharing a certificate identity does not prove who governs the renewal
+		// account. Deleting third-party ACME state requires a path-bound ownership
+		// record inside that directory, which only this project can write.
+		proof := readCertOwnershipProof(target, rep)
+		owned := proof[filepath.Clean(cerPath)] && proof[filepath.Clean(keyPath)]
+		if err != nil || !deletable[fp] || !owned {
 			keepEntry(rep, target, "acme-directory", certOwnerUser, false, nil,
-				"no project ownership record binds this ACME state to a certificate being removed; preserving it")
+				"no project ownership record inside this ACME directory binds it to a certificate being removed; preserving it for manual management")
 			continue
 		}
 		addPlan(rep, target, "acme-directory", certOwnerProject, false, nil, certActionDelete,
-			"ACME state holds the identical certificate that this project issued and is removing")
+			"the ACME directory carries a path-bound project ownership record for the certificate being removed")
 		moves = append(moves, certMove{From: target, Kind: "acme"})
 	}
 	return moves, nil
