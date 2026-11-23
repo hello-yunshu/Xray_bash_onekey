@@ -24,11 +24,11 @@
 - [x] 目标 6 行均升为 DUAL；OPS-20 仍 GO_ONLY、OPS-17b 仍 BLOCKED、13 行 FAIL 未自行批准
 
 ## T4 报告与交付
-- [ ] 更新 `FINAL_AUDIT_20261124.md`（业务事实、复跑、账本、未闭合项）
-- [ ] 更新 `defects.json` 与 `evidence-index.json`（新 run provenance）
-- [ ] 追加 `TRAE_PROGRESS.md`
+- [x] 更新 `FINAL_AUDIT_20261124.md`（业务事实、复跑、账本、未闭合项）
+- [x] 更新 `defects.json` 与 `evidence-index.json`（新 run provenance、R4-B4）
+- [x] 追加 `TRAE_PROGRESS.md`
 - [ ] 提交并 push `work/go-hardening-parity-20261119`
-- [ ] 不做：合并主线、tag、发布、生产 VPS、自行批准差异
+- [x] 不做：合并主线、tag、发布、生产 VPS、自行批准差异
 
 ## 完成标准
 - 每个升为 DUAL 的行都有双侧 `details` 真实业务事实与对应日志。

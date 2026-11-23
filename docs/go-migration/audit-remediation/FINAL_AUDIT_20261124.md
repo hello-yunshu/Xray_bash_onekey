@@ -4,7 +4,7 @@
 - 分支：`work/go-hardening-parity-20261119`
 - 审计基线：`8f9673ce9d5ec485bb360cb932a5ce381475885e`
 - 本轮候选（产品代码 SHA）：`5041511998575851eb5cb16533e9fe999d29d5a8`
-- 证据/报告提交：`2f607180140b8504423b85fdc9110b9ccbe5d332`（`git diff 50415119..2f607180 -- cmd internal install.sh` 为空，即不含产品代码变更）
+- 证据/报告提交：`2f607180140b8504423b85fdc9110b9ccbe5d332`（`git diff 50415119..2f607180 -- cmd internal install.sh` 为空，即不含产品代码变更）；本轮补充证据与账本提交：`b988ee6d71733114edf652ae68ddda422a1d19e4`（产品 diff 同为 0）
 - 产品代码修复提交：`8a457bec`（A1/A2/B1/B2/B3 + provenance）；`50415119` 仅修改验收运行器的 provenance 写入路径与测试，不改产品代码
 - 补充证据提交：`tests/e2e-diff/evidence/round4-bizfacts2-50415119`、`round4-bizfacts3-50415119`（在 `50415119` 的独立 worktree 上运行，产品代码与二进制 SHA 不变）
 - 结论：`NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE`；`RELEASE_AUTHORIZED = NO`
