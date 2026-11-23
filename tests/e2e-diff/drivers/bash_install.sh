@@ -56,8 +56,16 @@ src_version="${src_version:-3.3.6}"
 # The Nginx build must match the offline cache seeded by the runner, so both
 # sides resolve the same artifact; the default keeps the historical build.
 nginx_build="${E2E_NGINX_BUILD:-2026.10.15.7679}"
+# The metadata pin must describe the runtime the runner actually seeded.
+# A stale pin made the installer treat the local Xray as newer, reinstall
+# through the harness placeholder ref and fail with a 404.
+seeded_xray_version=""
+if [[ -x /seed/xray ]]; then
+    seeded_xray_version=$(/seed/xray version 2>/dev/null | sed -n 's/^Xray \([0-9][0-9.]*\).*/\1/p' | head -n1)
+fi
+xray_version="${seeded_xray_version:-26.10.31}"
 cat >/etc/idleleo/versions.json <<JSON
-{"shell_online_version":"${src_version}","shell_release_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"${nginx_build}"}
+{"shell_online_version":"${src_version}","shell_release_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","xray_online_version":"${xray_version}","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"${nginx_build}"}
 JSON
 export XRAY_VERSIONS_FILE=/etc/idleleo/versions.json
 log "seeded_versions=yes shell=${src_version} nginx_build=${nginx_build}"

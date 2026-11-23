@@ -48,14 +48,7 @@ PY
 ensure_xray_bin() {
     local arch=$1
     local explicit=${IDLELEO_XRAY_BIN:-}
-    # The E2E fixtures pin an Xray release. Downloading "latest" made the seeded
-    # runtime drift ahead of that pin, which triggered a reinstall through the
-    # harness placeholder installer ref and failed with a 404. Callers that need
-    # the pinned behaviour set IDLELEO_XRAY_VERSION; the default keeps latest.
-    local version=${IDLELEO_XRAY_VERSION:-latest}
-    local tag=latest
-    [[ "$version" == "latest" ]] || tag="v$version"
-    local cache="$ROOT/tests/go-parity/.cache/xray-$version-$arch/xray"
+    local cache="$ROOT/tests/go-parity/.cache/xray-linux-$arch/xray"
     local bin machine asset tmp
 
     if [[ -n "$explicit" ]]; then
@@ -77,7 +70,7 @@ ensure_xray_bin() {
         echo "downloading $asset for linux/$arch" >&2
         curl -fsSL --retry 3 --retry-all-errors \
             -o "$tmp/xray.zip" \
-            "https://github.com/XTLS/Xray-core/releases/$tag/download/$asset" || {
+            "https://github.com/XTLS/Xray-core/releases/latest/download/$asset" || {
             rm -rf "$tmp"
             echo "Xray download failed; set IDLELEO_XRAY_BIN" >&2
             return 2
