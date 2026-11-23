@@ -3758,7 +3758,7 @@ with open(os.path.join(evid, "run.json"), "w", encoding="utf-8") as fh:
     fh.write("\n")
 
 stamped = 0
-for path in glob.glob(os.path.join(evid, "p2", "OPS-*", "*.json")):
+for path in glob.glob(os.path.join(evid, "OPS-*", "*.json")):
     try:
         with open(path, encoding="utf-8") as fh:
             data = json.load(fh)
