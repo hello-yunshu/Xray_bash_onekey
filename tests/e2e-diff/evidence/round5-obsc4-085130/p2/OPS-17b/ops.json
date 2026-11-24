@@ -1,0 +1,48 @@
+{
+  "details": {
+    "bash": {
+      "after": "1.30.6",
+      "backup": "backup-created",
+      "before": "1.27.5",
+      "buildAfter": "2026.10.15.7679",
+      "health": 0,
+      "previousBinary": "real",
+      "rc": 0
+    },
+    "expected": "1.30.6",
+    "go": {
+      "after": "1.30.6",
+      "backup": "/etc/idleleo/backup/nginx-1.27.5-1795481706750492059",
+      "before": "1.27.5",
+      "health": 0,
+      "previousBinary": "real",
+      "rc": 0
+    },
+    "goReport": {
+      "backupPath": "/etc/idleleo/backup/nginx-1.27.5-1795481706750492059",
+      "health": true,
+      "newVersion": "1.30.6",
+      "previousVersion": "1.27.5",
+      "restarted": true,
+      "verified": true
+    }
+  },
+  "id": "OPS-17b",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "driverSha": "68029718cfda1060363393ba9e122f56c1bdee09796d7943b1c945ffaf115e20",
+    "finishedAt": "2026-11-24T00:55:10Z",
+    "image": "sha256:e7ad9b7bf18cdcebbf21b6b1204f1834abb8c7ce947ce79848650e3fea4108cb",
+    "layer": "L0-L4 docker matrix",
+    "productCodeSha": "d756dfff6b5091b2d2a9fea8188297fc50aa23a8",
+    "runId": "round5-obsc4-085130",
+    "startedAt": "2026-11-24T00:51:30Z"
+  },
+  "verdict": "PASS"
+}

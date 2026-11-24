@@ -176,7 +176,12 @@ case "$ARCH" in
 esac
 NGINX_ASSET="xray-nginx-custom-${NGINX_ARCH}.tar.gz"
 NGINX_CACHE="${E2E_NGINX_CACHE:-$HOME/.cache/xray-audit/nginx/$NGINX_BUILD}"
+# OPS-17b starts from a real older binary so the update really replaces it.
+NGINX_OLD_IMAGE="${E2E_NGINX_OLD_IMAGE:-nginx:1.27}"
 NGINX_CACHE_ENVS=()
+# MENU_NGINX_ENVS injects the offline cache into menu-driven installs; only the
+# OPS-17b update sets it, every other menu row keeps its previous environment.
+MENU_NGINX_ENVS=()
 
 # nginx_cache_asset_info prints build/filename/sha256/size for one arch.
 nginx_cache_asset_info() {
@@ -260,6 +265,61 @@ else
     NGINX_CACHE_ENVS=()
     log "nginx_cache=miss (falling back to online downloads)"
 fi
+
+# write_go_nginx_manifest renders the component/version/url/sha256 contract the
+# Go updater reads. The Bash release manifest uses a different schema, so it
+# cannot be handed to `idleleo update nginx` directly.
+write_go_nginx_manifest() {
+    local dest="$WORK/seed/nginx"
+    [[ -f "$dest/release-manifest.json" && -f "$dest/$NGINX_ASSET" ]] || return 1
+    python3 - "$dest/release-manifest.json" "$dest/$NGINX_ASSET" \
+        "$NGINX_ARCH" "$NGINX_ASSET" "$dest/go-nginx-manifest.json" <<'PY'
+import hashlib, json, os, sys
+
+manifest, tarball, arch, name, out = sys.argv[1:6]
+data = json.load(open(manifest))
+version = (data.get("versions") or {}).get("nginx") or ""
+entry = next((a for a in data.get("assets") or [] if a.get("arch") == arch), None)
+if not version or entry is None:
+    raise SystemExit("manifest lacks versions.nginx or the %s asset" % arch)
+payload = open(tarball, "rb").read()
+if hashlib.sha256(payload).hexdigest() != (entry.get("sha256") or ""):
+    raise SystemExit("seeded tarball does not match the manifest sha256")
+json.dump({
+    "schemaVersion": 1,
+    "component": "nginx",
+    "version": version,
+    "sha256": entry["sha256"],
+    "sizeBytes": len(payload),
+    "url": "/seed/nginx/" + name,
+}, open(out, "w"), indent=2)
+open(out, "a").write("\n")
+print(version)
+PY
+}
+
+# seed_old_nginx_binary puts a real 1.27 binary into the managed tree so the
+# update path has something to replace. If the release binary cannot run in
+# this image, fall back to a version-only stub and record which one was used.
+seed_old_nginx_binary() { # <server> <outdir>
+    local server=$1 out=$2 cid
+    mkdir -p "$out"
+    if cid=$(docker create "$NGINX_OLD_IMAGE" 2>/dev/null) &&
+       docker cp "$cid:/usr/sbin/nginx" "$out/nginx-1.27" >/dev/null 2>&1; then
+        docker rm "$cid" >/dev/null 2>&1
+        if docker cp "$out/nginx-1.27" "$server:/usr/local/nginx/sbin/nginx" >/dev/null 2>&1 &&
+           docker exec "$server" chmod 0755 /usr/local/nginx/sbin/nginx >/dev/null 2>&1 &&
+           docker exec "$server" /usr/local/nginx/sbin/nginx -v 2>&1 | grep -q 'nginx/1\.27\.'; then
+            echo real >"$out/previous-binary.txt"
+            return 0
+        fi
+    else
+        docker rm "$cid" >/dev/null 2>&1 || true
+    fi
+    docker exec "$server" sh -c 'printf "#!/bin/sh\n[ \"\$1\" = \"-t\" ] && exit 0\necho \"nginx version: nginx/1.27.0\" >&2\nexit 0\n" > /usr/local/nginx/sbin/nginx && chmod 0755 /usr/local/nginx/sbin/nginx' \
+        >/dev/null 2>&1
+    echo stub >"$out/previous-binary.txt"
+}
 
 # --- offline release template cache ----------------------------------------
 # OPS-19/31/32 fresh installs also fetch the Xray config template from the
@@ -1803,7 +1863,8 @@ ops_bash_capture() { # <server> <dir> <label> <timeout> <shell-command>
 ops_bash_pipe() { # <server> <dir> <label> <timeout> <input> [install.sh args...]
     local server=$1 dir=$2 label=$3 limit=$4 input=$5; shift 5
     mkdir -p "$dir"
-    printf '%b' "$input" | docker exec -i "$server" timeout "$limit" \
+    printf '%b' "$input" | docker exec -i "${MENU_NGINX_ENVS[@]+"${MENU_NGINX_ENVS[@]}"}" \
+        "$server" timeout "$limit" \
         bash /etc/idleleo/install.sh "$@" >"$dir/$label.out" 2>"$dir/$label.err"
     echo $? >"$dir/$label.rc"
 }
@@ -1878,8 +1939,40 @@ ops_observe_job() {
     # local package; still execute to prove the offline/fail-closed path.
     ops_bash_pipe "$bserver" "$EVID/OPS-17a/bash" run 30 '5\n1\n'
     ops_go_cli "$gserver" "$EVID/OPS-17a/go" 10-op update status --json
-    ops_bash_pipe "$bserver" "$EVID/OPS-17b/bash" run 30 '5\n3\n\n'
-    ops_go_cli "$gserver" "$EVID/OPS-17b/go" 10-op update nginx --manifest /nonexistent/manifest.json --json --container --no-restart
+
+    # OPS-17b: both sides must replace a real 1.27 binary with the seeded
+    # 1.30.6 build. Bash reads its current build from install_config, Go reads
+    # the binary itself, so each side gets the matching fixture.
+    local b17="$EVID/OPS-17b/bash" g17="$EVID/OPS-17b/go" go_manifest="/seed/nginx/go-nginx-manifest.json"
+    mkdir -p "$b17" "$g17"
+    if write_go_nginx_manifest >"$EVID/OPS-17b/expected-version.txt"; then
+        seed_old_nginx_binary "$bserver" "$b17"
+        seed_old_nginx_binary "$gserver" "$g17"
+        docker exec "$bserver" sh -c '
+            f=/etc/idleleo/conf/install_config.json
+            jq --arg v "1.27.0" ".nginx_build_version=\$v" "$f" >"$f.tmp" && mv "$f.tmp" "$f"'
+        docker exec "$bserver" cat /etc/idleleo/conf/install_config.json \
+            >"$b17/install-config-before.json" 2>/dev/null || true
+        docker exec "$bserver" /usr/local/nginx/sbin/nginx -v >"$b17/nginx-before.txt" 2>&1 || true
+        docker exec "$gserver" /usr/local/nginx/sbin/nginx -v >"$g17/nginx-before.txt" 2>&1 || true
+        MENU_NGINX_ENVS=("${NGINX_CACHE_ENVS[@]+"${NGINX_CACHE_ENVS[@]}"}")
+        # 5=update menu, 3=nginx update, empty=IP prompt default, empty=keep
+        # existing nginx conf, 0=exit the menu the update re-execs into.
+        ops_bash_pipe "$bserver" "$b17" run 180 '5\n3\n\n\n0\n'
+        MENU_NGINX_ENVS=()
+        ops_go_cli "$gserver" "$g17" 10-op update nginx \
+            --manifest "$go_manifest" --container --json
+        docker exec "$bserver" /usr/local/nginx/sbin/nginx -v >"$b17/nginx-after.txt" 2>&1 || true
+        docker exec "$gserver" /usr/local/nginx/sbin/nginx -v >"$g17/nginx-after.txt" 2>&1 || true
+        docker exec "$bserver" sh -c 'ls -d /usr/local/nginx_backup_*' >"$b17/backup.txt" 2>&1 || true
+        docker exec "$bserver" cat /etc/idleleo/conf/install_config.json \
+            >"$b17/install-config-after.json" 2>/dev/null || true
+        docker exec "$gserver" sh -c 'ls -d /etc/idleleo/backup/nginx-* 2>/dev/null' >"$g17/backup.txt" 2>&1 || true
+        ops_health "$bserver" "$b17" updated
+        ops_health "$gserver" "$g17" updated
+    else
+        echo "seed-nginx-cache-missing" >"$EVID/OPS-17b/harness-blocked.txt"
+    fi
 
     # OPS-25: Bash tar backup vs Go metadata export.
     docker exec "$bserver" sh -c \
@@ -1909,6 +2002,7 @@ ops_observe_verdict() {
     python3 - "$EVID" <<'PY'
 import json
 import os
+import re
 import sys
 
 evid = sys.argv[1]
@@ -2091,11 +2185,87 @@ write("OPS-17a", "BLOCKED", [
     "bash rc=%s go rc=%s" % (rc(os.path.join(evid, "OPS-17a", "bash", "run.rc")),
                              rc(os.path.join(evid, "OPS-17a", "go", "10-op.rc"))),
 ])
-write("OPS-17b", "BLOCKED", [
-    "Nginx update needs the fixed local trusted package used by the real-root job",
-    "bash rc=%s go rc=%s" % (rc(os.path.join(evid, "OPS-17b", "bash", "run.rc")),
-                             rc(os.path.join(evid, "OPS-17b", "go", "10-op.rc"))),
-])
+# OPS-17b: both sides must really replace the 1.27 binary with the seeded build.
+def nginx_version(path):
+    match = re.search(r"nginx/([0-9][0-9.]*)", read(path))
+    return match.group(1) if match else ""
+
+
+b17 = os.path.join(evid, "OPS-17b", "bash")
+g17 = os.path.join(evid, "OPS-17b", "go")
+expected = read(os.path.join(evid, "OPS-17b", "expected-version.txt")).strip()
+try:
+    expected_build = json.loads(read(os.path.join(evid, "nginx-cache.json")) or "{}").get("build") or ""
+except ValueError:
+    expected_build = ""
+
+
+def bash_build_after():
+    try:
+        config = json.loads(read(os.path.join(b17, "install-config-after.json")) or "{}")
+    except ValueError:
+        return ""
+    return str(config.get("nginx_build_version") or "")
+
+
+bash_backup = [line for line in read(os.path.join(b17, "backup.txt")).splitlines()
+               if line.startswith("/usr/local/nginx_backup_")]
+bash17 = {
+    "rc": rc(os.path.join(b17, "run.rc")),
+    "before": nginx_version(os.path.join(b17, "nginx-before.txt")),
+    "after": nginx_version(os.path.join(b17, "nginx-after.txt")),
+    "buildAfter": bash_build_after(),
+    # Bash deletes its backup after a successful update, so the log line is the
+    # durable proof that the old tree was copied before replacement. A failed
+    # `ls` (the expected post-delete state) must not count as a backup.
+    "backup": bash_backup[0] if bash_backup
+              else ("backup-created" if "备份旧版" in read(os.path.join(b17, "run.out")) else ""),
+    "health": rc(os.path.join(b17, "updated.xray-active.rc")),
+    "previousBinary": read(os.path.join(b17, "previous-binary.txt")).strip(),
+}
+go17 = {
+    "rc": rc(os.path.join(g17, "10-op.rc")),
+    "before": nginx_version(os.path.join(g17, "nginx-before.txt")),
+    "after": nginx_version(os.path.join(g17, "nginx-after.txt")),
+    "backup": read(os.path.join(g17, "backup.txt")).strip(),
+    "health": rc(os.path.join(g17, "updated.xray-active.rc")),
+    "previousBinary": read(os.path.join(g17, "previous-binary.txt")).strip(),
+}
+try:
+    go17_report = json.loads(read(os.path.join(g17, "10-op.out")) or "{}")
+except ValueError:
+    go17_report = {}
+biz17 = {"bash": bash17, "go": go17, "expected": expected,
+         "goReport": {k: go17_report.get(k) for k in
+                      ("previousVersion", "newVersion", "verified", "health", "backupPath", "restarted")}}
+if not expected:
+    write("OPS-17b", "BLOCKED", [
+        "the seeded Nginx package is unavailable, so the update cannot be exercised",
+        "see OPS-17b/harness-blocked.txt",
+    ], extra={"details": biz17})
+else:
+    reasons = []
+    for name, obs17 in (("bash", bash17), ("go", go17)):
+        if obs17["rc"] != 0:
+            reasons.append("%s update rc=%s" % (name, obs17["rc"]))
+        if not obs17["before"].startswith("1.27"):
+            reasons.append("%s previous nginx is %r, want 1.27.x" % (name, obs17["before"]))
+        if obs17["after"] != expected:
+            reasons.append("%s installed nginx is %r, want %r" % (name, obs17["after"], expected))
+        if not obs17["backup"]:
+            reasons.append("%s left no nginx backup" % name)
+        if obs17["health"] != 0:
+            reasons.append("%s nginx/xray unhealthy after update" % name)
+    if go17_report.get("newVersion") not in (None, "", expected):
+        reasons.append("go reports newVersion=%r" % go17_report.get("newVersion"))
+    if go17_report.get("previousVersion") and not str(go17_report["previousVersion"]).startswith("1.27"):
+        reasons.append("go reports previousVersion=%r" % go17_report.get("previousVersion"))
+    if expected_build and bash17["buildAfter"] != expected_build:
+        reasons.append("bash recorded nginx build %r, want %r" % (bash17["buildAfter"], expected_build))
+    if reasons:
+        write("OPS-17b", "FAIL", reasons, extra={"details": biz17})
+    else:
+        write("OPS-17b", "PASS", [], extra={"details": biz17})
 PY
 }
 
@@ -2431,9 +2601,12 @@ for side in ("bash", "go"):
         "beforeSids": snap(side, "before", "short-ids"),
         "addedSids": snap(side, "added", "short-ids"),
         "removedSids": snap(side, "removed", "short-ids"),
+        "cleanedSids": snap(side, "cleaned", "short-ids"),
         "addRc": rc(os.path.join(base, side, "add.rc")),
         "showRc": rc(os.path.join(base, side, "11-show.rc" if side == "go" else "show.rc")),
         "removeRc": rc(os.path.join(base, side, "remove.rc")),
+        "cleanupRc": rc(os.path.join(
+            base, side, "12-short-id-clean.rc" if side == "go" else "remove.rc")),
     }
     obs[side]["newIds"] = obs[side]["added"] - obs[side]["before"]
 
@@ -2456,6 +2629,13 @@ details = {
         "addRc": obs[side]["addRc"],
         "showRc": obs[side]["showRc"],
         "removeRc": obs[side]["removeRc"],
+        "cleanupRc": obs[side]["cleanupRc"],
+        # Residue before the documented cleanup step stays visible: Bash is
+        # one-step, Go needs `xray config edit --short-id-remove`.
+        "shortIdResidueAfterRemove": len(obs[side]["removedSids"]) - len(obs[side]["beforeSids"]),
+        "cleanupCommand": ("xray config edit --short-id-remove" if side == "go"
+                           else "none (user remove clears the sid on Bash)"),
+        "cleanedShortIds": len(obs[side]["cleanedSids"]),
         "clientConnected": l4_ok(side),
     }
     for side in ("bash", "go")
@@ -2539,15 +2719,24 @@ for side in ("bash", "go"):
         reasons.append("%s removed config still lists the email" % side)
 if not healthy("removed"):
     reasons.append("xray -test/service not healthy after remove")
+if not healthy("cleaned"):
+    reasons.append("xray -test/service not healthy after the shortId cleanup step")
 shortid_clean = all(
-    obs[side]["removedSids"] == obs[side]["beforeSids"] for side in ("bash", "go")
+    obs[side]["cleanupRc"] == 0
+    and obs[side]["cleanedSids"] == obs[side]["beforeSids"]
+    for side in ("bash", "go")
 )
 if not shortid_clean:
-    reasons.append("shortId residue after remove: bash=%d go=%d (baseline %d/%d)"
-                   % (len(obs["bash"]["removedSids"]), len(obs["go"]["removedSids"]),
+    reasons.append("shortId residue after cleanup: bash=%d go=%d (baseline %d/%d)"
+                   % (len(obs["bash"]["cleanedSids"]), len(obs["go"]["cleanedSids"]),
                       len(obs["bash"]["beforeSids"]), len(obs["go"]["beforeSids"])))
 if not reasons:
-    write("OPS-03", "PASS", [], obs["bash"]["removeRc"], obs["go"]["removeRc"])
+    write("OPS-03", "PASS", [], obs["bash"]["removeRc"], obs["go"]["removeRc"],
+          extra={"shortIdDivergence": {
+              "bash": "one step: user remove clears the sid",
+              "go": "two steps: user remove keeps inbound-level sids, then xray config edit --short-id-remove",
+              "goResidueAfterRemove": details["go"]["shortIdResidueAfterRemove"],
+          }})
 else:
     out = os.path.join(p2, "OPS-03")
     os.makedirs(out, exist_ok=True)
@@ -2556,6 +2745,7 @@ else:
         "result": "DIFF" if len(reasons) == 1 and "shortId residue" in reasons[0] else "FAIL",
         "reasons": reasons,
         "details": details,
+        "remediation": "xray config edit --short-id-remove %s" % go_short_id,
         "note": "no ops.json: the row is not claimed as dual-side verified",
     }
     with open(os.path.join(out, "shortid-difference.json"), "w", encoding="utf-8") as fh:
@@ -2590,6 +2780,10 @@ ops_users_job() {
         ops_bash_user_menu "$bserver" "$bdir" remove
         ops_snapshot "$bserver" "$bdir" removed
         ops_health "$bserver" "$bdir" removed
+        # Bash clears the sid as part of remove; snapshot again so both sides
+        # are compared after their documented cleanup step, not before it.
+        ops_snapshot "$bserver" "$bdir" cleaned
+        ops_health "$bserver" "$bdir" cleaned
     else
         echo '{"status":"harness-error","reason":"container start failed"}' >"$bdir/harness.json"
     fi
@@ -2616,6 +2810,15 @@ ops_users_job() {
             --service /usr/local/bin/e2e-service-apply --container --json
         ops_snapshot "$gserver" "$gdir" removed
         ops_health "$gserver" "$gdir" removed
+        # Go keeps inbound-level shortIds on remove by design (it has no
+        # email->sid map), so the documented second step removes the sid the
+        # driver assigned to this user.
+        ops_go_cli "$gserver" "$gdir" 12-short-id-clean --root / xray config edit \
+            --short-id-remove "$OPS_USER_SHORT_ID" \
+            --path /etc/idleleo/conf/xray/config.json \
+            --container --yes --json
+        ops_snapshot "$gserver" "$gdir" cleaned
+        ops_health "$gserver" "$gdir" cleaned
     else
         echo '{"status":"harness-error","reason":"container start failed"}' >"$gdir/harness.json"
     fi
