@@ -115,7 +115,7 @@ bash 与 Go 在 shortId 的**长度形态**上刻意不统一：
   （account `https://pebble:14000/...`，notAfter 2027-02-15）。harness 有两个要点：
   一是 install.sh 的 PATH 让 `/usr/bin/idleleo` 指向脚本自身，`idleleo_native_acme_available`
   的 ELF 探测因此失败并回退公网 CA；按 install.sh 的「已提交 Bridge 迁移」语义
-  （[install.sh](file:///Users/yunshu/Documents/GitHub/Xray_bash_onekey/install.sh#L13664-L13690)）
+  （[install.sh](file:///Users/user/Documents/GitHub/Xray_bash_onekey/install.sh#L13664-L13690)）
   预置软链到 Go 二进制即可，不改 install.sh。二是两侧安装器都不自行注册续期调度，
   而 bash 侧安装后断言必须有活跃调度，故双侧安装后统一执行业务文档化的
   `idleleo schedule install`。
