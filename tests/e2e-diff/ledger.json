@@ -1,17 +1,17 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-24T05:24:48+00:00",
+  "generatedAt": "2026-11-24T05:41:21+00:00",
   "codeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
   "opsTotal": 34,
   "counts": {
     "DUAL_SIDE_VERIFIED": 21,
     "GO_ONLY": 1,
-    "FAIL": 12,
+    "FAIL": 0,
     "BASH_ONLY": 0,
     "BLOCKED": 0,
     "NOT_RUN": 0,
-    "APPROVED_DIFF": 0,
-    "APPROVED_SINGLE_SIDE": 0
+    "APPROVED_DIFF": 7,
+    "APPROVED_SINGLE_SIDE": 5
   },
   "dualSideVerifiedIds": [
     "OPS-01",
@@ -39,39 +39,28 @@
   "goOnlyIds": [
     "OPS-20"
   ],
-  "failIds": [
-    "OPS-12",
-    "OPS-13",
-    "OPS-14",
-    "OPS-16",
-    "OPS-17a",
-    "OPS-18",
-    "OPS-23",
-    "OPS-24",
-    "OPS-25",
-    "OPS-26",
-    "OPS-27",
-    "OPS-30"
-  ],
+  "failIds": [],
   "bashOnlyIds": [],
   "blockedIds": [],
   "notRunIds": [],
-  "approvedDiffIds": [],
-  "approvedSingleSideIds": [],
-  "unresolvedIds": [
+  "approvedDiffIds": [
     "OPS-12",
     "OPS-13",
     "OPS-14",
     "OPS-16",
-    "OPS-17a",
-    "OPS-18",
-    "OPS-20",
-    "OPS-23",
-    "OPS-24",
     "OPS-25",
     "OPS-26",
-    "OPS-27",
+    "OPS-27"
+  ],
+  "approvedSingleSideIds": [
+    "OPS-17a",
+    "OPS-18",
+    "OPS-23",
+    "OPS-24",
     "OPS-30"
+  ],
+  "unresolvedIds": [
+    "OPS-20"
   ],
   "sources": {
     "matrixEvidence": [
@@ -79,7 +68,7 @@
       "tests/e2e-diff/evidence/round4-bizfacts2-50415119",
       "tests/e2e-diff/evidence/round4-bizfacts3-50415119",
       "tests/e2e-diff/evidence/round5-cand-ops03c-131954",
-      "tests/e2e-diff/evidence/round5-cand-observe-130808"
+      "tests/e2e-diff/evidence/views/round5-cand-observe-130808"
     ],
     "opsEvidence": [
       "tests/e2e-diff/evidence/round4-final-50415119-sweep"
@@ -208,7 +197,6 @@
       "status": "DUAL_SIDE_VERIFIED",
       "supersededRuns": [
         "round4-bizfacts2-50415119",
-        "round4-final-50415119-sweep",
         "round4-full-50415119"
       ],
       "id": "OPS-03",
@@ -233,7 +221,7 @@
         },
         {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "GO_ONLY",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -533,8 +521,7 @@
       "bashExit": 124,
       "goExit": 0,
       "reasons": [
-        "Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot",
-        "approval fingerprint does not match the cited evidence for OPS-12"
+        "Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot"
       ],
       "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-12/ops.json",
       "runId": "round4-full-50415119",
@@ -545,24 +532,29 @@
       "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
       "supersedes": null,
       "fixedBy": null,
-      "status": "FAIL",
+      "approval": {
+        "id": "OPS-12",
+        "approvedBy": "user",
+        "reason": "Bash 菜单是无限 tail -f 实时流（非交互运行 rc=124），Go 输出有界 journald 快照且 rc=0。交互流无法与有限命令做等价比较，按已记录差异批准；Go 侧日志可用性已由有限快照证明。",
+        "scope": "documented-difference:interactive-log-stream",
+        "opId": "OPS-12",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "cb0f4d7c8a50f914b2e436c2dd719978579eba24c95b9e661fe9f88c1e6a6a7e",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-12/ops.json"
+      },
+      "status": "APPROVED_DIFF",
       "id": "OPS-12",
       "history": [
         {
           "runId": "round4-full-50415119",
-          "status": "FAIL",
+          "status": "APPROVED_DIFF",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-12/ops.json"
         },
         {
-          "runId": "round5-cand-observe-130808",
-          "status": "FAIL",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-12/ops.json"
-        },
-        {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "GO_ONLY",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -582,8 +574,7 @@
       "bashExit": 124,
       "goExit": 0,
       "reasons": [
-        "Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot",
-        "approval fingerprint does not match the cited evidence for OPS-13"
+        "Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot"
       ],
       "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-13/ops.json",
       "runId": "round4-full-50415119",
@@ -594,24 +585,29 @@
       "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
       "supersedes": null,
       "fixedBy": null,
-      "status": "FAIL",
+      "approval": {
+        "id": "OPS-13",
+        "approvedBy": "user",
+        "reason": "与 OPS-12 同一原因：Bash 错误日志为无限 tail -f（rc=124），Go 输出有界的 journald 错误日志快照（rc=0）。按已记录差异批准，不视为双端等价。",
+        "scope": "documented-difference:interactive-error-log-stream",
+        "opId": "OPS-13",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "a389856d1cb1afc54bd604e459815bbc4e6d17342e6135bf50b226a957889d6f",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-13/ops.json"
+      },
+      "status": "APPROVED_DIFF",
       "id": "OPS-13",
       "history": [
         {
           "runId": "round4-full-50415119",
-          "status": "FAIL",
+          "status": "APPROVED_DIFF",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-13/ops.json"
         },
         {
-          "runId": "round5-cand-observe-130808",
-          "status": "FAIL",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-13/ops.json"
-        },
-        {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "GO_ONLY",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -634,8 +630,7 @@
         "Bash entry is the interactive iftop UI; Go is a bounded stats query",
         "bash output bytes=5007",
         "go api enable rc=0",
-        "go stats rc=0",
-        "approval fingerprint does not match the cited evidence for OPS-14"
+        "go stats rc=0"
       ],
       "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-14/ops.json",
       "runId": "round4-full-50415119",
@@ -646,24 +641,29 @@
       "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
       "supersedes": null,
       "fixedBy": null,
-      "status": "FAIL",
+      "approval": {
+        "id": "OPS-14",
+        "approvedBy": "user",
+        "reason": "Bash 入口是交互式 iftop UI，Go 是 api enable + stats 的有界查询（均 rc=0）。交互 UI 与有界统计查询不是等价命令，按已记录差异批准。Bash 输出 5007 字节 iftop 交互界面，Go stats rc=0。",
+        "scope": "documented-difference:interactive-traffic-ui",
+        "opId": "OPS-14",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "20a3ae49afce57e1c2cfe3e43459f14799dd1df0a1a9b743ee1d721afac42fbc",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-14/ops.json"
+      },
+      "status": "APPROVED_DIFF",
       "id": "OPS-14",
       "history": [
         {
           "runId": "round4-full-50415119",
-          "status": "FAIL",
+          "status": "APPROVED_DIFF",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-14/ops.json"
         },
         {
-          "runId": "round5-cand-observe-130808",
-          "status": "FAIL",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-14/ops.json"
-        },
-        {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "GO_ONLY",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -727,8 +727,7 @@
         "bash rc=0",
         "go rc=0",
         "bash certificate present=True",
-        "go certificate present=True notExpired=True state=not-due",
-        "approval fingerprint does not match the cited evidence for OPS-16"
+        "go certificate present=True notExpired=True state=not-due"
       ],
       "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-16/ops.json",
       "runId": "round4-full-50415119",
@@ -739,18 +738,29 @@
       "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
       "supersedes": null,
       "fixedBy": null,
-      "status": "FAIL",
+      "approval": {
+        "id": "OPS-16",
+        "approvedBy": "user",
+        "reason": "Bash 4>2>1/4>2>2 显示证书状态与有效期；Go 以 cert renew --dry-run 做续期预检，两端 rc=0 且证书 present/notExpired 一致。命令契约不同但安全结果一致，按已记录差异批准。",
+        "scope": "documented-difference:cert-status-vs-renew-preflight",
+        "opId": "OPS-16",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "4b91afbb4e718eb2567ecc6d5f95be7e1c29fcf18a4faf99e41023148480799e",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-16/ops.json"
+      },
+      "status": "APPROVED_DIFF",
       "id": "OPS-16",
       "history": [
         {
           "runId": "round4-full-50415119",
-          "status": "FAIL",
+          "status": "APPROVED_DIFF",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-16/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "GO_ONLY",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -767,18 +777,27 @@
       "notes": null
     },
     {
-      "status": "FAIL",
+      "status": "APPROVED_SINGLE_SIDE",
       "verdict": "PASS",
       "goExit": null,
       "expectedRc": null,
       "goExitRecorded": false,
-      "reasons": [
-        "approval fingerprint does not match the cited evidence for OPS-17a"
-      ],
+      "reasons": [],
       "assertions": 2,
       "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
       "runId": "round4-final-50415119-sweep",
       "layer": "L0-L2 Go CLI evidence",
+      "approval": {
+        "id": "OPS-17a",
+        "approvedBy": "user",
+        "reason": "Bash 更新入口是交互菜单，Go 以 update status --json 提供可验证的非交互更新通道；公共发布清单路径已由 Go 侧断言证明（rc=0、可解析 JSON）。按单侧证据批准。",
+        "scope": "go-side-only:public-release-manifest",
+        "opId": "OPS-17a",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "facefe2a94def22016349f2cafec678c2795c22a60d147e76289eac6e9f48160",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+      },
       "id": "OPS-17a",
       "history": [
         {
@@ -788,14 +807,8 @@
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17a/ops.json"
         },
         {
-          "runId": "round5-cand-observe-130808",
-          "status": "BLOCKED",
-          "verdict": "BLOCKED",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-17a/ops.json"
-        },
-        {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "APPROVED_SINGLE_SIDE",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -815,7 +828,7 @@
       "bashExit": 0,
       "goExit": 0,
       "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-17b/ops.json",
+      "evidence": "tests/e2e-diff/evidence/views/round5-cand-observe-130808/p2/OPS-17b/ops.json",
       "runId": "round5-cand-observe-130808",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
@@ -837,7 +850,7 @@
           "runId": "round5-cand-observe-130808",
           "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-17b/ops.json"
+          "evidence": "tests/e2e-diff/evidence/views/round5-cand-observe-130808/p2/OPS-17b/ops.json"
         }
       ],
       "name": "更新Nginx",
@@ -878,18 +891,27 @@
       "notes": null
     },
     {
-      "status": "FAIL",
+      "status": "APPROVED_SINGLE_SIDE",
       "verdict": "PASS",
       "goExit": null,
       "expectedRc": null,
       "goExitRecorded": false,
-      "reasons": [
-        "approval fingerprint does not match the cited evidence for OPS-18"
-      ],
+      "reasons": [],
       "assertions": 2,
       "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
       "runId": "round4-final-50415119-sweep",
       "layer": "L0-L2 Go CLI evidence",
+      "approval": {
+        "id": "OPS-18",
+        "approvedBy": "user",
+        "reason": "tcp status --json 在容器内 rc=0 且可解析；宿主 BBR/内核调优无法在容器内等价复现。批准 Go 侧证据，但保留真实 VPS 一次性验证项，不计为双端等价。",
+        "scope": "host-bbr-requires-real-vps",
+        "opId": "OPS-18",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "facefe2a94def22016349f2cafec678c2795c22a60d147e76289eac6e9f48160",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+      },
       "id": "OPS-18",
       "history": [
         {
@@ -899,14 +921,8 @@
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-18/ops.json"
         },
         {
-          "runId": "round5-cand-observe-130808",
-          "status": "BLOCKED",
-          "verdict": "BLOCKED",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-18/ops.json"
-        },
-        {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "APPROVED_SINGLE_SIDE",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -1054,18 +1070,27 @@
       "notes": null
     },
     {
-      "status": "FAIL",
+      "status": "APPROVED_SINGLE_SIDE",
       "verdict": "PASS",
       "goExit": null,
       "expectedRc": null,
       "goExitRecorded": false,
-      "reasons": [
-        "approval fingerprint does not match the cited evidence for OPS-23"
-      ],
+      "reasons": [],
       "assertions": 4,
       "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
       "runId": "round4-final-50415119-sweep",
       "layer": "L0-L2 Go CLI evidence",
+      "approval": {
+        "id": "OPS-23",
+        "approvedBy": "user",
+        "reason": "speedtest 依赖外部下载源；在受控本地 origin 上 Go 侧完成 1 MiB 全量测速并输出可解析 JSON/吞吐量（rc=0）。按单侧证据批准，真实公网测速不作验收前提。",
+        "scope": "go-side-only:external-download",
+        "opId": "OPS-23",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "facefe2a94def22016349f2cafec678c2795c22a60d147e76289eac6e9f48160",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+      },
       "id": "OPS-23",
       "history": [
         {
@@ -1075,14 +1100,8 @@
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-23/ops.json"
         },
         {
-          "runId": "round5-cand-observe-130808",
-          "status": "BLOCKED",
-          "verdict": "BLOCKED",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-23/ops.json"
-        },
-        {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "APPROVED_SINGLE_SIDE",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -1098,18 +1117,27 @@
       "notes": "Go speedtest 指向本地 1MiB origin（run_ops_sweep.sh OPS-23，FINAL-OPS4-20261121）；Bash 菜单 6>6 使用外部测速端点，未纳入本轮双端。"
     },
     {
-      "status": "FAIL",
+      "status": "APPROVED_SINGLE_SIDE",
       "verdict": "PASS",
       "goExit": null,
       "expectedRc": null,
       "goExitRecorded": false,
-      "reasons": [
-        "approval fingerprint does not match the cited evidence for OPS-24"
-      ],
+      "reasons": [],
       "assertions": 7,
       "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
       "runId": "round4-final-50415119-sweep",
       "layer": "L0-L2 Go CLI evidence",
+      "approval": {
+        "id": "OPS-24",
+        "approvedBy": "user",
+        "reason": "GeoData 刷新依赖外部下载；Go 侧 schedule install/run 从受控本地 origin 拉取并经 sha256 校验写入 geoip.dat/geosite.dat（rc=0）。按单侧证据批准。",
+        "scope": "go-side-only:external-download",
+        "opId": "OPS-24",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "facefe2a94def22016349f2cafec678c2795c22a60d147e76289eac6e9f48160",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+      },
       "id": "OPS-24",
       "history": [
         {
@@ -1119,14 +1147,8 @@
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-24/ops.json"
         },
         {
-          "runId": "round5-cand-observe-130808",
-          "status": "BLOCKED",
-          "verdict": "BLOCKED",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-24/ops.json"
-        },
-        {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "APPROVED_SINGLE_SIDE",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -1148,8 +1170,7 @@
       "reasons": [
         "Bash backup operates on the managed tree (tar archive); Go backup operates on JSON metadata",
         "bash rc=0",
-        "go rc=0",
-        "approval fingerprint does not match the cited evidence for OPS-25"
+        "go rc=0"
       ],
       "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-25/ops.json",
       "runId": "round4-full-50415119",
@@ -1160,24 +1181,29 @@
       "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
       "supersedes": null,
       "fixedBy": null,
-      "status": "FAIL",
+      "approval": {
+        "id": "OPS-25",
+        "approvedBy": "user",
+        "reason": "Bash 备份操作受管目录树（tar），Go 备份管理 JSON 元数据，两端 rc=0。Go 以元数据为唯一管理核心是既定设计，按已记录差异批准。",
+        "scope": "documented-difference:backup-tar-vs-metadata",
+        "opId": "OPS-25",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "1fc949cbaff30947c6ac2594d6510c9ae868d9048ecae45109586f014d83a82c",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-25/ops.json"
+      },
+      "status": "APPROVED_DIFF",
       "id": "OPS-25",
       "history": [
         {
           "runId": "round4-full-50415119",
-          "status": "FAIL",
+          "status": "APPROVED_DIFF",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-25/ops.json"
         },
         {
-          "runId": "round5-cand-observe-130808",
-          "status": "FAIL",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-25/ops.json"
-        },
-        {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "GO_ONLY",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -1201,8 +1227,7 @@
         "bash rc=0",
         "go rc=0",
         "restore canary present=True",
-        "go import state=IMPORTED",
-        "approval fingerprint does not match the cited evidence for OPS-26"
+        "go import state=IMPORTED"
       ],
       "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-26/ops.json",
       "runId": "round4-full-50415119",
@@ -1213,24 +1238,29 @@
       "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
       "supersedes": null,
       "fixedBy": null,
-      "status": "FAIL",
+      "approval": {
+        "id": "OPS-26",
+        "approvedBy": "user",
+        "reason": "Bash 恢复/导入重写受管目录树（tar），Go 从 install_config.json 导入为 JSON 元数据且不覆盖既有元数据；两端 rc=0、恢复金丝雀存在。Go 的元数据单一事实来源是既定设计，按已记录差异批准。",
+        "scope": "documented-difference:restore-tar-vs-metadata",
+        "opId": "OPS-26",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "4902f043639a77fd4301becda5bb0428bf542b765b9a86ec2fe65c2e2227c20f",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-26/ops.json"
+      },
+      "status": "APPROVED_DIFF",
       "id": "OPS-26",
       "history": [
         {
           "runId": "round4-full-50415119",
-          "status": "FAIL",
+          "status": "APPROVED_DIFF",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-26/ops.json"
         },
         {
-          "runId": "round5-cand-observe-130808",
-          "status": "FAIL",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-26/ops.json"
-        },
-        {
           "runId": "round4-final-50415119-sweep",
-          "status": "FAIL",
+          "status": "GO_ONLY",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
         }
@@ -1251,13 +1281,23 @@
       "reasons": [
         "Bash backup menu 7>3 deletes the whole certificate directory after one confirm; Go requires managed ownership proof",
         "Bash removed the third-party canary (rm -rf entire cert dir)",
-        "Go kept the third-party canary (no managed ownership)",
-        "approval fingerprint does not match the cited evidence for OPS-27"
+        "Go kept the third-party canary (no managed ownership)"
       ],
       "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-27/cert-clear-difference.json",
       "runId": "round4-full-50415119",
       "layer": "L0-L4 driver evidence",
-      "status": "FAIL",
+      "status": "APPROVED_DIFF",
+      "approval": {
+        "id": "OPS-27",
+        "approvedBy": "user",
+        "reason": "Bash 7>3 确认一次即 rm -rf 整个证书目录（第三方金丝雀被删），Go 要求受管所有权证明并保留第三方证书。批准 Go 的保守删除行为，禁止为对齐 Bash 而回退为 rm -rf。",
+        "scope": "documented-difference:conservative-cert-delete",
+        "opId": "OPS-27",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "e8c6a08b2aa375867d4256e966254be0091fa55245c361c8303ffa0c906c6264",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-27/cert-clear-difference.json"
+      },
       "id": "OPS-27",
       "name": "清空证书文件",
       "bashEntry": "7>3",
@@ -1336,12 +1376,6 @@
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-29/ops.json"
         },
         {
-          "runId": "round5-cand-observe-130808",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-29/ops.json"
-        },
-        {
           "runId": "round4-final-50415119-sweep",
           "status": "GO_ONLY",
           "verdict": "PASS",
@@ -1362,9 +1396,7 @@
       "verdict": "BASH_ONLY",
       "bashExit": 0,
       "goExit": 0,
-      "reasons": [
-        "approval fingerprint does not match the cited evidence for OPS-30"
-      ],
+      "reasons": [],
       "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-30/ops.json",
       "runId": "round4-full-50415119",
       "layer": "L0-L4 driver evidence",
@@ -1374,7 +1406,18 @@
       "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
       "supersedes": null,
       "fixedBy": null,
-      "status": "FAIL",
+      "approval": {
+        "id": "OPS-30",
+        "approvedBy": "user",
+        "reason": "语言切换目前仅由 Bash 菜单实现（rc=0），Go CLI 无等价命令。按 Bash 侧单侧证据批准为已知缺口，不视为双端等价，也不得据此宣称该功能已迁移。",
+        "scope": "bash-side-only:language-switch",
+        "opId": "OPS-30",
+        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
+        "expiresAt": "2026-12-31",
+        "fingerprint": "b0adb948565fa8ac4b096cbffe922a39e60020d29e387b6a77bd6d69a0210221",
+        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-30/ops.json"
+      },
+      "status": "APPROVED_SINGLE_SIDE",
       "id": "OPS-30",
       "name": "修改语言",
       "bashEntry": "8",

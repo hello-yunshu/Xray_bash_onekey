@@ -254,6 +254,28 @@ def inside_repo(path, root):
     return not (rel == ".." or rel.startswith(".." + os.sep) or os.path.isabs(rel))
 
 
+def approval_applies(approval, evidence_path):
+    """Return whether this approval was written for this exact evidence file.
+
+    An approval names one difference in one file. The same op id can have both a
+    dual-side ops.json and a Go-only sweep line, so a global per-id binding would
+    let one file's approval be judged against the other file's fingerprint and
+    poison an unrelated row. When the approval cites fingerprintOf we compare the
+    resolved paths; legacy approvals without it keep the fingerprint-only check.
+    """
+    target = str(approval.get("fingerprintOf") or "").strip()
+    if not target:
+        return True
+    root = git_toplevel() or os.getcwd()
+
+    def resolve(path):
+        if not os.path.isabs(path):
+            path = os.path.join(root, path)
+        return os.path.realpath(path)
+
+    return resolve(target) == resolve(evidence_path)
+
+
 def write_json_atomic(path, data):
     """Write JSON with a same-directory temp file and an atomic rename.
 
@@ -338,7 +360,7 @@ def matrix_results(root, approvals, code_sha=""):
                 }
                 if prov:
                     base.update(status="BLOCKED", reasons=reasons + prov)
-                elif name in approvals:
+                elif name in approvals and approval_applies(approvals[name], path):
                     problems = approval_problems(approvals[name], path, name)
                     if problems:
                         base.update(status="FAIL", reasons=reasons + problems)
@@ -391,7 +413,7 @@ def matrix_results(root, approvals, code_sha=""):
         elif verdict in FAIL_VERDICTS:
             status = "FAIL"
         elif verdict in DIFF_VERDICTS:
-            if op_id in approvals:
+            if op_id in approvals and approval_applies(approvals[op_id], evidence_path):
                 problems = approval_problems(approvals[op_id], evidence_path, op_id)
                 if problems:
                     status = "FAIL"
@@ -420,7 +442,7 @@ def matrix_results(root, approvals, code_sha=""):
                 else:
                     status = "DUAL_SIDE_VERIFIED"
         elif verdict == "BASH_ONLY":
-            if op_id in approvals:
+            if op_id in approvals and approval_applies(approvals[op_id], evidence_path):
                 problems = approval_problems(approvals[op_id], evidence_path, op_id)
                 if problems:
                     status = "FAIL"
@@ -506,7 +528,7 @@ def sweep_results(root, approvals=None, code_sha=""):
         if prov:
             row["status"] = "BLOCKED"
             row["reasons"] = entry["failText"] + prov
-        elif row["status"] == "GO_ONLY" and op_id in approvals:
+        elif row["status"] == "GO_ONLY" and op_id in approvals and approval_applies(approvals[op_id], path):
             problems = approval_problems(approvals[op_id], path, op_id)
             if problems:
                 row["status"] = "FAIL"

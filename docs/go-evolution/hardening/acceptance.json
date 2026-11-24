@@ -234,47 +234,36 @@
       "OPS-32"
     ],
     "goOnly": 1,
-    "fail": 12,
-    "failIds": [
-      "OPS-12",
-      "OPS-13",
-      "OPS-14",
-      "OPS-16",
-      "OPS-17a",
-      "OPS-18",
-      "OPS-23",
-      "OPS-24",
-      "OPS-25",
-      "OPS-26",
-      "OPS-27",
-      "OPS-30"
-    ],
+    "fail": 0,
+    "failIds": [],
     "bashOnly": 0,
     "bashOnlyIds": [],
     "blocked": 0,
     "blockedIds": [],
     "notRun": 0,
     "notRunIds": [],
-    "approvedDiff": 0,
-    "approvedDiffIds": [],
-    "approvedSingleSide": 0,
-    "approvedSingleSideIds": [],
-    "unresolvedIds": [
+    "approvedDiff": 7,
+    "approvedDiffIds": [
       "OPS-12",
       "OPS-13",
       "OPS-14",
       "OPS-16",
-      "OPS-17a",
-      "OPS-18",
-      "OPS-20",
-      "OPS-23",
-      "OPS-24",
       "OPS-25",
       "OPS-26",
-      "OPS-27",
+      "OPS-27"
+    ],
+    "approvedSingleSide": 5,
+    "approvedSingleSideIds": [
+      "OPS-17a",
+      "OPS-18",
+      "OPS-23",
+      "OPS-24",
       "OPS-30"
     ],
-    "generatedAt": "2026-11-24T05:24:48+00:00",
+    "unresolvedIds": [
+      "OPS-20"
+    ],
+    "generatedAt": "2026-11-24T05:41:21+00:00",
     "codeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
     "source": "tests/e2e-diff/ledger.json"
   },

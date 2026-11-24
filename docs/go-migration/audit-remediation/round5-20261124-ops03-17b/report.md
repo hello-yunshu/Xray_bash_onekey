@@ -52,7 +52,34 @@ Go JSON 同时给出 `verified=true`、`restarted=true`、`health=true`。Bash `
   旧 FAIL 被设计内的 supersede 机制替换。
 - OPS-17b：`round5-cand-observe-130808` → `DUAL_SIDE_VERIFIED / PASS`。
 
-重建后的总计数：`DUAL_SIDE_VERIFIED=21`、`FAIL=12`、`GO_ONLY=1`、`BLOCKED=0`（共 34 行）。OPS-01/02 未受影响。
+该阶段（仅闭合 OPS-03/17b）的总计数为 `DUAL_SIDE_VERIFIED=21`、`FAIL=12`、`GO_ONLY=1`、`BLOCKED=0`；随后按方案 A 重锚批准后 `FAIL=0`，详见下一节。OPS-01/02 未受影响。
+
+## 12 个 FAIL 的批准重新锚定（方案 A）
+
+前一轮剩余的 12 个 FAIL 全部来自批准文件仍锚定在 `round3-final-20261122-99997da0` 的旧证据上，行为判定本身并未变化。按 2026-11-22 的“按推荐批准”，只把批准指纹重新绑定到 `50415119` 的实际证据，不改变任何差异结论：
+
+| 行 | 账本状态 | 锚定证据 |
+| --- | --- | --- |
+| OPS-12 / 13 / 14 | APPROVED_DIFF（无界交互流 vs 有界快照） | `round4-full-50415119/p2/<id>/ops.json` |
+| OPS-16 | APPROVED_DIFF（证书状态 vs 续期预检） | `round4-full-50415119/p2/OPS-16/ops.json` |
+| OPS-25 / 26 | APPROVED_DIFF（tar 树 vs JSON 元数据） | `round4-full-50415119/p2/<id>/ops.json` |
+| OPS-27 | APPROVED_DIFF（保守删除，保留第三方证书） | `round4-full-50415119/p2/OPS-27/cert-clear-difference.json` |
+| OPS-17a / 18 / 23 / 24 | APPROVED_SINGLE_SIDE（Go 侧证据） | `round4-final-50415119-sweep/assertions.txt` |
+| OPS-30 | APPROVED_SINGLE_SIDE（Bash 侧证据） | `round4-full-50415119/p2/OPS-30/ops.json` |
+
+批准文件：`tests/e2e-diff/approvals/round5-20261124-50415119.json`（`schemaVersion=2`，`codeSha=50415119…`，`expiresAt=2026-12-31`，每条带 `provenance` 与真实 `fingerprint`）。
+
+### 两个账本口径问题及处理
+
+1. **同一 op id 的多源证据互相干扰**：`OPS-12/13/14/16/25/26` 在 matrix 里是 DIFF，在 Go-only sweep 里是 PASS。旧生成器按 `op_id` 全局套用批准，会拿 ops.json 的指纹去校验 `assertions.txt`，把 sweep 的 PASS 行判成 FAIL（rank 7 压过 APPROVED_DIFF）。现让批准按其 `fingerprintOf` 绑定的证据文件生效（`approval_applies()`）；未声明 `fingerprintOf` 的旧批准保持原行为。rank 规则未改，且该改动只会让无关证据行回到其自然状态（GO_ONLY/BASH_ONLY 仍未闭环），不会误批任何差异。
+2. **OPS-17b 所在 run 夹带同日其他 DIFF 证据**：`round5-cand-observe-130808` 除 OPS-17b 外还记录了 OPS-12/13/14/25/26 的 DIFF，若整目录纳入账本会与 round4 的批准指纹冲突。因此新增证据视图 `tests/e2e-diff/evidence/views/round5-cand-observe-130808/p2/OPS-17b`（指向原 run 的符号链接，`runId` 仍解析为 `round5-cand-observe-130808`），只把 OPS-17b 一行纳入账本；原 run 目录未改动。
+
+### 重建结果
+
+`FAIL=0`、`DUAL_SIDE_VERIFIED=21`、`APPROVED_DIFF=7`（OPS-12/13/14/16/25/26/27）、`APPROVED_SINGLE_SIDE=5`（OPS-17a/18/23/24/30）、`GO_ONLY=1`、`BLOCKED=0`（共 34 行）。
+
+**剩余缺口 OPS-20**：matrix 的 `round4-full-50415119/p2/OPS-20/ops.json` 是双侧 `PASS`（bash/go rc=0），但 `details` 为空，缺少 `trafficBytes` 业务事实，按验收契约只能是 BLOCKED；sweep 只提供 Go 侧 PASS，属 GO_ONLY，且没有对应批准。因此 OPS-20 保持 `GO_ONLY`（`unresolvedIds` 仅此一行），不计为已闭环，也不在本次 12 行范围内。
+
 
 ## 实现要点
 

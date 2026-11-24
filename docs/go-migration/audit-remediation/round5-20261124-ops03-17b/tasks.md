@@ -66,6 +66,18 @@
 - [x] push 到 `work/go-hardening-parity-20261119`。
 - [x] 回报：目标行最终状态、证据路径、剩余未闭合项。
 
+## T8 — 12 个 FAIL 的批准重锚（方案 A）
+
+- [x] 新建 `tests/e2e-diff/approvals/round5-20261124-50415119.json`，沿用 2026-11-22 的“按推荐批准”，只重锚指纹。
+  - OPS-12/13/14/16/25/26 → `round4-full-50415119/p2/<id>/ops.json`
+  - OPS-27 → `round4-full-50415119/p2/OPS-27/cert-clear-difference.json`
+  - OPS-17a/18/23/24 → `round4-final-50415119-sweep/assertions.txt`
+  - OPS-30 → `round4-full-50415119/p2/OPS-30/ops.json`
+- [x] `approval_applies()`：批准只对 `fingerprintOf` 指向的证据文件生效；`op_id` 的多源证据不再互相污染（rank 规则未改）。
+- [x] 新增 `evidence/views/round5-cand-observe-130808/p2/OPS-17b` 符号链接视图，隔离同 run 的其他 DIFF 行。
+- [x] 重建账本：`FAIL=0`、DUAL 21、APPROVED_DIFF 7、APPROVED_SINGLE_SIDE 5、GO_ONLY 1（OPS-20）、BLOCKED 0。
+- [x] `test_build_ledger.py` 28 项全部通过；报告新增“12 个 FAIL 的批准重新锚定（方案 A）”小节。
+
 ## 完成定义
 
 - OPS-03 与 OPS-17b 在账本中的状态由真实证据决定（PASS 或带原因的 FAIL/BLOCKED）。
