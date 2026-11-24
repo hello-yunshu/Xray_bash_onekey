@@ -1,0 +1,25 @@
+{
+  "id": "OPS-14",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "Bash entry is the interactive iftop UI; Go is a bounded stats query",
+    "bash output bytes=3800",
+    "go api enable rc=0",
+    "go stats rc=0"
+  ],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "driverSha": "68029718cfda1060363393ba9e122f56c1bdee09796d7943b1c945ffaf115e20",
+    "finishedAt": "2026-11-24T05:12:00Z",
+    "image": "sha256:a867ef8c1f9975219602cbaa8d03d66055ab6699aad2ac0f99f5adf2cdc51a01",
+    "layer": "L0-L4 docker matrix",
+    "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+    "runId": "round5-cand-observe-130808",
+    "startedAt": "2026-11-24T05:08:09Z"
+  },
+  "verdict": "DIFF"
+}

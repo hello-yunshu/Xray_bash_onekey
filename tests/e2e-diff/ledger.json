@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T19:46:06+00:00",
+  "generatedAt": "2026-11-24T05:24:48+00:00",
   "codeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
   "opsTotal": 34,
   "counts": {
-    "DUAL_SIDE_VERIFIED": 19,
+    "DUAL_SIDE_VERIFIED": 21,
     "GO_ONLY": 1,
-    "FAIL": 13,
+    "FAIL": 12,
     "BASH_ONLY": 0,
-    "BLOCKED": 1,
+    "BLOCKED": 0,
     "NOT_RUN": 0,
     "APPROVED_DIFF": 0,
     "APPROVED_SINGLE_SIDE": 0
@@ -16,6 +16,7 @@
   "dualSideVerifiedIds": [
     "OPS-01",
     "OPS-02",
+    "OPS-03",
     "OPS-04",
     "OPS-05",
     "OPS-06",
@@ -25,6 +26,7 @@
     "OPS-10",
     "OPS-11",
     "OPS-15",
+    "OPS-17b",
     "OPS-17c",
     "OPS-19",
     "OPS-21",
@@ -38,7 +40,6 @@
     "OPS-20"
   ],
   "failIds": [
-    "OPS-03",
     "OPS-12",
     "OPS-13",
     "OPS-14",
@@ -53,20 +54,16 @@
     "OPS-30"
   ],
   "bashOnlyIds": [],
-  "blockedIds": [
-    "OPS-17b"
-  ],
+  "blockedIds": [],
   "notRunIds": [],
   "approvedDiffIds": [],
   "approvedSingleSideIds": [],
   "unresolvedIds": [
-    "OPS-03",
     "OPS-12",
     "OPS-13",
     "OPS-14",
     "OPS-16",
     "OPS-17a",
-    "OPS-17b",
     "OPS-18",
     "OPS-20",
     "OPS-23",
@@ -80,7 +77,9 @@
     "matrixEvidence": [
       "tests/e2e-diff/evidence/round4-full-50415119",
       "tests/e2e-diff/evidence/round4-bizfacts2-50415119",
-      "tests/e2e-diff/evidence/round4-bizfacts3-50415119"
+      "tests/e2e-diff/evidence/round4-bizfacts3-50415119",
+      "tests/e2e-diff/evidence/round5-cand-ops03c-131954",
+      "tests/e2e-diff/evidence/round5-cand-observe-130808"
     ],
     "opsEvidence": [
       "tests/e2e-diff/evidence/round4-final-50415119-sweep"
@@ -115,6 +114,12 @@
           "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-01/ops.json"
+        },
+        {
+          "runId": "round5-cand-ops03c-131954",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-ops03c-131954/p2/OPS-01/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",
@@ -163,6 +168,12 @@
           "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-02/ops.json"
         },
         {
+          "runId": "round5-cand-ops03c-131954",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-ops03c-131954/p2/OPS-02/ops.json"
+        },
+        {
           "runId": "round4-final-50415119-sweep",
           "status": "GO_ONLY",
           "verdict": "PASS",
@@ -181,15 +192,25 @@
       "notes": null
     },
     {
-      "verdict": "DIFF",
-      "reasons": [
-        "shortId residue after remove: bash=1 go=2 (baseline 1/1)",
-        "approval fingerprint does not match the cited evidence for OPS-03"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-03/shortid-difference.json",
-      "runId": "round4-full-50415119",
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/round5-cand-ops03c-131954/p2/OPS-03/ops.json",
+      "runId": "round5-cand-ops03c-131954",
       "layer": "L0-L4 driver evidence",
-      "status": "FAIL",
+      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+      "driverSha": "1afc2007c740548b370d5afb92f2aa72bd6a806313c1ea890776f1f859ecc768",
+      "supersedes": "round4-full-50415119",
+      "fixedBy": "51db24e6bacbbac2b0bf9d52de2c702423040456",
+      "status": "DUAL_SIDE_VERIFIED",
+      "supersededRuns": [
+        "round4-bizfacts2-50415119",
+        "round4-final-50415119-sweep",
+        "round4-full-50415119"
+      ],
       "id": "OPS-03",
       "history": [
         {
@@ -203,6 +224,12 @@
           "status": "FAIL",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-03/shortid-difference.json"
+        },
+        {
+          "runId": "round5-cand-ops03c-131954",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-ops03c-131954/p2/OPS-03/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",
@@ -528,6 +555,12 @@
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-12/ops.json"
         },
         {
+          "runId": "round5-cand-observe-130808",
+          "status": "FAIL",
+          "verdict": "DIFF",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-12/ops.json"
+        },
+        {
           "runId": "round4-final-50415119-sweep",
           "status": "FAIL",
           "verdict": "PASS",
@@ -569,6 +602,12 @@
           "status": "FAIL",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-13/ops.json"
+        },
+        {
+          "runId": "round5-cand-observe-130808",
+          "status": "FAIL",
+          "verdict": "DIFF",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-13/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",
@@ -615,6 +654,12 @@
           "status": "FAIL",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-14/ops.json"
+        },
+        {
+          "runId": "round5-cand-observe-130808",
+          "status": "FAIL",
+          "verdict": "DIFF",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-14/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",
@@ -743,6 +788,12 @@
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17a/ops.json"
         },
         {
+          "runId": "round5-cand-observe-130808",
+          "status": "BLOCKED",
+          "verdict": "BLOCKED",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-17a/ops.json"
+        },
+        {
           "runId": "round4-final-50415119-sweep",
           "status": "FAIL",
           "verdict": "PASS",
@@ -760,24 +811,35 @@
       "notes": null
     },
     {
-      "verdict": "BLOCKED",
-      "bashExit": 124,
-      "goExit": 3,
-      "reasons": [
-        "Nginx update needs the fixed local trusted package used by the real-root job",
-        "bash rc=124 go rc=3"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17b/ops.json",
-      "runId": "round4-full-50415119",
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-17b/ops.json",
+      "runId": "round5-cand-observe-130808",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
       "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
       "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
+      "driverSha": "68029718cfda1060363393ba9e122f56c1bdee09796d7943b1c945ffaf115e20",
       "supersedes": null,
       "fixedBy": null,
-      "status": "BLOCKED",
+      "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-17b",
+      "history": [
+        {
+          "runId": "round4-full-50415119",
+          "status": "BLOCKED",
+          "verdict": "BLOCKED",
+          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17b/ops.json"
+        },
+        {
+          "runId": "round5-cand-observe-130808",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-17b/ops.json"
+        }
+      ],
       "name": "更新Nginx",
       "bashEntry": "5>3",
       "goCommand": "idleleo update nginx --manifest <path|URL> --container --json",
@@ -835,6 +897,12 @@
           "status": "BLOCKED",
           "verdict": "BLOCKED",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-18/ops.json"
+        },
+        {
+          "runId": "round5-cand-observe-130808",
+          "status": "BLOCKED",
+          "verdict": "BLOCKED",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-18/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",
@@ -1007,6 +1075,12 @@
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-23/ops.json"
         },
         {
+          "runId": "round5-cand-observe-130808",
+          "status": "BLOCKED",
+          "verdict": "BLOCKED",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-23/ops.json"
+        },
+        {
           "runId": "round4-final-50415119-sweep",
           "status": "FAIL",
           "verdict": "PASS",
@@ -1043,6 +1117,12 @@
           "status": "BLOCKED",
           "verdict": "BLOCKED",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-24/ops.json"
+        },
+        {
+          "runId": "round5-cand-observe-130808",
+          "status": "BLOCKED",
+          "verdict": "BLOCKED",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-24/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",
@@ -1090,6 +1170,12 @@
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-25/ops.json"
         },
         {
+          "runId": "round5-cand-observe-130808",
+          "status": "FAIL",
+          "verdict": "DIFF",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-25/ops.json"
+        },
+        {
           "runId": "round4-final-50415119-sweep",
           "status": "FAIL",
           "verdict": "PASS",
@@ -1135,6 +1221,12 @@
           "status": "FAIL",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-26/ops.json"
+        },
+        {
+          "runId": "round5-cand-observe-130808",
+          "status": "FAIL",
+          "verdict": "DIFF",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-26/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",
@@ -1242,6 +1334,12 @@
           "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-29/ops.json"
+        },
+        {
+          "runId": "round5-cand-observe-130808",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/round5-cand-observe-130808/p2/OPS-29/ops.json"
         },
         {
           "runId": "round4-final-50415119-sweep",

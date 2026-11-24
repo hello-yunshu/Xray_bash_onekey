@@ -4105,6 +4105,10 @@ run = {
     "runId": run_id,
     "image": image_id,
     "layer": "L0-L4 docker matrix",
+    # A red run stays red unless a later run names it here and states the fix
+    # commit; build_ledger.py only promotes FAIL when both fields are present.
+    "supersedes": os.environ.get("E2E_SUPERSEDES") or None,
+    "fixedBy": os.environ.get("E2E_FIXED_BY") or None,
     "startedAt": started,
     "finishedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
 }

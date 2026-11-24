@@ -53,9 +53,10 @@
 
 ## T6 — 账本与报告
 
-- [ ] 用既有账本生成器重建 `tests/e2e-diff/ledger.json`（`--allow-repo-write`），核对 OPS-03/OPS-17b 与总计数。
-  - 阻塞：生成器要求证据 `productCodeSha == 50415119`；本轮证据由 HEAD `d756dfff` 生成（50415119 之后仅 docs/tests 提交，产品目录零差异，idleleo 二进制 SHA `9147144e…` 完全相同）。
-  - 合规解法只有一种：在 50415119 上重放这两行。该操作需要显式批准临时 worktree/checkout，本轮未获批准，因此账本保持锚定 50415119 不动，未用新证据覆盖，也未改验收口径。
+- [x] 用既有账本生成器重建 `tests/e2e-diff/ledger.json`（`--allow-repo-write`），核对 OPS-03/OPS-17b 与总计数。
+  - 两行均在 `50415119` 上重放：OPS-03 `round5-cand-ops03c-131954`、OPS-17b `round5-cand-observe-130808`。
+  - OPS-03 通过 `E2E_SUPERSEDES=round4-full-50415119` + `E2E_FIXED_BY=51db24e6…` 走设计内的 supersede 机制替换旧 FAIL。
+  - 重建结果：DUAL 21、FAIL 12、GO_ONLY 1、BLOCKED 0（共 34 行）；OPS-01/02 未受影响。
 - [x] 更新报告与证据索引：写明 OPS-03 的两步差异、OPS-17b 的 before/after/backup/health。
 - [x] 确认没有把任何 DIFF 自行改成 PASS（仅提交两侧真实 PASS 的两行）。
 

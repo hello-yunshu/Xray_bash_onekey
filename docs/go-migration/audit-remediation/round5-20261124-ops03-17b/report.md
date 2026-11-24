@@ -43,10 +43,19 @@ Go JSON 同时给出 `verified=true`、`restarted=true`、`health=true`。Bash `
 - 判定器按 rc / 前后 `nginx -v` / 备份 / 健康 / Go JSON 实算 PASS；只有 `expected-version.txt` 或离线包缺失才 BLOCKED。
 - Bash 成功后备份目录会被删除，`ls` 的报错文本不再被当作备份证据；改用 `run.out` 的 `备份旧版` 日志行。
 
-## 账本状态与未闭合项
+## 账本状态
 
-本轮证据的 `productCodeSha` 为 `d756dfff6b5091b2d2a9fea8188297fc50aa23a8`。冻结候选为 `50415119`；两者之间只有 `docs/` 与 `tests/` 提交，产品目录零差异，`idleleo` 二进制 SHA 均为 `9147144e…`。
+两行都已在冻结候选 `5041511998575851eb5cb16533e9fe999d29d5a8` 上重放，证据 `productCodeSha` 与候选一致：
 
-账本生成器要求证据的 `productCodeSha` 必须等于 `--code-sha`，因此本轮证据不能直接并入锚定 `50415119` 的账本。为遵守“候选不变、不改验收口径”的约束，**本轮没有重建账本**，`tests/e2e-diff/ledger.json` 保持原样，OPS-03 仍显示 FAIL、OPS-17b 仍显示 BLOCKED。
+- OPS-03：`round5-cand-ops03c-131954` → `DUAL_SIDE_VERIFIED / PASS`，并显式声明
+  `supersedes=round4-full-50415119`、`fixedBy=51db24e6bacbbac2b0bf9d52de2c702423040456`，
+  旧 FAIL 被设计内的 supersede 机制替换。
+- OPS-17b：`round5-cand-observe-130808` → `DUAL_SIDE_VERIFIED / PASS`。
 
-要闭合账本，需要把这两行在 `50415119` 上重放一次（临时 worktree/checkout），生成绑定候选的证据后再重建账本。该操作涉及 git 工作树，需显式批准后执行。
+重建后的总计数：`DUAL_SIDE_VERIFIED=21`、`FAIL=12`、`GO_ONLY=1`、`BLOCKED=0`（共 34 行）。OPS-01/02 未受影响。
+
+## 实现要点
+
+- 驱动新增 `E2E_SUPERSEDES` / `E2E_FIXED_BY`，把 supersede 声明写入证据的 `run` 块；不设置时两字段为 `null`。
+- 本轮一次 OPS-03 重放遇到真实 Reality 握手 EOF（`shortIdClean=False`），未写 PASS，直接重跑；最终 PASS 来自真实成功运行。
+- 候选重放在临时 worktree 中完成，产品代码零改动，跑完已移除 worktree。
