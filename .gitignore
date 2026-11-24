@@ -14,3 +14,7 @@ tests/go-parity/evidence/*/idleleo-current
 # literals; evidence keeps their sha256 sidecars instead.
 tests/e2e-diff/evidence/**/origin/geoip.dat
 tests/e2e-diff/evidence/**/origin/geosite.dat
+
+# 测试证据中的私钥不入库，仅保留证书/公钥
+tests/**/evidence/**/*.key
+tests/**/evidence/**/tls-key.pem
