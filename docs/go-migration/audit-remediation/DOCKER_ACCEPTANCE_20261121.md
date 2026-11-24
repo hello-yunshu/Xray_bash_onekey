@@ -1,7 +1,7 @@
 # Docker 双端验收与三轮闭环 · 2026-11-21
 
-> 本文件是本轮 Goal（`artifacts/intake-20261121/Trae_Xray_收尾独立双端验收_Goal_20261121.md`）
-> 的最终中文报告。机器可读账本为 `tests/e2e-diff/ledger.json`，验收看板为
+> 本文件是 2026-11-21 本轮 Goal（执行提示词已随验收完成清理）的最终中文报告。
+> 机器可读账本为 `tests/e2e-diff/ledger.json`，验收看板为
 > `docs/go-evolution/hardening/acceptance.json`，二者由同一次运行生成。
 > 审计输入为 `artifacts/intake-20261121/Xray_独立审计报告_20261121.md`。
 
