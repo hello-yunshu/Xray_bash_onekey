@@ -84,6 +84,22 @@ func TestGenerateXHTTPClashIsExplicit(t *testing.T) {
 	}
 }
 
+func TestGenerateXHTTPPathMatchesNginxSlashNormalization(t *testing.T) {
+	g, err := Generate(Spec{
+		Mode: ModeTLS, Domain: "example.com", Transport: TransportXHTTP,
+		Path: "//ray//custom//",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(g.Config), `"path": "/ray/custom/"`) {
+		t.Fatalf("Xray config did not normalize repeated XHTTP slashes: %s", g.Config)
+	}
+	if !strings.Contains(g.NginxConf, "location /ray/custom/ {") {
+		t.Fatalf("Nginx location does not match normalized XHTTP path: %s", g.NginxConf)
+	}
+}
+
 func multiInbounds(t *testing.T, g Generated) []map[string]any {
 	t.Helper()
 	var root map[string]any

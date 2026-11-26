@@ -303,11 +303,13 @@ func TestEditTransportRebuildsInbounds(t *testing.T) {
 	}
 }
 
-func TestEditXHTTPPathAlwaysHasLeadingSlash(t *testing.T) {
+func TestEditXHTTPPathNormalizesSlashesAndPreservesTrailingSlash(t *testing.T) {
 	raw := editBase(t)
 	for _, tc := range []struct{ in, want string }{
 		{"custom", "/custom"},
 		{"/custom/", "/custom/"},
+		{"//custom//path//", "/custom/path/"},
+		{"custom//path", "/custom/path"},
 	} {
 		g, _, err := EditRuntime(raw, EditDefaults{Mode: ModeReality, PublicPort: 443},
 			EditRequest{Transport: TransportXHTTP, XHTTPPath: tc.in, XHTTPPathSet: true})

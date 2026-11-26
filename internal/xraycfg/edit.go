@@ -319,15 +319,33 @@ func ValidateXHTTPPath(p string) error {
 	return nil
 }
 
-// normalizeXHTTPPath mirrors the Bash installer, which always renders the path
-// as "/<path>". A trailing slash is preserved: a real Xray 26.10.31 client
-// normalizes it in both directions, so only the leading slash is required.
-// Whitespace is never trimmed: validation rejects it first.
+// normalizeXHTTPPath renders a path with one leading slash and collapses
+// repeated slashes. Nginx normalizes repeated slashes in request URIs by
+// default, so a managed location containing them would not match the path the
+// XHTTP client sends. Keep one trailing slash when present. Whitespace is
+// never trimmed: validation rejects it first.
 func normalizeXHTTPPath(p string) string {
-	if p == "" || strings.HasPrefix(p, "/") {
+	if p == "" {
 		return p
 	}
-	return "/" + p
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+	var out strings.Builder
+	out.Grow(len(p))
+	previousSlash := false
+	for i := 0; i < len(p); i++ {
+		if p[i] == '/' {
+			if previousSlash {
+				continue
+			}
+			previousSlash = true
+		} else {
+			previousSlash = false
+		}
+		out.WriteByte(p[i])
+	}
+	return out.String()
 }
 
 // shareHostFor mirrors the host Generate uses for the share link.
