@@ -735,5 +735,15 @@
     ],
     "notRerunThisRound": [],
     "auditBaseline": "28463d4fca9f361710183d8e4563d3b8f8c43c76"
+  },
+  "followup20261127NginxUpdate": {
+    "codeSha": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+    "qualification": "NO_GO",
+    "releaseAuthorized": "NO",
+    "scope": "OPS-17b targeted Nginx upgrade/config preservation/rollback/runtime client only",
+    "runId": "obsfix-final-fb55",
+    "evidencePath": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b",
+    "summary": "Bash and Go real Docker Nginx updates 1.27.5 to 1.30.6 succeeded; post-update Reality L4 passed on both sides. Go real-artifact version mismatch returned rc=6 and rolled back; prior config SHA, Nginx version, active services, 443 listener and post-rollback Reality L4 were verified.",
+    "limitations": "This is a targeted follow-up and does not refresh the 34-row ledger snapshot at f4deaf77 or satisfy remaining CI/security/OPS criteria."
   }
 }

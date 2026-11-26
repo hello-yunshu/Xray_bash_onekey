@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-OBSERVE",
+  "ops": [
+    "OPS-OBSERVE"
+  ],
+  "runId": "obsfix-fb55adf7",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

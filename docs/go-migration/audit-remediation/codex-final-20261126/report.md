@@ -11,6 +11,20 @@
 
 Docker、Bash、Go、Xray、Nginx 和客户端均实际运行，OPS-01/02/03/08/20 双端真实行为通过；这不足以形成开发候选签收。最终 34 项账本为 5 DUAL、14 GO_ONLY、1 FAIL、2 BLOCKED、12 NOT_RUN。OPS-27 仍有未批准行为差异，OPS-04/26 被阻断；严格验收器返回 rc=1 并保留失败。最终 SHA 的 7 项 CI 未运行：该分支未推送，不能用本地扫描代替远程工作流。
 
+## 2026-11-27 后续复验：Nginx 更新丢配置
+
+补跑 OPS-17b 后，在 f4deaf77 的真实 Docker Go 容器发现产品缺陷：Go 更新器备份并替换整个 `/usr/local/nginx`，没有保留已托管的 `conf/nginx.conf`；发行包默认文件通过 `nginx -t`，却不再 include `/etc/idleleo/conf/nginx/00-xray.conf`，导致 443 listener 消失、真实 Reality 客户端 curl exit 56。原始失败与 `nginx -T` 见 `tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/pre-fix-f4`。
+
+最小修复提交为 `fb55adf78ee960eda695e6e5742f4c16ff328639`：升级前读取现有主配置及权限，安装新 Nginx 工件时写回暂存树并显式恢复权限；其他 Nginx 工件继续从已校验发行包安装。Go 回归测试验证主配置和 `0640` 权限保留。Go 1.27.4 容器内，受影响包测试、race 测试、`go vet ./...` 均通过，记录见 `evidence/nginx-update-preserve-config-go.log`。
+
+精确提交 `fb55adf7` 的真实 OPS-OBSERVE 使用 ARM64 Docker 镜像 `sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b`；Go 二进制 SHA-256 为 `5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6`，Nginx 1.27.5→1.30.6 两侧更新 rc=0。更新后双方服务 active、`nginx -t` 成功、托管 include 存在、443 listener 存在；双方真实 Reality 客户端均取得 577-byte HTTP 响应且 SHA-256 匹配。Go 侧用实际 Nginx 1.30.6 包声明错误目标版本，更新器 rc=6、`rolledBack=true`；配置 SHA 与真实版本恢复，Xray/Nginx 仍 active，443 仍监听，回滚后真实客户端再次成功。运行清单和日志见 `tests/e2e-diff/evidence/obsfix-final-fb55/p2/`。
+
+后续卫生扫描均为 0 finding；最终扫描为 61,478 个文件，输出见 `evidence/nginx-update-privacy-final.log`。所有未计通过的诊断均保留：手动 L4 首次误挂空目录导致 Permission denied；一次候选 runner 因空 Xray 缓存记录空 SHA 后被停止；一次误用只读证据挂载作为 CLI 输出目录、尚未执行产品命令；以及容器写入保护在未设置授权变量时返回 rc=2、未改动状态。正确缓存、路径和容器变量下的正式验证见 `obsfix-final-fb55`，上述记录均不计入通过证据。
+
+验收器本身未修改；在 fb55adf7 上重新运行 `python3 tests/e2e-diff/collect/test_build_ledger.py -q`（32 tests）和 `bash tests/e2e-diff/collect/guard_acceptance_artifacts.sh`，均通过且正式三份摘要字节未变，分别见 `evidence/ledger-contract-tests-followup.log` 与 `evidence/acceptance-artifact-isolation-followup.log`。全仓 hygiene 的最终复跑日志为 0 finding（61,478 个文件），见 `evidence/nginx-update-privacy-final.log`。
+
+本次结果证明该 Nginx 更新缺陷已修复，也证明 Go 版本会在健康验证失败时恢复完整旧安装并维持可用 listener。它只覆盖 OPS-17b 的当前代码提交，不覆盖其他 33 项；此前正式 ledger/matrix/acceptance 仍是 f4deaf77 的冻结摘要，故本报告对 fb55adf7 不作全量签收，Docker 资格继续为 **NO_GO**。
+
 ## 关键修复与真实业务结果
 
 - **Guard（`internal/deploy/guard.go`）**：移除“进程启动时间早于文件 mtime 即 active”的推断。状态只有在 reload 记录绑定当前 Nginx PID、start ticks 和策略内容时才报告 active；磁盘策略变化但未 reload 时回落为 `runtime-unverified`。最终 SHA 双端 Docker/Nginx 实跑：保留旧 mtime 的磁盘编辑、`nginx -t` rc=0、reload 前 Guard 为 `runtime-unverified`，旧 worker 拒绝未知 SNI；管理 reload rc=0 后状态 `active`。已知 SNI、未知 SNI结果在 OPS-08 留档。另在 Go 容器运行 decoy/reject 策略：未知 SNI 经 decoy 返回诱饵页，reject 下 curl TLS 失败 rc=35。标准 curl 不能作为 Reality 已知 SNI 客户端；已知 Reality 业务由 OPS-20 的真实 Xray 客户端验证。

@@ -1,0 +1,6 @@
+{
+  "ok": false,
+  "profile": "reality",
+  "reason": "client socks did not listen",
+  "target": "http://example.com/"
+}

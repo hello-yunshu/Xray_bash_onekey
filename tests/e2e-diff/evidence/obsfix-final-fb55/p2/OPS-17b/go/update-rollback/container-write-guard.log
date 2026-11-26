@@ -1,0 +1,24 @@
+before=nginx version: nginx/1.30.6
+before_config_sha256=a407e3ac33beaf9f36ca4b36fdf07502c54b50c770f80569b5a192bbfa5c00a3
+update_rc=2
+{
+  "schemaVersion": 0,
+  "component": "",
+  "previousVersion": "",
+  "newVersion": "",
+  "action": "",
+  "sha256": "",
+  "sizeBytes": 0,
+  "verified": false,
+  "health": false,
+  "restarted": false,
+  "rolledBack": false
+}
+container root writes require IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY
+after=nginx version: nginx/1.30.6
+after_config=a407e3ac33beaf9f36ca4b36fdf07502c54b50c770f80569b5a192bbfa5c00a3 /usr/local/nginx/conf/nginx.conf
+services=active active
+listener=LISTEN 0 4096 0.0.0.0:443 0.0.0.0:*
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+rollback-and-business-listener=verified

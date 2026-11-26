@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Targeted post-audit follow-up; does not replace the frozen 34-row f4deaf77 ledger.",
+  "runId": "obsfix-final-fb55",
+  "productCodeSha": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+  "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+  "xraySha256": "c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a",
+  "image": "sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b",
+  "platform": "linux/arm64",
+  "startedAt": "2026-11-26T16:15:20Z",
+  "finishedAt": "2026-11-26T16:19:08Z",
+  "ops17b": {
+    "verdict": "PASS",
+    "bashUpdateRc": 0,
+    "goUpdateRc": 0,
+    "bashVersions": [
+      "1.27.5",
+      "1.30.6"
+    ],
+    "goVersions": [
+      "1.27.5",
+      "1.30.6"
+    ],
+    "bashL4AfterUpdateRc": 0,
+    "goL4AfterUpdateRc": 0,
+    "goRollbackRc": 6,
+    "goRollbackReported": true,
+    "goVersionConfigService443Restored": true,
+    "goL4AfterRollbackRc": 0,
+    "clientBodyBytes": 577,
+    "clientBodySha256": "25ddf2c883e0d1958ea971d279a7e4f0fd446724ee3db7db19dadabd4a62e484"
+  },
+  "redEvidence": {
+    "runId": "ob2-f4",
+    "productCodeSha": "f4deaf77c08457bf2ed1a07e165b2ff5bf5b53f5",
+    "goClientCurlExit": 56,
+    "managedNginxIncludeAfterUpdate": false,
+    "listener443AfterUpdate": false,
+    "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/pre-fix-f4"
+  },
+  "goVerificationLog": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/nginx-update-preserve-config-go.log",
+  "qualification": "NO_GO",
+  "qualificationReason": "Only OPS-17b was rerun on fb55adf7; other mandatory closures and current-SHA full ledger/CI are pending.",
+  "nonPassingDiagnostics": [
+    {
+      "runId": "obsfix1",
+      "reason": "Manual L4 initially mounted an empty directory instead of the Xray file; client reported Permission denied. Correct binary path was then used, but this worktree run is not current-SHA evidence.",
+      "evidence": "tests/e2e-diff/evidence/obsfix1/p2/OPS-17b"
+    },
+    {
+      "runId": "obsfix-fb55adf7",
+      "reason": "A stale empty cache directory was treated as executable Xray; build recorded empty xraySha256 and the stalled installer container was stopped. Not counted as a product verdict.",
+      "evidence": "tests/e2e-diff/evidence/obsfix-fb55adf7/p2"
+    },
+    {
+      "runId": "obsfix-final-fb55-rollback-diagnostic",
+      "reason": "First invocation used a read-only evidence mount as CLI output path and did not execute the product command.",
+      "evidence": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/go/update-rollback/invalid-output-mount.log"
+    },
+    {
+      "runId": "obsfix-final-fb55-container-guard",
+      "reason": "Container write guard returned rc=2 without changing state because the explicit container-only write environment variable was absent; same probe was rerun with the required variable.",
+      "evidence": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/go/update-rollback/container-write-guard.log"
+    }
+  ]
+}

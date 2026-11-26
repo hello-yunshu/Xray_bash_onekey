@@ -1,0 +1,4 @@
+wrapper_rc=1
+bash: line 8: /out/OPS-17b/go/update-rollback/update.json: No such file or directory
+bash: line 8: /out/OPS-17b/go/update-rollback/before.txt: No such file or directory
+classification=invalid_test_harness_path_error; product_command_did_not_run

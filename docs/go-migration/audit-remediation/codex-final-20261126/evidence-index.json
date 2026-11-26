@@ -12,8 +12,8 @@
   "files": [
     {
       "path": "docs/go-evolution/hardening/acceptance.json",
-      "sha256": "e97e7c8acd2f2b8eddc85143698c3260b3bb30cb0611b03b3e5b345e3acea789",
-      "type": "report-or-machine-summary"
+      "sha256": "5bcefce1fc17507c4dd273baf98245fb3fd76105bc5333c203d9c907d152ac23",
+      "type": "follow-up-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/E8-privatekey-rotation-f4deaf77.log",
@@ -39,6 +39,11 @@
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/acceptance-artifact-isolation-final.log",
       "sha256": "9af67a0a423a81568a0e40da067ae1aa4ff8a62954cd80b3a62edc722080e06e",
       "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/acceptance-artifact-isolation-followup.log",
+      "sha256": "2163df0fdd3a8aa53de68b2d1c203de2fcdb8332a89b0d6dfe0e8427b403e310",
+      "type": "follow-up-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/backup-restore-runtime-retry.log",
@@ -221,9 +226,29 @@
       "type": "sanitized-log-or-result"
     },
     {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ledger-contract-tests-followup.log",
+      "sha256": "98ea6a8b9924d13b4665c3ba4744f35054e178f26a1ea3f16e9a9fa99dd05da8",
+      "type": "follow-up-evidence"
+    },
+    {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ledger-contract-tests.log",
       "sha256": "3e0516b87830961428104aba1c63af060ea8ac8e17936f5d6df07117cca43dd8",
       "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/nginx-update-preserve-config-go.log",
+      "sha256": "4eed613a46422b0cdcd25cf533fbbaac946253f235f64f4b0a65eb40052e2c67",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/nginx-update-privacy-final.log",
+      "sha256": "83e6e6b4f93be47fe00af154c6cdcd50fe0c0c246f1bc0279535418563dfda93",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/nginx-update-privacy-followup.log",
+      "sha256": "1ce8106345d51859d4fa328d65944cd69d424a059aff41f183f530a61019e8a0",
+      "type": "follow-up-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops-critical-matrix-f4deaf77.log",
@@ -482,8 +507,8 @@
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/impact-analysis.md",
-      "sha256": "0d1b2e6ebef45befd318205e61a3c082c7cf37ab37462d79ab46c6b083af640e",
-      "type": "report-or-machine-summary"
+      "sha256": "a70cd352d552840ec85a71fc80dbc7237fe9528dceea19f8e15fd133a8b4258f",
+      "type": "follow-up-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/probe-development-log.md",
@@ -492,13 +517,13 @@
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/report.md",
-      "sha256": "78ca7e09504307a172733a76b4b9d85582f137490a7de18c317debbee3ac98f3",
-      "type": "report-or-machine-summary"
+      "sha256": "0bd4bdc2df3d7e3350cc682a24b794fcfcf069cc4f99d5a92dacfc48ebaed437",
+      "type": "follow-up-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/tasks.md",
-      "sha256": "712599077f5e28b681bbae9fbb704624e5bc89e4c0c09c77730216d51878d808",
-      "type": "report-or-machine-summary"
+      "sha256": "4acdf90d3ee5f5a47301cb3c4f1a8c2d6692c2848e4af0594151b4bcc272a309",
+      "type": "follow-up-evidence"
     },
     {
       "path": "tests/e2e-diff/evidence/codex-final-20261126-5528ca7f-E8/p2/E8/go/capture.log",
@@ -9491,6 +9516,81 @@
       "type": "sanitized-log-or-result"
     },
     {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/bash/L4-after-update/connectivity.json",
+      "sha256": "4a05d06e58dc7d4e7c0f7e9b5ef6a304a12ae1c736802bfc4cdf40165fb609ca",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/go/10-op.out",
+      "sha256": "d51980533f899a6879c5269191a6da6aef332c4d048a0ee68486a978659fdb0f",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/go/L4-after-rollback/connectivity.json",
+      "sha256": "4a05d06e58dc7d4e7c0f7e9b5ef6a304a12ae1c736802bfc4cdf40165fb609ca",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/go/L4-after-update/connectivity.json",
+      "sha256": "4a05d06e58dc7d4e7c0f7e9b5ef6a304a12ae1c736802bfc4cdf40165fb609ca",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/go/update-rollback/container-write-guard.log",
+      "sha256": "883682de99a1a2972c98c24e71b5a8726c00ca3c28c1e9ac4ad0f819ed7084b9",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/go/update-rollback/invalid-output-mount.log",
+      "sha256": "0315e573eaa5ed33e003569ab55c46e027c013df39ae4d3b727e65ca02ee0b6a",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/go/update-rollback/run.log",
+      "sha256": "6116d9156437af3f8726fd5afdee8fe1e046b3cf74f301a803fd27ec74da18b0",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/ops.json",
+      "sha256": "45f8ab8b4a91b57eadb4fd215a1c52e0d3d1fcc2ae0d2836eacf7daee6547d2d",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/pre-fix-f4/go-l4/connectivity.json",
+      "sha256": "e2c2227483cfd12868821ae2cd0ac259d7c9b64fbd3ff9ff0c5de1ebc74183f1",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/pre-fix-f4/go-l4/nginx-after-update.log",
+      "sha256": "734c013ac6c4a0fccb6cdad92029f376cb7d5d0282abf142b4d8453e82f0c635",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/pre-fix-f4/run.json",
+      "sha256": "a6cfa17a6ee6cc22c9a57bb80ab91248df274c062e80387c8ff5705aaba606e2",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/build-manifest.json",
+      "sha256": "f0183b1f65d232a6ee9f02b9e7864b8833fc965a9896b0f3cb2115075267f8d3",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/followup.json",
+      "sha256": "e8ce6d7614005c3e1899946b1ba0781826e348aa7b493ddc4b7527276a4ae213",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/run.json",
+      "sha256": "c99642ff74ec6470ea3948c886e00314e24dec29ff48e0fc5376f72456c05524",
+      "type": "follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/run.log",
+      "sha256": "69714c119e957bb57ac54264dfc55d59e5bdb7fd5130e06dd6a630fe11bec6ad",
+      "type": "follow-up-evidence"
+    },
+    {
       "path": "tests/e2e-diff/ledger.json",
       "sha256": "e08413bcc8075366963285965156a32a4640c818032bf5c01dabd37fb104da44",
       "type": "report-or-machine-summary"
@@ -9907,7 +10007,63 @@
       "runId": "codex-final-20261126-5528ca7f-ops-sweep",
       "startedAt": "2026-11-26T10:27:09Z",
       "runMetadataPath": "tests/e2e-diff/evidence/codex-final-20261126-5528ca7f-ops-sweep/run.json"
+    },
+    {
+      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+      "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+      "dependencies": [
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+          "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+          "source": "tests/e2e-diff/collect/l4.sh"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+          "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+          "source": "tests/e2e-diff/collect/client_config.py"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+          "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+          "source": "tests/e2e-diff/collect/build_ledger.py"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+          "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+          "source": "tests/e2e-diff/drivers/bash_ops.exp"
+        },
+        {
+          "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+          "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+          "source": "tests/go-parity/lib/docker_common.sh"
+        }
+      ],
+      "driverSha": "193aaa04176f930223d7dc6c5e44ef6cd5f05b537179e178d93a39964e6a6d20",
+      "finishedAt": "2026-11-26T16:19:08Z",
+      "image": "sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b",
+      "layer": "L0-L4 docker matrix",
+      "platform": "linux/arm64",
+      "productCodeSha": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+      "runId": "obsfix-final-fb55",
+      "startedAt": "2026-11-26T16:15:20Z",
+      "supersedes": null,
+      "manifestPath": "build-manifest.json",
+      "manifestSha256": "f0183b1f65d232a6ee9f02b9e7864b8833fc965a9896b0f3cb2115075267f8d3",
+      "runMetadataPath": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/run.json"
     }
   ],
-  "schemaVersion": 1
+  "schemaVersion": 1,
+  "supplementalCandidates": [
+    {
+      "codeSha": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+      "qualification": "NO_GO",
+      "releaseAuthorized": "NO",
+      "scope": "Targeted OPS-17b follow-up only; prior formal ledger remains a historical f4deaf77 snapshot.",
+      "runId": "obsfix-final-fb55",
+      "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+      "image": "sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b",
+      "platform": "linux/arm64",
+      "evidencePath": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/followup.json"
+    }
+  ]
 }

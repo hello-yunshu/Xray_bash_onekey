@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "provenance": "native",
+  "role": "node",
+  "tls": "Reality",
+  "transport": "raw",
+  "metadataPath": "/etc/idleleo/v1/metadata.json",
+  "metadataSha256": "e845eb72e528586a960d0fdfc4ab16d06c6be4b35bc08b7d2bd860a2e255b8c3",
+  "metadataRuntimeSha256": "0d2d82aa6521c2d49a89fc0a5bea74620824aeadbf8b080a0cd6c07f4b5be9e5",
+  "runtimeConfigPath": "etc/idleleo/conf/xray/config.json",
+  "runtimeSha256": "0d2d82aa6521c2d49a89fc0a5bea74620824aeadbf8b080a0cd6c07f4b5be9e5",
+  "matchesMetadata": true,
+  "exportedAt": "2026-11-26T16:06:31Z",
+  "out": "/tmp/e2e-metadata.json"
+}

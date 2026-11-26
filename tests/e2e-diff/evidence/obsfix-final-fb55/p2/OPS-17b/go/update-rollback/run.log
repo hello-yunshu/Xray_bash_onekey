@@ -1,0 +1,25 @@
+before=nginx version: nginx/1.30.6
+before_config_sha256=a407e3ac33beaf9f36ca4b36fdf07502c54b50c770f80569b5a192bbfa5c00a3
+update_rc=6
+{
+  "schemaVersion": 1,
+  "component": "nginx",
+  "previousVersion": "1.30.6",
+  "newVersion": "9.99.99",
+  "action": "update",
+  "sha256": "dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79",
+  "sizeBytes": 9645047,
+  "backupPath": "/etc/idleleo/backup/nginx-1.30.6-1795710085248185835",
+  "verified": true,
+  "health": false,
+  "restarted": false,
+  "rolledBack": true
+}
+new component failed its health check: installed version reads "1.30.6", want "9.99.99"
+after=nginx version: nginx/1.30.6
+after_config=a407e3ac33beaf9f36ca4b36fdf07502c54b50c770f80569b5a192bbfa5c00a3 /usr/local/nginx/conf/nginx.conf
+services=active active
+listener=LISTEN 0 4096 0.0.0.0:443 0.0.0.0:*
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+rollback-and-business-listener=verified
