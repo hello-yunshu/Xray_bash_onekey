@@ -124,8 +124,11 @@ def contract_details(op_id):
 
 def ops(root, op_id, verdict, bash_rc=0, go_rc=0, include_rc=True, reasons=None,
         details=None, run=None):
+    evidence_root = os.path.join(root, "p2")
+    os.makedirs(evidence_root, exist_ok=True)
     data = {"id": op_id, "verdict": verdict, "reasons": reasons or [],
-            "run": run if run is not None else provenance(root),
+            "run": run if run is not None else provenance(
+                evidence_root, runId=os.path.basename(os.path.normpath(root))),
             "details": details if details is not None else contract_details(op_id)}
     if include_rc:
         data["opsRc"] = {"bash": bash_rc, "go": go_rc}
@@ -207,7 +210,8 @@ class LedgerContractTest(unittest.TestCase):
         # OPS-03's driver writes shortid-difference.json instead of ops.json.
         # That declared difference must surface as a failure, not vanish.
         write(os.path.join(self.matrix, "p2", "OPS-03", "shortid-difference.json"),
-              {"id": "OPS-03", "result": "DIFF", "run": provenance(self.matrix),
+              {"id": "OPS-03", "result": "DIFF", "run": provenance(
+                  os.path.join(self.matrix, "p2"), runId=os.path.basename(self.matrix)),
                "reasons": ["shortId residue after remove"]})
         proc, ledger = self.run_ledger(matrix=self.matrix)
         self.assertEqual(proc.returncode, 1, proc.stderr)
@@ -355,7 +359,8 @@ class LedgerContractTest(unittest.TestCase):
         # OPS-27's driver writes cert-clear-difference.json instead of ops.json;
         # the safety difference must surface as a failure, never vanish.
         write(os.path.join(self.matrix, "p2", "OPS-27", "cert-clear-difference.json"),
-              {"id": "OPS-27", "result": "DIFF", "run": provenance(self.matrix),
+              {"id": "OPS-27", "result": "DIFF", "run": provenance(
+                  os.path.join(self.matrix, "p2"), runId=os.path.basename(self.matrix)),
                "reasons": ["Bash rm -rf removes the third-party canary"]})
         proc, ledger = self.run_ledger(matrix=self.matrix)
         self.assertEqual(proc.returncode, 1, proc.stderr)
@@ -412,7 +417,8 @@ class LedgerContractTest(unittest.TestCase):
         self.assertTrue(any("provenance" in r for r in row["reasons"]))
 
     def test_wrong_hash_and_manifest_image_timestamp_are_blocked(self):
-        run = provenance(self.matrix, binarySha256="wrong", startedAt="not-a-time",
+        run = provenance(os.path.join(self.matrix, "p2"), runId=os.path.basename(self.matrix),
+                         binarySha256="wrong", startedAt="not-a-time",
                          image="missing", finishedAt="2020-01-01T00:00:00Z")
         ops(self.matrix, "OPS-05", "PASS", run=run)
         proc, ledger = self.run_ledger(matrix=self.matrix)
@@ -423,8 +429,8 @@ class LedgerContractTest(unittest.TestCase):
         self.assertIn("startedAt", reasons)
 
     def test_candidate_manifest_artifact_tampering_is_blocked(self):
-        run = provenance(self.matrix)
-        with open(os.path.join(self.matrix, "build", "idleleo"), "wb") as fh:
+        run = provenance(os.path.join(self.matrix, "p2"), runId=os.path.basename(self.matrix))
+        with open(os.path.join(self.matrix, "p2", "build", "idleleo"), "wb") as fh:
             fh.write(b"changed after manifest")
         ops(self.matrix, "OPS-05", "PASS", run=run)
         proc, ledger = self.run_ledger(matrix=self.matrix)
@@ -451,7 +457,8 @@ class LedgerContractTest(unittest.TestCase):
 
     def test_stale_candidate_evidence_is_blocked(self):
         ops(self.matrix, "OPS-05", "PASS",
-            run=provenance(self.matrix, productCodeSha="deadbeef"))
+            run=provenance(os.path.join(self.matrix, "p2"), runId=os.path.basename(self.matrix),
+                           productCodeSha="deadbeef"))
         proc, ledger = self.run_ledger(matrix=self.matrix)
         self.assertEqual(proc.returncode, 2, proc.stderr)
         row = self.row(ledger, "OPS-05")
@@ -492,10 +499,13 @@ class LedgerContractTest(unittest.TestCase):
         bad = os.path.join(self.root, "bad")
         bad2 = os.path.join(self.root, "bad2")
         ops(good, "OPS-09", "PASS",
-            run=provenance(good, supersedes="bad", fixedBy=TEST_SHA,
+            run=provenance(os.path.join(good, "p2"), runId=os.path.basename(good),
+                           supersedes="bad", fixedBy=TEST_SHA,
                            startedAt="2026-11-24T00:02:00Z"))
-        ops(bad, "OPS-09", "FAIL", run=provenance(bad, startedAt="2026-11-24T00:00:00Z"))
-        ops(bad2, "OPS-09", "FAIL", run=provenance(bad2, startedAt="2026-11-24T00:00:30Z"))
+        ops(bad, "OPS-09", "FAIL", run=provenance(
+            os.path.join(bad, "p2"), runId=os.path.basename(bad), startedAt="2026-11-24T00:00:00Z"))
+        ops(bad2, "OPS-09", "FAIL", run=provenance(
+            os.path.join(bad2, "p2"), runId=os.path.basename(bad2), startedAt="2026-11-24T00:00:30Z"))
         cmd = [sys.executable, SCRIPT, "--code-sha", TEST_SHA, "--out", self.out,
                "--matrix-json", os.path.join(self.root, "matrix.json"),
                "--acceptance-json", os.path.join(self.root, "acceptance.json"),

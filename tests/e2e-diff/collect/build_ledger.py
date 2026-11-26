@@ -442,7 +442,7 @@ def matrix_results(root, approvals, code_sha=""):
                 path, data = declaration
                 verdict = str(data.get("result") or data.get("verdict") or "").upper().replace("-", "_")
                 reasons = [str(r) for r in (data.get("reasons") or [])]
-                prov = provenance_problems(data, code_sha, run_id, root)
+                prov = provenance_problems(data, code_sha, run_id, p2)
                 base = {
                     "verdict": verdict, "reasons": reasons,
                     "evidence": repo_path(path), "runId": run_id,
@@ -496,7 +496,7 @@ def matrix_results(root, approvals, code_sha=""):
                         reasons=reasons + ["ops.json id %r does not match its directory %r" % (op_id, name)])
             out[name] = base
             continue
-        prov = provenance_problems(data, code_sha, run_id, root)
+        prov = provenance_problems(data, code_sha, run_id, p2)
         if prov:
             status = "BLOCKED"
             base["reasons"] = reasons + prov
