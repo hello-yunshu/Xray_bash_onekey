@@ -1,0 +1,6 @@
+curl: (7) Failed to connect to 127.0.0.1 port 18080 after 0 ms: Couldn't connect to server
+installed_before_sha256=0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3
+installed_before_apply_sha256=0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3
+container root writes require --container
+
+command_rc=2

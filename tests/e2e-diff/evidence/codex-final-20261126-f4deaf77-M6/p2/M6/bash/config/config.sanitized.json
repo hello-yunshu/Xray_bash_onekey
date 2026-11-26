@@ -1,0 +1,75 @@
+{
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "port": 11418,
+      "listen": "127.0.0.1",
+      "tag": "VLESS-xhttp-in",
+      "protocol": "VLESS",
+      "settings": {
+        "clients": [
+          {
+            "id": "REDACTED",
+            "level": 0,
+            "email": "32abb2@hey.run"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "xhttp",
+        "security": "none",
+        "xhttpSettings": {
+          "path": "/07f6aa",
+          "mode": "auto"
+        },
+        "realitySettings": {
+          "privateKey": "REDACTED"
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "streamSettings": {
+        "sockopt": {
+          "domainStrategy": "UseIPv4v6"
+        }
+      },
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blocked"
+    }
+  ],
+  "dns": {
+    "servers": [
+      "https+local://dns.google/dns-query",
+      "https+local://cloudflare-dns.com/dns-query",
+      "https+local://doh.opendns.com/dns-query",
+      "198.51.100.10",
+      "198.51.100.10",
+      "198.51.100.10",
+      "localhost"
+    ],
+    "disableCache": false
+  },
+  "routing": {
+    "domainStrategy": "AsIs",
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "VLESS-xhttp-in"
+        ],
+        "outboundTag": "direct"
+      }
+    ]
+  }
+}

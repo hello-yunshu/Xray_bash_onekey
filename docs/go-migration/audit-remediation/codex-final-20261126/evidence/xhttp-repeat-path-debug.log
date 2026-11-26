@@ -1,0 +1,45 @@
++ set -uo pipefail
++ SERVER=e2e-codex-final-20261126-f4deaf77-M6-M6-go
++ CLIENT=e2e-codex-final-20261126-f4deaf77-M6-xhttp-debug-client
++ IMAGE=idleleo-e2e:24.04
++ NETWORK=e2e-codex-final-20261126-f4deaf77-M6-path
++ PROFILE=example.com
++ DOMAIN=/tmp/codex-xray-f4deaf77-client
++ XRAY_BIN=/tmp/codex-xray-f4deaf77-secret
++ SECRET_DIR=docs/go-migration/audit-remediation/codex-final-20261126/evidence/xhttp-repeat-path-debug
++ OUT=xhttp
++ TRANSPORT=auto
++ EXTRA_CA=
++ CERT_PIN=/etc/idleleo/cert/xray.crt
++ SERVER_PORT=443
++ L4_EMAIL=
++ L4_UUID=
++++ dirname tests/e2e-diff/collect/l4.sh
+++ cd tests/e2e-diff/collect/..
+++ pwd
++ SRC=<repo>/tests/e2e-diff
++ TARGET_URL=http://example.com/
++ MARKER='Example Domain'
++ EXPECTED_BODY_SHA256=
++ EXPECTED_BODY_BYTES=
++ trap cleanup_client EXIT
++ mkdir -p xhttp docs/go-migration/audit-remediation/codex-final-20261126/evidence/xhttp-repeat-path-debug
++ rm -f xhttp/connectivity.txt
+++ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' e2e-codex-final-20261126-f4deaf77-M6-M6-go
++ server_ip=192.168.155.2
++ [[ -n 192.168.155.2 ]]
++ EXTRA=()
++ [[ example.com == \n\o\n\e ]]
++ [[ example.com == \r\e\a\l\i\t\y ]]
++ SELECT=()
++ [[ -n '' ]]
++ [[ -n '' ]]
++ docker exec e2e-codex-final-20261126-f4deaf77-M6-M6-go python3 /src/tests/e2e-diff/collect/client_config.py --config /etc/idleleo/conf/xray/config.json --mode example.com --transport auto --server-address 192.168.155.2 --server-port 443 --domain /tmp/codex-xray-f4deaf77-client --cert /etc/idleleo/cert/xray.crt --output /tmp/e2e-client.json
++ fail 'client config generation failed'
++ printf '%s\n' 'client config generation failed'
++ tee -a xhttp/connectivity.log
+client config generation failed
++ python3 - xhttp/connectivity.json example.com http://example.com/ 'client config generation failed'
++ exit 1
++ cleanup_client
++ [[ 1 == \1 ]]

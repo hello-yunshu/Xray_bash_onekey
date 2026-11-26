@@ -1,0 +1,66 @@
+18:27:09 building idleleo
+18:27:15 origin=nginx:1.27 geoip_sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+18:27:16 go install (reality)
+PASS	go install exits 0
+18:27:17 running OPS sweep
+PASS	OPS-01 runs (rc=0): xray user list --path /etc/idleleo/conf/xray/config.json --json
+PASS	OPS-01 returns parseable JSON
+PASS	OPS-02 runs (rc=0): xray user add --sandbox / --email e2e@example.com --uuid 11111111-2222-3333-4444-555555555555 --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply --container --json
+PASS	OPS-02 returns parseable JSON
+PASS	OPS-03 runs (rc=0): xray user remove --sandbox / --email e2e@example.com --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply --container --json
+PASS	OPS-03 returns parseable JSON
+PASS	OPS-11 runs (rc=0): show --json
+PASS	OPS-11 returns parseable JSON
+PASS	OPS-12 runs (rc=0): service logs --unit xray --lines 5
+PASS	OPS-13 runs (rc=0): service logs --unit nginx --lines 5
+PASS	OPS-14 refuses with rc=3 (got 3): stats --json
+PASS	OPS-14 explains the missing prerequisite
+PASS	OPS-20 refuses with rc=3 (got 3): stats --json
+PASS	OPS-20 explains the missing prerequisite
+PASS	OPS-14a runs (rc=0): xray api enable --sandbox / --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply --container --json
+PASS	OPS-14a returns parseable JSON
+PASS	OPS-14b runs (rc=0): stats --json
+PASS	OPS-14b returns parseable JSON
+PASS	OPS-14 stats answers with parseable JSON once the API is enabled
+PASS	OPS-20a runs (rc=0): stats --json
+PASS	OPS-20a returns parseable JSON
+PASS	OPS-20 stats answers with parseable JSON once the API is enabled
+PASS	OPS-15 runs (rc=0): service restart --container
+PASS	OPS-15 xray active after restart
+PASS	OPS-18 runs (rc=0): tcp status --json
+PASS	OPS-18 returns parseable JSON
+PASS	OPS-22 runs (rc=0): xray logs clean --yes --container --json
+PASS	OPS-22 returns parseable JSON
+PASS	OPS-23 runs (rc=0): speedtest --server http://e2e-codex-final-20261126-5528ca7f-ops-sweep-origin --bytes 1048576 --samples 1 --json
+PASS	OPS-23 returns parseable JSON
+PASS	OPS-23 reports a measured throughput
+PASS	OPS-23 read the full 1 MiB payload
+PASS	OPS-24a runs (rc=0): schedule install --interval 3600 --geodata-url http://e2e-codex-final-20261126-5528ca7f-ops-sweep-origin --container --json
+PASS	OPS-24a returns parseable JSON
+PASS	OPS-24 runs (rc=0): schedule run --job geodata-refresh --json
+PASS	OPS-24 returns parseable JSON
+PASS	OPS-24 geodata-refresh reports ok
+PASS	OPS-24 wrote verified geoip.dat (sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563)
+PASS	OPS-24 wrote verified geosite.dat (sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3)
+PASS	OPS-16 runs (rc=0): xray cert renew --dry-run --domain example.com --webroot /etc/idleleo/conf --cert-out /etc/idleleo/cert/xray.crt --key-out /etc/idleleo/cert/xray.key --json
+PASS	OPS-16 returns parseable JSON
+PASS	OPS-16 reports the certificate expiry
+PASS	OPS-16 reports renewal is not due
+PASS	OPS-25 runs (rc=0): metadata export --out /tmp/e2e-metadata.json
+PASS	OPS-29 runs (rc=0): rill status --json
+PASS	OPS-29 returns parseable JSON
+unknown OPS id for command evidence
+PASS	OPSS-01 runs (rc=0): schedule status --json
+PASS	OPSS-01 returns parseable JSON
+PASS	OPS-17a runs (rc=0): update status --json
+PASS	OPS-17a returns parseable JSON
+PASS	OPS-26 refuses with rc=3 (got 3): metadata import --from install_config.json --container
+PASS	OPS-26 explains the missing prerequisite
+PASS	OPS-28 runs (rc=0): xray uninstall --purge --container --json
+PASS	OPS-28 returns parseable JSON
+PASS	OPS-28 xray stops after uninstall
+PASS	OPS-28 runtime config is removed by --purge
+18:27:21 run_end=2026-11-26T10:27:21Z
+18:27:21 57 PASS / 0 FAIL
+
+command_rc=0

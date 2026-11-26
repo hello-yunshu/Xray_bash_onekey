@@ -1,0 +1,26 @@
+{
+  "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+  "binarySha256": "160e248223fcf3988239defb4ea1b95ed85883d883b5a072838a8590dad75c1e",
+  "dependencies": [
+    {
+      "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+      "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+      "source": "tests/e2e-diff/collect/build_ledger.py"
+    },
+    {
+      "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+      "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+      "source": "tests/go-parity/lib/docker_common.sh"
+    }
+  ],
+  "driverSha": "976ef8814c1fae483771398e374deda24394ef59e292aa92096e675639415e84",
+  "finishedAt": "2026-11-26T10:59:51Z",
+  "image": "sha256:bbc33fc725efd6be614af3a9758f6c4b73096a3de16b6122a1325a560faf1f9d",
+  "layer": "L0-L2 Go CLI sweep",
+  "manifestPath": "build-manifest.json",
+  "manifestSha256": "1e2debc9288c31ca617766cc99718ee63ded9bef1b0fd2e0c26a1eb04c6390ec",
+  "platform": "linux/arm64",
+  "productCodeSha": "f4deaf77c08457bf2ed1a07e165b2ff5bf5b53f5",
+  "runId": "codex-final-20261126-f4deaf77-ops-sweep",
+  "startedAt": "2026-11-26T10:59:40Z"
+}

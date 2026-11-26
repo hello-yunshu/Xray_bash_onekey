@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "version": "1.2.0",
+  "server": "127.0.0.1:10085",
+  "uptimeSeconds": 10,
+  "reset": false,
+  "inbounds": [
+    {
+      "tag": "VLESS-Reality-in",
+      "uplinkBytes": 179,
+      "downlinkBytes": 1049889,
+      "totalBytes": 1050068
+    }
+  ]
+}

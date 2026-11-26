@@ -1,0 +1,10 @@
+{
+  "server": "http://e2e-codex-final-20261126-5528ca7f-ops-sweep-origin",
+  "downMbps": 4258.51,
+  "bytes": 1048576,
+  "durationMs": 1,
+  "samplesMbps": [
+    4258.51
+  ],
+  "startedAt": "2026-11-26T10:27:19.8035196Z"
+}

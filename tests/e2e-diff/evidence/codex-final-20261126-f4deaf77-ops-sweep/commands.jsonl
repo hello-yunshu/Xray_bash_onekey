@@ -1,0 +1,23 @@
+{"actualRc": 0, "argv": ["xray", "user", "list", "--path", "/etc/idleleo/conf/xray/config.json", "--json"], "expectedRc": 0, "id": "OPS-01"}
+{"actualRc": 0, "argv": ["xray", "user", "add", "--sandbox", "/", "--email", "e2e@example.com", "--uuid", "11111111-2222-3333-4444-555555555555", "--validator", "/usr/local/bin/xray", "--service", "/usr/local/bin/e2e-service-apply", "--container", "--json"], "expectedRc": 0, "id": "OPS-02"}
+{"actualRc": 0, "argv": ["xray", "user", "remove", "--sandbox", "/", "--email", "e2e@example.com", "--validator", "/usr/local/bin/xray", "--service", "/usr/local/bin/e2e-service-apply", "--container", "--json"], "expectedRc": 0, "id": "OPS-03"}
+{"actualRc": 0, "argv": ["show", "--json"], "expectedRc": 0, "id": "OPS-11"}
+{"actualRc": 0, "argv": ["service", "logs", "--unit", "xray", "--lines", "5"], "expectedRc": 0, "id": "OPS-12"}
+{"actualRc": 0, "argv": ["service", "logs", "--unit", "nginx", "--lines", "5"], "expectedRc": 0, "id": "OPS-13"}
+{"actualRc": 3, "argv": ["stats", "--json"], "expectedRc": 3, "id": "OPS-14"}
+{"actualRc": 3, "argv": ["stats", "--json"], "expectedRc": 3, "id": "OPS-20"}
+{"actualRc": 0, "argv": ["xray", "api", "enable", "--sandbox", "/", "--validator", "/usr/local/bin/xray", "--service", "/usr/local/bin/e2e-service-apply", "--container", "--json"], "expectedRc": 0, "id": "OPS-14"}
+{"actualRc": 0, "argv": ["stats", "--json"], "expectedRc": 0, "id": "OPS-14"}
+{"actualRc": 0, "argv": ["stats", "--json"], "expectedRc": 0, "id": "OPS-20"}
+{"actualRc": 0, "argv": ["service", "restart", "--container"], "expectedRc": 0, "id": "OPS-15"}
+{"actualRc": 0, "argv": ["tcp", "status", "--json"], "expectedRc": 0, "id": "OPS-18"}
+{"actualRc": 0, "argv": ["xray", "logs", "clean", "--yes", "--container", "--json"], "expectedRc": 0, "id": "OPS-22"}
+{"actualRc": 0, "argv": ["speedtest", "--server", "http://e2e-codex-final-20261126-f4deaf77-ops-sweep-origin", "--bytes", "1048576", "--samples", "1", "--json"], "expectedRc": 0, "id": "OPS-23"}
+{"actualRc": 0, "argv": ["schedule", "install", "--interval", "3600", "--geodata-url", "http://e2e-codex-final-20261126-f4deaf77-ops-sweep-origin", "--container", "--json"], "expectedRc": 0, "id": "OPS-24"}
+{"actualRc": 0, "argv": ["schedule", "run", "--job", "geodata-refresh", "--json"], "expectedRc": 0, "id": "OPS-24"}
+{"actualRc": 0, "argv": ["xray", "cert", "renew", "--dry-run", "--domain", "example.com", "--webroot", "/etc/idleleo/conf", "--cert-out", "/etc/idleleo/cert/xray.crt", "--key-out", "/etc/idleleo/cert/xray.key", "--json"], "expectedRc": 0, "id": "OPS-16"}
+{"actualRc": 0, "argv": ["metadata", "export", "--out", "/tmp/e2e-metadata.json"], "expectedRc": 0, "id": "OPS-25"}
+{"actualRc": 0, "argv": ["rill", "status", "--json"], "expectedRc": 0, "id": "OPS-29"}
+{"actualRc": 0, "argv": ["update", "status", "--json"], "expectedRc": 0, "id": "OPS-17a"}
+{"actualRc": 3, "argv": ["metadata", "import", "--from", "install_config.json", "--container"], "expectedRc": 3, "id": "OPS-26"}
+{"actualRc": 0, "argv": ["xray", "uninstall", "--purge", "--container", "--json"], "expectedRc": 0, "id": "OPS-28"}

@@ -1,0 +1,25 @@
+{
+  "artifacts": {
+    "bashScript": "build/install.sh",
+    "binary": "build/idleleo",
+    "driver": "build/run_ops_sweep.sh"
+  },
+  "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+  "binarySha256": "160e248223fcf3988239defb4ea1b95ed85883d883b5a072838a8590dad75c1e",
+  "dependencies": [
+    {
+      "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+      "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+      "source": "tests/e2e-diff/collect/build_ledger.py"
+    },
+    {
+      "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+      "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+      "source": "tests/go-parity/lib/docker_common.sh"
+    }
+  ],
+  "driverSha": "976ef8814c1fae483771398e374deda24394ef59e292aa92096e675639415e84",
+  "image": "sha256:bbc33fc725efd6be614af3a9758f6c4b73096a3de16b6122a1325a560faf1f9d",
+  "platform": "linux/arm64",
+  "productCodeSha": "f4deaf77c08457bf2ed1a07e165b2ff5bf5b53f5"
+}

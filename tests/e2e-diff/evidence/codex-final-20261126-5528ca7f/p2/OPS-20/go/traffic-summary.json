@@ -1,0 +1,41 @@
+{
+  "apiPreExpectedRc": 3,
+  "apiPreRc": 3,
+  "expectedBodyBytes": 1048576,
+  "expectedBodySha256": "0be737c61b3af7e6f28386f2eea86dde147c084e05a635e5e133b7705481d41a",
+  "httpBodyBytes": 1048576,
+  "httpBodySha256": "0be737c61b3af7e6f28386f2eea86dde147c084e05a635e5e133b7705481d41a",
+  "httpOk": true,
+  "httpRc": 0,
+  "inboundCounters": {
+    "VLESS-Reality-in": {
+      "after": {
+        "downlinkBytes": 1049883,
+        "uplinkBytes": 286
+      },
+      "before": {
+        "downlinkBytes": 0,
+        "uplinkBytes": 0
+      },
+      "downlinkDeltaBytes": 1049883,
+      "totalDeltaBytes": 1050169,
+      "uplinkDeltaBytes": 286
+    },
+    "api": {
+      "after": {
+        "downlinkBytes": 1315,
+        "uplinkBytes": 989
+      },
+      "before": {
+        "downlinkBytes": 1003,
+        "uplinkBytes": 718
+      },
+      "downlinkDeltaBytes": 312,
+      "totalDeltaBytes": 583,
+      "uplinkDeltaBytes": 271
+    }
+  },
+  "statsAfterRc": 0,
+  "statsBeforeRc": 0,
+  "trafficBytes": 1050752
+}

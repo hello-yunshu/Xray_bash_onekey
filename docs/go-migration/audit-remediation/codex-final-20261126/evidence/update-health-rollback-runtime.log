@@ -1,0 +1,42 @@
+apply_rc=1
+binary_before_sha256=0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3
+binary_after_sha256=0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3
+state_before_sha256=e350fb1400b8eaa9e74d5dc1465044998aec893ff1e252a1474dff98a2437401
+state_after_sha256=e350fb1400b8eaa9e74d5dc1465044998aec893ff1e252a1474dff98a2437401
+{
+  "schemaVersion": 1,
+  "manifestUrl": "http://127.0.0.1:18080/go/manifest.json",
+  "platform": "linux-arm64",
+  "currentVersion": "0.2.0",
+  "latestVersion": "0.2.1",
+  "state": "available",
+  "asset": {
+    "name": "idleleo-linux-arm64",
+    "sha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+    "size": 15326478
+  },
+  "verified": true
+}
+{
+  "schemaVersion": 1,
+  "action": "rolled-back",
+  "manifestUrl": "http://127.0.0.1:18080/go/manifest.json",
+  "platform": "linux-arm64",
+  "previousVersion": "0.2.0",
+  "newVersion": "0.2.1",
+  "previousSha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+  "newSha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+  "installPath": "/usr/local/bin/idleleo",
+  "backupPath": "/usr/local/bin/idleleo.previous",
+  "healthOutput": "idleleo 0.2.0-phase04 (go)"
+}
+new binary failed its health check and the previous binary was restored: health check output "idleleo 0.2.0-phase04 (go)" does not identify idleleo 0.2.1
+{
+  "actionRolledBack": true,
+  "applyFailedHealthCheck": true,
+  "binaryRestoredExactly": true,
+  "newerSignedReleaseWasAvailable": true,
+  "releaseStateUnchanged": true
+}
+
+command_rc=0

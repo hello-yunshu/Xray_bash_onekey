@@ -1,0 +1,141 @@
+config_before_sha256=f0b4b5d6eabf1a2da7836dede58542d3ca03a9992fe3746785671f86366092c6
+config_tampered_sha256=f0b4b5d6eabf1a2da7836dede58542d3ca03a9992fe3746785671f86366092c6
+config_after_sha256=f0b4b5d6eabf1a2da7836dede58542d3ca03a9992fe3746785671f86366092c6
+config_mode=640 config_owner=0:995
+{
+  "schemaVersion": 1,
+  "archive": "/tmp/idleleo-runtime-backup.tar.gz",
+  "archiveSha256": "813b58417450ef71a503db378b2f68f02ed97f68fc4bf66a638402365f47d3c9",
+  "bytes": 6181,
+  "files": 10,
+  "createdAt": "2026-11-26T10:27:50Z",
+  "sensitive": true
+}
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-11-26T10:27:50Z",
+  "includeGeodata": false,
+  "sourceArch": "arm64",
+  "sourceVersion": "0.2.0-phase04",
+  "managedResources": [
+    "etc/idleleo/conf",
+    "etc/idleleo/cert",
+    "etc/idleleo/v1",
+    "etc/idleleo/info",
+    "etc/idleleo/alerts"
+  ],
+  "restoreLimits": [
+    "only etc/idleleo/{conf,cert,v1,info,alerts} and opt-in geo assets",
+    "regular files only; symlinks, devices and path escapes are rejected",
+    "the whole archive must expand to at most 4 GiB",
+    "the staged xray config must pass the managed validator before any swap"
+  ],
+  "entries": [
+    {
+      "path": "etc/idleleo/cert/thirdparty.crt",
+      "mode": 438,
+      "size": 1147,
+      "sha256": "6c25f8f38ed310dffc5c56fae29448c677d0138e4fd58ffc0dca69620c45db65"
+    },
+    {
+      "path": "etc/idleleo/cert/thirdparty.key",
+      "mode": 384,
+      "size": 1704,
+      "sha256": "93164aef68b7e4608cd37ebd2329e061383c2e70f3fc2269f01bb6a90ba21e3a"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/00-xray.conf",
+      "mode": 416,
+      "size": 1882,
+      "sha256": "90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/03-isolate.conf",
+      "mode": 416,
+      "size": 218,
+      "sha256": "29c607d4d5d5502aeeda1c3da75e676640dfe91b0eaa5c6cdbd3cc8bed5a1c11"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/127.0.0.1.realityServers",
+      "mode": 416,
+      "size": 61,
+      "sha256": "757ea7e9dae3baa433971841196938e3fe9fbc608eed8ca84f371ea149a95ac2"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/example.com.serverNames",
+      "mode": 416,
+      "size": 21,
+      "sha256": "0130d877d1f86407483ce2219d5258300b825aaa13cf432e784c411d8e114892"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/nginx.default",
+      "mode": 416,
+      "size": 2630,
+      "sha256": "28924d8c868aedb98e996bd4af1e3c4342d532e59f0ed7bd0e406905e0fb2fa0"
+    },
+    {
+      "path": "etc/idleleo/conf/xray/config.json",
+      "mode": 416,
+      "size": 1699,
+      "sha256": "f0b4b5d6eabf1a2da7836dede58542d3ca03a9992fe3746785671f86366092c6"
+    },
+    {
+      "path": "etc/idleleo/v1/metadata.json",
+      "mode": 420,
+      "size": 809,
+      "sha256": "c64408ceaaeb972dada282aa1373dd268642a8d69fe557c27e46d6c69ebe1a57"
+    },
+    {
+      "path": "etc/idleleo/v1/nginx.json",
+      "mode": 420,
+      "size": 391,
+      "sha256": "3b8372b20bfc8ff12a90a2732c901f13224c833d6d2caec6e8a5544628d2faa1"
+    }
+  ],
+  "skipped": [
+    "etc/idleleo/info (absent)",
+    "etc/idleleo/alerts (absent)"
+  ]
+}
+{
+  "schemaVersion": 1,
+  "archive": "/tmp/idleleo-runtime-backup.tar.gz",
+  "archiveSha256": "813b58417450ef71a503db378b2f68f02ed97f68fc4bf66a638402365f47d3c9",
+  "bytes": 0,
+  "files": 10,
+  "createdAt": "",
+  "restored": [
+    "etc/idleleo/cert/thirdparty.crt",
+    "etc/idleleo/cert/thirdparty.key",
+    "etc/idleleo/conf/nginx/00-xray.conf",
+    "etc/idleleo/conf/nginx/03-isolate.conf",
+    "etc/idleleo/conf/nginx/127.0.0.1.realityServers",
+    "etc/idleleo/conf/nginx/example.com.serverNames",
+    "etc/idleleo/conf/nginx/nginx.default",
+    "etc/idleleo/conf/xray/config.json",
+    "etc/idleleo/v1/metadata.json",
+    "etc/idleleo/v1/nginx.json"
+  ],
+  "preBackup": "/etc/idleleo/backup/pre-restore-20261126T102750Z.tar.gz",
+  "sensitive": true
+}
+Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/26 10:27:50.890518 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/26 10:27:50.894197 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+Configuration OK.
+Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/26 10:27:51.003200 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/26 10:27:51.003664 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+Configuration OK.
+{
+  "backupRestoreRestoredExactConfig": true,
+  "nginxActive": true,
+  "restoredXrayTested": true,
+  "testMutationWasDistinct": false,
+  "xrayActive": true
+}
+backup/restore runtime verification failed
+
+command_rc=1

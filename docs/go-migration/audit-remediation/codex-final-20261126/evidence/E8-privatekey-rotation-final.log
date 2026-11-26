@@ -1,0 +1,28 @@
+18:40:32 run_id=codex-final-20261126-5528ca7f-E8
+18:40:32 image_id=sha256:0ef5e145842f31c25c64eaf09bda6eba6e4f4f770d3989d6c7c87da4a5e033f2
+18:40:32 building idleleo
+18:40:37 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3
+18:40:37 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+18:40:37 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+18:40:37 release_cache=seeded templates=vless_reality.json,vless_tls.json
+18:40:37 release_cache=hit
+18:40:37 apt_cache=skipped (no OPS scenario selected)
+18:40:37 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+18:40:37 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+18:40:38 argv-verify written
+18:40:38 [E8] start
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+allPassed=True checks=14
+18:41:53 [E8] done
+sanitize: <repo>/tests/e2e-diff/evidence/codex-final-20261126-5528ca7f-E8/p2/E8/go/config/config.sanitized.json
+sanitize: <repo>/tests/e2e-diff/evidence/codex-final-20261126-5528ca7f-E8/p2/E8/go/edit/before-config.json
+sanitize: 2 file(s) updated
+stamped 0 verdict file(s) with run provenance
+18:41:53 scope: installs=[] edits=[E8] ops=[]
+18:41:53 P2 finished: tests/e2e-diff/evidence/codex-final-20261126-5528ca7f-E8/p2
+command_rc=0

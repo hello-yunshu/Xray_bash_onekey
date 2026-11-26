@@ -15,3 +15,19 @@
 | 外部 ACME 动态路径初期探查 | 初版片段放入 Nginx stream include / 监听端口冲突 | 测试夹具放错 Nginx 上下文/端口，不是产品结果 | 移至真实 http include 的 `03-isolate.conf` 和可用 18443 端口，完整 Go CLI 与 HTTPS 前后请求通过 |
 
 OPS sweep 还输出 `unknown OPS id for command evidence`，对应旁路 `OPSS-01` 的 `schedule status`；正式 OPS ID 没有因此被伪造。最终完整 sweep 仍为 57 PASS / 0 FAIL，`OPSS-01` 不纳入 OPS-34。
+
+## 最终候选 SHA `5528ca7f` 的补充实测与失败记录
+
+| 运行 / 用例 | 实际失败或差异 | 处理与最终证据 |
+|---|---|---|
+| OPS-03 最终双端矩阵 | Bash 用户移除时清除 shortId；Go 用户移除后保留一个 inbound shortId | Go 再执行 `xray config edit --short-id-remove`，rc=0 且清掉残留；最终业务态符合探针，但两端步骤差异明确记录在 `OPS-03/ops.json`，不推断共享 shortId / 撤销旧凭据 |
+| Go 备份恢复初次外层断言 | 测试把原本已是 `warning` 的 loglevel 再设为 `warning`，没有造成可观察配置变化，断言失败 rc=1 | 修正夹具改为有效的 `debug` 配置变更后重跑。真实备份 create/verify/restore rc=0，恢复后配置 SHA 与原始值一致，Xray 配置校验成功，见 `backup-restore-runtime-retry.log`；首轮日志 `backup-restore-runtime.log` 保留 |
+| 本地签名更新 probe 初次执行 | `update apply` 漏传容器模式参数，CLI 拒绝，rc=2；没有应用二进制 | 修正命令后重跑：签名版本检查通过、显式应用精确摘要成功、损坏 manifest 被拒绝且二进制不变，见 `update-local-release-runtime-retry.log`；初次失败保留于 `update-local-release-runtime.log` |
+| 健康检查失败更新回滚 | 签名更新包内实际 CLI 版本低于 manifest 声明版本；安装后健康检查按真实版本事实失败 | 这次失败作为事务回滚场景使用：实际 updater 回滚成功，安装前后二进制 SHA 与 release state SHA 保持不变，见 `update-health-rollback-runtime.log` |
+| 动态 TLS 配置后的静态证书清理夹具 | 动态 `${cert_name}` 配置使静态证书引用无法被安全证明，CLI 保守保留闲置静态证书并以 rc=1 告警 | 这是 fail-closed 的预期边界。另在没有动态变量的干净 Go 容器中独立运行静态清理：登记的闲置 cert/key 删除，同内容未登记副本及嵌套 `.user-managed` 均保留，rc=0，见 `cert-owned-static-runtime-5528.log`。变量配置下的原始结果保留于 `cert-owned-runtime-5528.log` |
+| XHTTP 重复斜杠旧实现真实客户端红测 | 旧候选完整 Go CLI 接受并保存 `/ray//`，Nginx 生成 `location /ray//`；客户端 HTTP URI 合并斜杠后为 `/ray/<id>`，未命中该 location，真实请求 curl rc=52 | 当前候选将重复斜杠归一为 `/ray/` 且保留尾斜杠；使用相同隔离容器与真实 Xray 客户端，请求成功，完整红绿见 `xhttp-double-slash-red-retry.log`、`xhttp-double-slash-fixed-retry.log` 及对应 JSON 目录 |
+| XHTTP 重复斜杠探针的无效尝试 | 第一次把 `--transport` 当作 transport 值；第二次挂载路径指向容器内文件，客户端二进制无执行权限；后续一次因测试容器保留两条 Docker 网络而拼接错误 IP | 这些运行均不用于产品结论。修正传输参数、从真实候选容器导出 Xray 二进制、断开旧网络后再做红测与绿测；命令结果和网络/IP 情况保留在相应 evidence 日志 |
+| Go 工具链宿主调用 | 宿主无 `gofmt`，宿主 `bash -lc` 执行 Go 命令提示 `go: command not found` | 使用 `golang:1.27.4` 容器执行 gofmt、全量 go test、vet、build、race；最终结果见 `go-validation-xhttp-fix.log` |
+
+
+最终候选补充：重复斜杠手工红绿探针中，首次新候选调用遗漏了必需的 `tls` 配置参数，导致参数错位和客户端配置生成失败；该尝试为无效探针，未计入结论。补齐参数后，`//ray//custom//` 编辑结果归一化为 `/ray/custom/`，实际 Xray 客户端连接成功（curl rc=0，577 字节）；详细调用与结果见 `xhttp-repeat-path-debug.log`、`xhttp-repeat-path-f4deaf77-retry2.log` 与 `xhttp-repeat-path-f4deaf77/`。

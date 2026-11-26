@@ -1,0 +1,33 @@
+{
+  "dir": "/etc/idleleo/cert",
+  "removed": [],
+  "skipped": [
+    "/etc/idleleo/cert/thirdparty.crt",
+    "/etc/idleleo/cert/thirdparty.key"
+  ],
+  "planned": [
+    {
+      "path": "/etc/idleleo/cert/thirdparty.crt",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven by the manager's ownership record; not removed"
+    },
+    {
+      "path": "/etc/idleleo/cert/thirdparty.key",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven by the manager's ownership record; not removed"
+    }
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": [
+    "the included configuration /usr/local/nginx/mime.types cannot be read; certificates whose use cannot be proven will be kept",
+    "ownership is not proven by the manager's ownership record; not removed: /etc/idleleo/cert/thirdparty.crt",
+    "ownership is not proven by the manager's ownership record; not removed: /etc/idleleo/cert/thirdparty.key"
+  ]
+}

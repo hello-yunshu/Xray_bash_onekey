@@ -1,0 +1,6 @@
+18:27:09 building idleleo
+18:27:15 origin=nginx:1.27 geoip_sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+18:27:16 go install (reality)
+18:27:17 running OPS sweep
+18:27:21 run_end=2026-11-26T10:27:21Z
+18:27:21 57 PASS / 0 FAIL
