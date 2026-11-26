@@ -1,0 +1,14 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-08,OPS-20",
+  "ops": [
+    "OPS-08",
+    "OPS-20"
+  ],
+  "runId": "codex-final-20261126-3577d487",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

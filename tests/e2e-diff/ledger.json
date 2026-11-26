@@ -1,19 +1,66 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-24T05:41:21+00:00",
-  "codeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+  "generatedAt": "2026-11-26T10:16:45+00:00",
+  "codeSha": "3577d48761135c9418e3b39f8a834210a6553a88",
   "opsTotal": 34,
   "counts": {
-    "DUAL_SIDE_VERIFIED": 21,
-    "GO_ONLY": 1,
-    "FAIL": 0,
+    "DUAL_SIDE_VERIFIED": 2,
+    "GO_ONLY": 17,
+    "FAIL": 1,
     "BASH_ONLY": 0,
-    "BLOCKED": 0,
-    "NOT_RUN": 0,
-    "APPROVED_DIFF": 7,
-    "APPROVED_SINGLE_SIDE": 5
+    "BLOCKED": 2,
+    "NOT_RUN": 12,
+    "APPROVED_DIFF": 0,
+    "APPROVED_SINGLE_SIDE": 0
   },
   "dualSideVerifiedIds": [
+    "OPS-08",
+    "OPS-20"
+  ],
+  "goOnlyIds": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-03",
+    "OPS-11",
+    "OPS-12",
+    "OPS-13",
+    "OPS-14",
+    "OPS-15",
+    "OPS-16",
+    "OPS-17a",
+    "OPS-18",
+    "OPS-22",
+    "OPS-23",
+    "OPS-24",
+    "OPS-25",
+    "OPS-28",
+    "OPS-29"
+  ],
+  "failIds": [
+    "OPS-27"
+  ],
+  "bashOnlyIds": [],
+  "blockedIds": [
+    "OPS-04",
+    "OPS-26"
+  ],
+  "notRunIds": [
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-09",
+    "OPS-10",
+    "OPS-17b",
+    "OPS-17c",
+    "OPS-19",
+    "OPS-21",
+    "OPS-30",
+    "OPS-31",
+    "OPS-32"
+  ],
+  "approvedDiffIds": [],
+  "approvedSingleSideIds": [],
+  "unresolvedIds": [
     "OPS-01",
     "OPS-02",
     "OPS-03",
@@ -21,100 +68,83 @@
     "OPS-05",
     "OPS-06",
     "OPS-07",
-    "OPS-08",
     "OPS-09",
     "OPS-10",
     "OPS-11",
-    "OPS-15",
-    "OPS-17b",
-    "OPS-17c",
-    "OPS-19",
-    "OPS-21",
-    "OPS-22",
-    "OPS-28",
-    "OPS-29",
-    "OPS-31",
-    "OPS-32"
-  ],
-  "goOnlyIds": [
-    "OPS-20"
-  ],
-  "failIds": [],
-  "bashOnlyIds": [],
-  "blockedIds": [],
-  "notRunIds": [],
-  "approvedDiffIds": [
     "OPS-12",
     "OPS-13",
     "OPS-14",
+    "OPS-15",
     "OPS-16",
-    "OPS-25",
-    "OPS-26",
-    "OPS-27"
-  ],
-  "approvedSingleSideIds": [
     "OPS-17a",
+    "OPS-17b",
+    "OPS-17c",
     "OPS-18",
+    "OPS-19",
+    "OPS-21",
+    "OPS-22",
     "OPS-23",
     "OPS-24",
-    "OPS-30"
-  ],
-  "unresolvedIds": [
-    "OPS-20"
+    "OPS-25",
+    "OPS-26",
+    "OPS-27",
+    "OPS-28",
+    "OPS-29",
+    "OPS-30",
+    "OPS-31",
+    "OPS-32"
   ],
   "sources": {
     "matrixEvidence": [
-      "tests/e2e-diff/evidence/round4-full-50415119",
-      "tests/e2e-diff/evidence/round4-bizfacts2-50415119",
-      "tests/e2e-diff/evidence/round4-bizfacts3-50415119",
-      "tests/e2e-diff/evidence/round5-cand-ops03c-131954",
-      "tests/e2e-diff/evidence/views/round5-cand-observe-130808"
+      "tests/e2e-diff/evidence/round4-final-50415119",
+      "tests/e2e-diff/evidence/codex-final-20261126-3577d487",
+      "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops27",
+      "tests/e2e-diff/evidence/codex-final-20261126-cert-owned"
     ],
     "opsEvidence": [
-      "tests/e2e-diff/evidence/round4-final-50415119-sweep"
+      "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep"
     ]
   },
   "results": [
     {
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "bashExit": 0,
       "goExit": 0,
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
+        {
+          "actualRc": 0,
+          "argv": [
+            "xray",
+            "user",
+            "list",
+            "--path",
+            "/etc/idleleo/conf/xray/config.json",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-01"
+        }
+      ],
       "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-01/ops.json",
-      "runId": "round4-bizfacts2-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
       "id": "OPS-01",
       "history": [
         {
-          "runId": "round4-full-50415119",
+          "runId": "round4-final-50415119",
           "status": "BLOCKED",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-01/ops.json"
+          "evidence": "tests/e2e-diff/evidence/round4-final-50415119/p2/OPS-01/ops.json"
         },
         {
-          "runId": "round4-bizfacts2-50415119",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-01/ops.json"
-        },
-        {
-          "runId": "round5-cand-ops03c-131954",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-ops03c-131954/p2/OPS-01/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
+          "runId": "codex-final-20261126-3577d487-ops-sweep",
           "status": "GO_ONLY",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt"
         }
       ],
       "name": "查看用户",
@@ -128,45 +158,53 @@
       "notes": null
     },
     {
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "bashExit": 0,
       "goExit": 0,
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
+        {
+          "actualRc": 0,
+          "argv": [
+            "xray",
+            "user",
+            "add",
+            "--sandbox",
+            "/",
+            "--email",
+            "e2e@example.com",
+            "--uuid",
+            "11111111-2222-3333-4444-555555555555",
+            "--validator",
+            "/usr/local/bin/xray",
+            "--service",
+            "/usr/local/bin/e2e-service-apply",
+            "--container",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-02"
+        }
+      ],
       "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-02/ops.json",
-      "runId": "round4-bizfacts2-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
       "id": "OPS-02",
       "history": [
         {
-          "runId": "round4-full-50415119",
+          "runId": "round4-final-50415119",
           "status": "BLOCKED",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-02/ops.json"
+          "evidence": "tests/e2e-diff/evidence/round4-final-50415119/p2/OPS-02/ops.json"
         },
         {
-          "runId": "round4-bizfacts2-50415119",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-02/ops.json"
-        },
-        {
-          "runId": "round5-cand-ops03c-131954",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-ops03c-131954/p2/OPS-02/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
+          "runId": "codex-final-20261126-3577d487-ops-sweep",
           "status": "GO_ONLY",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt"
         }
       ],
       "name": "添加用户",
@@ -181,49 +219,51 @@
       "notes": null
     },
     {
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "bashExit": 0,
       "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round5-cand-ops03c-131954/p2/OPS-03/ops.json",
-      "runId": "round5-cand-ops03c-131954",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "1afc2007c740548b370d5afb92f2aa72bd6a806313c1ea890776f1f859ecc768",
-      "supersedes": "round4-full-50415119",
-      "fixedBy": "51db24e6bacbbac2b0bf9d52de2c702423040456",
-      "status": "DUAL_SIDE_VERIFIED",
-      "supersededRuns": [
-        "round4-bizfacts2-50415119",
-        "round4-full-50415119"
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
+        {
+          "actualRc": 0,
+          "argv": [
+            "xray",
+            "user",
+            "remove",
+            "--sandbox",
+            "/",
+            "--email",
+            "e2e@example.com",
+            "--validator",
+            "/usr/local/bin/xray",
+            "--service",
+            "/usr/local/bin/e2e-service-apply",
+            "--container",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-03"
+        }
       ],
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
       "id": "OPS-03",
       "history": [
         {
-          "runId": "round4-full-50415119",
-          "status": "FAIL",
+          "runId": "round4-final-50415119",
+          "status": "BLOCKED",
           "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-03/shortid-difference.json"
+          "evidence": "tests/e2e-diff/evidence/round4-final-50415119/p2/OPS-03/shortid-difference.json"
         },
         {
-          "runId": "round4-bizfacts2-50415119",
-          "status": "FAIL",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-03/shortid-difference.json"
-        },
-        {
-          "runId": "round5-cand-ops03c-131954",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round5-cand-ops03c-131954/p2/OPS-03/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
+          "runId": "codex-final-20261126-3577d487-ops-sweep",
           "status": "GO_ONLY",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt"
         }
       ],
       "name": "删除用户",
@@ -241,32 +281,23 @@
       "verdict": "PASS",
       "bashExit": 0,
       "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-04/ops.json",
-      "runId": "round4-bizfacts2-50415119",
+      "reasons": [
+        "run provenance is missing platform",
+        "evidence was produced for product 504151199857, not the frozen 3577d4876113",
+        "run provenance platform is missing or unsupported",
+        "run provenance has no verifiable candidate build manifest"
+      ],
+      "evidence": "tests/e2e-diff/evidence/round4-final-50415119/p2/OPS-04/ops.json",
+      "runId": "round4-final-50415119",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
       "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
       "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
+      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
       "supersedes": null,
       "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "BLOCKED",
       "id": "OPS-04",
-      "history": [
-        {
-          "runId": "round4-full-50415119",
-          "status": "BLOCKED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-04/ops.json"
-        },
-        {
-          "runId": "round4-bizfacts2-50415119",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-04/ops.json"
-        }
-      ],
       "name": "变更端口",
       "bashEntry": "2>2>2",
       "goCommand": "idleleo xray config edit --port 8444 --public-port 8443 --yes --no-probe --container --json",
@@ -281,20 +312,13 @@
       "notes": "Bash moves only the public Nginx port and keeps the loopback inbound on 9443; Go needs the inbound port in the same edit, so it moves that to 8444. The public port (the user-facing one) matches at 8443."
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-05/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
+      ],
+      "evidence": null,
+      "layer": null,
       "id": "OPS-05",
       "name": "变更UUID/映射",
       "bashEntry": "2>2>1",
@@ -308,20 +332,13 @@
       "notes": "Bash derives UUIDv5 from the custom mapping string; Go applies the literal UUID. Both change the client id and both ids must be valid UUIDs."
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-06/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
+      ],
+      "evidence": null,
+      "layer": null,
       "id": "OPS-06",
       "name": "变更target",
       "bashEntry": "2>2>3",
@@ -336,20 +353,13 @@
       "notes": "Bash target_set also rewrites serverNames, so the Go call sets both. Go refuses with rc=2 and writes nothing when the origin probe fails; that case is recorded BLOCKED, never PASS."
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-07/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
+      ],
+      "evidence": null,
+      "layer": null,
       "id": "OPS-07",
       "name": "变更TLS版本",
       "bashEntry": "2>2>4",
@@ -366,35 +376,29 @@
       "bashExit": 0,
       "goExit": 0,
       "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-bizfacts3-50415119/p2/OPS-08/ops.json",
-      "runId": "round4-bizfacts3-50415119",
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487/p2/OPS-08/ops.json",
+      "runId": "codex-final-20261126-3577d487",
       "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+      "productCodeSha": "3577d48761135c9418e3b39f8a834210a6553a88",
+      "binarySha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
       "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "560a0aeb7f0fe0b2aa83b037855f1a5beab9459f363056cb57013ddc1d18d0d0",
+      "driverSha": "193aaa04176f930223d7dc6c5e44ef6cd5f05b537179e178d93a39964e6a6d20",
       "supersedes": null,
       "fixedBy": null,
       "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-08",
       "history": [
         {
-          "runId": "round4-full-50415119",
+          "runId": "round4-final-50415119",
           "status": "BLOCKED",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-08/ops.json"
+          "evidence": "tests/e2e-diff/evidence/round4-final-50415119/p2/OPS-08/ops.json"
         },
         {
-          "runId": "round4-bizfacts2-50415119",
-          "status": "BLOCKED",
-          "verdict": null,
-          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-08/ops.json"
-        },
-        {
-          "runId": "round4-bizfacts3-50415119",
+          "runId": "codex-final-20261126-3577d487",
           "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-bizfacts3-50415119/p2/OPS-08/ops.json"
+          "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487/p2/OPS-08/ops.json"
         }
       ],
       "name": "SNI Guard",
@@ -408,20 +412,13 @@
       "notes": null
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-09/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
+      ],
+      "evidence": null,
+      "layer": null,
       "id": "OPS-09",
       "name": "Nginx负载均衡",
       "bashEntry": "2>3>1",
@@ -436,35 +433,14 @@
       "notes": null
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-10/ops.json",
-      "runId": "round4-bizfacts2-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
-      "id": "OPS-10",
-      "history": [
-        {
-          "runId": "round4-full-50415119",
-          "status": "BLOCKED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-10/ops.json"
-        },
-        {
-          "runId": "round4-bizfacts2-50415119",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-10/ops.json"
-        }
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
       ],
+      "evidence": null,
+      "layer": null,
+      "id": "OPS-10",
       "name": "serverNames",
       "bashEntry": "2>3>2",
       "goCommand": "idleleo xray config edit --server-names ops10.example.com --yes --no-probe --container --json",
@@ -477,35 +453,28 @@
       "notes": "Bash drives the nested file_manager menu (create ops10.example.com fragment); the BLOCKED path remains only for an unreachable menu."
     },
     {
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "bashExit": 0,
       "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-11/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
-      "id": "OPS-11",
-      "history": [
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-11/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "GO_ONLY",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "show",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-11"
         }
       ],
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-11",
       "name": "查看配置信息",
       "bashEntry": "3>1",
       "goCommand": "idleleo show --json",
@@ -517,48 +486,32 @@
       "notes": null
     },
     {
-      "verdict": "DIFF",
-      "bashExit": 124,
+      "status": "GO_ONLY",
+      "verdict": "PASS",
       "goExit": 0,
-      "reasons": [
-        "Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-12/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "approval": {
-        "id": "OPS-12",
-        "approvedBy": "user",
-        "reason": "Bash 菜单是无限 tail -f 实时流（非交互运行 rc=124），Go 输出有界 journald 快照且 rc=0。交互流无法与有限命令做等价比较，按已记录差异批准；Go 侧日志可用性已由有限快照证明。",
-        "scope": "documented-difference:interactive-log-stream",
-        "opId": "OPS-12",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "cb0f4d7c8a50f914b2e436c2dd719978579eba24c95b9e661fe9f88c1e6a6a7e",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-12/ops.json"
-      },
-      "status": "APPROVED_DIFF",
-      "id": "OPS-12",
-      "history": [
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "APPROVED_DIFF",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-12/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "GO_ONLY",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "service",
+            "logs",
+            "--unit",
+            "xray",
+            "--lines",
+            "5"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-12"
         }
       ],
+      "reasons": [],
+      "assertions": 1,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-12",
       "name": "实时访问日志",
       "bashEntry": "3>2",
       "goCommand": "idleleo service logs --unit xray --lines 20",
@@ -570,48 +523,32 @@
       "notes": null
     },
     {
-      "verdict": "DIFF",
-      "bashExit": 124,
+      "status": "GO_ONLY",
+      "verdict": "PASS",
       "goExit": 0,
-      "reasons": [
-        "Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-13/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "approval": {
-        "id": "OPS-13",
-        "approvedBy": "user",
-        "reason": "与 OPS-12 同一原因：Bash 错误日志为无限 tail -f（rc=124），Go 输出有界的 journald 错误日志快照（rc=0）。按已记录差异批准，不视为双端等价。",
-        "scope": "documented-difference:interactive-error-log-stream",
-        "opId": "OPS-13",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "a389856d1cb1afc54bd604e459815bbc4e6d17342e6135bf50b226a957889d6f",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-13/ops.json"
-      },
-      "status": "APPROVED_DIFF",
-      "id": "OPS-13",
-      "history": [
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "APPROVED_DIFF",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-13/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "GO_ONLY",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "service",
+            "logs",
+            "--unit",
+            "nginx",
+            "--lines",
+            "5"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-13"
         }
       ],
+      "reasons": [],
+      "assertions": 1,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-13",
       "name": "实时错误日志",
       "bashEntry": "3>3",
       "goCommand": "idleleo service logs --unit xray --lines 20",
@@ -623,51 +560,55 @@
       "notes": null
     },
     {
-      "verdict": "DIFF",
-      "bashExit": 124,
+      "status": "GO_ONLY",
+      "verdict": "PASS",
       "goExit": 0,
-      "reasons": [
-        "Bash entry is the interactive iftop UI; Go is a bounded stats query",
-        "bash output bytes=5007",
-        "go api enable rc=0",
-        "go stats rc=0"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-14/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "approval": {
-        "id": "OPS-14",
-        "approvedBy": "user",
-        "reason": "Bash 入口是交互式 iftop UI，Go 是 api enable + stats 的有界查询（均 rc=0）。交互 UI 与有界统计查询不是等价命令，按已记录差异批准。Bash 输出 5007 字节 iftop 交互界面，Go stats rc=0。",
-        "scope": "documented-difference:interactive-traffic-ui",
-        "opId": "OPS-14",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "20a3ae49afce57e1c2cfe3e43459f14799dd1df0a1a9b743ee1d721afac42fbc",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-14/ops.json"
-      },
-      "status": "APPROVED_DIFF",
-      "id": "OPS-14",
-      "history": [
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "APPROVED_DIFF",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-14/ops.json"
+          "actualRc": 3,
+          "argv": [
+            "stats",
+            "--json"
+          ],
+          "expectedRc": 3,
+          "id": "OPS-14"
         },
         {
-          "runId": "round4-final-50415119-sweep",
-          "status": "GO_ONLY",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "xray",
+            "api",
+            "enable",
+            "--sandbox",
+            "/",
+            "--validator",
+            "/usr/local/bin/xray",
+            "--service",
+            "/usr/local/bin/e2e-service-apply",
+            "--container",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-14"
+        },
+        {
+          "actualRc": 0,
+          "argv": [
+            "stats",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-14"
         }
       ],
+      "reasons": [],
+      "assertions": 7,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-14",
       "name": "端口实时流量",
       "bashEntry": "3>4",
       "goCommand": "idleleo stats --json",
@@ -679,35 +620,29 @@
       "notes": null
     },
     {
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "bashExit": 0,
       "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-15/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
-      "id": "OPS-15",
-      "history": [
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-15/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "GO_ONLY",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "service",
+            "restart",
+            "--container"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-15"
         }
       ],
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-15",
       "name": "服务重启/启动/停止/状态",
       "bashEntry": "4>1>1..4",
       "goCommand": "idleleo service restart",
@@ -719,50 +654,51 @@
       "notes": null
     },
     {
-      "verdict": "DIFF",
-      "bashExit": 0,
+      "status": "GO_ONLY",
+      "verdict": "PASS",
       "goExit": 0,
-      "reasons": [
-        "Bash menu 4>2>1/4>2>2 shows certificate status/validity; Go 'cert renew --dry-run' is a renewal preflight",
-        "bash rc=0",
-        "go rc=0",
-        "bash certificate present=True",
-        "go certificate present=True notExpired=True state=not-due"
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
+        {
+          "actualRc": 0,
+          "argv": [
+            "xray",
+            "cert",
+            "renew",
+            "--dry-run",
+            "--domain",
+            "example.com",
+            "--webroot",
+            "/etc/idleleo/conf",
+            "--cert-out",
+            "/etc/idleleo/cert/xray.crt",
+            "--key-out",
+            "/etc/idleleo/cert/xray.key",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-16"
+        }
       ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-16/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "approval": {
-        "id": "OPS-16",
-        "approvedBy": "user",
-        "reason": "Bash 4>2>1/4>2>2 显示证书状态与有效期；Go 以 cert renew --dry-run 做续期预检，两端 rc=0 且证书 present/notExpired 一致。命令契约不同但安全结果一致，按已记录差异批准。",
-        "scope": "documented-difference:cert-status-vs-renew-preflight",
-        "opId": "OPS-16",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "4b91afbb4e718eb2567ecc6d5f95be7e1c29fcf18a4faf99e41023148480799e",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-16/ops.json"
-      },
-      "status": "APPROVED_DIFF",
+      "reasons": [],
+      "assertions": 4,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
       "id": "OPS-16",
       "history": [
         {
-          "runId": "round4-full-50415119",
-          "status": "APPROVED_DIFF",
+          "runId": "round4-final-50415119",
+          "status": "BLOCKED",
           "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-16/ops.json"
+          "evidence": "tests/e2e-diff/evidence/round4-final-50415119/p2/OPS-16/ops.json"
         },
         {
-          "runId": "round4-final-50415119-sweep",
+          "runId": "codex-final-20261126-3577d487-ops-sweep",
           "status": "GO_ONLY",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt"
         }
       ],
       "name": "证书状态/有效期/自动更新",
@@ -777,42 +713,29 @@
       "notes": null
     },
     {
-      "status": "APPROVED_SINGLE_SIDE",
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "goExit": null,
-      "expectedRc": null,
-      "goExitRecorded": false,
-      "reasons": [],
-      "assertions": 2,
-      "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
-      "runId": "round4-final-50415119-sweep",
-      "layer": "L0-L2 Go CLI evidence",
-      "approval": {
-        "id": "OPS-17a",
-        "approvedBy": "user",
-        "reason": "Bash 更新入口是交互菜单，Go 以 update status --json 提供可验证的非交互更新通道；公共发布清单路径已由 Go 侧断言证明（rc=0、可解析 JSON）。按单侧证据批准。",
-        "scope": "go-side-only:public-release-manifest",
-        "opId": "OPS-17a",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "facefe2a94def22016349f2cafec678c2795c22a60d147e76289eac6e9f48160",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
-      },
-      "id": "OPS-17a",
-      "history": [
+      "goExit": 0,
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "BLOCKED",
-          "verdict": "BLOCKED",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17a/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "APPROVED_SINGLE_SIDE",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "update",
+            "status",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-17a"
         }
       ],
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-17a",
       "name": "更新脚本",
       "bashEntry": "5>1",
       "goCommand": "idleleo update check --json",
@@ -824,35 +747,14 @@
       "notes": null
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/views/round5-cand-observe-130808/p2/OPS-17b/ops.json",
-      "runId": "round5-cand-observe-130808",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "68029718cfda1060363393ba9e122f56c1bdee09796d7943b1c945ffaf115e20",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
-      "id": "OPS-17b",
-      "history": [
-        {
-          "runId": "round4-full-50415119",
-          "status": "BLOCKED",
-          "verdict": "BLOCKED",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17b/ops.json"
-        },
-        {
-          "runId": "round5-cand-observe-130808",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/views/round5-cand-observe-130808/p2/OPS-17b/ops.json"
-        }
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
       ],
+      "evidence": null,
+      "layer": null,
+      "id": "OPS-17b",
       "name": "更新Nginx",
       "bashEntry": "5>3",
       "goCommand": "idleleo update nginx --manifest <path|URL> --container --json",
@@ -864,20 +766,13 @@
       "notes": "真实 1.27.5→1.30.6 组件更新已接入：run_ops_realroot.sh 在 nginx:1.27 容器内验证 action/previousVersion/newVersion/health 并激活新二进制（FINAL-RR-20261121）。Bash 菜单 5>3 为同一能力入口，本轮未在 Bash 侧执行。"
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-17c/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
+      ],
+      "evidence": null,
+      "layer": null,
       "id": "OPS-17c",
       "name": "配置自动更新",
       "bashEntry": "5>4",
@@ -891,42 +786,29 @@
       "notes": null
     },
     {
-      "status": "APPROVED_SINGLE_SIDE",
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "goExit": null,
-      "expectedRc": null,
-      "goExitRecorded": false,
-      "reasons": [],
-      "assertions": 2,
-      "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
-      "runId": "round4-final-50415119-sweep",
-      "layer": "L0-L2 Go CLI evidence",
-      "approval": {
-        "id": "OPS-18",
-        "approvedBy": "user",
-        "reason": "tcp status --json 在容器内 rc=0 且可解析；宿主 BBR/内核调优无法在容器内等价复现。批准 Go 侧证据，但保留真实 VPS 一次性验证项，不计为双端等价。",
-        "scope": "host-bbr-requires-real-vps",
-        "opId": "OPS-18",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "facefe2a94def22016349f2cafec678c2795c22a60d147e76289eac6e9f48160",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
-      },
-      "id": "OPS-18",
-      "history": [
+      "goExit": 0,
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "BLOCKED",
-          "verdict": "BLOCKED",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-18/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "APPROVED_SINGLE_SIDE",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "tcp",
+            "status",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-18"
         }
       ],
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-18",
       "name": "TCP加速",
       "bashEntry": "6>1",
       "goCommand": "idleleo tcp status --json",
@@ -938,20 +820,13 @@
       "notes": null
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-19/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
+      ],
+      "evidence": null,
+      "layer": null,
       "id": "OPS-19",
       "name": "Fail2ban",
       "bashEntry": "6>2",
@@ -965,29 +840,33 @@
       "notes": null
     },
     {
-      "status": "GO_ONLY",
       "verdict": "PASS",
-      "goExit": null,
-      "expectedRc": null,
-      "goExitRecorded": false,
+      "bashExit": 0,
+      "goExit": 0,
       "reasons": [],
-      "assertions": 5,
-      "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
-      "runId": "round4-final-50415119-sweep",
-      "layer": "L0-L2 Go CLI evidence",
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487/p2/OPS-20/ops.json",
+      "runId": "codex-final-20261126-3577d487",
+      "layer": "L0-L4 driver evidence",
+      "productCodeSha": "3577d48761135c9418e3b39f8a834210a6553a88",
+      "binarySha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+      "driverSha": "193aaa04176f930223d7dc6c5e44ef6cd5f05b537179e178d93a39964e6a6d20",
+      "supersedes": null,
+      "fixedBy": null,
+      "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-20",
       "history": [
         {
-          "runId": "round4-full-50415119",
-          "status": "BLOCKED",
+          "runId": "codex-final-20261126-3577d487",
+          "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-20/ops.json"
+          "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487/p2/OPS-20/ops.json"
         },
         {
-          "runId": "round4-final-50415119-sweep",
+          "runId": "codex-final-20261126-3577d487-ops-sweep",
           "status": "GO_ONLY",
           "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt"
         }
       ],
       "name": "流量统计",
@@ -1001,20 +880,13 @@
       "notes": null
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-21/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
+      ],
+      "evidence": null,
+      "layer": null,
       "id": "OPS-21",
       "name": "流量阻断",
       "bashEntry": "6>4",
@@ -1030,35 +902,32 @@
       "notes": null
     },
     {
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "bashExit": 0,
       "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-22/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
-      "id": "OPS-22",
-      "history": [
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-22/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "GO_ONLY",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "xray",
+            "logs",
+            "clean",
+            "--yes",
+            "--container",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-22"
         }
       ],
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-22",
       "name": "清除日志",
       "bashEntry": "6>5",
       "goCommand": "idleleo xray logs clean --yes --json",
@@ -1070,42 +939,34 @@
       "notes": null
     },
     {
-      "status": "APPROVED_SINGLE_SIDE",
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "goExit": null,
-      "expectedRc": null,
-      "goExitRecorded": false,
-      "reasons": [],
-      "assertions": 4,
-      "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
-      "runId": "round4-final-50415119-sweep",
-      "layer": "L0-L2 Go CLI evidence",
-      "approval": {
-        "id": "OPS-23",
-        "approvedBy": "user",
-        "reason": "speedtest 依赖外部下载源；在受控本地 origin 上 Go 侧完成 1 MiB 全量测速并输出可解析 JSON/吞吐量（rc=0）。按单侧证据批准，真实公网测速不作验收前提。",
-        "scope": "go-side-only:external-download",
-        "opId": "OPS-23",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "facefe2a94def22016349f2cafec678c2795c22a60d147e76289eac6e9f48160",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
-      },
-      "id": "OPS-23",
-      "history": [
+      "goExit": 0,
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "BLOCKED",
-          "verdict": "BLOCKED",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-23/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "APPROVED_SINGLE_SIDE",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "speedtest",
+            "--server",
+            "http://e2e-codex-final-20261126-3577d487-ops-sweep-origin",
+            "--bytes",
+            "1048576",
+            "--samples",
+            "1",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-23"
         }
       ],
+      "reasons": [],
+      "assertions": 4,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-23",
       "name": "服务器网速",
       "bashEntry": "6>6",
       "goCommand": "idleleo speedtest --samples 1 --bytes 1048576",
@@ -1117,42 +978,46 @@
       "notes": "Go speedtest 指向本地 1MiB origin（run_ops_sweep.sh OPS-23，FINAL-OPS4-20261121）；Bash 菜单 6>6 使用外部测速端点，未纳入本轮双端。"
     },
     {
-      "status": "APPROVED_SINGLE_SIDE",
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "goExit": null,
-      "expectedRc": null,
-      "goExitRecorded": false,
-      "reasons": [],
-      "assertions": 7,
-      "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt",
-      "runId": "round4-final-50415119-sweep",
-      "layer": "L0-L2 Go CLI evidence",
-      "approval": {
-        "id": "OPS-24",
-        "approvedBy": "user",
-        "reason": "GeoData 刷新依赖外部下载；Go 侧 schedule install/run 从受控本地 origin 拉取并经 sha256 校验写入 geoip.dat/geosite.dat（rc=0）。按单侧证据批准。",
-        "scope": "go-side-only:external-download",
-        "opId": "OPS-24",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "facefe2a94def22016349f2cafec678c2795c22a60d147e76289eac6e9f48160",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
-      },
-      "id": "OPS-24",
-      "history": [
+      "goExit": 0,
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "BLOCKED",
-          "verdict": "BLOCKED",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-24/ops.json"
+          "actualRc": 0,
+          "argv": [
+            "schedule",
+            "install",
+            "--interval",
+            "3600",
+            "--geodata-url",
+            "http://e2e-codex-final-20261126-3577d487-ops-sweep-origin",
+            "--container",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-24"
         },
         {
-          "runId": "round4-final-50415119-sweep",
-          "status": "APPROVED_SINGLE_SIDE",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "schedule",
+            "run",
+            "--job",
+            "geodata-refresh",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-24"
         }
       ],
+      "reasons": [],
+      "assertions": 7,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-24",
       "name": "刷新GeoData",
       "bashEntry": "6>7",
       "goCommand": "idleleo schedule run --job geodata-refresh",
@@ -1164,50 +1029,30 @@
       "notes": "Go 以 schedule run --job geodata-refresh 对接真实 geoip.dat/geosite.dat 本地 origin，校验 result=ok 且 sha256 匹配（FINAL-OPS4-20261121）；Bash 菜单 6>7 为同一能力入口，本轮未在 Bash 侧执行。"
     },
     {
-      "verdict": "DIFF",
-      "bashExit": 0,
+      "status": "GO_ONLY",
+      "verdict": "PASS",
       "goExit": 0,
-      "reasons": [
-        "Bash backup operates on the managed tree (tar archive); Go backup operates on JSON metadata",
-        "bash rc=0",
-        "go rc=0"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-25/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "approval": {
-        "id": "OPS-25",
-        "approvedBy": "user",
-        "reason": "Bash 备份操作受管目录树（tar），Go 备份管理 JSON 元数据，两端 rc=0。Go 以元数据为唯一管理核心是既定设计，按已记录差异批准。",
-        "scope": "documented-difference:backup-tar-vs-metadata",
-        "opId": "OPS-25",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "1fc949cbaff30947c6ac2594d6510c9ae868d9048ecae45109586f014d83a82c",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-25/ops.json"
-      },
-      "status": "APPROVED_DIFF",
-      "id": "OPS-25",
-      "history": [
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "APPROVED_DIFF",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-25/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "GO_ONLY",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "metadata",
+            "export",
+            "--out",
+            "/tmp/e2e-metadata.json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-25"
         }
       ],
+      "reasons": [],
+      "assertions": 1,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-25",
       "name": "备份管理文件",
       "bashEntry": "7>1",
       "goCommand": "idleleo metadata export --out /tmp/e2e-metadata.json",
@@ -1219,52 +1064,33 @@
       "notes": null
     },
     {
-      "verdict": "DIFF",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [
-        "Bash restore/import operates on the managed tree (tar archive); Go restore/import operates on JSON metadata",
-        "bash rc=0",
-        "go rc=0",
-        "restore canary present=True",
-        "go import state=IMPORTED"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-26/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "approval": {
-        "id": "OPS-26",
-        "approvedBy": "user",
-        "reason": "Bash 恢复/导入重写受管目录树（tar），Go 从 install_config.json 导入为 JSON 元数据且不覆盖既有元数据；两端 rc=0、恢复金丝雀存在。Go 的元数据单一事实来源是既定设计，按已记录差异批准。",
-        "scope": "documented-difference:restore-tar-vs-metadata",
-        "opId": "OPS-26",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "4902f043639a77fd4301becda5bb0428bf542b765b9a86ec2fe65c2e2227c20f",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-26/ops.json"
-      },
-      "status": "APPROVED_DIFF",
-      "id": "OPS-26",
-      "history": [
+      "status": "BLOCKED",
+      "verdict": "BLOCKED",
+      "goExit": 3,
+      "expectedRc": 3,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "APPROVED_DIFF",
-          "verdict": "DIFF",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-26/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "GO_ONLY",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 3,
+          "argv": [
+            "metadata",
+            "import",
+            "--from",
+            "install_config.json",
+            "--container"
+          ],
+          "expectedRc": 3,
+          "id": "OPS-26"
         }
       ],
+      "reasons": [
+        "recorded commands only refused; no successful product operation was observed"
+      ],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-26",
       "name": "恢复管理文件",
       "bashEntry": "7>2",
       "goCommand": "idleleo metadata import --from /tmp/e2e-metadata.json",
@@ -1281,24 +1107,34 @@
       "reasons": [
         "Bash backup menu 7>3 deletes the whole certificate directory after one confirm; Go requires managed ownership proof",
         "Bash removed the third-party canary (rm -rf entire cert dir)",
-        "Go kept the third-party canary (no managed ownership)"
+        "Go kept the third-party canary (no managed ownership)",
+        "cert-clear-difference.json declares a difference but no external approval names OPS-27"
       ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-27/cert-clear-difference.json",
-      "runId": "round4-full-50415119",
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops27/p2/OPS-27/cert-clear-difference.json",
+      "runId": "codex-final-20261126-3577d487-ops27",
       "layer": "L0-L4 driver evidence",
-      "status": "APPROVED_DIFF",
-      "approval": {
-        "id": "OPS-27",
-        "approvedBy": "user",
-        "reason": "Bash 7>3 确认一次即 rm -rf 整个证书目录（第三方金丝雀被删），Go 要求受管所有权证明并保留第三方证书。批准 Go 的保守删除行为，禁止为对齐 Bash 而回退为 rm -rf。",
-        "scope": "documented-difference:conservative-cert-delete",
-        "opId": "OPS-27",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "e8c6a08b2aa375867d4256e966254be0091fa55245c361c8303ffa0c906c6264",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-27/cert-clear-difference.json"
-      },
+      "status": "FAIL",
       "id": "OPS-27",
+      "history": [
+        {
+          "runId": "round4-final-50415119",
+          "status": "BLOCKED",
+          "verdict": "DIFF",
+          "evidence": "tests/e2e-diff/evidence/round4-final-50415119/p2/OPS-27/cert-clear-difference.json"
+        },
+        {
+          "runId": "codex-final-20261126-3577d487-ops27",
+          "status": "FAIL",
+          "verdict": "DIFF",
+          "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops27/p2/OPS-27/cert-clear-difference.json"
+        },
+        {
+          "runId": "codex-final-20261126-cert-owned",
+          "status": "FAIL",
+          "verdict": "DIFF",
+          "evidence": "tests/e2e-diff/evidence/codex-final-20261126-cert-owned/p2/OPS-27/cert-clear-difference.json"
+        }
+      ],
       "name": "清空证书文件",
       "bashEntry": "7>3",
       "goCommand": "idleleo xray cert clear --yes --json",
@@ -1310,35 +1146,31 @@
       "notes": null
     },
     {
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "bashExit": 0,
       "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-28/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
-      "id": "OPS-28",
-      "history": [
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-28/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "GO_ONLY",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "xray",
+            "uninstall",
+            "--purge",
+            "--container",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-28"
         }
       ],
+      "reasons": [],
+      "assertions": 4,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-28",
       "name": "卸载",
       "bashEntry": "7>4",
       "goCommand": "idleleo xray uninstall",
@@ -1351,37 +1183,29 @@
       "notes": null
     },
     {
+      "status": "GO_ONLY",
       "verdict": "PASS",
-      "bashExit": 0,
       "goExit": 0,
-      "reasons": [
-        "both sides returned Rill status"
-      ],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-29/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
-      "id": "OPS-29",
-      "history": [
+      "expectedRc": 0,
+      "goExitRecorded": true,
+      "commandResults": [
         {
-          "runId": "round4-full-50415119",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-29/ops.json"
-        },
-        {
-          "runId": "round4-final-50415119-sweep",
-          "status": "GO_ONLY",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-final-50415119-sweep/assertions.txt"
+          "actualRc": 0,
+          "argv": [
+            "rill",
+            "status",
+            "--json"
+          ],
+          "expectedRc": 0,
+          "id": "OPS-29"
         }
       ],
+      "reasons": [],
+      "assertions": 2,
+      "evidence": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep/assertions.txt",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "layer": "L0-L2 Go CLI evidence",
+      "id": "OPS-29",
       "name": "Rill AI 状态",
       "bashEntry": "9",
       "goCommand": "idleleo rill status --json",
@@ -1393,31 +1217,13 @@
       "notes": null
     },
     {
-      "verdict": "BASH_ONLY",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-30/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "approval": {
-        "id": "OPS-30",
-        "approvedBy": "user",
-        "reason": "语言切换目前仅由 Bash 菜单实现（rc=0），Go CLI 无等价命令。按 Bash 侧单侧证据批准为已知缺口，不视为双端等价，也不得据此宣称该功能已迁移。",
-        "scope": "bash-side-only:language-switch",
-        "opId": "OPS-30",
-        "provenance": "用户 2026-11-22 在 Trae 会话中回复“按推荐批准”，沿用同一决定；2026-11-24 用户明确要求“按方案 A 执行，重新锚定批准”，把该批准绑定到 50415119 的当前证据。会话内文本授权，未带外部签名。",
-        "expiresAt": "2026-12-31",
-        "fingerprint": "b0adb948565fa8ac4b096cbffe922a39e60020d29e387b6a77bd6d69a0210221",
-        "fingerprintOf": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-30/ops.json"
-      },
-      "status": "APPROVED_SINGLE_SIDE",
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
+      ],
+      "evidence": null,
+      "layer": null,
       "id": "OPS-30",
       "name": "修改语言",
       "bashEntry": "8",
@@ -1429,20 +1235,13 @@
       "notes": "语言切换是 Bash 交互菜单的本地化偏好，Go CLI 不提供等价命令；Bash 功能未被删除，登记为 BASH_ONLY（非安全差异，未获“取消功能”批准，因此不宣称对等）。"
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-31/ops.json",
-      "runId": "round4-full-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
+      ],
+      "evidence": null,
+      "layer": null,
       "id": "OPS-31",
       "name": "Reality负载均衡",
       "bashEntry": "2>3>1",
@@ -1457,35 +1256,14 @@
       "notes": null
     },
     {
-      "verdict": "PASS",
-      "bashExit": 0,
-      "goExit": 0,
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-32/ops.json",
-      "runId": "round4-bizfacts2-50415119",
-      "layer": "L0-L4 driver evidence",
-      "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
-      "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
-      "id": "OPS-32",
-      "history": [
-        {
-          "runId": "round4-full-50415119",
-          "status": "BLOCKED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-full-50415119/p2/OPS-32/ops.json"
-        },
-        {
-          "runId": "round4-bizfacts2-50415119",
-          "status": "DUAL_SIDE_VERIFIED",
-          "verdict": "PASS",
-          "evidence": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-32/ops.json"
-        }
+      "status": "NOT_RUN",
+      "verdict": null,
+      "reasons": [
+        "no evidence at the frozen commit"
       ],
+      "evidence": null,
+      "layer": null,
+      "id": "OPS-32",
       "name": "后端故障摘除（ws + reality 上游）",
       "bashEntry": "2>3>1",
       "goCommand": "idleleo xray balance list --upstream ws --json",

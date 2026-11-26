@@ -1,0 +1,36 @@
+?   	github.com/hello-yunshu/Xray_bash_onekey/artifacts/intake-20261121/xray-audit-20261121	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo-recover	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/parity-adapter	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/acme	0.152s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/app	0.006s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/backup	1.974s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	0.338s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	2.570s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/clientprobe	0.008s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/compat	0.002s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/componentupdate	0.081s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/container	2.220s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	8.599s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/doctor	0.032s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/geodata	0.009s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/host	1.205s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/hotuser	0.003s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/i18n	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	2.251s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/netcfg	0.034s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/nginx	6.144s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/ops	0.010s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/release	0.071s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/repair	0.010s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/runtime	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	0.484s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/service	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/speedtest	0.208s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	0.004s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/tcpcfg	0.023s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.033s
+?   	github.com/hello-yunshu/Xray_bash_onekey/tests/e2e-diff/drivers	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/tests/go-parity/acme	[no test files]
+
+command_rc=0

@@ -1,0 +1,1 @@
+speedtest --server http://e2e-codex-final-20261126-3577d487-ops-sweep-origin --bytes 1048576 --samples 1 --json

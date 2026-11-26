@@ -1,0 +1,13 @@
+----------------------------------------------------------------------
+Ran 32 tests in 1.767s
+
+OK
+
+python_contract_rc=0
+................................
+----------------------------------------------------------------------
+Ran 32 tests in 1.742s
+
+OK
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests
+artifact_isolation_rc=0

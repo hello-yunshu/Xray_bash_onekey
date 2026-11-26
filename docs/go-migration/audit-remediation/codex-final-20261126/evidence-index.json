@@ -1,0 +1,415 @@
+{
+  "candidate": {
+    "branch": "work/go-hardening-parity-20261119",
+    "codeSha": "3577d48761135c9418e3b39f8a834210a6553a88",
+    "qualification": "NO_GO",
+    "releaseAuthorized": "NO"
+  },
+  "ci": {
+    "reason": "Final candidate SHA was not pushed; no final-SHA CI run was available.",
+    "status": "CI_PENDING"
+  },
+  "files": [
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/initial-findings.txt",
+      "sha256": "3bf8389b0ce2549eac61628450da79d635fa8295a174148541f6f51a4e875671",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops08-20-matrix.log",
+      "sha256": "65836eacb51dae94713bc8febeb5ce3ef3357569a3accf4d49b14bbcec4d87ab",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops27-matrix.log",
+      "sha256": "fae9c466d9c4c54e858cdcaafb044665742f5d5c125a909b3410cc331cbf2e66",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/cert-owned-matrix.log",
+      "sha256": "5becd5966a1fb0dc45146e2c9ad076a4790f6336ba31075c3299fd05ee7325b8",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops-sweep.log",
+      "sha256": "0623ded1ebf446c65d4988e589dbfed861b2bb2bd8d9bca736d8fe1f79a59171",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/certclear-dynamic-tls-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/certclear-runtime-3577d487/certclear-dynamic-tls.log",
+      "sha256": "e6073b78616bd7d3dfa17415c28e0cf70e37df727828f1336681883351554a27",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/certclear-runtime-3577d487/certclear-dynamic-report.json",
+      "sha256": "b4a9210649ad5499f80799cdb4e2b12b6902a337885f27aee2bb4d0da3ecb17e",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/cert-owned-runtime.log",
+      "sha256": "d592cc7809d53d5202eb80568d4670f6a6a454c9631ce03060c813240cb0790d",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/cert-owned-fixture-repair.log",
+      "sha256": "0a7cef9fe9652c4f6cbbd45aac2378b6abc8fa0a4b7ec04f922171352505558d",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/cert-owned-runtime-retry.json",
+      "sha256": "736bf377c6cc4dffae8b7763703a69ef16c407835edb2328a2b2929a7a335fc4",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/cert-owned-runtime-retry.stderr",
+      "sha256": "8af9f6b0f15a11d413751afd6a61f8af3c64096c227e665f91469c5964fbb66d",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/cert-owned-runtime-retry-check.json",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/cert-owned-runtime-fs-check.log",
+      "sha256": "83c2080569a0143193c36089fc8b9687c568c73eb58a00375d158776b02506ee",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/guard-policy-runtime.log",
+      "sha256": "6177b6b9a681e4112d0ec52b0559afd8c0402a47c6d943685ffe7e1e669d519b",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/guard-reject-client-check.log",
+      "sha256": "576d8cace0631052cb2d528b20685aedbd242318b92e1de1b3b09e8baca21ab0",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ledger-contract-tests.log",
+      "sha256": "3e0516b87830961428104aba1c63af060ea8ac8e17936f5d6df07117cca43dd8",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ledger-build.log",
+      "sha256": "b8f27ee7da4399d43a9037d52fe4b10f5c99cbd374cad1e207329693782194e6",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/go-test-all.log",
+      "sha256": "a130aa68787d515878fa178f19bbda9becd3695f5cfbb4551f28987500f07b5a",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/go-vet.log",
+      "sha256": "35d4cdd621182ea823384abbf3e4d23d79e3379f57a85e79fd8e9cfe56cf60c3",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/go-build-race.log",
+      "sha256": "9f5ab01081f32953793b86ec5c6191e79edc12d211bec4384fa4951a03a723c5",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/go-build-commands.log",
+      "sha256": "35d4cdd621182ea823384abbf3e4d23d79e3379f57a85e79fd8e9cfe56cf60c3",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/bash-syntax.log",
+      "sha256": "35d4cdd621182ea823384abbf3e4d23d79e3379f57a85e79fd8e9cfe56cf60c3",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/deploy-tests.log",
+      "sha256": "1f339ffa2412c4963000e94d87f56edc81770885e30aeffd821b62fe7854d4ae",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan.log",
+      "sha256": "9aa2561d078f10e3178d8e5c7d3e476fb6dd5427434073eb6ac46aa117539f38",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/tasks.md",
+      "sha256": "bc6f3c0f804b28cfd75391e6f04fc2b37cd0947c21fbc98703f4c0f9e72e8430",
+      "type": "report-or-machine-summary"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/report.md",
+      "sha256": "f8be45fb4f968e31f4f71245fb6484a95347a407b6808ade19dd0c99d62149a8",
+      "type": "report-or-machine-summary"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/impact-analysis.md",
+      "sha256": "e61e78d9b63a92c69f5688391c83fcaed2c8270215772cfbf2adc37c18d353b7",
+      "type": "report-or-machine-summary"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/probe-development-log.md",
+      "sha256": "894f0edf2caae771a157ad5ebbc4cec5e06ceab24ef8394d02f1635b4caf1602",
+      "type": "report-or-machine-summary"
+    },
+    {
+      "path": "tests/e2e-diff/ledger.json",
+      "sha256": "d71ce01dba5b8091435063272954f823910b196b9d7b69c50fdd128dbeffbf06",
+      "type": "report-or-machine-summary"
+    },
+    {
+      "path": "tests/e2e-diff/matrix.json",
+      "sha256": "1badf121929f2398a033bfa9dd3274b8f59d70c655cde64984000dcb493683c9",
+      "type": "report-or-machine-summary"
+    },
+    {
+      "path": "docs/go-evolution/hardening/acceptance.json",
+      "sha256": "421b0ec7a253ce0a6aa698f6e99e41cbec41451b65342d537e2fdf83e6a8c93d",
+      "type": "report-or-machine-summary"
+    }
+  ],
+  "ledgerSummary": {
+    "APPROVED_DIFF": 0,
+    "APPROVED_SINGLE_SIDE": 0,
+    "BASH_ONLY": 0,
+    "BLOCKED": 2,
+    "DUAL_SIDE_VERIFIED": 2,
+    "FAIL": 1,
+    "GO_ONLY": 17,
+    "NOT_RUN": 12,
+    "blockedIds": [
+      "OPS-04",
+      "OPS-26"
+    ],
+    "dualSideVerifiedIds": [
+      "OPS-08",
+      "OPS-20"
+    ],
+    "failIds": [
+      "OPS-27"
+    ],
+    "goOnlyIds": [
+      "OPS-01",
+      "OPS-02",
+      "OPS-03",
+      "OPS-11",
+      "OPS-12",
+      "OPS-13",
+      "OPS-14",
+      "OPS-15",
+      "OPS-16",
+      "OPS-17a",
+      "OPS-18",
+      "OPS-22",
+      "OPS-23",
+      "OPS-24",
+      "OPS-25",
+      "OPS-28",
+      "OPS-29"
+    ],
+    "notRunIds": [
+      "OPS-05",
+      "OPS-06",
+      "OPS-07",
+      "OPS-09",
+      "OPS-10",
+      "OPS-17b",
+      "OPS-17c",
+      "OPS-19",
+      "OPS-21",
+      "OPS-30",
+      "OPS-31",
+      "OPS-32"
+    ],
+    "opsTotal": 34,
+    "unresolvedIds": [
+      "OPS-01",
+      "OPS-02",
+      "OPS-03",
+      "OPS-04",
+      "OPS-05",
+      "OPS-06",
+      "OPS-07",
+      "OPS-09",
+      "OPS-10",
+      "OPS-11",
+      "OPS-12",
+      "OPS-13",
+      "OPS-14",
+      "OPS-15",
+      "OPS-16",
+      "OPS-17a",
+      "OPS-17b",
+      "OPS-17c",
+      "OPS-18",
+      "OPS-19",
+      "OPS-21",
+      "OPS-22",
+      "OPS-23",
+      "OPS-24",
+      "OPS-25",
+      "OPS-26",
+      "OPS-27",
+      "OPS-28",
+      "OPS-29",
+      "OPS-30",
+      "OPS-31",
+      "OPS-32"
+    ]
+  },
+  "runs": [
+    {
+      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+      "binarySha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+      "dependencies": [
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+          "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+          "source": "tests/e2e-diff/collect/l4.sh"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+          "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+          "source": "tests/e2e-diff/collect/client_config.py"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+          "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+          "source": "tests/e2e-diff/collect/build_ledger.py"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+          "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+          "source": "tests/e2e-diff/drivers/bash_ops.exp"
+        },
+        {
+          "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+          "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+          "source": "tests/go-parity/lib/docker_common.sh"
+        }
+      ],
+      "driverSha": "193aaa04176f930223d7dc6c5e44ef6cd5f05b537179e178d93a39964e6a6d20",
+      "evidenceRoot": "tests/e2e-diff/evidence/codex-final-20261126-3577d487/p2",
+      "finishedAt": "2026-11-26T09:55:41Z",
+      "image": "sha256:e000da50b95488f8428c94bdef4a268dc87c49a63889b2f10b3a69abce4c4b5f",
+      "manifestPath": "build-manifest.json",
+      "manifestSha256": "ab5d588ee2f78cdcc5c3d615e2305ee40efa7592654007b59745fd7f2788f1ef",
+      "platform": "linux/arm64",
+      "productCodeSha": "3577d48761135c9418e3b39f8a834210a6553a88",
+      "runId": "codex-final-20261126-3577d487",
+      "startedAt": "2026-11-26T09:53:04Z"
+    },
+    {
+      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+      "binarySha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+      "dependencies": [
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+          "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+          "source": "tests/e2e-diff/collect/l4.sh"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+          "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+          "source": "tests/e2e-diff/collect/client_config.py"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+          "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+          "source": "tests/e2e-diff/collect/build_ledger.py"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+          "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+          "source": "tests/e2e-diff/drivers/bash_ops.exp"
+        },
+        {
+          "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+          "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+          "source": "tests/go-parity/lib/docker_common.sh"
+        }
+      ],
+      "driverSha": "193aaa04176f930223d7dc6c5e44ef6cd5f05b537179e178d93a39964e6a6d20",
+      "evidenceRoot": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops27/p2",
+      "finishedAt": "2026-11-26T09:57:14Z",
+      "image": "sha256:cc1a6e4d9a4e8355891ac6329cb90107f6e0f9a68119bfd04edc1cc60136cff6",
+      "manifestPath": "build-manifest.json",
+      "manifestSha256": "5f3f34bf6dfafbf64d30e49395debf71e4f8fb81ce996db09f6794b1122c108d",
+      "platform": "linux/arm64",
+      "productCodeSha": "3577d48761135c9418e3b39f8a834210a6553a88",
+      "runId": "codex-final-20261126-3577d487-ops27",
+      "startedAt": "2026-11-26T09:56:04Z"
+    },
+    {
+      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+      "binarySha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+      "dependencies": [
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+          "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+          "source": "tests/e2e-diff/collect/l4.sh"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+          "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+          "source": "tests/e2e-diff/collect/client_config.py"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+          "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+          "source": "tests/e2e-diff/collect/build_ledger.py"
+        },
+        {
+          "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+          "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+          "source": "tests/e2e-diff/drivers/bash_ops.exp"
+        },
+        {
+          "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+          "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+          "source": "tests/go-parity/lib/docker_common.sh"
+        }
+      ],
+      "driverSha": "193aaa04176f930223d7dc6c5e44ef6cd5f05b537179e178d93a39964e6a6d20",
+      "evidenceRoot": "tests/e2e-diff/evidence/codex-final-20261126-cert-owned/p2",
+      "finishedAt": "2026-11-26T10:06:00Z",
+      "image": "sha256:c950b26c1ba68f0533c5325114022c7f675072211071d55fdc9aa51a419548ef",
+      "manifestPath": "build-manifest.json",
+      "manifestSha256": "c7d57d99129699a013f6491ad1c4ec62639daa5bfe41a6a61119a30f7f71367c",
+      "platform": "linux/arm64",
+      "productCodeSha": "3577d48761135c9418e3b39f8a834210a6553a88",
+      "runId": "codex-final-20261126-cert-owned",
+      "startedAt": "2026-11-26T10:04:55Z"
+    },
+    {
+      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+      "binarySha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+      "dependencies": [
+        {
+          "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+          "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+          "source": "tests/e2e-diff/collect/build_ledger.py"
+        },
+        {
+          "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+          "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+          "source": "tests/go-parity/lib/docker_common.sh"
+        }
+      ],
+      "driverSha": "976ef8814c1fae483771398e374deda24394ef59e292aa92096e675639415e84",
+      "evidenceRoot": "tests/e2e-diff/evidence/codex-final-20261126-3577d487-ops-sweep",
+      "finishedAt": "2026-11-26T09:58:27Z",
+      "image": "sha256:cc1a6e4d9a4e8355891ac6329cb90107f6e0f9a68119bfd04edc1cc60136cff6",
+      "manifestPath": "build-manifest.json",
+      "manifestSha256": "87c063a564091bcddc2e087ff4d2e2b485dbf64d3c1023b8ea0f3b4954d8c65e",
+      "platform": "linux/arm64",
+      "productCodeSha": "3577d48761135c9418e3b39f8a834210a6553a88",
+      "runId": "codex-final-20261126-3577d487-ops-sweep",
+      "startedAt": "2026-11-26T09:58:15Z"
+    }
+  ],
+  "schemaVersion": 1
+}

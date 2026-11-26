@@ -1,0 +1,47 @@
+{
+  "mode": "Reality",
+  "policy": "decoy",
+  "decoyDomain": "decoy-e2e.example.test",
+  "denyPort": 9444,
+  "changed": true,
+  "dryRun": false,
+  "files": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/etc/idleleo/cert/decoy.crt",
+    "/etc/idleleo/cert/decoy.key",
+    "/etc/idleleo/decoy/index.html",
+    "/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/usr/local/nginx/conf/nginx.conf",
+    "/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": true,
+  "selfSigned": true,
+  "warnings": []
+}
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+DECOY_UNKNOWN_SNI_RC=0 page=decoy
+DECOY_KNOWN_SNI_RC=0 page=decoy
+{
+  "mode": "Reality",
+  "policy": "reject",
+  "denyPort": 9404,
+  "changed": true,
+  "dryRun": false,
+  "files": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/usr/local/nginx/conf/nginx.conf",
+    "/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": true,
+  "warnings": []
+}
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+REJECT_UNKNOWN_SNI_RC=0
+reject policy accepted unknown SNI
+
+command_rc=1

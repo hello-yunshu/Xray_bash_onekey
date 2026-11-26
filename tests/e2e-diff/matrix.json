@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "frozenAt": "2026-11-13T17:21:00+08:00",
-  "repoCommit": "50415119",
+  "repoCommit": "3577d487",
   "branch": "develop/go-native",
   "sourcePlan": "docs/plans/bash-vs-go-docker-differential-impl.md",
   "decisions": {
@@ -42,62 +42,60 @@
   },
   "acceptance": {
     "opsTotal": 34,
-    "dualSideVerifiedOps": 21,
-    "goOnlyOps": 1,
-    "failOps": 0,
+    "dualSideVerifiedOps": 2,
+    "goOnlyOps": 17,
+    "failOps": 1,
     "bashOnlyOps": 0,
-    "blockedOps": 0,
-    "notRunOps": 0,
-    "approvedDiffOps": 7,
-    "approvedSingleSideOps": 5,
+    "blockedOps": 2,
+    "notRunOps": 12,
+    "approvedDiffOps": 0,
+    "approvedSingleSideOps": 0,
     "dualSideVerifiedIds": [
+      "OPS-08",
+      "OPS-20"
+    ],
+    "goOnlyIds": [
       "OPS-01",
       "OPS-02",
       "OPS-03",
-      "OPS-04",
+      "OPS-11",
+      "OPS-12",
+      "OPS-13",
+      "OPS-14",
+      "OPS-15",
+      "OPS-16",
+      "OPS-17a",
+      "OPS-18",
+      "OPS-22",
+      "OPS-23",
+      "OPS-24",
+      "OPS-25",
+      "OPS-28",
+      "OPS-29"
+    ],
+    "failIds": [
+      "OPS-27"
+    ],
+    "bashOnlyIds": [],
+    "approvedDiffIds": [],
+    "approvedSingleSideIds": [],
+    "notRunIds": [
       "OPS-05",
       "OPS-06",
       "OPS-07",
-      "OPS-08",
       "OPS-09",
       "OPS-10",
-      "OPS-11",
-      "OPS-15",
       "OPS-17b",
       "OPS-17c",
       "OPS-19",
       "OPS-21",
-      "OPS-22",
-      "OPS-28",
-      "OPS-29",
+      "OPS-30",
       "OPS-31",
       "OPS-32"
     ],
-    "goOnlyIds": [
-      "OPS-20"
-    ],
-    "failIds": [],
-    "bashOnlyIds": [],
-    "approvedDiffIds": [
-      "OPS-12",
-      "OPS-13",
-      "OPS-14",
-      "OPS-16",
-      "OPS-25",
-      "OPS-26",
-      "OPS-27"
-    ],
-    "approvedSingleSideIds": [
-      "OPS-17a",
-      "OPS-18",
-      "OPS-23",
-      "OPS-24",
-      "OPS-30"
-    ],
-    "notRunIds": [],
     "generatedFrom": "tests/e2e-diff/ledger.json",
-    "generatedAt": "2026-11-24T05:41:21+00:00",
-    "codeSha": "5041511998575851eb5cb16533e9fe999d29d5a8"
+    "generatedAt": "2026-11-26T10:16:45+00:00",
+    "codeSha": "3577d48761135c9418e3b39f8a834210a6553a88"
   },
   "install": [
     {

@@ -1,0 +1,79 @@
+ledger: FAIL rows present: OPS-27
+{
+  "total": 34,
+  "dualSideVerified": 2,
+  "dualSideVerifiedIds": [
+    "OPS-08",
+    "OPS-20"
+  ],
+  "goOnly": 17,
+  "fail": 1,
+  "failIds": [
+    "OPS-27"
+  ],
+  "bashOnly": 0,
+  "bashOnlyIds": [],
+  "blocked": 2,
+  "blockedIds": [
+    "OPS-04",
+    "OPS-26"
+  ],
+  "notRun": 12,
+  "notRunIds": [
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-09",
+    "OPS-10",
+    "OPS-17b",
+    "OPS-17c",
+    "OPS-19",
+    "OPS-21",
+    "OPS-30",
+    "OPS-31",
+    "OPS-32"
+  ],
+  "approvedDiff": 0,
+  "approvedDiffIds": [],
+  "approvedSingleSide": 0,
+  "approvedSingleSideIds": [],
+  "unresolvedIds": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-03",
+    "OPS-04",
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-09",
+    "OPS-10",
+    "OPS-11",
+    "OPS-12",
+    "OPS-13",
+    "OPS-14",
+    "OPS-15",
+    "OPS-16",
+    "OPS-17a",
+    "OPS-17b",
+    "OPS-17c",
+    "OPS-18",
+    "OPS-19",
+    "OPS-21",
+    "OPS-22",
+    "OPS-23",
+    "OPS-24",
+    "OPS-25",
+    "OPS-26",
+    "OPS-27",
+    "OPS-28",
+    "OPS-29",
+    "OPS-30",
+    "OPS-31",
+    "OPS-32"
+  ],
+  "generatedAt": "2026-11-26T10:16:45+00:00",
+  "codeSha": "3577d48761135c9418e3b39f8a834210a6553a88",
+  "source": "tests/e2e-diff/ledger.json"
+}
+
+command_rc=1

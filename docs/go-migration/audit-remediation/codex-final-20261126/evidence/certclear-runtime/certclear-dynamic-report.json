@@ -1,0 +1,11 @@
+{
+  "acmeAccountAndRenewalPreserved": true,
+  "acmeTreeHashAfter": "01974b6405bc564f5aff23d63393524ab29329fc9f4011916825349f5658515d",
+  "acmeTreeHashBefore": "01974b6405bc564f5aff23d63393524ab29329fc9f4011916825349f5658515d",
+  "acmeTreePreservedExactly": true,
+  "certPreserved": true,
+  "certificateFragment": "/etc/idleleo/conf/nginx/03-isolate.conf",
+  "keyPreserved": true,
+  "tlsAfter": true,
+  "tlsBefore": true
+}

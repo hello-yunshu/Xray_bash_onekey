@@ -1,0 +1,8 @@
+Initial environment and audit observations (2026-11-26; sanitized)
+
+- HEAD and origin/work/go-hardening-parity-20261119: 7d690f71c11531cd4f545940a3283a00b2294745.
+- Branch was clean before edits; no repository or applicable parent AGENTS.md was present.
+- Docker client/server 29.8.2, Linux arm64; local image golang:1.27.4 available. Host Go, Xray, and Nginx commands absent. Expect is installed.
+- GitHub workflow runs associated with this HEAD: Go parity stage gate failure (45448707335), Privacy Guard failure (45448707352); remaining five latest workflow runs reported success.
+- Whole-repository evidence hygiene scan returned rc=1 with 14 findings: two findings in round4 defect report and twelve public-address matches in historical geosite test data. No raw matching values are copied into this file.
+- Supplied standalone ledger probe accepts wrong nonempty hashes, missing image, invalid time, contradictory unknown-SNI result, and supersedes=A over FAIL A+B. Supplied standalone Nginx probe demonstrates old mtime plus no reload leaves real traffic on the old policy while the timestamp heuristic reports verified.
