@@ -61,6 +61,38 @@ func TestEnableAPIAddsLoopbackInboundAndRule(t *testing.T) {
 	}
 }
 
+func TestEnableAPIEnablesTrafficCountersForConfiguredUserLevels(t *testing.T) {
+	cfg := `{
+  "inbounds": [{"port": 443, "protocol": "vless", "tag": "reality",
+    "settings": {"clients": [
+      {"id": "11111111-1111-1111-1111-111111111111"},
+      {"id": "22222222-2222-2222-2222-222222222222", "level": 3}
+    ]}}],
+  "policy": {"levels": {"3": {"handshake": 5}}}
+}`
+	out, changed, err := EnableAPI([]byte(cfg), 10085)
+	if err != nil || !changed {
+		t.Fatalf("enable failed: changed=%v err=%v", changed, err)
+	}
+	var doc struct {
+		Policy struct {
+			Levels map[string]map[string]any `json:"levels"`
+		} `json:"policy"`
+	}
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatal(err)
+	}
+	for _, level := range []string{"0", "3"} {
+		value := doc.Policy.Levels[level]
+		if value["statsUserUplink"] != true || value["statsUserDownlink"] != true {
+			t.Errorf("level %s lacks inbound traffic counters: %#v", level, value)
+		}
+	}
+	if doc.Policy.Levels["3"]["handshake"] != float64(5) {
+		t.Fatalf("existing policy was not preserved: %#v", doc.Policy.Levels["3"])
+	}
+}
+
 func TestEnableAPIIsIdempotent(t *testing.T) {
 	once, _, err := EnableAPI([]byte(baseConfig), 10085)
 	if err != nil {

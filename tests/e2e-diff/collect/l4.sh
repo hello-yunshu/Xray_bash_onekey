@@ -111,35 +111,40 @@ docker exec -d "$CLIENT" sh -c '/opt/xray/xray run -c /client/client.json >/clie
 sleep 2
 docker exec "$CLIENT" sh -c 'ss -lnt | grep -q 127.0.0.1:1080' || fail "client socks did not listen"
 
-body=""
 rc=1
 for _ in $(seq 1 20); do
     set +e
-    body=$(docker exec "$CLIENT" curl -sS --max-time 10 --socks5-hostname 127.0.0.1:1080 "$TARGET_URL" 2>"$OUT/curl.err")
+    docker exec "$CLIENT" curl -sS --max-time 10 --socks5-hostname 127.0.0.1:1080 \
+        -o /client/response.body "$TARGET_URL" 2>"$OUT/curl.err"
     rc=$?
     set -e
-    [[ $rc -eq 0 && "$body" == *"$MARKER"* ]] && break
+    [[ $rc -eq 0 ]] && break
     sleep 1
 done
 
 docker cp "$CLIENT:/client/client.log" "$OUT/client.log" >/dev/null 2>&1 || true
 docker cp "$CLIENT:/client/curl.err" "$OUT/curl.err" >/dev/null 2>&1 || true
+docker cp "$CLIENT:/client/response.body" "$OUT/response.body" >/dev/null 2>&1 || true
 
-ok=false
-[[ $rc -eq 0 && "$body" == *"$MARKER"* ]] && ok=true
-
-python3 - "$OUT/connectivity.json" "$PROFILE" "$TARGET_URL" "$ok" "$rc" "$body" \
+python3 - "$OUT/connectivity.json" "$OUT/response.body" "$PROFILE" "$TARGET_URL" "$rc" "$MARKER" \
     "$EXPECTED_BODY_SHA256" "$EXPECTED_BODY_BYTES" <<'PY'
 import hashlib
 import json
 import sys
 
-out, profile, target, ok, rc, body, expected_sha, expected_bytes = sys.argv[1:9]
-body_sha = hashlib.sha256(body.encode()).hexdigest()
-body_bytes = len(body.encode())
+out, body_path, profile, target, rc, marker, expected_sha, expected_bytes = sys.argv[1:9]
+try:
+    with open(body_path, "rb") as fh:
+        body = fh.read()
+except OSError:
+    body = b""
+body_sha = hashlib.sha256(body).hexdigest()
+body_bytes = len(body)
+body_text = body.decode("utf-8", errors="replace")
+body_match = marker in body_text
 expected_match = (not expected_sha or body_sha == expected_sha) and (
     not expected_bytes or body_bytes == int(expected_bytes))
-ok = ok == 'true' and expected_match
+ok = int(rc) == 0 and body_match and expected_match
 json.dump({
     'profile': profile,
     'target': target,
@@ -150,12 +155,15 @@ json.dump({
     'expectedBodySha256': expected_sha or None,
     'expectedBodyBytes': int(expected_bytes) if expected_bytes else None,
     'expectedBodyMatch': expected_match,
-    'bodyMatch': 'Example Domain' in body,
+    'bodyMatch': body_match,
 }, open(out, 'w'), indent=2, sort_keys=True)
 PY
 
 python_ok=$(python3 -c 'import json,sys; print("true" if json.load(open(sys.argv[1])).get("ok") else "false")' "$OUT/connectivity.json")
-[[ "$python_ok" == true ]] || fail "business request failed (curl exit $rc, body bytes ${#body})"
+if [[ "$python_ok" != true ]]; then
+    echo "business request failed (curl exit $rc)" | tee -a "$OUT/connectivity.log"
+    exit 1
+fi
 # The client is single-use; leaving it behind pins its network and eventually
 # exhausts Docker's address pools on repeat runs.
 [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$CLIENT" >/dev/null 2>&1 || true
