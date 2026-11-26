@@ -51,6 +51,11 @@ MARKER="${E2E_L4_MARKER:-Example Domain}"
 EXPECTED_BODY_SHA256="${E2E_L4_EXPECTED_SHA256:-}"
 EXPECTED_BODY_BYTES="${E2E_L4_EXPECTED_BYTES:-}"
 
+cleanup_client() {
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$CLIENT" >/dev/null 2>&1 || true
+}
+trap cleanup_client EXIT
+
 mkdir -p "$OUT" "$SECRET_DIR"
 # A previous failed attempt leaves a "L4 skipped" marker behind; remove it so
 # the evidence tree only reflects the run that actually reached L4.
