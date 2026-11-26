@@ -4298,6 +4298,14 @@ if (( ${#OIDS[@]} > 0 )); then
     done
 fi
 
+# Remove capture-host addresses and home paths before the build manifest binds
+# archived artifacts. Hashing before this rewrite made the manifest disagree
+# with the exact evidence retained for audit.
+python3 "$SUITE/collect/sanitize_evidence.py" "$EVID" || {
+    log "FATAL: evidence sanitize failed"
+    exit 2
+}
+
 # Stamp every recorded verdict with the provenance the acceptance ledger
 # requires: frozen product commit, both shipped artefacts, the driver and the
 # container image. Evidence without this block is reported as BLOCKED by
@@ -4417,11 +4425,6 @@ with open(out, "w", encoding="utf-8") as fh:
     fh.write("\n")
 PY
 log "scope: installs=[$SCOPE_INSTALLS] edits=[$SCOPE_EDITS] ops=[$SCOPE_OPS]"
-
-# The Bash menu transcript and `nginx -T` dump carry the capture host's public
-# address; rewrite it to documentation ranges before the evidence is reported
-# or committed.
-python3 "$SUITE/collect/sanitize_evidence.py" "$EVID" || log "evidence sanitize failed"
 
 BASELINE="${E2E_BASELINE:-$SUITE/evidence/clean-run01-d5f17dc/p2}"
 BASELINE_ARGS=()
