@@ -97,11 +97,26 @@ def file_sha256(path):
 
 PROVENANCE_FIELDS = (
     "productCodeSha", "binarySha256", "bashScriptSha256",
-    "driverSha", "runId", "layer", "startedAt",
+    "driverSha", "runId", "layer", "image", "platform",
+    "startedAt", "finishedAt",
 )
 
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+GIT_SHA_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
+IMAGE_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 
-def provenance_problems_run(run, code_sha, dirname):
+
+def _timestamp(value):
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        parsed = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo is not None else None
+
+
+def provenance_problems_run(run, code_sha, dirname, evidence_root=None):
     """Return why a run block cannot bind evidence to the frozen candidate.
 
     Exit codes and verdicts are not provenance. Without the product commit, the
@@ -115,18 +130,81 @@ def provenance_problems_run(run, code_sha, dirname):
         if not str(run.get(key) or "").strip():
             problems.append("run provenance is missing %s" % key)
     product = str(run.get("productCodeSha") or "")
+    if not GIT_SHA_RE.fullmatch(product):
+        problems.append("run provenance productCodeSha is not a full Git object id")
     if product and code_sha and product != code_sha:
         problems.append("evidence was produced for product %s, not the frozen %s"
                         % (product[:12], code_sha[:12]))
+    for key in ("binarySha256", "bashScriptSha256", "driverSha"):
+        if not SHA256_RE.fullmatch(str(run.get(key) or "")):
+            problems.append("run provenance %s is not a SHA-256 digest" % key)
+    if not IMAGE_RE.fullmatch(str(run.get("image") or "")):
+        problems.append("run provenance image is missing or is not an immutable image id")
+    if not re.fullmatch(r"linux/(?:amd64|arm64|386|arm/v[0-9]+)", str(run.get("platform") or "")):
+        problems.append("run provenance platform is missing or unsupported")
+    started = _timestamp(run.get("startedAt"))
+    finished = _timestamp(run.get("finishedAt"))
+    if started is None:
+        problems.append("run provenance startedAt is not a timezone-aware ISO timestamp")
+    if finished is None:
+        problems.append("run provenance finishedAt is not a timezone-aware ISO timestamp")
+    elif started is not None and finished < started:
+        problems.append("run provenance finishedAt precedes startedAt")
     run_id = str(run.get("runId") or "")
     if run_id and dirname and run_id != dirname:
         problems.append("run provenance runId %r does not match evidence directory %r"
                         % (run_id, dirname))
+    manifest_name = str(run.get("manifestPath") or "").strip()
+    manifest_sha = str(run.get("manifestSha256") or "")
+    if not manifest_name or not SHA256_RE.fullmatch(manifest_sha) or not evidence_root:
+        problems.append("run provenance has no verifiable candidate build manifest")
+    else:
+        root = os.path.realpath(evidence_root)
+        manifest_path = os.path.realpath(os.path.join(root, manifest_name))
+        if not inside_repo(manifest_path, root):
+            problems.append("candidate build manifest escapes the evidence directory")
+        elif file_sha256(manifest_path) != manifest_sha:
+            problems.append("candidate build manifest is missing or its SHA-256 does not match")
+        else:
+            manifest = read_json(manifest_path)
+            if not isinstance(manifest, dict):
+                problems.append("candidate build manifest is unreadable")
+            else:
+                for key in ("productCodeSha", "binarySha256", "bashScriptSha256", "driverSha", "image", "platform"):
+                    if manifest.get(key) != run.get(key):
+                        problems.append("candidate build manifest %s does not match the run" % key)
+                artifacts = manifest.get("artifacts")
+                artifact_keys = {"binary": "binarySha256", "bashScript": "bashScriptSha256", "driver": "driverSha"}
+                if not isinstance(artifacts, dict):
+                    problems.append("candidate build manifest has no artifact paths")
+                else:
+                    for artifact, digest_key in artifact_keys.items():
+                        relpath = str(artifacts.get(artifact) or "")
+                        path = os.path.realpath(os.path.join(root, relpath)) if relpath else ""
+                        if not path or not inside_repo(path, root):
+                            problems.append("candidate build manifest %s path escapes the evidence directory" % artifact)
+                        elif file_sha256(path) != run.get(digest_key):
+                            problems.append("candidate build manifest %s digest does not match the recorded build" % artifact)
+                dependencies = manifest.get("dependencies")
+                if not isinstance(dependencies, list) or not dependencies:
+                    problems.append("candidate build manifest has no driver/dependency list")
+                else:
+                    for dependency in dependencies:
+                        if not isinstance(dependency, dict):
+                            problems.append("candidate build manifest contains an invalid dependency record")
+                            continue
+                        relpath = str(dependency.get("path") or "")
+                        digest = str(dependency.get("sha256") or "")
+                        path = os.path.realpath(os.path.join(root, relpath)) if relpath else ""
+                        if not path or not inside_repo(path, root):
+                            problems.append("candidate build manifest dependency path escapes the evidence directory")
+                        elif not SHA256_RE.fullmatch(digest) or file_sha256(path) != digest:
+                            problems.append("candidate build manifest dependency digest does not match")
     return problems
 
 
-def provenance_problems(data, code_sha, dirname):
-    return provenance_problems_run(data.get("run"), code_sha, dirname)
+def provenance_problems(data, code_sha, dirname, evidence_root=None):
+    return provenance_problems_run(data.get("run"), code_sha, dirname, evidence_root)
 
 
 def _positive(value):
@@ -142,9 +220,16 @@ def _nonempty(value):
 
 
 def _sni_probe(value):
-    return (isinstance(value, dict)
-            and str(value.get("unknownSniPolicy") or "").strip() != ""
-            and value.get("knownSniOk") is True)
+    if not isinstance(value, dict) or value.get("knownSniOk") is not True:
+        return False
+    if value.get("knownRc") != 0 or not isinstance(value.get("unknownRc"), int):
+        return False
+    policy = str(value.get("unknownSniPolicy") or "").strip().lower()
+    if policy in ("isolate", "reject", "ssl_reject_handshake"):
+        return value["unknownRc"] != 0
+    if policy in ("normal", "decoy", "route_to_decoy"):
+        return value["unknownRc"] == 0
+    return False
 
 
 # Facts the independent audit named explicitly. A PASS with both exit codes is
@@ -187,8 +272,13 @@ def approval_problems(approval, evidence_path, op_id):
     scope = str(approval.get("scope") or "").strip()
     if not scope:
         problems.append("approval for %s has no scope" % op_id)
-    if str(approval.get("approvedBy") or "").lower() == "user" and not approval.get("provenance"):
-        problems.append("a user approval must cite a traceable provenance record, not only approvedBy=user")
+    if str(approval.get("approvedBy") or "").lower() == "user":
+        provenance = approval.get("provenance")
+        if (not isinstance(provenance, dict)
+                or not str(provenance.get("sourcePath") or "").strip()
+                or not str(provenance.get("recordId") or "").strip()
+                or not SHA256_RE.fullmatch(str(provenance.get("contentSha256") or ""))):
+            problems.append("a user approval needs a verifiable source path, record id, and source content digest")
     if approval.get("opId") and approval["opId"] != op_id:
         problems.append("approval opId %r does not match %s" % (approval["opId"], op_id))
     expires = approval.get("expiresAt")
@@ -352,7 +442,7 @@ def matrix_results(root, approvals, code_sha=""):
                 path, data = declaration
                 verdict = str(data.get("result") or data.get("verdict") or "").upper().replace("-", "_")
                 reasons = [str(r) for r in (data.get("reasons") or [])]
-                prov = provenance_problems(data, code_sha, run_id)
+                prov = provenance_problems(data, code_sha, run_id, root)
                 base = {
                     "verdict": verdict, "reasons": reasons,
                     "evidence": repo_path(path), "runId": run_id,
@@ -406,7 +496,7 @@ def matrix_results(root, approvals, code_sha=""):
                         reasons=reasons + ["ops.json id %r does not match its directory %r" % (op_id, name)])
             out[name] = base
             continue
-        prov = provenance_problems(data, code_sha, run_id)
+        prov = provenance_problems(data, code_sha, run_id, root)
         if prov:
             status = "BLOCKED"
             base["reasons"] = reasons + prov
@@ -479,7 +569,7 @@ def sweep_results(root, approvals=None, code_sha=""):
     if not root:
         return out
     run_id = os.path.basename(os.path.normpath(root))
-    prov = provenance_problems_run(read_json(os.path.join(root, "run.json")), code_sha, run_id)
+    prov = provenance_problems_run(read_json(os.path.join(root, "run.json")), code_sha, run_id, root)
     path = os.path.join(root, "assertions.txt")
     if not os.path.isfile(path):
         raise EvidenceError("ops evidence %s has no assertions.txt" % root)
@@ -510,16 +600,45 @@ def sweep_results(root, approvals=None, code_sha=""):
                 entry["failText"].append(text)
     if not per_id:
         raise EvidenceError("%s contains no OPS assertion; this is not usable evidence" % path)
+    command_path = os.path.join(root, "commands.jsonl")
+    command_results = {}
+    if os.path.isfile(command_path):
+        try:
+            with open(command_path, "r", encoding="utf-8") as fh:
+                for lineno, line in enumerate(fh, 1):
+                    try:
+                        item = json.loads(line)
+                    except ValueError as exc:
+                        raise EvidenceError("%s:%d is invalid JSON: %s" % (command_path, lineno, exc))
+                    if (not isinstance(item, dict) or item.get("id") not in OPS_IDS
+                            or not isinstance(item.get("actualRc"), int)
+                            or isinstance(item.get("actualRc"), bool)
+                            or not isinstance(item.get("expectedRc"), int)
+                            or isinstance(item.get("expectedRc"), bool)
+                            or not isinstance(item.get("argv"), list) or not item["argv"]):
+                        raise EvidenceError("%s:%d is missing command id, actual/expected rc, or argv" % (command_path, lineno))
+                    command_results.setdefault(item["id"], []).append(item)
+        except OSError as exc:
+            raise EvidenceError("cannot read %s: %s" % (command_path, exc))
     for op_id, entry in per_id.items():
         if entry["pass"] == 0 and entry["fail"] == 0:
             continue
+        commands = command_results.get(op_id, [])
+        rc_problems = ["command output is missing actual rc and expectedRc records"] if not commands else []
+        rc_problems.extend("actual rc %s differs from expected rc %s" % (c["actualRc"], c["expectedRc"])
+                           for c in commands if c["actualRc"] != c["expectedRc"])
+        if commands and not any(c["actualRc"] == 0 for c in commands):
+            rc_problems.append("recorded commands only refused; no successful product operation was observed")
+        failed = entry["fail"] > 0 or any(c["actualRc"] != c["expectedRc"] for c in commands)
+        incomplete = bool(rc_problems)
         row = {
-            "status": "GO_ONLY" if entry["fail"] == 0 else "FAIL",
-            "verdict": "PASS" if entry["fail"] == 0 else "FAIL",
-            "goExit": None,
-            "expectedRc": None,
-            "goExitRecorded": False,
-            "reasons": entry["failText"],
+            "status": "FAIL" if failed else ("BLOCKED" if incomplete else "GO_ONLY"),
+            "verdict": "FAIL" if failed else ("BLOCKED" if incomplete else "PASS"),
+            "goExit": commands[-1]["actualRc"] if commands else None,
+            "expectedRc": commands[-1]["expectedRc"] if commands else None,
+            "goExitRecorded": bool(commands),
+            "commandResults": commands,
+            "reasons": entry["failText"] + rc_problems,
             "assertions": entry["pass"] + entry["fail"],
             "evidence": repo_path(path),
             "runId": run_id,
@@ -527,7 +646,7 @@ def sweep_results(root, approvals=None, code_sha=""):
         }
         if prov:
             row["status"] = "BLOCKED"
-            row["reasons"] = entry["failText"] + prov
+            row["reasons"] = entry["failText"] + rc_problems + prov
         elif row["status"] == "GO_ONLY" and op_id in approvals and approval_applies(approvals[op_id], path):
             problems = approval_problems(approvals[op_id], path, op_id)
             if problems:
@@ -598,18 +717,31 @@ def main():
             continue
         failed = [e for e in entries if e["status"] == "FAIL"]
         good = [e for e in entries if e["status"] in RESOLVED_STATUSES]
+        replacements = {}
         for candidate in good:
             superseded = str(candidate.get("supersedes") or "").strip()
             fixed_by = str(candidate.get("fixedBy") or "").strip()
-            if not superseded or not fixed_by:
+            if not superseded or not GIT_SHA_RE.fullmatch(fixed_by):
                 continue
-            if not any(f.get("runId") == superseded for f in failed):
+            prior = next((f for f in failed if f.get("runId") == superseded), None)
+            if prior is None:
                 continue
-            merged = dict(candidate)
-            merged["supersededRuns"] = sorted({f.get("runId") for f in failed if f.get("runId")})
-            merged["fixedBy"] = fixed_by
+            candidate_sha = str(candidate.get("productCodeSha") or "")
+            prior_sha = str(prior.get("productCodeSha") or "")
+            candidate_started = _timestamp(candidate.get("startedAt"))
+            prior_started = _timestamp(prior.get("startedAt"))
+            if (fixed_by != candidate_sha or candidate_sha == prior_sha
+                    or (args.code_sha and candidate_sha != args.code_sha)
+                    or candidate_started is None or prior_started is None
+                    or candidate_started <= prior_started):
+                continue
+            replacements[superseded] = candidate
+        failed_ids = {str(f.get("runId") or "") for f in failed}
+        if failed_ids and failed_ids.issubset(replacements):
+            selected = replacements[sorted(replacements)[-1]]
+            merged = dict(selected)
+            merged["supersededRuns"] = sorted(failed_ids)
             chosen[op_id] = merged
-            break
 
     results = []
     for op_id in OPS_IDS:

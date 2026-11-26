@@ -39,6 +39,22 @@ assert() { # assert <0|1> <message>
         FAIL=$((FAIL + 1)); printf 'FAIL\t%s\n' "$2" | tee -a "$EVID/assertions.txt"
     fi
 }
+record_command() { # record_command <id> <actual-rc> <expected-rc> <argv...>
+    python3 - "$EVID/commands.jsonl" "$1" "$2" "$3" "${@:4}" <<'PY'
+import json, os, sys
+path, op_id, actual, expected = sys.argv[1:5]
+argv = sys.argv[5:]
+valid = {"OPS-%02d" % n for n in range(1, 17)} | {"OPS-17a", "OPS-17b", "OPS-17c"} | {"OPS-%02d" % n for n in range(18, 33)}
+if op_id not in valid and op_id.endswith(("a", "b", "c")) and op_id[:-1] in valid:
+    op_id = op_id[:-1]
+if op_id not in valid:
+    raise SystemExit("unknown OPS id for command evidence")
+os.makedirs(os.path.dirname(path), exist_ok=True)
+with open(path, "a", encoding="utf-8") as fh:
+    fh.write(json.dumps({"id": op_id, "actualRc": int(actual), "expectedRc": int(expected),
+                         "argv": argv}, sort_keys=True) + "\n")
+PY
+}
 
 log "building idleleo"
 docker run --rm -v "$ROOT:/src:ro" -v "$WORK/seed:/out" -w /src \
@@ -151,6 +167,7 @@ run_op() {
     local rc=$?
     echo "$rc" >"$out/rc"
     echo "$*" >"$out/argv"
+    record_command "$id" "$rc" 0 "$@"
     local jq_ok=1
     if [ "$json" = "1" ]; then
         jq -e . "$out/out.txt" >/dev/null 2>&1 && jq_ok=0
@@ -175,6 +192,7 @@ run_refusal() {
     local rc=$?
     echo "$rc" >"$out/rc"
     echo "$*" >"$out/argv"
+    record_command "$id" "$rc" "$want" "$@"
     assert "$([ "$rc" -eq "$want" ] && echo 0 || echo 1)" "$id refuses with rc=$want (got $rc): $*"
     assert "$(grep -q "$needle" "$out/err.txt" && echo 0 || echo 1)" "$id explains the missing prerequisite"
     return 0
@@ -264,15 +282,17 @@ assert "$(docker exec "$C" sh -c '[ ! -e /etc/idleleo/conf/xray/config.json ] &&
     "OPS-28 runtime config is removed by --purge"
 
 IMAGE_ID="$(docker image inspect -f '{{.Id}}' "$IMAGE_TAG" 2>/dev/null || true)"
-python3 - "$EVID" "$RUN_ID" "$ROOT" "$WORK/seed/idleleo" "$IMAGE_ID" "$STARTED_AT" <<'PY'
+IMAGE_PLATFORM="$(docker image inspect -f '{{.Os}}/{{.Architecture}}' "$IMAGE_TAG" 2>/dev/null || true)"
+python3 - "$EVID" "$RUN_ID" "$ROOT" "$WORK/seed/idleleo" "$IMAGE_ID" "$IMAGE_PLATFORM" "$STARTED_AT" <<'PY'
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
 
-evid, run_id, root, binary, image_id, started = sys.argv[1:7]
+evid, run_id, root, binary, image_id, platform, started = sys.argv[1:8]
 
 def digest(path):
     try:
@@ -281,17 +301,51 @@ def digest(path):
     except OSError:
         return None
 
-run = {
+artifact_dir = os.path.join(evid, "build")
+os.makedirs(artifact_dir, exist_ok=True)
+artifact_paths = {
+    "binary": os.path.join(artifact_dir, "idleleo"),
+    "bashScript": os.path.join(artifact_dir, "install.sh"),
+    "driver": os.path.join(artifact_dir, "run_ops_sweep.sh"),
+}
+for source, target in ((binary, artifact_paths["binary"]),
+                       (os.path.join(root, "install.sh"), artifact_paths["bashScript"]),
+                       (os.path.join(root, "tests/e2e-diff/run_ops_sweep.sh"), artifact_paths["driver"])):
+    shutil.copyfile(source, target)
+dependency_sources = (
+    "tests/e2e-diff/collect/build_ledger.py",
+    "tests/go-parity/lib/docker_common.sh",
+)
+dependencies = []
+for rel in dependency_sources:
+    source = os.path.join(root, rel)
+    target = os.path.join(artifact_dir, "dependencies", rel)
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    shutil.copyfile(source, target)
+    dependencies.append({"source": rel, "path": os.path.relpath(target, evid), "sha256": digest(target)})
+manifest = {
     "productCodeSha": subprocess.check_output(
         ["git", "-C", root, "rev-parse", "HEAD"], text=True).strip(),
-    "binarySha256": digest(binary),
-    "bashScriptSha256": digest(os.path.join(root, "install.sh")),
-    "driverSha": digest(os.path.join(root, "tests/e2e-diff/run_ops_sweep.sh")),
-    "runId": run_id,
+    "binarySha256": digest(artifact_paths["binary"]),
+    "bashScriptSha256": digest(artifact_paths["bashScript"]),
+    "driverSha": digest(artifact_paths["driver"]),
     "image": image_id,
+    "platform": platform,
+    "artifacts": {name: os.path.relpath(path, evid) for name, path in artifact_paths.items()},
+    "dependencies": dependencies,
+}
+manifest_path = os.path.join(evid, "build-manifest.json")
+with open(manifest_path, "w", encoding="utf-8") as fh:
+    json.dump(manifest, fh, ensure_ascii=False, indent=2, sort_keys=True)
+    fh.write("\n")
+run = {
+    **{key: value for key, value in manifest.items() if key != "artifacts"},
+    "runId": run_id,
     "layer": "L0-L2 Go CLI sweep",
     "startedAt": started,
     "finishedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": digest(manifest_path),
 }
 with open(os.path.join(evid, "run.json"), "w", encoding="utf-8") as fh:
     json.dump(run, fh, ensure_ascii=False, indent=2, sort_keys=True)

@@ -143,6 +143,7 @@ docker build -q -t "$IMAGE_TAG" -f "$IMAGE_DOCKERFILE" "$SUITE/image" >/dev/null
     log "FATAL: image build failed"; exit 2
 }
 IMAGE_ID=$(docker image inspect -f '{{.Id}}' "$IMAGE_TAG")
+IMAGE_PLATFORM=$(docker image inspect -f '{{.Os}}/{{.Architecture}}' "$IMAGE_TAG")
 log "image_id=$IMAGE_ID"
 
 log "building idleleo"
@@ -1590,16 +1591,143 @@ ops_state_probe() { # <server> <dir> <tag>
     fi
 }
 
+ops20_capture_stats() { # <bash|go> <server> <dir> <tag>
+    local side=$1 server=$2 dir=$3 tag=$4 rc attempt
+    for attempt in 1 2 3 4 5; do
+        if [[ "$side" == "bash" ]]; then
+            docker exec "$server" bash /etc/idleleo/scripts/xray_stats.sh --json \
+                >"$dir/$tag.stats.json" 2>"$dir/$tag.stats.err"
+        else
+            docker exec -e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY "$server" \
+                /usr/local/bin/idleleo stats --json >"$dir/$tag.stats.json" 2>"$dir/$tag.stats.err"
+        fi
+        rc=$?
+        [[ $rc -eq 0 ]] && break
+        # The Bash menu restarts Xray while enabling API stats. Give its API
+        # listener a short settling window before taking the traffic baseline.
+        sleep 1
+    done
+    echo "$rc" >"$dir/$tag.stats.rc"
+    return 0
+}
+
+ops20_l4() { # <server> <dir> <net> <side>
+    local server=$1 dir=$2 net=$3 side=$4
+    E2E_L4_URL="http://${OPS20_ORIGIN_IP}/payload.bin" \
+    E2E_L4_MARKER="Example Domain" E2E_L4_EXPECTED_SHA256="$OPS20_ORIGIN_SHA" \
+    E2E_L4_EXPECTED_BYTES="$OPS20_ORIGIN_BYTES" \
+        bash "$SUITE/collect/l4.sh" "$server" "e2e-$RUN_ID-OPS-20-$side-client" \
+            "$IMAGE_TAG" "$net" reality "$DOMAIN" "$WORK/seed/xray" \
+            "$WORK/secret/ops20-$side" "$dir/L4-traffic" >"$dir/L4-traffic.log" 2>&1
+    echo $? >"$dir/L4-traffic.rc"
+}
+
+ops20_summarize_traffic() { # <side> <side-dir>
+    python3 - "$1" "$2" <<'PY'
+import hashlib, json, os, sys
+side, base = sys.argv[1:3]
+def read(name):
+    try:
+        with open(os.path.join(base, name), encoding="utf-8") as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return None
+def rc(name):
+    try:
+        return int(open(os.path.join(base, name), encoding="ascii").read().strip())
+    except (OSError, ValueError):
+        return None
+def counters(doc):
+    if not isinstance(doc, dict):
+        return {}
+    rows = {}
+    for item in doc.get("inbounds", []):
+        if isinstance(item, dict):
+            tag = str(item.get("tag") or "")
+            rows[tag] = {"uplinkBytes": int(item.get("uplinkBytes", 0)),
+                         "downlinkBytes": int(item.get("downlinkBytes", 0))}
+    for item in (doc.get("stat") or []):
+        if not isinstance(item, dict):
+            continue
+        parts = str(item.get("name") or "").split(">>>")
+        if len(parts) == 4 and parts[0] == "inbound" and parts[2:4] == ["traffic", "uplink"]:
+            rows.setdefault(parts[1], {})["uplinkBytes"] = int(item.get("value") or 0)
+        elif len(parts) == 4 and parts[0] == "inbound" and parts[2:4] == ["traffic", "downlink"]:
+            rows.setdefault(parts[1], {})["downlinkBytes"] = int(item.get("value") or 0)
+    return rows
+before, after = read("traffic-before.stats.json"), read("traffic-after.stats.json")
+conn = read("L4-traffic/connectivity.json")
+left, right = counters(before), counters(after)
+details = {}
+for tag in sorted(set(left) | set(right)):
+    b, a = left.get(tag, {}), right.get(tag, {})
+    up = a.get("uplinkBytes", 0) - b.get("uplinkBytes", 0)
+    down = a.get("downlinkBytes", 0) - b.get("downlinkBytes", 0)
+    details[tag] = {"before": b, "after": a, "uplinkDeltaBytes": up,
+                    "downlinkDeltaBytes": down, "totalDeltaBytes": up + down}
+summary = {
+    "apiPreRc": rc("traffic-pre.stats.rc"), "apiPreExpectedRc": 2 if side == "bash" else 3,
+    "statsBeforeRc": rc("traffic-before.stats.rc"),
+    "statsAfterRc": rc("traffic-after.stats.rc"),
+    "httpRc": (conn or {}).get("curlExit"), "httpOk": (conn or {}).get("ok") is True,
+    "httpBodyBytes": (conn or {}).get("bodyBytes"),
+    "httpBodySha256": (conn or {}).get("bodySha256"),
+    "expectedBodyBytes": (conn or {}).get("expectedBodyBytes"),
+    "expectedBodySha256": (conn or {}).get("expectedBodySha256"),
+    "inboundCounters": details,
+    "trafficBytes": sum(max(0, x["totalDeltaBytes"]) for x in details.values()),
+}
+with open(os.path.join(base, "traffic-summary.json"), "w", encoding="utf-8") as fh:
+    json.dump(summary, fh, ensure_ascii=False, indent=2, sort_keys=True)
+    fh.write("\n")
+PY
+}
+
 ops_state_job() { # <ops-id>
     local oid=$1 sid=M1 gmode=reality
+    local ops20_subnet="" ops20_gateway=""
     case "$oid" in
         OPS-08) sid=M2; gmode=reality-nginx ;;
     esac
     OPS_NET="e2e-$RUN_ID-$oid"
     local base="$EVID/$oid" bdir="$EVID/$oid/bash" gdir="$EVID/$oid/go"
     mkdir -p "$bdir" "$gdir"
-    docker network create "$OPS_NET" >/dev/null 2>&1 || true
+    if [[ "$oid" == "OPS-20" ]]; then
+        # Use a controlled, non-RFC1918 test subnet. The managed freedom
+        # outbound intentionally blackholes private destinations, so a Docker
+        # origin on its default RFC1918 bridge would not exercise business
+        # traffic through Xray.
+        ops20_subnet="$(printf '%s.%s.%s.%s/24' 11 0 0 0)"
+        ops20_gateway="$(printf '%s.%s.%s.%s' 11 0 0 1)"
+        docker network create --subnet "$ops20_subnet" --gateway "$ops20_gateway" "$OPS_NET" >/dev/null 2>&1 || true
+    else
+        docker network create "$OPS_NET" >/dev/null 2>&1 || true
+    fi
     log "[$oid] start"
+
+    if [[ "$oid" == "OPS-20" ]]; then
+        local origin_dir="$WORK/ops20-origin"
+        mkdir -p "$origin_dir"
+        OPS20_ORIGIN_BYTES=1048576
+        python3 - "$origin_dir/payload.bin" "$OPS20_ORIGIN_BYTES" <<'PY'
+import sys
+body = (b"Example Domain | Xray OPS-20 local origin payload\n" * 30000)[:int(sys.argv[2])]
+if len(body) != int(sys.argv[2]):
+    raise SystemExit("payload length mismatch")
+# collect/l4.sh captures curl output in a shell variable, which strips trailing
+# newlines. Keep the known payload byte-for-byte comparable through that path.
+body = body[:-1] + b"X"
+open(sys.argv[1], "wb").write(body)
+PY
+        OPS20_ORIGIN_SHA=$(host_sha256 "$origin_dir/payload.bin")
+        OPS20_ORIGIN_IP="$(printf '%s.%s.%s.%s' 11 0 0 3)"
+        docker run -d --name "e2e-$RUN_ID-OPS-20-origin" --network "$OPS_NET" --ip "$OPS20_ORIGIN_IP" \
+            --network-alias e2e-origin -v "$origin_dir:/usr/share/nginx/html:ro" \
+            nginx:1.27 >/dev/null || { log "FATAL: OPS-20 local origin failed to start"; return 2; }
+        OPS20_ORIGIN_IP=$(docker inspect -f "{{with index .NetworkSettings.Networks \"$OPS_NET\"}}{{.IPAddress}}{{end}}" \
+            "e2e-$RUN_ID-OPS-20-origin")
+        [[ -n "$OPS20_ORIGIN_IP" ]] || { log "FATAL: OPS-20 local origin has no network address"; return 2; }
+    fi
 
     local bserver="e2e-$RUN_ID-$oid-bash"
     if start_server "$bserver" "$oid" bash "$bdir" "$OPS_NET"; then
@@ -1609,9 +1737,18 @@ ops_state_job() { # <ops-id>
                 'mkdir -p /var/log/xray && printf "round3-seed\n" > /var/log/xray/e2e.log' \
                 >/dev/null 2>&1 || true
         fi
+        if [[ "$oid" == "OPS-20" ]]; then
+            ops20_capture_stats bash "$bserver" "$bdir" traffic-pre
+        fi
         ops_snapshot "$bserver" "$bdir" before
         ops_state_probe "$bserver" "$bdir" before
         ops_bash_menu "$bserver" "$bdir" "$oid"
+        if [[ "$oid" == "OPS-20" ]]; then
+            ops20_capture_stats bash "$bserver" "$bdir" traffic-before
+            ops20_l4 "$bserver" "$bdir" "$OPS_NET" bash
+            ops20_capture_stats bash "$bserver" "$bdir" traffic-after
+            ops20_summarize_traffic bash "$bdir"
+        fi
         ops_snapshot "$bserver" "$bdir" after
         ops_state_probe "$bserver" "$bdir" after
     else
@@ -1628,6 +1765,9 @@ ops_state_job() { # <ops-id>
                 >/dev/null 2>&1 || true
         fi
         if [[ "$oid" == "OPS-20" ]]; then
+            ops20_capture_stats go "$gserver" "$gdir" traffic-pre
+        fi
+        if [[ "$oid" == "OPS-20" ]]; then
             docker exec "$gserver" sh -c \
                 'printf "#!/bin/sh\nexec systemctl restart xray\n" > /usr/local/bin/e2e-service-apply && chmod 0755 /usr/local/bin/e2e-service-apply' \
                 >/dev/null 2>&1 || true
@@ -1638,6 +1778,24 @@ ops_state_job() { # <ops-id>
             OPS-08)
                 ops_go_cli "$gserver" "$gdir" 10-op xray guard set --policy isolate --container --json
                 ops_go_cli "$gserver" "$gdir" 11-show xray guard show --json
+                # Change only the on-disk reject directive, preserve an older
+                # mtime, and prove the live Nginx worker still rejects the
+                # unknown SNI while Guard honestly reports runtime-unverified.
+                docker exec "$gserver" cp /etc/idleleo/conf/nginx/03-isolate.conf /tmp/03-isolate.saved
+                docker exec "$gserver" python3 -c 'from pathlib import Path; p=Path("/etc/idleleo/conf/nginx/03-isolate.conf"); s=p.read_text(); assert "ssl_reject_handshake on" in s; p.write_text(s.replace("ssl_reject_handshake on", "ssl_reject_handshake off", 1))'
+                docker exec "$gserver" touch -t 202001010000 /etc/idleleo/conf/nginx/03-isolate.conf
+                docker exec "$gserver" /usr/local/nginx/sbin/nginx -t \
+                    >"$gdir/12-unreloaded.nginx-test.out" 2>&1
+                echo $? >"$gdir/12-unreloaded.nginx-test.rc"
+                ops_go_cli "$gserver" "$gdir" 12-unreloaded xray guard show --json
+                docker exec "$gserver" timeout 20 openssl s_client -connect 127.0.0.1:443 \
+                    -servername e2e-unknown.invalid -brief </dev/null \
+                    >"$gdir/12-unreloaded.unknown-sni.out" 2>&1
+                echo $? >"$gdir/12-unreloaded.unknown-sni.rc"
+                # A managed apply rewrites the authoritative isolate content,
+                # performs a real Nginx reload, and records that process/hash.
+                ops_go_cli "$gserver" "$gdir" 13-reloaded xray guard set --policy isolate --container --json
+                ops_go_cli "$gserver" "$gdir" 14-after-reload xray guard show --json
                 ;;
             OPS-11) ops_go_cli "$gserver" "$gdir" 10-op show --json ;;
             OPS-15) ops_go_cli "$gserver" "$gdir" 10-op service restart --container ;;
@@ -1650,12 +1808,19 @@ ops_state_job() { # <ops-id>
             OPS-22) ops_go_cli "$gserver" "$gdir" 10-op xray logs clean --yes --container --json ;;
             OPS-28) ops_go_cli "$gserver" "$gdir" 10-op xray uninstall --purge --container --json ;;
         esac
+        if [[ "$oid" == "OPS-20" ]]; then
+            ops20_capture_stats go "$gserver" "$gdir" traffic-before
+            ops20_l4 "$gserver" "$gdir" "$OPS_NET" go
+            ops20_capture_stats go "$gserver" "$gdir" traffic-after
+            ops20_summarize_traffic go "$gdir"
+        fi
         ops_snapshot "$gserver" "$gdir" after
         ops_state_probe "$gserver" "$gdir" after
     else
         echo '{"status":"harness-error","reason":"container start failed"}' >"$gdir/harness.json"
     fi
     [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$gserver" >/dev/null 2>&1 || true
+    docker rm -f "e2e-$RUN_ID-OPS-20-origin" >/dev/null 2>&1 || true
     docker network rm "$OPS_NET" >/dev/null 2>&1 || true
 
     log "[$oid] verdict=$(ops_state_verdict "$oid")"
@@ -1771,6 +1936,32 @@ if not harness:
             }
         if details:
             biz_details = details
+        stale = jload(os.path.join(base, "go", "12-unreloaded.out")) or {}
+        reloaded = jload(os.path.join(base, "go", "14-after-reload.out")) or {}
+        stale_rc = rc(os.path.join(base, "go", "12-unreloaded.rc"))
+        reload_rc = rc(os.path.join(base, "go", "13-reloaded.rc"))
+        nginx_test_rc = rc(os.path.join(base, "go", "12-unreloaded.nginx-test.rc"))
+        stale_unknown_rc = rc(os.path.join(base, "go", "12-unreloaded.unknown-sni.rc"))
+        runtime_probe = {
+            "diskEditWithoutReload": True,
+            "preservedOldMtime": True,
+            "nginxTestRc": nginx_test_rc,
+            "showRc": stale_rc,
+            "reportedStatusBeforeReload": stale.get("status"),
+            "unknownSniRcBeforeReload": stale_unknown_rc,
+            "managedReloadRc": reload_rc,
+            "reportedStatusAfterReload": reloaded.get("status"),
+        }
+        if nginx_test_rc != 0:
+            reasons.append("nginx -t did not accept the on-disk policy edit")
+        if stale_rc != 0 or stale.get("status") != "runtime-unverified":
+            reasons.append("Guard did not report the edited, unreloaded policy as runtime-unverified")
+        if stale_unknown_rc is None or stale_unknown_rc == 0:
+            reasons.append("the running old Nginx worker did not reject unknown SNI before reload")
+        if reload_rc != 0 or reloaded.get("status") != "active":
+            reasons.append("managed Guard reload did not restore verified active status")
+        for side in ("bash", "go"):
+            biz_details.setdefault(side, {})["guardRuntime"] = runtime_probe
 
     elif oid == "OPS-11":
         b_out = text(os.path.join(base, "bash", "ops.out"))
@@ -1793,10 +1984,42 @@ if not harness:
         g_stats = jload(os.path.join(base, "go", "10-op.out"))
         if g_stats is None:
             reasons.append("go stats --json is not parseable")
+        traffic = {}
         for side in ("bash", "go"):
             cfg = text(os.path.join(base, side, "after.config.sorted.json"))
             if '"api"' not in cfg or '"listen"' not in cfg:
                 reasons.append("%s config lacks the stats/api listener" % side)
+            facts = jload(os.path.join(base, side, "traffic-summary.json")) or {}
+            traffic[side] = facts
+            for field, expected in (("apiPreRc", 2 if side == "bash" else 3),
+                                    ("statsBeforeRc", 0), ("statsAfterRc", 0), ("httpRc", 0),
+                                    ("httpBodyBytes", 1048576)):
+                if facts.get(field) != expected:
+                    reasons.append("%s %s=%r (expected %r)" % (side, field, facts.get(field), expected))
+            if facts.get("expectedBodyBytes") != 1048576 or facts.get("httpOk") is not True:
+                reasons.append("%s did not verify the known local-origin HTTP payload" % side)
+            if (not facts.get("expectedBodySha256")
+                    or facts.get("httpBodySha256") != facts.get("expectedBodySha256")):
+                reasons.append("%s local-origin body hash does not match" % side)
+            if facts.get("trafficBytes", 0) <= 0:
+                reasons.append("%s inbound traffic counters did not increase" % side)
+        biz_details = {
+            side: {
+                "trafficBytes": traffic[side].get("trafficBytes", 0),
+                "apiPreRc": traffic[side].get("apiPreRc"),
+                "apiPreExpectedRc": traffic[side].get("apiPreExpectedRc"),
+                "statsBeforeRc": traffic[side].get("statsBeforeRc"),
+                "statsAfterRc": traffic[side].get("statsAfterRc"),
+                "httpRc": traffic[side].get("httpRc"),
+                "httpOk": traffic[side].get("httpOk"),
+                "httpBodyBytes": traffic[side].get("httpBodyBytes"),
+                "httpBodySha256": traffic[side].get("httpBodySha256"),
+                "expectedBodySha256": traffic[side].get("expectedBodySha256"),
+                "inboundCounters": traffic[side].get("inboundCounters", {}),
+                "counterDimension": "per-inbound uplink/downlink bytes",
+            }
+            for side in ("bash", "go")
+        }
 
     elif oid == "OPS-22":
         for side in ("bash", "go"):
@@ -4078,16 +4301,17 @@ fi
 # requires: frozen product commit, both shipped artefacts, the driver and the
 # container image. Evidence without this block is reported as BLOCKED by
 # build_ledger.py instead of being counted as a pass.
-python3 - "$EVID" "$RUN_ID" "$ROOT" "$WORK/seed/idleleo" "$IMAGE_ID" "$STARTED_AT" <<'PY'
+python3 - "$EVID" "$RUN_ID" "$ROOT" "$WORK/seed/idleleo" "$IMAGE_ID" "$IMAGE_PLATFORM" "$STARTED_AT" <<'PY'
 import glob
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
 
-evid, run_id, root, binary, image_id, started = sys.argv[1:7]
+evid, run_id, root, binary, image_id, platform, started = sys.argv[1:8]
 
 def digest(path):
     try:
@@ -4096,14 +4320,50 @@ def digest(path):
     except OSError:
         return None
 
-run = {
+artifact_dir = os.path.join(evid, "build")
+os.makedirs(artifact_dir, exist_ok=True)
+artifact_paths = {
+    "binary": os.path.join(artifact_dir, "idleleo"),
+    "bashScript": os.path.join(artifact_dir, "install.sh"),
+    "driver": os.path.join(artifact_dir, "run_p2_matrix.sh"),
+}
+for source, target in ((binary, artifact_paths["binary"]),
+                       (os.path.join(root, "install.sh"), artifact_paths["bashScript"]),
+                       (os.path.join(root, "tests/e2e-diff/run_p2_matrix.sh"), artifact_paths["driver"])):
+    shutil.copyfile(source, target)
+artifact_rels = {name: os.path.relpath(path, evid) for name, path in artifact_paths.items()}
+dependency_sources = (
+    "tests/e2e-diff/collect/l4.sh",
+    "tests/e2e-diff/collect/client_config.py",
+    "tests/e2e-diff/collect/build_ledger.py",
+    "tests/e2e-diff/drivers/bash_ops.exp",
+    "tests/go-parity/lib/docker_common.sh",
+)
+dependencies = []
+for rel in dependency_sources:
+    source = os.path.join(root, rel)
+    target = os.path.join(artifact_dir, "dependencies", rel)
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    shutil.copyfile(source, target)
+    dependencies.append({"source": rel, "path": os.path.relpath(target, evid), "sha256": digest(target)})
+manifest = {
     "productCodeSha": subprocess.check_output(
         ["git", "-C", root, "rev-parse", "HEAD"], text=True).strip(),
-    "binarySha256": digest(binary),
-    "bashScriptSha256": digest(os.path.join(root, "install.sh")),
-    "driverSha": digest(os.path.join(root, "tests/e2e-diff/run_p2_matrix.sh")),
-    "runId": run_id,
+    "binarySha256": digest(artifact_paths["binary"]),
+    "bashScriptSha256": digest(artifact_paths["bashScript"]),
+    "driverSha": digest(artifact_paths["driver"]),
     "image": image_id,
+    "platform": platform,
+    "artifacts": artifact_rels,
+    "dependencies": dependencies,
+}
+manifest_path = os.path.join(evid, "build-manifest.json")
+with open(manifest_path, "w", encoding="utf-8") as fh:
+    json.dump(manifest, fh, ensure_ascii=False, indent=2, sort_keys=True)
+    fh.write("\n")
+run = {
+    **{key: value for key, value in manifest.items() if key != "artifacts"},
+    "runId": run_id,
     "layer": "L0-L4 docker matrix",
     # A red run stays red unless a later run names it here and states the fix
     # commit; build_ledger.py only promotes FAIL when both fields are present.
@@ -4111,6 +4371,8 @@ run = {
     "fixedBy": os.environ.get("E2E_FIXED_BY") or None,
     "startedAt": started,
     "finishedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": digest(manifest_path),
 }
 with open(os.path.join(evid, "run.json"), "w", encoding="utf-8") as fh:
     json.dump(run, fh, ensure_ascii=False, indent=2, sort_keys=True)

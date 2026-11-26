@@ -101,8 +101,8 @@
       "fixCommit": "8a457bec",
       "validation": [
         "tests/e2e-diff/collect/build_ledger.py::PROVENANCE_FIELDS / provenance_problems_run（产品 SHA、二进制、脚本、驱动、runId、层级、时间）",
-        "tests/e2e-diff/collect/build_ledger.py::BUSINESS_FACTS（OPS-01/02/04/08/10/20/25/26/32）",
-        "tests/e2e-diff/collect/build_ledger.py::approval_problems（opId/scope/指纹/有效期）",
+        "tests/e2e-diff/collect/build_ledger.py2001:db8::1USINESS_FACTS（OPS-01/02/04/08/10/20/25/26/32）",
+        "tests/e2e-diff/collect/build_ledger.py2001:db8::1pproval_problems（opId/scope/指纹/有效期）",
         "tests/e2e-diff/collect/build_ledger.py::supersedes/fixedBy 语义",
         "tests/e2e-diff/collect/test_build_ledger.py 28/28 PASS（含 PASS 缺业务证据、旧 SHA、缺 provenance、旧 FAIL 无依据覆盖、批准不同内容等负例）",
         "新账本将 OPS-04/08 记为 BLOCKED（缺业务证据），OPS-01/02 未达 DUAL"

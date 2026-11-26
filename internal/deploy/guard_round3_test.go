@@ -53,8 +53,7 @@ func TestInspectSNIGuardDoesNotClaimActiveWithoutReloadProof(t *testing.T) {
 	if st.Status != "runtime-unverified" {
 		t.Fatalf("an unreloaded policy change must not be active: %+v", st)
 	}
-	if !strings.Contains(strings.Join(st.Warnings, " "), "not been reloaded") &&
-		!strings.Contains(strings.Join(st.Warnings, " "), "predates") {
+	if !strings.Contains(strings.Join(st.Warnings, " "), "no verified reload record") {
 		t.Fatalf("the operator must be told why the policy is unverified: %v", st.Warnings)
 	}
 	if !st.MetadataSynced {
@@ -63,7 +62,7 @@ func TestInspectSNIGuardDoesNotClaimActiveWithoutReloadProof(t *testing.T) {
 	_ = bin
 }
 
-func TestInspectSNIGuardReportsActiveWhenMasterStartedAfterFiles(t *testing.T) {
+func TestInspectSNIGuardDoesNotInferLoadedContentFromStartTime(t *testing.T) {
 	root := seedGuardInstall(t)
 	if _, err := SetSNIGuard(context.Background(), SNIGuardSpec{Root: root, Policy: SNIPolicyIsolate}); err != nil {
 		t.Fatal(err)
@@ -77,8 +76,8 @@ func TestInspectSNIGuardReportsActiveWhenMasterStartedAfterFiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if st.Status != "active" {
-		t.Fatalf("a master started after the files loaded them: %+v", st)
+	if st.Status != "runtime-unverified" {
+		t.Fatalf("process start time cannot prove loaded policy content: %+v", st)
 	}
 }
 

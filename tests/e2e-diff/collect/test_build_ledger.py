@@ -29,6 +29,7 @@ def repo_root():
 
 
 ROOT = repo_root()
+TEST_SHA = "a" * 40
 OFFICIAL = [
     os.path.join(ROOT, "tests/e2e-diff/ledger.json"),
     os.path.join(ROOT, "tests/e2e-diff/matrix.json"),
@@ -55,15 +56,53 @@ def write(path, data):
 
 
 def provenance(root, **overrides):
+    artifact_dir = os.path.join(root, "build")
+    os.makedirs(artifact_dir, exist_ok=True)
+    artifacts = {
+        "binary": "build/idleleo",
+        "bashScript": "build/install.sh",
+        "driver": "build/driver.sh",
+    }
+    for key, content in (("binary", b"synthetic binary"),
+                         ("bashScript", b"synthetic bash script"),
+                         ("driver", b"synthetic driver")):
+        path = os.path.join(root, artifacts[key])
+        with open(path, "wb") as fh:
+            fh.write(content)
+    dependency_path = os.path.join(root, "build", "dependency.sh")
+    with open(dependency_path, "wb") as fh:
+        fh.write(b"synthetic dependency")
+    import hashlib
+    digests = {}
+    for key, path in artifacts.items():
+        with open(os.path.join(root, path), "rb") as fh:
+            digests[key] = hashlib.sha256(fh.read()).hexdigest()
     run = {
-        "productCodeSha": "test",
-        "binarySha256": "b" * 64,
-        "bashScriptSha256": "a" * 64,
-        "driverSha": "c" * 40,
+        "productCodeSha": TEST_SHA,
+        "binarySha256": digests["binary"],
+        "bashScriptSha256": digests["bashScript"],
+        "driverSha": digests["driver"],
         "runId": os.path.basename(os.path.normpath(root)),
+        "image": "sha256:" + "d" * 64,
+        "platform": "linux/arm64",
         "layer": "synthetic unit evidence",
         "startedAt": "2026-11-24T00:00:00Z",
+        "finishedAt": "2026-11-24T00:01:00Z",
+        "manifestPath": "build-manifest.json",
     }
+    manifest = {
+        key: run[key] for key in ("productCodeSha", "binarySha256", "bashScriptSha256", "driverSha", "image", "platform")
+    }
+    manifest["artifacts"] = artifacts
+    manifest["dependencies"] = [{
+        "source": "tests/fixture/dependency.sh",
+        "path": "build/dependency.sh",
+        "sha256": digest(dependency_path),
+    }]
+    manifest_path = os.path.join(root, run["manifestPath"])
+    with open(manifest_path, "w", encoding="utf-8") as fh:
+        json.dump(manifest, fh, sort_keys=True)
+    run["manifestSha256"] = digest(manifest_path)
     run.update(overrides)
     return run
 
@@ -77,7 +116,8 @@ def contract_details(op_id):
         side = {"portListening": True, "clientConnected": True, "shareInfo": "vless://example"}
         return {"bash": dict(side), "go": dict(side)}
     if op_id == "OPS-08":
-        side = {"sniProbe": {"unknownSniPolicy": "isolate", "knownSniOk": True}}
+        side = {"sniProbe": {"unknownSniPolicy": "isolate", "knownSniOk": True,
+                              "knownRc": 0, "unknownRc": 1}}
         return {"bash": dict(side), "go": dict(side)}
     return {}
 
@@ -105,6 +145,12 @@ def approval(op_id, evidence_path, scope="documented difference", **overrides):
 def sweep(root, text):
     write(os.path.join(root, "assertions.txt"), text)
     write(os.path.join(root, "run.json"), provenance(root))
+    import re
+    rows = []
+    for op_id in sorted(set(re.findall(r"OPS-(?:[0-9]{2}[a-c]?|17[abc])", text))):
+        rows.append(json.dumps({"id": op_id, "actualRc": 0, "expectedRc": 0,
+                                "argv": ["idleleo", "test-op"]}))
+    write(os.path.join(root, "commands.jsonl"), "\n".join(rows) + ("\n" if rows else ""))
 
 
 class LedgerContractTest(unittest.TestCase):
@@ -124,7 +170,7 @@ class LedgerContractTest(unittest.TestCase):
         self.tmp.cleanup()
 
     def run_ledger(self, matrix=None, ops_dirs=(), approvals=None, allow_incomplete=False):
-        cmd = [sys.executable, SCRIPT, "--code-sha", "test", "--out", self.out,
+        cmd = [sys.executable, SCRIPT, "--code-sha", TEST_SHA, "--out", self.out,
                "--matrix-json", os.path.join(self.root, "matrix.json"),
                "--acceptance-json", os.path.join(self.root, "acceptance.json")]
         if matrix:
@@ -273,7 +319,7 @@ class LedgerContractTest(unittest.TestCase):
         bad = os.path.join(self.root, "bad")
         ops(good, "OPS-08", "PASS")
         ops(bad, "OPS-08", "FAIL")
-        cmd = [sys.executable, SCRIPT, "--code-sha", "test", "--out", self.out,
+        cmd = [sys.executable, SCRIPT, "--code-sha", TEST_SHA, "--out", self.out,
                "--matrix-json", os.path.join(self.root, "matrix.json"),
                "--acceptance-json", os.path.join(self.root, "acceptance.json"),
                "--matrix-evidence", good, "--matrix-evidence", bad]
@@ -323,7 +369,7 @@ class LedgerContractTest(unittest.TestCase):
         # that write outright, before touching any output.
         ops(self.matrix, "OPS-08", "FAIL")
         before = {path: digest(path) for path in OFFICIAL}
-        cmd = [sys.executable, SCRIPT, "--code-sha", "test", "--out", self.out,
+        cmd = [sys.executable, SCRIPT, "--code-sha", TEST_SHA, "--out", self.out,
                "--matrix-json", os.path.join(self.root, "matrix.json"),
                "--matrix-evidence", self.matrix]
         proc = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
@@ -338,14 +384,14 @@ class LedgerContractTest(unittest.TestCase):
         official_copy = os.path.join(self.root, "acceptance-copy.json")
         write(official_copy, {"schemaVersion": 1})
         ops(self.matrix, "OPS-01", "PASS")
-        cmd = [sys.executable, SCRIPT, "--code-sha", "test", "--out", self.out,
+        cmd = [sys.executable, SCRIPT, "--code-sha", TEST_SHA, "--out", self.out,
                "--matrix-json", os.path.join(self.root, "matrix.json"),
                "--acceptance-json", official_copy, "--allow-repo-write",
                "--matrix-evidence", self.matrix, "--allow-incomplete"]
         proc = subprocess.run(cmd, capture_output=True, text=True)
         self.assertEqual(proc.returncode, 0, proc.stderr)
         with open(official_copy, encoding="utf-8") as fh:
-            self.assertEqual(json.load(fh)["ops"]["codeSha"], "test")
+            self.assertEqual(json.load(fh)["ops"]["codeSha"], TEST_SHA)
 
     def test_allow_incomplete_keeps_evidence_visible(self):
         sweep_dir = os.path.join(self.root, "sweep")
@@ -364,6 +410,44 @@ class LedgerContractTest(unittest.TestCase):
         row = self.row(ledger, "OPS-05")
         self.assertEqual(row["status"], "BLOCKED")
         self.assertTrue(any("provenance" in r for r in row["reasons"]))
+
+    def test_wrong_hash_and_manifest_image_timestamp_are_blocked(self):
+        run = provenance(self.matrix, binarySha256="wrong", startedAt="not-a-time",
+                         image="missing", finishedAt="2020-01-01T00:00:00Z")
+        ops(self.matrix, "OPS-05", "PASS", run=run)
+        proc, ledger = self.run_ledger(matrix=self.matrix)
+        self.assertEqual(proc.returncode, 2, proc.stderr)
+        reasons = " ".join(self.row(ledger, "OPS-05")["reasons"])
+        self.assertIn("SHA-256", reasons)
+        self.assertIn("image", reasons)
+        self.assertIn("startedAt", reasons)
+
+    def test_candidate_manifest_artifact_tampering_is_blocked(self):
+        run = provenance(self.matrix)
+        with open(os.path.join(self.matrix, "build", "idleleo"), "wb") as fh:
+            fh.write(b"changed after manifest")
+        ops(self.matrix, "OPS-05", "PASS", run=run)
+        proc, ledger = self.run_ledger(matrix=self.matrix)
+        self.assertEqual(proc.returncode, 2, proc.stderr)
+        self.assertTrue(any("binary digest" in reason for reason in self.row(ledger, "OPS-05")["reasons"]))
+
+    def test_sni_declared_rejection_must_match_observed_rc(self):
+        details = contract_details("OPS-08")
+        for side in ("bash", "go"):
+            details[side]["sniProbe"]["unknownRc"] = 0
+        ops(self.matrix, "OPS-08", "PASS", details=details)
+        proc, ledger = self.run_ledger(matrix=self.matrix)
+        self.assertEqual(proc.returncode, 2, proc.stderr)
+        self.assertEqual(self.row(ledger, "OPS-08")["status"], "BLOCKED")
+
+    def test_sweep_without_real_command_rc_is_blocked(self):
+        sweep_dir = os.path.join(self.root, "sweep")
+        write(os.path.join(sweep_dir, "assertions.txt"), "PASS\tOPS-18 tcp tuning\n")
+        write(os.path.join(sweep_dir, "run.json"), provenance(sweep_dir))
+        proc, ledger = self.run_ledger(ops_dirs=[sweep_dir], allow_incomplete=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(self.row(ledger, "OPS-18")["status"], "BLOCKED")
+        self.assertIsNone(self.row(ledger, "OPS-18")["goExit"])
 
     def test_stale_candidate_evidence_is_blocked(self):
         ops(self.matrix, "OPS-05", "PASS",
@@ -403,24 +487,27 @@ class LedgerContractTest(unittest.TestCase):
         self.assertEqual(self.row(ledger, "OPS-07")["status"], "FAIL")
         self.assertTrue(any("expired" in r for r in self.row(ledger, "OPS-07")["reasons"]))
 
-    def test_failure_can_only_be_superseded_by_an_explicit_later_run(self):
+    def test_superseding_one_failure_does_not_close_another(self):
         good = os.path.join(self.root, "good")
         bad = os.path.join(self.root, "bad")
+        bad2 = os.path.join(self.root, "bad2")
         ops(good, "OPS-09", "PASS",
-            run=provenance(good, supersedes="bad", fixedBy="abc1234"))
-        ops(bad, "OPS-09", "FAIL")
-        cmd = [sys.executable, SCRIPT, "--code-sha", "test", "--out", self.out,
+            run=provenance(good, supersedes="bad", fixedBy=TEST_SHA,
+                           startedAt="2026-11-24T00:02:00Z"))
+        ops(bad, "OPS-09", "FAIL", run=provenance(bad, startedAt="2026-11-24T00:00:00Z"))
+        ops(bad2, "OPS-09", "FAIL", run=provenance(bad2, startedAt="2026-11-24T00:00:30Z"))
+        cmd = [sys.executable, SCRIPT, "--code-sha", TEST_SHA, "--out", self.out,
                "--matrix-json", os.path.join(self.root, "matrix.json"),
                "--acceptance-json", os.path.join(self.root, "acceptance.json"),
-               "--matrix-evidence", good, "--matrix-evidence", bad, "--allow-incomplete"]
+               "--matrix-evidence", good, "--matrix-evidence", bad, "--matrix-evidence", bad2,
+               "--allow-incomplete"]
         proc = subprocess.run(cmd, capture_output=True, text=True)
         with open(self.out, encoding="utf-8") as fh:
             ledger = json.load(fh)
-        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(proc.returncode, 1, proc.stderr)
         row = self.row(ledger, "OPS-09")
-        self.assertEqual(row["status"], "DUAL_SIDE_VERIFIED")
-        self.assertEqual(row["supersededRuns"], ["bad"])
-        self.assertEqual(row["fixedBy"], "abc1234")
+        self.assertEqual(row["status"], "FAIL")
+        self.assertNotIn("supersededRuns", row)
 
     def test_sweep_without_provenance_is_blocked(self):
         sweep_dir = os.path.join(self.root, "sweep")

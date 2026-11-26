@@ -514,9 +514,9 @@ type nginxProcess struct {
 var inspectNginxProcess = readNginxProcess
 
 // nginxPolicyRuntimeVerified proves three things before "active" is claimed:
-// the pid belongs to the managed Nginx binary, that process is alive, and it
-// either started after the current policy files were written or a successful
-// reload recorded exactly these file hashes.
+// the pid belongs to the managed Nginx binary, that process is alive, and a
+// successful reload recorded exactly these file hashes for this process
+// instance. Process start time and file mtimes cannot prove loaded contents.
 func nginxPolicyRuntimeVerified(paths host.Paths, evidence []string, policy string) (verified, alive bool, reason string) {
 	bin := filepath.Join(paths.Root, filepath.FromSlash(nginx.InstallDirRel), "sbin", "nginx")
 	if fi, err := os.Stat(bin); err != nil || !fi.Mode().IsRegular() {
@@ -538,18 +538,12 @@ func nginxPolicyRuntimeVerified(paths host.Paths, evidence []string, policy stri
 	if proc.Exe != "" && !samePath(proc.Exe, bin) {
 		return false, true, fmt.Sprintf("pid %d runs %s, not the managed Nginx; reporting runtime-unverified", pid, proc.Exe)
 	}
-	newest := newestModTime(evidence)
-	if !proc.Started.IsZero() && (newest.IsZero() || !proc.Started.Before(newest)) {
-		// The master started after the policy files were last written, so its
-		// startup must have read exactly these files.
-		return true, true, ""
-	}
 	record, err := readGuardRuntimeRecord(paths)
 	if err == nil && record.Policy == policy && record.Digest == guardEvidenceDigest(evidence) &&
 		record.PID == pid && record.StartTicks != 0 && record.StartTicks == proc.StartTicks {
 		return true, true, ""
 	}
-	return false, true, "the running Nginx predates the current policy files and no verified reload record matches this process instance; reporting runtime-unverified"
+	return false, true, "no verified reload record matches the current policy content and Nginx process instance; reporting runtime-unverified"
 }
 
 func samePath(a, b string) bool {
@@ -559,16 +553,6 @@ func samePath(a, b string) bool {
 		return filepath.Clean(a) == filepath.Clean(b)
 	}
 	return ra == rb
-}
-
-func newestModTime(paths []string) time.Time {
-	var newest time.Time
-	for _, path := range paths {
-		if fi, err := os.Stat(path); err == nil && fi.ModTime().After(newest) {
-			newest = fi.ModTime()
-		}
-	}
-	return newest
 }
 
 // readNginxProcess reads /proc to verify the pid belongs to the managed binary

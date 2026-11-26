@@ -771,31 +771,11 @@ func managedNginxInstalled(paths host.Paths) bool {
 	return err == nil && fi.Mode().IsRegular()
 }
 
-// planACMEState removes only acme.sh domain directories that can be matched,
-// by certificate identity, to a certificate this manager has proven it owns and
-// has already planned to remove. Account keys, CA state, user-managed pairs and
-// domains whose acme.sh certificate does not match are always preserved.
+// planACMEState reports external acme.sh state as retained. Certificate
+// ownership does not establish ownership of renewal accounts, CA state, hooks,
+// or unrelated files in the same directory, so cert clear never moves it.
 func planACMEState(home string, scan certReferenceScan, rep *ClearCertsReport) ([]certMove, error) {
-	preserveAll := ""
-	if scan.failClosed {
-		preserveAll = "the effective configuration could not be fully scanned"
-	} else if rep.Dir != "" && fileExists(filepath.Join(rep.Dir, certUserMarker)) {
-		preserveAll = "the certificate directory is marked .user-managed"
-	}
-	deletable := map[string]bool{}
-	for _, entry := range rep.Planned {
-		if entry.Action != certActionDelete || entry.Kind != "file" {
-			continue
-		}
-		if !strings.HasSuffix(entry.Path, ".crt") && !strings.HasSuffix(entry.Path, ".pem") {
-			continue
-		}
-		fp, err := certFingerprint(entry.Path)
-		if err != nil {
-			continue
-		}
-		deletable[fp] = true
-	}
+	_ = scan
 	root := filepath.Join(home, ".acme.sh")
 	entries, err := os.ReadDir(root)
 	if err != nil {
@@ -804,52 +784,23 @@ func planACMEState(home string, scan certReferenceScan, rep *ClearCertsReport) (
 		}
 		return nil, nil
 	}
-	if preserveAll != "" {
-		rep.Warnings = append(rep.Warnings, "acme.sh state is preserved because "+preserveAll)
-		for _, entry := range entries {
-			if entry.IsDir() && entry.Type()&os.ModeSymlink == 0 && strings.HasSuffix(entry.Name(), "_ecc") {
-				keepEntry(rep, filepath.Join(root, entry.Name()), "acme-directory", certOwnerUnknown, false, nil,
-					"preserved because "+preserveAll)
-			}
-		}
+	if len(entries) == 0 {
 		return nil, nil
 	}
-	if len(deletable) == 0 {
-		rep.Warnings = append(rep.Warnings,
-			"no removable project certificate identity is available; acme.sh state left untouched")
-		for _, entry := range entries {
-			if entry.IsDir() && entry.Type()&os.ModeSymlink == 0 && strings.HasSuffix(entry.Name(), "_ecc") {
-				keepEntry(rep, filepath.Join(root, entry.Name()), "acme-directory", certOwnerUser, false, nil,
-					"no project ownership record binds this ACME state to a certificate being removed; preserving it")
-			}
-		}
-		return nil, nil
-	}
-	var moves []certMove
+	reason := "external acme.sh accounts, renewal state, CA material, hooks, and files are retained for manual management"
+	rep.Warnings = append(rep.Warnings, "acme.sh state is preserved: "+reason)
 	for _, entry := range entries {
-		if !entry.IsDir() || entry.Type()&os.ModeSymlink != 0 || !strings.HasSuffix(entry.Name(), "_ecc") {
-			continue
-		}
 		target := filepath.Join(root, entry.Name())
-		domain := strings.TrimSuffix(entry.Name(), "_ecc")
-		cerPath := filepath.Join(target, domain+".cer")
-		keyPath := filepath.Join(target, domain+".key")
-		fp, err := certFingerprint(cerPath)
-		// Sharing a certificate identity does not prove who governs the renewal
-		// account. Deleting third-party ACME state requires a path-bound ownership
-		// record inside that directory, which only this project can write.
-		proof := readCertOwnershipProof(target, rep)
-		owned := proof[filepath.Clean(cerPath)] && proof[filepath.Clean(keyPath)]
-		if err != nil || !deletable[fp] || !owned {
-			keepEntry(rep, target, "acme-directory", certOwnerUser, false, nil,
-				"no project ownership record inside this ACME directory binds it to a certificate being removed; preserving it for manual management")
-			continue
+		kind := "file"
+		if entry.IsDir() {
+			kind = "directory"
 		}
-		addPlan(rep, target, "acme-directory", certOwnerProject, false, nil, certActionDelete,
-			"the ACME directory carries a path-bound project ownership record for the certificate being removed")
-		moves = append(moves, certMove{From: target, Kind: "acme"})
+		if entry.Type()&os.ModeSymlink != 0 {
+			kind = "symlink"
+		}
+		keepEntry(rep, target, kind, certOwnerUser, false, nil, reason)
 	}
-	return moves, nil
+	return nil, nil
 }
 
 // certFingerprint returns the SHA-256 digest of the DER certificate. It accepts

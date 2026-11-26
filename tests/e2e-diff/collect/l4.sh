@@ -48,6 +48,8 @@ L4_UUID="${E2E_L4_UUID:-}"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET_URL="${E2E_L4_URL:-http://example.com/}"
 MARKER="${E2E_L4_MARKER:-Example Domain}"
+EXPECTED_BODY_SHA256="${E2E_L4_EXPECTED_SHA256:-}"
+EXPECTED_BODY_BYTES="${E2E_L4_EXPECTED_BYTES:-}"
 
 mkdir -p "$OUT" "$SECRET_DIR"
 # A previous failed attempt leaves a "L4 skipped" marker behind; remove it so
@@ -126,23 +128,34 @@ docker cp "$CLIENT:/client/curl.err" "$OUT/curl.err" >/dev/null 2>&1 || true
 ok=false
 [[ $rc -eq 0 && "$body" == *"$MARKER"* ]] && ok=true
 
-python3 - "$OUT/connectivity.json" "$PROFILE" "$TARGET_URL" "$ok" "$rc" "$body" <<'PY'
+python3 - "$OUT/connectivity.json" "$PROFILE" "$TARGET_URL" "$ok" "$rc" "$body" \
+    "$EXPECTED_BODY_SHA256" "$EXPECTED_BODY_BYTES" <<'PY'
 import hashlib
 import json
 import sys
 
-out, profile, target, ok, rc, body = sys.argv[1:7]
+out, profile, target, ok, rc, body, expected_sha, expected_bytes = sys.argv[1:9]
+body_sha = hashlib.sha256(body.encode()).hexdigest()
+body_bytes = len(body.encode())
+expected_match = (not expected_sha or body_sha == expected_sha) and (
+    not expected_bytes or body_bytes == int(expected_bytes))
+ok = ok == 'true' and expected_match
 json.dump({
     'profile': profile,
     'target': target,
-    'ok': ok == 'true',
+    'ok': ok,
     'curlExit': int(rc),
-    'bodySha256': hashlib.sha256(body.encode()).hexdigest(),
+    'bodySha256': body_sha,
+    'bodyBytes': body_bytes,
+    'expectedBodySha256': expected_sha or None,
+    'expectedBodyBytes': int(expected_bytes) if expected_bytes else None,
+    'expectedBodyMatch': expected_match,
     'bodyMatch': 'Example Domain' in body,
 }, open(out, 'w'), indent=2, sort_keys=True)
 PY
 
-[[ "$ok" == true ]] || fail "business request failed (curl exit $rc, body bytes ${#body})"
+python_ok=$(python3 -c 'import json,sys; print("true" if json.load(open(sys.argv[1])).get("ok") else "false")' "$OUT/connectivity.json")
+[[ "$python_ok" == true ]] || fail "business request failed (curl exit $rc, body bytes ${#body})"
 # The client is single-use; leaving it behind pins its network and eventually
 # exhausts Docker's address pools on repeat runs.
 [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$CLIENT" >/dev/null 2>&1 || true

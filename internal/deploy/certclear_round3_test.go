@@ -304,6 +304,46 @@ func TestClearCertificatesKeepsIdenticalACMEWithoutOwnershipRecord(t *testing.T)
 	}
 }
 
+// External renewal state is retained even when an ownership marker claims the
+// same certificate and key: the directory also carries account state and
+// files whose lifecycle belongs to acme.sh.
+func TestClearCertificatesKeepsOwnedLookingACMEStateAndExtraFiles(t *testing.T) {
+	root := sandbox(t)
+	home := t.TempDir()
+	certDir := filepath.Join(root, "etc/idleleo/cert")
+	certPath, keyPath := writeOwnedPair(t, certDir, "xray.crt", "xray.key", time.Now().Add(90*24*time.Hour))
+	certPEM, err := os.ReadFile(certPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keyPEM, err := os.ReadFile(keyPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	acmeDir := filepath.Join(home, ".acme.sh", "owned.example.com_ecc")
+	acmeCert := filepath.Join(acmeDir, "owned.example.com.cer")
+	acmeKey := filepath.Join(acmeDir, "owned.example.com.key")
+	writeGuardTestFile(t, acmeCert, certPEM)
+	writeGuardTestFile(t, acmeKey, keyPEM)
+	writeGuardTestFile(t, filepath.Join(acmeDir, "renewal.conf"), []byte("renewal state"))
+	writeGuardTestFile(t, filepath.Join(acmeDir, "account.key"), []byte("account state"))
+	writeManagedMarkerHashes(t, acmeDir, acmeCert, acmeKey)
+
+	rep, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root, HomeDir: home})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{acmeCert, acmeKey, filepath.Join(acmeDir, "renewal.conf"), filepath.Join(acmeDir, "account.key")} {
+		if _, err := os.Stat(path); err != nil {
+			t.Fatalf("external ACME state must remain intact at %s: %v", filepath.Base(path), err)
+		}
+	}
+	assertPlanned(t, rep, acmeDir, certActionKeep, false)
+	if len(rep.Removed) != 2 {
+		t.Fatalf("the internally owned project certificate may still be removed, got %v", rep.Removed)
+	}
+}
+
 // Deep include chains past the recursion limit must fail closed instead of
 // silently treating the unseen tail as unreferenced.
 func TestClearCertificatesFailsClosedOnDeepIncludeChain(t *testing.T) {
