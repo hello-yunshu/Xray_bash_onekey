@@ -1778,11 +1778,12 @@ PY
             OPS-08)
                 ops_go_cli "$gserver" "$gdir" 10-op xray guard set --policy isolate --container --json
                 ops_go_cli "$gserver" "$gdir" 11-show xray guard show --json
-                # Change only the on-disk reject directive, preserve an older
-                # mtime, and prove the live Nginx worker still rejects the
-                # unknown SNI while Guard honestly reports runtime-unverified.
+                # Change a valid directive in the active isolate fragment,
+                # preserve an older mtime, and prove the live old Nginx worker
+                # still rejects unknown SNI while Guard reports the changed
+                # content as not verified in runtime.
                 docker exec "$gserver" cp /etc/idleleo/conf/nginx/03-isolate.conf /tmp/03-isolate.saved
-                docker exec "$gserver" python3 -c 'from pathlib import Path; p=Path("/etc/idleleo/conf/nginx/03-isolate.conf"); s=p.read_text(); assert "ssl_reject_handshake on" in s; p.write_text(s.replace("ssl_reject_handshake on", "ssl_reject_handshake off", 1))'
+                docker exec "$gserver" python3 -c 'from pathlib import Path; p=Path("/etc/idleleo/conf/nginx/03-isolate.conf"); s=p.read_text(); assert "access_log off;" in s; p.write_text(s.replace("access_log off;", "access_log /tmp/e2e-guard-stale.log;", 1))'
                 docker exec "$gserver" touch -t 202001010000 /etc/idleleo/conf/nginx/03-isolate.conf
                 docker exec "$gserver" /usr/local/nginx/sbin/nginx -t \
                     >"$gdir/12-unreloaded.nginx-test.out" 2>&1
