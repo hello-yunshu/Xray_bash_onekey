@@ -23,6 +23,10 @@ Docker、Bash、Go、Xray、Nginx 和客户端均实际运行，OPS-01/02/03/08/
 
 验收器本身未修改；在 fb55adf7 上重新运行 `python3 tests/e2e-diff/collect/test_build_ledger.py -q`（32 tests）和 `bash tests/e2e-diff/collect/guard_acceptance_artifacts.sh`，均通过且正式三份摘要字节未变，分别见 `evidence/ledger-contract-tests-followup.log` 与 `evidence/acceptance-artifact-isolation-followup.log`。全仓 hygiene 的最终复跑日志为 0 finding（61,478 个文件），见 `evidence/nginx-update-privacy-final.log`。
 
+同一产品源码（`fb55adf7..d3c10d69` 的 `internal/` 无差异）另通过 Go 原生冷恢复四类真实容器场景：Reality、TLS、Relay、Multi。四类均在源节点创建 0600 备份、校验归档，在全新目标节点恢复、核对状态摘要、配置权限/组、Xray/Nginx 服务，并在恢复后与重启后运行真实客户端请求；全部源/目标驱动 rc=0。Reality 为 8/8 + 21/21 断言，TLS、Relay、Multi 全部 PASS。证据目录：`tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127` 与 `...-rest`。该结果补齐 Go 冷恢复实证，但不是 Bash 对照，因此 OPS-25/26 的正式双端状态不变。
+
+两组冷恢复证据 hygiene 扫描为 0 finding（304 个文件），见 `evidence/coldrestore-followup-hygiene.log`。运行器在记录中显示工作树 HEAD 为审计文档提交 `d3c10d69`；该提交相对产品提交 `fb55adf7` 的 `internal/` 无源码差异，且构建二进制 SHA 与精确候选一致。未将这组单侧 Go 证据记成 Bash/Go 双端通过。
+
 本次结果证明该 Nginx 更新缺陷已修复，也证明 Go 版本会在健康验证失败时恢复完整旧安装并维持可用 listener。它只覆盖 OPS-17b 的当前代码提交，不覆盖其他 33 项；此前正式 ledger/matrix/acceptance 仍是 f4deaf77 的冻结摘要，故本报告对 fb55adf7 不作全量签收，Docker 资格继续为 **NO_GO**。
 
 ## 关键修复与真实业务结果

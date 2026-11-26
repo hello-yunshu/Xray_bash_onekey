@@ -31,7 +31,7 @@
 | 故障注入（坏配置/证书、端口、只读、SIGKILL、ENOSPC、锁冲突） | 历史专项 | Guard 与 cert clear 事务边界直接相关 | 本轮 Go 包测试覆盖已有单测；本轮只实跑配置读取安全及证书保留/清理，未完整注入崩溃、ENOSPC、锁冲突及事务恢复 |
 | Xray 三版本、Debian 12、amd64 部署 | 历史平台矩阵 | 本轮二进制目标和新 L4/Guard 驱动有影响 | 本地 Docker 为 linux/arm64；未运行 amd64 或第二发行版，保持未验证 |
 | soak ≥1800 秒与两个调度周期 | 历史 soak | 本轮未改调度服务；当前 sweep 仅短时功能运行 | 未重跑，无当前候选稳定性结论 |
-| OPS-17a / OPS-25 / OPS-26 | 旧 sweep/metadata/export 证据 | metadata 不等同更新或真实备份恢复，且不能替代 Bash 对照 | 前一候选 `5528ca7f` 的 Go CLI 用本地签名 release 实跑更新检查、应用、签名拒绝和健康失败回滚；真实备份校验与容器恢复后配置摘要一致。最终 XHTTP 候选改动未触及更新与备份实现文件，因此按路径影响分析复用，但不提升产品代码 SHA 的 provenance。未完成跨版本业务更新、Bash 对照及完整数据/权限/连接恢复，故 OPS-17a/25 仍 GO_ONLY，OPS-26 仍 BLOCKED |
+| OPS-17a / OPS-25 / OPS-26 | 旧 sweep/metadata/export 证据 | metadata 不等同更新或真实备份恢复，且不能替代 Bash 对照 | Go 冷恢复在当前产品源码二进制上已实跑 Reality/TLS/Relay/Multi 四类：验证备份摘要、源/目标状态字节一致、配置权限与属组、服务恢复/重启以及真实客户端前后连通；四类 source/target 驱动均 rc=0。证据位于 `tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127*`。这提高 Go 单侧证据等级，但尚无 Bash 同协议原生备份与恢复对照，OPS-25/26 正式状态保持 GO_ONLY/BLOCKED；OPS-17a 仍缺跨版本真实业务连接 |
 | OPS-17b Go Nginx 升级 | f4deaf77 真实 OPS-OBSERVE 与旧候选成功记录 | 升级器替换 Nginx 安装目录后丢失托管主配置；`nginx -t` 单独无法发现业务入口消失 | 真实旧容器红证据中默认配置不含托管 include、443 消失且 Reality 请求 curl exit 56。fb55adf7 最小修复后在精确提交重跑 Bash/Go 1.27.5→1.30.6 更新，双方升级后真实客户端请求通过；Go 真实错误版本校验触发 rc=6 与 rollback，配置摘要、Nginx 1.30.6、服务及 443 恢复，回滚后真实客户端仍通过。证据：`tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b`。此补充不改变其余旧 OPS 证据的 SHA，也不构成全量候选资格 |
 | OPS-12/13、OPS-14/16/23/24、M8 | 历史产品契约 | 本轮未修改实时日志取舍、证书续期、速度测量、调度、Pebble 管理核心 | 本轮 sweep 重新确认 Go CLI 部分行为；保持 GO_ONLY。M8 继续标注 Bash wrapper 委托 Go，不宣称纯 Bash |
 

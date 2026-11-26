@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "archive": "/handoff/state.tar.gz",
+  "archiveSha256": "3799d51c7b3e3e3d03d78ec0349e0063adccf39a6f39f4ae730f5f5521f3d02e",
+  "bytes": 0,
+  "files": 4,
+  "createdAt": "",
+  "restored": [
+    "etc/idleleo/conf/nginx/nginx.default",
+    "etc/idleleo/conf/nginx/relay-stream.conf",
+    "etc/idleleo/v1/metadata.json",
+    "etc/idleleo/v1/nginx.json"
+  ],
+  "preBackup": "/etc/idleleo/backup/pre-restore-20261126T170712Z.tar.gz",
+  "sensitive": true
+}

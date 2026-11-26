@@ -1,0 +1,21 @@
+{
+  "runId": "cold-fb55-20261127-rest",
+  "scenarios": {
+    "multi": {
+      "archiveSHA256": "5ff7275623b2bfd706fcfe9e362a8fab40bd2840370a60be1129b377d7a1da00",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    },
+    "relay": {
+      "archiveSHA256": "3799d51c7b3e3e3d03d78ec0349e0063adccf39a6f39f4ae730f5f5521f3d02e",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    },
+    "tls": {
+      "archiveSHA256": "c9e2aa906ef5fd297f9f460181a277e663bc7bc58c92d4a74a32f3eb2e59ffc1",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    }
+  },
+  "schemaVersion": 1
+}

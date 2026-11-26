@@ -1,0 +1,37 @@
+run_id=cold-fb55-20261127 scenarios=reality
+commit=d3c10d6935ea59ddc08a56c57caf333834add8a8
+image=idleleo-e2e:24.04
+image_id=sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b
+building idleleo
+idleleo_sha256=5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6
+building the local TLS target
+arch=arm64
+xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a arch=arm64
+nginx_cache=hit build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+[reality] source: starting e2e-cold-fb55-20261127-cold-source-reality
+[reality] source: installing Go manager
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target 127.0.0.1:8443 --port 443 --container
+install_exit=0
+done=reality install_exit=0
+[reality] source: driver
+driver_start=2026-11-26T17:06:19Z mode=source scenario=reality root=/
+driver_done assertions=8 pass / 0 fail
+[reality] source_driver_rc=0
+[reality] source: destroying e2e-cold-fb55-20261127-cold-source-reality
+[reality] target: starting e2e-cold-fb55-20261127-cold-target-reality
+[reality] target: installing a fresh Go manager
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target 127.0.0.1:8443 --port 443 --container
+install_exit=0
+done=reality install_exit=0
+[reality] target: driver
+driver_start=2026-11-26T17:06:23Z mode=target scenario=reality root=/
+driver_done assertions=21 pass / 0 fail
+[reality] target_driver_rc=0
+evidence=tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127
+RESULT: PASS

@@ -12,8 +12,8 @@
   "files": [
     {
       "path": "docs/go-evolution/hardening/acceptance.json",
-      "sha256": "5bcefce1fc17507c4dd273baf98245fb3fd76105bc5333c203d9c907d152ac23",
-      "type": "follow-up-evidence"
+      "sha256": "1e85f7a820b73a9e1fc2f9ee3d6e25ab4b051363c8fe512ecd858db7d06cd1ae",
+      "type": "cold-restore-follow-up-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/E8-privatekey-rotation-f4deaf77.log",
@@ -164,6 +164,11 @@
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/certclear-runtime-pre-final/certclear-dynamic-tls.log",
       "sha256": "143d100d69df5fa6697e58a2d04d22ad8a93c76b5c3399d97d54efe68e19b3b0",
       "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/coldrestore-followup-hygiene.log",
+      "sha256": "8b9a9b633c5da2056d4c981b00b2622f2f0c4ff75de0e8f5280fcea11457e52f",
+      "type": "cold-restore-follow-up-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/deploy-tests.log",
@@ -507,8 +512,8 @@
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/impact-analysis.md",
-      "sha256": "a70cd352d552840ec85a71fc80dbc7237fe9528dceea19f8e15fd133a8b4258f",
-      "type": "follow-up-evidence"
+      "sha256": "a1fcb84e66106a816e71e1639eda35bbca16743db99f99c52db8ed1a10f9773f",
+      "type": "cold-restore-follow-up-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/probe-development-log.md",
@@ -517,13 +522,13 @@
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/report.md",
-      "sha256": "0bd4bdc2df3d7e3350cc682a24b794fcfcf069cc4f99d5a92dacfc48ebaed437",
-      "type": "follow-up-evidence"
+      "sha256": "c85479867d5e4b40f6bdd3fab7831ad24e1ac7f338c37764ea1367e1500898b6",
+      "type": "cold-restore-follow-up-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/tasks.md",
-      "sha256": "4acdf90d3ee5f5a47301cb3c4f1a8c2d6692c2848e4af0594151b4bcc272a309",
-      "type": "follow-up-evidence"
+      "sha256": "69578f2ff60981ad2bd6b0fcdde7db74cee999d194fa91fae522e900a33edbcd",
+      "type": "cold-restore-follow-up-evidence"
     },
     {
       "path": "tests/e2e-diff/evidence/codex-final-20261126-5528ca7f-E8/p2/E8/go/capture.log",
@@ -9516,6 +9521,1526 @@
       "type": "sanitized-log-or-result"
     },
     {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/run.json",
+      "sha256": "d02756c788d07e909e61d0de0c393f4c8099c48915dc3c58587c1bfb1275c7c3",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S1-doctor/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S1-doctor/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S1-doctor/stdout.txt",
+      "sha256": "99d94b79b0f27a899edefd08b88a1d7cfaed70401b07f57ef7f4510cad74ba64",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S2-backup/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S2-backup/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S2-backup/stdout.txt",
+      "sha256": "cd9d965dcff826a67595f218279db4017ed5728012acfeb20f0cf8b121799f0a",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S3-verify/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S3-verify/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S3-verify/stdout.txt",
+      "sha256": "610485c8644b974784ef1d423202518e7384ae160ee3c9e8e396eb45bac40ce0",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S4-real-client/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S4-real-client/client-config.log",
+      "sha256": "4d2f0d43c7f7beb7700b58721c1101d39c57e61e533741fea9f108c8acb04535",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S4-real-client/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/S5-probe/stdout.txt",
+      "sha256": "8d1e4f4cc91dc6f720233b4a1c22c9c94c416aa080a7a165f1fc4f5a1fd32c84",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/archive.sha256",
+      "sha256": "83c7280375b056474bf392b90579f04a5388df6acdf2d13d7410ddf86dfa8e8d",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/assertions.txt",
+      "sha256": "dcbac720d0c6760f30ccac6eed9894383f121d32a169c08425ec993f2d8693e3",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/config.sha256",
+      "sha256": "e36e0d2fa90cc64963fe8e97d027cf4db46deab8175e529f0d2717c035f02454",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/driver/driver.log",
+      "sha256": "1887f8b924b0b37a04162a036b0d68211e88cc4c0d9028be88cc2b483abacf82",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/capture.log",
+      "sha256": "c6ba13f9a464253b29244a1d5f6c16e720987a8cebd7c23648a21bdd49e69278",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/config/config.sanitized.json",
+      "sha256": "c3bba8c4db27dc5f08244be07d8d0471ecf04e66b210f8b693ed66e833b16503",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/config/identity.json",
+      "sha256": "d94d2d494b9f7b16da2b91d098339f97bc078caf3a5b8a67d6bddf040cd42490",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/cron.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/expect.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/install.log",
+      "sha256": "3f07825fbf711ee73bb870c99280d2b9a67f82efb1d9944cdd8bea73bb03dcab",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/logs.json",
+      "sha256": "62878fb24fdb7343bfe2dfc7a62064ac3d1d4c1a79f3869b69d3a8b0e346eb1e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/logs/nginx.log",
+      "sha256": "dd3e35453783664b472db4485cff267b133edcf878ac441e9809fbd1332c4dcc",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/logs/xray.log",
+      "sha256": "9e39c30746f33c7a670fdb870de1dfb0a3fdc7836197f757193db855e5908b5d",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/manifest.json",
+      "sha256": "966d3a9c116e072e635417340243ef956cf6cc3377cd0e8ac1970236b5a2fff6",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/runtime.json",
+      "sha256": "da1da208d6b07e0a1e4817bdf57ee042fe5a9390e5954cbb9e7296e0715dd8d7",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/state/listeners.txt",
+      "sha256": "0051e321b06f7edf37913522356ce25ba95a6fe55f59446aca9faf2099a30e7a",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/state/nginx-test.log",
+      "sha256": "9cb221b6993277a11765b15bdded4e9b090f1c2a8f5ed573e907ae3b6921f27c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/state/nginx.service",
+      "sha256": "d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/state/xray-test.log",
+      "sha256": "90910c5e6fe71f0f13219546b07029453a97213a6c570c1e638310f6a0459171",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/source/install/state/xray.service",
+      "sha256": "f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/summary.md",
+      "sha256": "3fbe69ce9ebb2ba7c0ea950e6ab7a3a6d29cf54a75861ad1b7bc9c0cd3051beb",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T1-doctor-before/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T1-doctor-before/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T1-doctor-before/stdout.txt",
+      "sha256": "869ac2b23a3b243a45b460872d5a09b1640d164e3440779b5686794204eda6b7",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T2-verify/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T2-verify/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T2-verify/stdout.txt",
+      "sha256": "610485c8644b974784ef1d423202518e7384ae160ee3c9e8e396eb45bac40ce0",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T3-restore/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T3-restore/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T3-restore/stdout.txt",
+      "sha256": "6d70296c39a58e4dc77bb42d578506bcaa4294a9e8bd9762cdfbe9465c42eda4",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T4-xray-test/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T4-xray-test/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T4-xray-test/stdout.txt",
+      "sha256": "2cbddda21da69ee56575e5de2d16d1b17abf391a3079baf64114d4b38d36b2eb",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T5-doctor/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T5-doctor/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T5-doctor/stdout.txt",
+      "sha256": "62f5678b06421ad3b9bf00234c6f62b47a305e56d61a92b0a3da5f35d8138f92",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T6-real-client/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T6-real-client/client-config.log",
+      "sha256": "4d2f0d43c7f7beb7700b58721c1101d39c57e61e533741fea9f108c8acb04535",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T6-real-client/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T7-probe/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T7-probe/stdout.txt",
+      "sha256": "8d1e4f4cc91dc6f720233b4a1c22c9c94c416aa080a7a165f1fc4f5a1fd32c84",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T8-real-client-after-restart/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T8-real-client-after-restart/client-config.log",
+      "sha256": "4d2f0d43c7f7beb7700b58721c1101d39c57e61e533741fea9f108c8acb04535",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/T8-real-client-after-restart/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/assertions.txt",
+      "sha256": "194c81a822bd2a754973806c5aa6c900c767c6db8ef032b1a7abbe78d15b72fe",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/driver/driver.log",
+      "sha256": "94624c1292cc37609fbc0cad41dbd0702d238930b0a02bbc2d83368d5fb8c969",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/capture.log",
+      "sha256": "272e2f7582fdba1e40485a0425fc6239d26802e5bba963af59f05b6236a52f79",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/config/config.sanitized.json",
+      "sha256": "c3bba8c4db27dc5f08244be07d8d0471ecf04e66b210f8b693ed66e833b16503",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/config/identity.json",
+      "sha256": "cedd2dad434bb912740ee73ad4d65375cfda4a7806f59fdb0e45dd4fe0217616",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/cron.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/expect.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/install.log",
+      "sha256": "58f2e9b191574a344a2316f4184ef4f4cfece7b238c1172ffbd69a7f79318123",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/logs.json",
+      "sha256": "ba6177415a2cfda5d47fac97d653ada091f2b3c85c20c8629ac96978c2ce992e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/logs/nginx.log",
+      "sha256": "efdf96b0b876ceb0ef9163b898b802073cb1afc2dfc2d5c9cd8a1333660aa1e4",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/logs/xray.log",
+      "sha256": "1f71d019c433505474e2fb4f5b3135f8704e98083308f2be68da7d802fff7236",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/manifest.json",
+      "sha256": "6c9d935ee67b2e15d7583aa1d32de3ff580f2d961117718c7f5657eee515020b",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/runtime.json",
+      "sha256": "71b5fb3acba972b2c50136dbb0698609a91cab527ac2d319e893109962980d5d",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/state/listeners.txt",
+      "sha256": "e8393a4df9c432c8f544911a18b619b57d6c084c8f509b200fb0b8ad71802fd8",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/state/nginx-test.log",
+      "sha256": "9cb221b6993277a11765b15bdded4e9b090f1c2a8f5ed573e907ae3b6921f27c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/state/nginx.service",
+      "sha256": "d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/state/xray-test.log",
+      "sha256": "9a3735d588beccd03174516c7f3e435a2200db8db26da470a2ef932024cb8ee3",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/multi/target/install/state/xray.service",
+      "sha256": "f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/run.json",
+      "sha256": "4a16056860a1c1ab5ff04d4a9b6892cda2a17ea45aef0156c2a7222d3b9e0beb",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S1-doctor/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S1-doctor/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S1-doctor/stdout.txt",
+      "sha256": "d7a75da1bcae1e2f98de0f359fc7335cb859170ce20364b329117fdc951202b9",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S2-backup/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S2-backup/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S2-backup/stdout.txt",
+      "sha256": "3fec47b94d50c30b03648e2bd23076310aefd5b3075da327dd80dde76d597098",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S3-verify/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S3-verify/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S3-verify/stdout.txt",
+      "sha256": "6c33675f1e98d915edbeab9bba78c59d36a5ddaece904f8b0081b70196582b97",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S4-real-client/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S4-real-client/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S4-real-client/curl.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/S5-probe/stdout.txt",
+      "sha256": "8d1e4f4cc91dc6f720233b4a1c22c9c94c416aa080a7a165f1fc4f5a1fd32c84",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/archive.sha256",
+      "sha256": "16aef828e00dca20cbdbd09805940b783ad2d55677d3e6c140d58407fd34d5db",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/assertions.txt",
+      "sha256": "e0beb28ce57b244e90b1829b4da4ab8726a024abe6a093394d45303b0ad19f49",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/config.sha256",
+      "sha256": "8c3d00e0bbbef7235e0b62e9ad6e597908579d993a7e4683112e385bd432a5fa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/driver/driver.log",
+      "sha256": "9c6d5e938fe86fb2dada0501bfe1bdf6885ffc0b9d7aaf66d8691940ccb029df",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/capture.log",
+      "sha256": "f8a4ac5fb762ad106f7c6287890f6cdf38c077453ceb566e68b68e292c55a75a",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/cron.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/expect.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/install.log",
+      "sha256": "6c292145cc95fa62ec85d7968e34f52a81294cfbee92fd8d304edb785f93d759",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/logs.json",
+      "sha256": "db53e841431b6aa70f43c18c29d890bbd2a1dfb153ae77dabb9ee16725807e89",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/logs/nginx.log",
+      "sha256": "d9abf125e557940ce60c076f3384dc853a11b70693eab98b9bf0fd4299baa428",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/logs/xray.log",
+      "sha256": "19c4e28b2f54ea8f217db4e622b0a5c758efa7b77ce2dc0394b6d159568c0b2e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/manifest.json",
+      "sha256": "14604e3151cb4ceef5088924f6c783dd97f6af447d0ba0f653b3fa15982112dc",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/runtime.json",
+      "sha256": "30ff8422841d2865edda56922d83fd34069a267a8cf83690b6f444dfa282762e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/state/listeners.txt",
+      "sha256": "52c94d77634b6a9f99dcff0faaae9f7273fca317067953813387266f1035b811",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/state/nginx-test.log",
+      "sha256": "9cb221b6993277a11765b15bdded4e9b090f1c2a8f5ed573e907ae3b6921f27c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/source/install/state/nginx.service",
+      "sha256": "d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/summary.md",
+      "sha256": "51de3cc4bb820e06d315b9357cebec104c7e2e41be46f797dfcb94c5f68facb8",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T1-doctor-before/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T1-doctor-before/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T1-doctor-before/stdout.txt",
+      "sha256": "601441d7dd3129f615bc81b88d5f94524c4417e3630662aa1af712551e864597",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T2-verify/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T2-verify/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T2-verify/stdout.txt",
+      "sha256": "6c33675f1e98d915edbeab9bba78c59d36a5ddaece904f8b0081b70196582b97",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T3-restore/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T3-restore/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T3-restore/stdout.txt",
+      "sha256": "b72c9d103dbd110c66ff7873584c200c350c8f6661588645211c1c3a3f6b30f8",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T5-doctor/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T5-doctor/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T5-doctor/stdout.txt",
+      "sha256": "bd60c084886a74a8f080a7a8ce4c7e7f03089d073ceede1dbde68c34958d6622",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T6-real-client/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T6-real-client/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T6-real-client/curl.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T7-probe/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T7-probe/stdout.txt",
+      "sha256": "8d1e4f4cc91dc6f720233b4a1c22c9c94c416aa080a7a165f1fc4f5a1fd32c84",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T8-real-client-after-restart/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T8-real-client-after-restart/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/T8-real-client-after-restart/curl.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/assertions.txt",
+      "sha256": "c283805a30808e06070698268e2563695de8f5a492cd8247244a70a1a25effaa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/driver/driver.log",
+      "sha256": "8719bb1c097786833e36745776bb8b69318f9613d1c57f9013df3737067d9e7c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/capture.log",
+      "sha256": "73f6ba02f1fff4e1c285b01f41c5dea6cd7765b62427c00a1d50c856ce55960c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/cron.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/expect.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/install.log",
+      "sha256": "44e9fc6a1ac490ed3bad57277ce6450262e59f2cdc4005dfcedab3e3ea11ccb5",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/logs.json",
+      "sha256": "14ea10edfcfb442b22ac628e47b563c98bfd0e240ce097f5f74ea02434628ef6",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/logs/nginx.log",
+      "sha256": "bd5e07bd3b5a72bf844482b278ac38a4a2f337e741f18cdbed4f21087e7ab736",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/logs/xray.log",
+      "sha256": "19c4e28b2f54ea8f217db4e622b0a5c758efa7b77ce2dc0394b6d159568c0b2e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/manifest.json",
+      "sha256": "17c3abfec9613d20856dbf4d0b4eec9cdf979b0a5fe44e0e772a614ffec08822",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/runtime.json",
+      "sha256": "86879ba66613c5749149e8dfefa94458a7ec31f10b44db810b4f6cdad8e2a570",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/state/listeners.txt",
+      "sha256": "4384b9f1d2d4090a93209d898e19d53f42c8b42f7604314e7dd70ea0267b9975",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/state/nginx-test.log",
+      "sha256": "9cb221b6993277a11765b15bdded4e9b090f1c2a8f5ed573e907ae3b6921f27c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/relay/target/install/state/nginx.service",
+      "sha256": "d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/run.json",
+      "sha256": "4f4f6c9fc412ebc1a1ec45f97dd61aea817a82578da681e64841389182940fea",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/run.log",
+      "sha256": "965d5b3a6bd4594602ec8c1cdb333fb15094479f0057ae0d47d5be5815e8f902",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/run.json",
+      "sha256": "5ac34f1e229017eade4ccaf4c56d34dbf5f01dd92a656cd6dad8d8032031287e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S1-doctor/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S1-doctor/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S1-doctor/stdout.txt",
+      "sha256": "0be98d621091825c5787fef71f5d7470157593bf80a0f872925dcbe0ff2319da",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S2-backup/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S2-backup/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S2-backup/stdout.txt",
+      "sha256": "7f525fdca230b170f6c1207e9c827669c0ac5a4800935e642cfca69124c382c8",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S3-verify/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S3-verify/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S3-verify/stdout.txt",
+      "sha256": "19211affec631f7cc03ee924fc1d32eb4af9c8cba0f5f4aaf37c0e86fa2bb133",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S4-real-client/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S4-real-client/client-config.log",
+      "sha256": "4d2f0d43c7f7beb7700b58721c1101d39c57e61e533741fea9f108c8acb04535",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S4-real-client/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/S5-probe/stdout.txt",
+      "sha256": "8d1e4f4cc91dc6f720233b4a1c22c9c94c416aa080a7a165f1fc4f5a1fd32c84",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/archive.sha256",
+      "sha256": "6594338cb922e672c2b30d446cd333c7e81c0822e3f91a00c04a19ec1f2ccd4b",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/assertions.txt",
+      "sha256": "8e3db9a6184c9bda0fac2fae28533ab131105f5c89dde83bc6125a4accb01ec4",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/config.sha256",
+      "sha256": "8276673b11e27103d58fdfcc6fcb786972a99d8d3a95b0d9b6fba91461259e31",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/driver/driver.log",
+      "sha256": "80110e66c21354b83d42465d1026f61e2ca80d4f99f3ef4ffc67295403a9d92c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/capture.log",
+      "sha256": "e55638d184e6a2134ce73e2ac324b4b8783b95ccf776be5d71d20c5ea2b92d97",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/config/config.sanitized.json",
+      "sha256": "49aadb861232ac45de311ba2c83d70d190cf72c2ce1c42357d6a4f9d95d2f306",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/config/identity.json",
+      "sha256": "c56aa9edd70467e14dc4f5b79c7075863cb074735f2b535979732b9370d48c3b",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/cron.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/expect.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/install.log",
+      "sha256": "ac4a249ecfe036a329118207b5d4f512ab1a95c181a80bca614ff57aa2d333b0",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/logs.json",
+      "sha256": "398a6279b178619a7a79044013b35bb12a4ca73117deadba22ebe294fc86f14b",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/logs/nginx.log",
+      "sha256": "17a3379cb369e65b87018ea9c8b13b137670c7aba296bca0bfd771192238c714",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/logs/xray.log",
+      "sha256": "f36a577fe2f449b51e5df871f1ad57aeaf4552ba832b9f4d956cf845a3ee230f",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/manifest.json",
+      "sha256": "3c5c1782886b0ca59bd041b935d1c62f27dbe241b77654f6b67280df1edfb05e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/runtime.json",
+      "sha256": "f4f3d2439803922e8688246d20e527da5ec7d6f73c03ff8bbd8c5abd1a45b758",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/state/listeners.txt",
+      "sha256": "ec0c68d371c58c9ad470608c1f4878579f0b6fb197b69058f1a760713a4a809c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/state/nginx-test.log",
+      "sha256": "9cb221b6993277a11765b15bdded4e9b090f1c2a8f5ed573e907ae3b6921f27c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/state/nginx.service",
+      "sha256": "d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/state/xray-test.log",
+      "sha256": "10ac524e81ec569484853896ed53d03b766d0aa5bc3a1aa3eb3969c4968b8016",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/source/install/state/xray.service",
+      "sha256": "f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/summary.md",
+      "sha256": "03d04e7b99408208e4fdbb7ac201bcb0259f64c909f604c566ee2204525b2e4a",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T1-doctor-before/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T1-doctor-before/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T1-doctor-before/stdout.txt",
+      "sha256": "9654bac91adddc41582a01b394f247fb11e4bf4ae6f8608c6478446dc8d0fd6b",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T2-verify/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T2-verify/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T2-verify/stdout.txt",
+      "sha256": "19211affec631f7cc03ee924fc1d32eb4af9c8cba0f5f4aaf37c0e86fa2bb133",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T3-restore/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T3-restore/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T3-restore/stdout.txt",
+      "sha256": "8843e9d4dc18836441091bf78246e2c18dd67e1f984cec448b5c8224ee084912",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T4-xray-test/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T4-xray-test/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T4-xray-test/stdout.txt",
+      "sha256": "e3032e8b051463a2b2d27df456d0b368e3645535995d3a46324324daa6ed8448",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T5-doctor/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T5-doctor/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T5-doctor/stdout.txt",
+      "sha256": "e61359fb3e6ccb876c8b29f01671a06edb7131e73172ec41d2b9f72e6e00004a",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T6-real-client/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T6-real-client/client-config.log",
+      "sha256": "4d2f0d43c7f7beb7700b58721c1101d39c57e61e533741fea9f108c8acb04535",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T6-real-client/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T7-probe/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T7-probe/stdout.txt",
+      "sha256": "8d1e4f4cc91dc6f720233b4a1c22c9c94c416aa080a7a165f1fc4f5a1fd32c84",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T8-real-client-after-restart/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T8-real-client-after-restart/client-config.log",
+      "sha256": "4d2f0d43c7f7beb7700b58721c1101d39c57e61e533741fea9f108c8acb04535",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/T8-real-client-after-restart/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/assertions.txt",
+      "sha256": "aa8b99152fd6ed6e1aa5512de51462d7a710ca8801f902e20e0b1174b3fb5a41",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/driver/driver.log",
+      "sha256": "0aa9f1fd12a820cfcb5e3b57d6a3605a14b8a76810e1e95de15ba0412769c2fb",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/capture.log",
+      "sha256": "94c958e77171ae2affae7e84ab6020fe98190563da4f647ab933499e10ab6ad4",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/config/config.sanitized.json",
+      "sha256": "49aadb861232ac45de311ba2c83d70d190cf72c2ce1c42357d6a4f9d95d2f306",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/config/identity.json",
+      "sha256": "52ed47278aa2ebb379d9f93ffc22414e125cd939eac4763d19064a45c366337f",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/cron.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/expect.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/install.log",
+      "sha256": "3fb3360458704cdc95b2f4f90e2e918c59f15f7d48fc38031c085fa4b9dbdf70",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/logs.json",
+      "sha256": "b92729ad689e9ca1673dff159f7602dd930ddac9f648c0f62a0878169a7f090c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/logs/nginx.log",
+      "sha256": "9daab6db9f4c830d1ff4fada4817824c150ed2c2b1f10dfdf516424d55a8c7b2",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/logs/xray.log",
+      "sha256": "1ce38aa1e14d3534c31580084f5a133ac9b8b59a9ac0a1530f311b7f0c2e77a4",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/manifest.json",
+      "sha256": "2aac6e9bef46a389c68d714f65d89ce8e640cdf2470fd0ebd356d9f3e8384d0c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/runtime.json",
+      "sha256": "29c82b3b12697d17489066cc459b667b8a538cd117e0a024cbce0d7b0be43d03",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/state/listeners.txt",
+      "sha256": "dd11eadedadb032ca3ff45674b619e7a4a457c66bd67c18cb470f4a8ad8b36d5",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/state/nginx-test.log",
+      "sha256": "9cb221b6993277a11765b15bdded4e9b090f1c2a8f5ed573e907ae3b6921f27c",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/state/nginx.service",
+      "sha256": "d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/state/xray-test.log",
+      "sha256": "e16fe69df1ad8a3e9a78a895dde56e156cb3c0c350f2a867f43419ba8fdf8082",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest/tls/target/install/state/xray.service",
+      "sha256": "f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/run.json",
+      "sha256": "2e2b7d2dd26b31d89a40a31bf6ef07bcd15ecea4d6555c519b24d1da17e90e53",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S1-doctor/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S1-doctor/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S1-doctor/stdout.txt",
+      "sha256": "b97e61f54eddebc8c8fedc4c83e5e6e5d07276bc1470292f978c2133bf05adcb",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S2-backup/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S2-backup/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S2-backup/stdout.txt",
+      "sha256": "8a068383f5c55a3280804dab7860c3578aaff98dbc80888d08e04e6a7158ec1a",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S3-verify/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S3-verify/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S3-verify/stdout.txt",
+      "sha256": "0e1e7b32c8be3ac77be6d505ba76a1f067ee4181274df659cb33f1743e0830ad",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S4-real-client/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S4-real-client/client-config.log",
+      "sha256": "4d2f0d43c7f7beb7700b58721c1101d39c57e61e533741fea9f108c8acb04535",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S4-real-client/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S5-probe/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S5-probe/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/S5-probe/stdout.txt",
+      "sha256": "172829cd24d580aec4b18eeecfe2509a08761403c126aaa5c8920d2f817e9336",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/archive.sha256",
+      "sha256": "1ed0dba7710d6e45bdff2e99fd64842b4afec1bcb94c37ab6b033e12e4e331fa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/assertions.txt",
+      "sha256": "24afce0f1f4cec41355afe715a7d06679b38766e033d5116b97e1a9f3785218a",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/config.sha256",
+      "sha256": "c229cb15992a79456b8fa038a71d143fb96d645adc0381ba9594c36da298a189",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/driver/driver.log",
+      "sha256": "bfbab6b5b0b4b09754d999f10f60e13e61cda0b6c267f482d1cdcef1540fa670",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/capture.log",
+      "sha256": "63a8e93393da8cc84f093e9654b8500840feafc9540178de5238c2da653c9007",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/config/config.sanitized.json",
+      "sha256": "58da55400668488d8c142716e527f24f0b15008d0ad28093cdbcbe610fa6c59d",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/config/identity.json",
+      "sha256": "ecf33ccf9680fcaceb94672bee5f4a3001621e68173d14dd34cafaa1aff5a9d9",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/cron.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/expect.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/install.log",
+      "sha256": "48158232ac97578c4ec921033b9758c62b8076808b3b5c25c84ea6c275bf9bb7",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/logs.json",
+      "sha256": "b49eaf30d2002fb4c59abeee354a4ef54660d570dcc30ed8e1713de4bb9e5444",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/logs/nginx.log",
+      "sha256": "19c4e28b2f54ea8f217db4e622b0a5c758efa7b77ce2dc0394b6d159568c0b2e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/logs/xray.log",
+      "sha256": "9cc47c64932827c5f61c0a3c62de24ed5a1b4161e00ff5f342d6363cf4a35359",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/manifest.json",
+      "sha256": "266713f1a484fdaf1fd989e1158533fbde641d6ef99b194da871eb0530e4cfcf",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/runtime.json",
+      "sha256": "02b88f9619b8ecf8190f8560924bf4f8f006c147e1a207ab70a8305fa749fca6",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/state/listeners.txt",
+      "sha256": "b798fc48f36624c1f147a31457c11cbfcfdc492aa1aae72ef1f4095743c27421",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/state/xray-test.log",
+      "sha256": "98c070a751950f190c4c68551626143e7ff6d372bafeff5138f7886fc0f039c3",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/source/install/state/xray.service",
+      "sha256": "f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/summary.md",
+      "sha256": "bc7a413a9afc01bb71459d76bdaf1ee9c2dae13ce4982c1a9af0c54566595fbd",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T1-doctor-before/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T1-doctor-before/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T1-doctor-before/stdout.txt",
+      "sha256": "cc86edbdfa7ab6271a595610efaa91b7cb5429cf18a9613c8741a20abf6d773e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T2-verify/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T2-verify/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T2-verify/stdout.txt",
+      "sha256": "0e1e7b32c8be3ac77be6d505ba76a1f067ee4181274df659cb33f1743e0830ad",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T3-restore/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T3-restore/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T3-restore/stdout.txt",
+      "sha256": "69d4e2ea86bdae0945389b051173ca578927ee4f57a14721cefc11d038a818f0",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T4-xray-test/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T4-xray-test/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T4-xray-test/stdout.txt",
+      "sha256": "43c5c7bec04ce966d1c5a12570923ec5e44296e42fb02b099c590af3545285fc",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T5-doctor/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T5-doctor/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T5-doctor/stdout.txt",
+      "sha256": "0120dbf59ab08b94fb1a0bde293397bf4912d4d85ecadfaed08c72014deae382",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T6-real-client/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T6-real-client/client-config.log",
+      "sha256": "4d2f0d43c7f7beb7700b58721c1101d39c57e61e533741fea9f108c8acb04535",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T6-real-client/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T7-probe/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T7-probe/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T7-probe/stdout.txt",
+      "sha256": "a04cf5dc0a2c8e82fdd56b859b2fffd99f0351c6c6da3895b33eb510a28ce893",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T8-real-client-after-restart/body.txt",
+      "sha256": "7249435cde6d7b14ca0ec15d0622a4142d02843b294751e62b148cfdfb2c557e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T8-real-client-after-restart/client-config.log",
+      "sha256": "4d2f0d43c7f7beb7700b58721c1101d39c57e61e533741fea9f108c8acb04535",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/T8-real-client-after-restart/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/assertions.txt",
+      "sha256": "be686b157d2c8ebbde389aebe291be3836d668206a348a06e83a4fa52d432f58",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/driver/driver.log",
+      "sha256": "1058ddcb4b352cbad2aea457132db9a99c3feab1dc351d9f44dd5469171b8fb7",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/capture.log",
+      "sha256": "63a8e93393da8cc84f093e9654b8500840feafc9540178de5238c2da653c9007",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/config/config.sanitized.json",
+      "sha256": "60b04e1ad312cf931f1712d40f581fef7514721b0985abc71326612e22fc3d83",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/config/identity.json",
+      "sha256": "e8f1f53b870cca83d077a36e800f14bb76a9aeaf492a5c7b46a5dd623ee81197",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/cron.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/expect.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/install.log",
+      "sha256": "e91abcba56c32a88c9f3c060fc32c61033a7dddc3dfc93a7013940148245bf5e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/logs.json",
+      "sha256": "6d78cf0b2605a92e7f5db856419b6545927224661acc9e3dec5778e0c3c2a74a",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/logs/nginx.log",
+      "sha256": "19c4e28b2f54ea8f217db4e622b0a5c758efa7b77ce2dc0394b6d159568c0b2e",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/logs/xray.log",
+      "sha256": "672a739a1bab78e4104144dc6e4f70e7dab59fd2b4cd9586e5e7c92d93fc9cfa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/manifest.json",
+      "sha256": "354bd51ffe76d1db338763698a2525e533b08d2bffbc46039875fed7d6f071a5",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/runtime.json",
+      "sha256": "02b88f9619b8ecf8190f8560924bf4f8f006c147e1a207ab70a8305fa749fca6",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/state/listeners.txt",
+      "sha256": "469902473a3c881d833d00331f50cce88dd6743e7e8048e70f8b26c887fc31a9",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/state/xray-test.log",
+      "sha256": "491ad82e6f9471dc8fa9e6e7c61a6b494e90d29a3965026bede1fe3b35331475",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/reality/target/install/state/xray.service",
+      "sha256": "f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/run.json",
+      "sha256": "3954c7c731f309be95a9f04d70b41960f05bf283775a296d49be6a447e858ac7",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127/run.log",
+      "sha256": "2b081cf7eae6288ef84a7f8076e0acf3e139bc96b75fd1505f30696a8d4bc347",
+      "type": "cold-restore-follow-up-evidence"
+    },
+    {
       "path": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/bash/L4-after-update/connectivity.json",
       "sha256": "4a05d06e58dc7d4e7c0f7e9b5ef6a304a12ae1c736802bfc4cdf40165fb609ca",
       "type": "follow-up-evidence"
@@ -10064,6 +11589,40 @@
       "image": "sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b",
       "platform": "linux/arm64",
       "evidencePath": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/followup.json"
+    }
+  ],
+  "supplementalEvidenceRuns": [
+    {
+      "runId": "cold-fb55-20261127",
+      "productCodeSha": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+      "runnerTreeCommit": "d3c10d6935ea59ddc08a56c57caf333834add8a8",
+      "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+      "xraySha256": "c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a",
+      "image": "sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b",
+      "platform": "linux/arm64",
+      "scenarios": [
+        "reality"
+      ],
+      "sourceTargetDriverRc": 0,
+      "evidencePath": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127",
+      "comparison": "Go-only cold restore; Bash comparison remains outstanding"
+    },
+    {
+      "runId": "cold-fb55-20261127-rest",
+      "productCodeSha": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+      "runnerTreeCommit": "d3c10d6935ea59ddc08a56c57caf333834add8a8",
+      "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+      "xraySha256": "c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a",
+      "image": "sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b",
+      "platform": "linux/arm64",
+      "scenarios": [
+        "tls",
+        "relay",
+        "multi"
+      ],
+      "sourceTargetDriverRc": 0,
+      "evidencePath": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest",
+      "comparison": "Go-only cold restore; Bash comparison remains outstanding"
     }
   ]
 }

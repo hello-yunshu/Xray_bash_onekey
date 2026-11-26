@@ -744,6 +744,24 @@
     "runId": "obsfix-final-fb55",
     "evidencePath": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b",
     "summary": "Bash and Go real Docker Nginx updates 1.27.5 to 1.30.6 succeeded; post-update Reality L4 passed on both sides. Go real-artifact version mismatch returned rc=6 and rolled back; prior config SHA, Nginx version, active services, 443 listener and post-rollback Reality L4 were verified.",
-    "limitations": "This is a targeted follow-up and does not refresh the 34-row ledger snapshot at f4deaf77 or satisfy remaining CI/security/OPS criteria."
+    "limitations": "This is a targeted follow-up and does not refresh the 34-row ledger snapshot at f4deaf77 or satisfy remaining CI/security/OPS criteria.",
+    "coldRestore": {
+      "productCodeSha": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+      "runnerTreeCommit": "d3c10d6935ea59ddc08a56c57caf333834add8a8",
+      "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+      "image": "sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b",
+      "platform": "linux/arm64",
+      "runs": [
+        "cold-fb55-20261127",
+        "cold-fb55-20261127-rest"
+      ],
+      "scenarios": {
+        "reality": "source 8/8; target 21/21",
+        "tls": "source/target PASS",
+        "relay": "source/target PASS",
+        "multi": "source/target PASS"
+      },
+      "limitations": "Go-only. Does not provide Bash backup/restore comparison; formal OPS-25/26 classifications remain unchanged."
+    }
   }
 }

@@ -1,0 +1,91 @@
+run_id=cold-fb55-20261127-rest scenarios=tls relay multi
+commit=d3c10d6935ea59ddc08a56c57caf333834add8a8
+image=idleleo-e2e:24.04
+image_id=sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b
+building idleleo
+idleleo_sha256=5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6
+building the local TLS target
+arch=arm64
+xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a arch=arm64
+nginx_cache=hit build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+[tls] source: starting e2e-cold-fb55-20261127-rest-cold-source-tls
+[tls] source: installing Go manager
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=preinstalled sha256=9249e33d0b3be3debd3dc71be891063259ebad378e8b9924307af525eb25eb20
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+[tls] source: driver
+driver_start=2026-11-26T17:07:04Z mode=source scenario=tls root=/
+driver_done assertions=7 pass / 0 fail
+[tls] source_driver_rc=0
+[tls] source: destroying e2e-cold-fb55-20261127-rest-cold-source-tls
+[tls] target: starting e2e-cold-fb55-20261127-rest-cold-target-tls
+[tls] target: installing a fresh Go manager
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=preinstalled sha256=c92c6fc1b3fb2a6017e2791a3b3830065a93b6822d6dfe5c797ed2e0fd8b04c5
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+[tls] target: driver
+driver_start=2026-11-26T17:07:07Z mode=target scenario=tls root=/
+driver_done assertions=21 pass / 0 fail
+[tls] target_driver_rc=0
+[relay] source: starting e2e-cold-fb55-20261127-rest-cold-source-relay
+[relay] source: installing Go manager
+systemd_state=running
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --role relay --target 1.2.3.4:18080 --listen-port 443 --listen 0.0.0.0 --container
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+[relay] source: driver
+driver_start=2026-11-26T17:07:10Z mode=source scenario=relay root=/
+driver_done assertions=7 pass / 0 fail
+[relay] source_driver_rc=0
+[relay] source: destroying e2e-cold-fb55-20261127-rest-cold-source-relay
+[relay] target: starting e2e-cold-fb55-20261127-rest-cold-target-relay
+[relay] target: installing a fresh Go manager
+systemd_state=running
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --role relay --target 1.2.3.4:18080 --listen-port 8443 --listen 0.0.0.0 --container
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+[relay] target: driver
+driver_start=2026-11-26T17:07:12Z mode=target scenario=relay root=/
+driver_done assertions=15 pass / 0 fail
+[relay] target_driver_rc=0
+[multi] source: starting e2e-cold-fb55-20261127-rest-cold-source-multi
+[multi] source: installing Go manager
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=preinstalled sha256=50e8ed9e23d6b7252309dddea2670831ce5ce45d4b482728c63514d027ee42f1
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws+grpc+xhttp --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+[multi] source: driver
+driver_start=2026-11-26T17:07:15Z mode=source scenario=multi root=/
+driver_done assertions=7 pass / 0 fail
+[multi] source_driver_rc=0
+[multi] source: destroying e2e-cold-fb55-20261127-rest-cold-source-multi
+[multi] target: starting e2e-cold-fb55-20261127-rest-cold-target-multi
+[multi] target: installing a fresh Go manager
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=preinstalled sha256=5fd8aa2fe336b3fece379c1b316a4d71f193d02036e579eaf5ba78c9c582ef10
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws+grpc+xhttp --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+[multi] target: driver
+driver_start=2026-11-26T17:07:17Z mode=target scenario=multi root=/
+driver_done assertions=23 pass / 0 fail
+[multi] target_driver_rc=0
+evidence=tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest
+RESULT: PASS

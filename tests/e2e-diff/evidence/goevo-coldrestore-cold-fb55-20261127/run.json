@@ -1,0 +1,11 @@
+{
+  "runId": "cold-fb55-20261127",
+  "scenarios": {
+    "reality": {
+      "archiveSHA256": "d8cb0c4b62d6c733e5a1bc7418637243774e00b05b7ea4f512f8fb0032e5cc2f",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    }
+  },
+  "schemaVersion": 1
+}
