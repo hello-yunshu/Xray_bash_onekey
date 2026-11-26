@@ -169,6 +169,21 @@
       "path": "docs/go-evolution/hardening/acceptance.json",
       "sha256": "421b0ec7a253ce0a6aa698f6e99e41cbec41451b65342d537e2fdf83e6a8c93d",
       "type": "report-or-machine-summary"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/certclear-runtime-pre-final/cert-clear.json",
+      "sha256": "2b0eca9e2426ae58155ac51fd93eca1f3b7c5190040caf5baa3f20b656fe52da",
+      "type": "historical-pre-final-run-log"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/certclear-runtime-pre-final/certclear-dynamic-report.json",
+      "sha256": "43bcc8b1f71a8117248a74c46f7d04041f65bb6a6ae1ea226a9bcdff55a393e4",
+      "type": "historical-pre-final-run-log"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/certclear-runtime-pre-final/certclear-dynamic-tls.log",
+      "sha256": "143d100d69df5fa6697e58a2d04d22ad8a93c76b5c3399d97d54efe68e19b3b0",
+      "type": "historical-pre-final-run-log"
     }
   ],
   "ledgerSummary": {
