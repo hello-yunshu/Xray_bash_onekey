@@ -10,7 +10,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -190,62 +189,27 @@ func EnableAPI(raw []byte, port int) ([]byte, bool, error) {
 	return append(out, '\n'), true, nil
 }
 
-// enableInboundTrafficStats makes the API's inbound traffic query useful for
-// every level assigned to a configured user. Xray requires these policy flags
-// in addition to the StatsService and top-level stats object.
+// enableInboundTrafficStats makes inbound traffic queries useful. Xray requires
+// these system policy flags in addition to the StatsService and stats object.
 func enableInboundTrafficStats(doc map[string]any) bool {
-	levels := map[string]any{}
 	policy, _ := doc["policy"].(map[string]any)
 	if policy == nil {
 		policy = map[string]any{}
 		doc["policy"] = policy
 	}
-	if existing, ok := policy["levels"].(map[string]any); ok {
-		levels = existing
-	} else {
-		policy["levels"] = levels
+	system, _ := policy["system"].(map[string]any)
+	if system == nil {
+		system = map[string]any{}
+		policy["system"] = system
 	}
-
-	userLevels := map[string]struct{}{}
-	for _, rawInbound := range asAnySlice(doc["inbounds"]) {
-		inbound, _ := rawInbound.(map[string]any)
-		settings, _ := inbound["settings"].(map[string]any)
-		for _, field := range []string{"clients", "users"} {
-			for _, rawUser := range asAnySlice(settings[field]) {
-				user, _ := rawUser.(map[string]any)
-				level := "0"
-				if n, ok := user["level"].(float64); ok && n >= 0 && n == float64(int(n)) {
-					level = strconv.Itoa(int(n))
-				}
-				userLevels[level] = struct{}{}
-			}
-		}
-	}
-	if len(userLevels) == 0 {
-		userLevels["0"] = struct{}{}
-	}
-
 	changed := false
-	for level := range userLevels {
-		value, ok := levels[level].(map[string]any)
-		if !ok {
-			value = map[string]any{}
-			levels[level] = value
+	for _, key := range []string{"statsInboundUplink", "statsInboundDownlink"} {
+		if enabled, _ := system[key].(bool); !enabled {
+			system[key] = true
 			changed = true
-		}
-		for _, key := range []string{"statsUserUplink", "statsUserDownlink"} {
-			if enabled, _ := value[key].(bool); !enabled {
-				value[key] = true
-				changed = true
-			}
 		}
 	}
 	return changed
-}
-
-func asAnySlice(value any) []any {
-	items, _ := value.([]any)
-	return items
 }
 
 func sameStrings(a, b []any) bool {
