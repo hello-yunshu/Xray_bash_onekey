@@ -747,12 +747,12 @@
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/report.md",
-      "sha256": "0dd78929084bb2c747c0f4fb8fd219e3781305d924c7ede20709f7e071856d9f",
+      "sha256": "46d0b130a9e10a9bfc808e682ede2d684ee8ab5d6a3e03ef7f370d994519177a",
       "type": "audit-report"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/tasks.md",
-      "sha256": "877c9599de66f7d4353ac95b0bd167b752aa09ad29f7f14c348ea7ec633fdda9",
+      "sha256": "ab29d7e3c80dcb02f36a6eae1327fa72152aa0f91f3ddb6927ce060d28f47cd3",
       "type": "audit-report"
     },
     {
@@ -30839,6 +30839,7 @@
       "result": "BASH_ALREADY_LATEST_NOOP; bash/go Reality L4 rc=0; outer rc=0",
       "formalOps17a": "BLOCKED; no Bash package replacement was available to test",
       "evidencePath": "tests/e2e-diff/evidence/ops17a-pty-8ff-20261128-02/p2/OPS-17a/ops.json"
-    }
+    },
+    "auditCommit": "5aba12f9"
   }
 }
