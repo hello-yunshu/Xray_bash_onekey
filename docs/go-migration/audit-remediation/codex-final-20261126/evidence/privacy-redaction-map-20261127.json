@@ -1,0 +1,73 @@
+{
+  "date": "2026-11-27",
+  "source": "post-evidence local hygiene scan",
+  "findingCount": 6,
+  "items": [
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/install-config-after.json",
+      "line": 4,
+      "rule": "public IPv6",
+      "replacement": "2001:db8::1",
+      "originalValueSha256": "615c5abd70d8af4025d21565767559c281c5e2d4c95fab4d9008e5a08246f78c"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/install-config-after.json",
+      "line": 7,
+      "rule": "public IPv6",
+      "replacement": "2001:db8::1",
+      "originalValueSha256": "615c5abd70d8af4025d21565767559c281c5e2d4c95fab4d9008e5a08246f78c"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/install-config-after.json",
+      "beforeFileSha256": "d9dc1c7ffd9cc3b738c9a0fc9aef9d8147c0722144bd7d2a72f809a8cd9f5309",
+      "afterFileSha256": "c8f0cc2be3c238d4bc78d07eb0c03f45466b912143b07f26f6da2e2ed3cbe190",
+      "transform": "value-level substitution; line count preserved"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/install-config-before.json",
+      "line": 4,
+      "rule": "public IPv6",
+      "replacement": "2001:db8::1",
+      "originalValueSha256": "615c5abd70d8af4025d21565767559c281c5e2d4c95fab4d9008e5a08246f78c"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/install-config-before.json",
+      "line": 7,
+      "rule": "public IPv6",
+      "replacement": "2001:db8::1",
+      "originalValueSha256": "615c5abd70d8af4025d21565767559c281c5e2d4c95fab4d9008e5a08246f78c"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/install-config-before.json",
+      "beforeFileSha256": "97d194fc7fbe03e6232c8d96841c9860f4402c6c59a28fa89347cf93935f5631",
+      "afterFileSha256": "af7484ec0cbdf9f584bd32c31c1449ba700029f031febf5020dd0517a78bc924",
+      "transform": "value-level substitution; line count preserved"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/run.out",
+      "line": 53,
+      "rule": "public IPv4",
+      "replacement": "203.0.113.100",
+      "originalValueSha256": "0c88c2192df915afedd8c10fe0cd2a9eef8f21304dedf1cec1a678830c7023b6"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/run.out",
+      "beforeFileSha256": "733dfab63c8a09367304bfc8c53023f40ba5477ed9fa6ee56aa90bf4f6cc8058",
+      "afterFileSha256": "e2e086ba84d1f6993c209a321a92287273804bce9f5784eab6b9a76fb8c77430",
+      "transform": "value-level substitution; line count preserved"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops17a-update-failure-retry2-8ff26917-20261127/candidate-asset.sha256",
+      "line": 1,
+      "rule": "host user path",
+      "replacement": "idleleo-linux-arm64",
+      "originalValueSha256": "a33229db55f24b60d914344258cf57226c0bfeb7a71b3ff7079f4bc03fa9f00c"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops17a-update-failure-retry2-8ff26917-20261127/candidate-asset.sha256",
+      "beforeFileSha256": "4142039386726bc357446c747ff2b4a0a21facb71c0dd7ae1cb79eaf2c4f3a10",
+      "afterFileSha256": "073946fcb74c3265a2c28faec008191f28c33c13c1bad52429846920ae947914",
+      "transform": "value-level substitution; line count preserved"
+    }
+  ]
+}

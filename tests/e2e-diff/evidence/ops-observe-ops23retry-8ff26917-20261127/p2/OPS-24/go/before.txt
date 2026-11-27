@@ -1,0 +1,2 @@
+geoip.dat absent
+geosite.dat absent

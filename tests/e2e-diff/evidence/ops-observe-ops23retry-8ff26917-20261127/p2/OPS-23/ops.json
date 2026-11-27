@@ -1,0 +1,29 @@
+{
+  "details": {
+    "bash": {
+      "bytes": 0,
+      "delegatesToGo": "idleleo speedtest",
+      "sampleMbps": 0
+    },
+    "go": {
+      "bytes": 30000000,
+      "downMbps": 9.33,
+      "samplesMbps": [
+        9.04,
+        9.43,
+        9.52
+      ]
+    }
+  },
+  "id": "OPS-23",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "Bash management menu did not finish successfully (rc=124)",
+    "Bash menu output does not name the validated speed-test endpoint",
+    "Bash delegated measurement lacks positive bytes or a measured sample"
+  ],
+  "verdict": "FAIL"
+}

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "component": "nginx",
+  "previousVersion": "1.27.5",
+  "newVersion": "1.30.6",
+  "action": "update",
+  "sha256": "dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79",
+  "sizeBytes": 9645047,
+  "backupPath": "/etc/idleleo/backup/nginx-1.27.5-1795789228834562814",
+  "verified": true,
+  "health": true,
+  "restarted": true,
+  "rolledBack": false
+}

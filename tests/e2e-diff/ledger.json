@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T13:48:20+00:00",
+  "generatedAt": "2026-11-27T15:20:33+00:00",
   "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
   "opsTotal": 34,
   "counts": {
-    "DUAL_SIDE_VERIFIED": 25,
+    "DUAL_SIDE_VERIFIED": 26,
     "GO_ONLY": 0,
     "FAIL": 5,
     "BASH_ONLY": 1,
-    "BLOCKED": 3,
+    "BLOCKED": 2,
     "NOT_RUN": 0,
     "APPROVED_DIFF": 0,
     "APPROVED_SINGLE_SIDE": 0
@@ -32,6 +32,7 @@
     "OPS-20",
     "OPS-21",
     "OPS-22",
+    "OPS-23",
     "OPS-24",
     "OPS-25",
     "OPS-26",
@@ -53,8 +54,7 @@
   ],
   "blockedIds": [
     "OPS-17a",
-    "OPS-18",
-    "OPS-23"
+    "OPS-18"
   ],
   "notRunIds": [],
   "approvedDiffIds": [],
@@ -66,7 +66,6 @@
     "OPS-16",
     "OPS-17a",
     "OPS-18",
-    "OPS-23",
     "OPS-27",
     "OPS-30"
   ],
@@ -79,7 +78,9 @@
       "tests/e2e-diff/evidence/ops17a-live-l4-7d3e19d9-20261127",
       "tests/e2e-diff/evidence/ops27-current-7d3e19d9-20261127",
       "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127",
-      "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127"
+      "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127",
+      "tests/e2e-diff/evidence/ops23-dual-speedtest-retry3-8ff26917-20261127",
+      "tests/e2e-diff/evidence/guard-pid-identity-8ff26917-20261127"
     ],
     "opsEvidence": []
   },
@@ -358,26 +359,31 @@
       "expectedRc": null,
       "expectedRcEvidence": null,
       "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/ops.json",
-      "runId": "ops-core-7d3e19d9-20261127",
+      "evidence": "tests/e2e-diff/evidence/guard-pid-identity-8ff26917-20261127/p2/OPS-08/ops.json",
+      "runId": "guard-pid-identity-8ff26917-20261127",
       "layer": "L0-L4 driver evidence",
-      "productCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+      "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
       "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
-      "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
-      "driverSha": "0f4748f27e427268bc09efd462bc086422526ed6d6128700497938fb7092c848",
+      "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+      "driverSha": "ef81c0c75634aa91a18612c3437289986295d29c194b856c3df710d55ae88fa9",
       "supersedes": null,
       "fixedBy": null,
-      "evidenceReuse": {
-        "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
-        "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
-        "impactEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/impact-reuse-7d3-to-8ff26917.json",
-        "changedFiles": [
-          "install.sh"
-        ],
-        "diffSha256": "eab0eafa39276420fd7a0b252c2ad8cb00efa618b7ed15159293f076f957b1a4"
-      },
       "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-08",
+      "history": [
+        {
+          "runId": "ops-core-7d3e19d9-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/ops.json"
+        },
+        {
+          "runId": "guard-pid-identity-8ff26917-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/guard-pid-identity-8ff26917-20261127/p2/OPS-08/ops.json"
+        }
+      ],
       "name": "SNI Guard",
       "bashEntry": "2>2>5",
       "goCommand": "idleleo xray guard set --policy isolate --json",
@@ -1117,25 +1123,25 @@
       "notes": null
     },
     {
-      "verdict": "BLOCKED",
-      "bashExit": 124,
-      "goExit": 1,
-      "expectedRc": null,
+      "verdict": "PASS",
+      "bashExit": 0,
+      "goExit": 0,
+      "expectedRc": {
+        "bash": 0,
+        "go": 0
+      },
       "expectedRcEvidence": null,
-      "reasons": [
-        "Bash menu 6>6 delegates to the idleleo Go binary, so this is not an independent Bash implementation",
-        "delegation observed=False"
-      ],
-      "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-23/ops.json",
-      "runId": "ops-observe-restorefix-8ff26917-20261127",
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/ops23-dual-speedtest-retry3-8ff26917-20261127/p2/OPS-23/ops.json",
+      "runId": "ops23-dual-speedtest-retry3-8ff26917-20261127",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
       "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
       "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
-      "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
+      "driverSha": "e6f29570a2e89cd9fed32aa2d9338d241767abd6e79c6866362f606aa84351a3",
       "supersedes": null,
       "fixedBy": null,
-      "status": "BLOCKED",
+      "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-23",
       "history": [
         {
@@ -1161,6 +1167,12 @@
           "status": "BLOCKED",
           "verdict": "BLOCKED",
           "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-23/ops.json"
+        },
+        {
+          "runId": "ops23-dual-speedtest-retry3-8ff26917-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops23-dual-speedtest-retry3-8ff26917-20261127/p2/OPS-23/ops.json"
         }
       ],
       "name": "服务器网速",

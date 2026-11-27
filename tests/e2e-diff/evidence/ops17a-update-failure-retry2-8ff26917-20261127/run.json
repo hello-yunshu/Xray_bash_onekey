@@ -1,0 +1,23 @@
+{
+  "assetSha256": "56df075115b4d10d94708cdf87150160161ba3e2af8ef4664e836f892c4b1625",
+  "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+  "containerId": "7ee6189fd5c4f20dc9e0d79e3e909948791b6ecd77e31821bc5abc831dbcfccc",
+  "containerImage": "idleleo-e2e:24.04",
+  "dependencies": [
+    {
+      "path": "scripts/sign_json_ed25519.sh",
+      "sha256": "40300e4ffa487fa978d9666691dccd984b1773c715a440d195d7884523c7b6dc"
+    }
+  ],
+  "driverSha256": "30fbe9ae901728a001890a2c9c4e7745c36ff9b013d22c5e906906175374145d",
+  "evidencePath": "tests/e2e-diff/evidence/ops17a-update-failure-retry2-8ff26917-20261127/verification.json",
+  "finishedAt": "2026-11-27T15:12:02Z",
+  "imageId": "sha256:36df3bc44cd7eed0450ea6f4f17d9a7523aa4a2b51c12d389119be26d5de4194",
+  "platform": "linux/arm64",
+  "platformSource": "docker image inspect imageId .Os/.Architecture",
+  "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+  "runId": "ops17a-update-failure-retry2-8ff26917-20261127",
+  "runtimeKernel": "Linux 7.2.12-orbstack-00394-gbecdd6130068 aarch64",
+  "startedAt": "2026-11-27T15:11:57Z",
+  "verificationSha256": "7770f88ea1b67dbd29eb0c6521595ff4f20a92605c368cdf3d89ca04d1de79fe"
+}

@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-08",
+  "ops": [
+    "OPS-08"
+  ],
+  "runId": "guard-pid-identity-8ff26917-20261127",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

@@ -1834,6 +1834,68 @@ PY
                     -servername guard-restart-unknown.invalid -brief </dev/null \
                     >"$gdir/20-restart-unknown-sni.out" 2>&1
                 echo $? >"$gdir/20-restart-unknown-sni.rc"
+                # Establish a fresh, verified runtime record on the restarted
+                # master, then simulate PID reuse by keeping the numeric PID
+                # while changing only the recorded process start ticks. The
+                # actual Nginx stays alive; a matching PID without matching
+                # start ticks must not be called active. Restore the record,
+                # point the managed pid file at a live non-Nginx process, and
+                # prove the CLI rejects that fake identity too.
+                ops_go_cli "$gserver" "$gdir" 21-reset-reject xray guard set \
+                    --policy reject --container --json
+                ops_go_cli "$gserver" "$gdir" 21-reset-isolate xray guard set \
+                    --policy isolate --container --json
+                ops_go_cli "$gserver" "$gdir" 21-baseline-show xray guard show --json
+                docker exec "$gserver" cat /usr/local/nginx/logs/nginx.pid \
+                    >"$gdir/21-master-pid.txt"
+                docker exec "$gserver" cat /var/lib/idleleo/state/guard-runtime.json \
+                    >"$gdir/21-runtime-record.original.json"
+                docker cp "$gdir/21-runtime-record.original.json" \
+                    "$gserver:/tmp/guard-runtime.original.json" >/dev/null
+                docker exec "$gserver" sh -c \
+                    'jq ".startTicks += 1" /var/lib/idleleo/state/guard-runtime.json > /tmp/guard-runtime.json && mv /tmp/guard-runtime.json /var/lib/idleleo/state/guard-runtime.json'
+                ops_go_cli "$gserver" "$gdir" 22-pid-reuse-show xray guard show --json
+                docker exec "$gserver" cat /usr/local/nginx/logs/nginx.pid \
+                    >"$gdir/22-master-pid-after.txt"
+                docker exec "$gserver" cp /tmp/guard-runtime.original.json /var/lib/idleleo/state/guard-runtime.json
+                ops_go_cli "$gserver" "$gdir" 23-restored-identity-show xray guard show --json
+                docker exec "$gserver" sh -c \
+                    'sleep 120 >/dev/null 2>&1 & echo $! >/tmp/guard-fake-nginx.pid; printf "%s\\n" "$(cat /tmp/guard-fake-nginx.pid)" >/usr/local/nginx/logs/nginx.pid'
+                docker exec "$gserver" cat /tmp/guard-fake-nginx.pid >"$gdir/24-fake-pid.txt"
+                ops_go_cli "$gserver" "$gdir" 24-fake-pid-show xray guard show --json
+                # The original PID is recorded from the pre-injection evidence;
+                # restore it explicitly before checking the live guard again.
+                docker cp "$gdir/21-master-pid.txt" "$gserver:/tmp/guard-real-nginx.pid" >/dev/null
+                docker exec "$gserver" cp /tmp/guard-real-nginx.pid /usr/local/nginx/logs/nginx.pid
+                docker exec "$gserver" sh -c 'kill "$(cat /tmp/guard-fake-nginx.pid)" 2>/dev/null || true'
+                ops_go_cli "$gserver" "$gdir" 25-restored-pid-show xray guard show --json
+                python3 - "$gdir" <<'PY'
+import json, os, sys
+base=sys.argv[1]
+def load(name):
+    try:
+        with open(os.path.join(base,name),encoding="utf-8") as f: return json.load(f)
+    except (OSError,ValueError): return {}
+def rc(name):
+    try: return int(open(os.path.join(base,name),encoding="utf-8").read().strip())
+    except (OSError,ValueError): return None
+original=load("21-runtime-record.original.json")
+before_pid=open(os.path.join(base,"21-master-pid.txt")).read().strip()
+after_pid=open(os.path.join(base,"22-master-pid-after.txt")).read().strip()
+checks={
+ "baselineActive":load("21-baseline-show.out").get("status")=="active",
+ "sameNumericPid":before_pid==after_pid==str(original.get("pid","")),
+ "staleStartTicksRejected":load("22-pid-reuse-show.out").get("status")=="runtime-unverified",
+ "recordRestorationReactivates":load("23-restored-identity-show.out").get("status")=="active",
+ "fakePidRejected":load("24-fake-pid-show.out").get("status")=="runtime-unverified",
+ "restoredPidActive":load("25-restored-pid-show.out").get("status")=="active",
+ "allReadOnlyShowsRc0":all(rc(n)==0 for n in ("21-baseline-show.rc","22-pid-reuse-show.rc","23-restored-identity-show.rc","24-fake-pid-show.rc","25-restored-pid-show.rc")),
+}
+result={"id":"GUARD-PID-IDENTITY","scope":"real Nginx + full idleleo CLI; stale startTicks models reuse of same numeric PID, fake PID uses live non-Nginx process","checks":checks,"passed":all(checks.values()),"details":{"masterPid":before_pid,"recordedStartTicks":original.get("startTicks"),"staleStartTicks":int(original.get("startTicks",0))+1,"fakePid":open(os.path.join(base,"24-fake-pid.txt")).read().strip()}}
+with open(os.path.join(base,"pid-identity-verification.json"),"w",encoding="utf-8") as f: json.dump(result,f,ensure_ascii=False,indent=2,sort_keys=True); f.write("\n")
+print(json.dumps(result,ensure_ascii=False,sort_keys=True))
+if not result["passed"]: raise SystemExit(1)
+PY
                 ;;
             OPS-11) ops_go_cli "$gserver" "$gdir" 10-op show --json ;;
             OPS-15) ops_go_cli "$gserver" "$gdir" 10-op service restart --container ;;
@@ -2193,6 +2255,19 @@ ops_bash_pipe() { # <server> <dir> <label> <timeout> <input> [install.sh args...
     echo $? >"$dir/$label.rc"
 }
 
+ops_bash_expect() { # <server> <dir> <label> <ops-id> <timeout>
+    local server=$1 dir=$2 label=$3 oid=$4 limit=$5
+    mkdir -p "$dir"
+    docker exec -e E2E_OPS_ID="$oid" -e E2E_TIMEOUT="$limit" \
+        -e E2E_LOG=/tmp/e2e-"$oid".expect.log "$server" \
+        expect -f /src/tests/e2e-diff/drivers/bash_ops.exp \
+        >"$dir/$label.out" 2>"$dir/$label.err"
+    local rc=$?
+    echo "$rc" >"$dir/$label.rc"
+    docker cp "$server:/tmp/e2e-$oid.expect.log" "$dir/$label.log" >/dev/null 2>&1 || true
+    return "$rc"
+}
+
 ops_backup_snapshot() { # <server> <dir> <tag>
     local server=$1 dir=$2 tag=$3
     docker exec "$server" bash -c '
@@ -2241,6 +2316,61 @@ ops_observe_job() {
             printf "e2e-error-marker\n" >> /var/log/xray/error.log' >/dev/null 2>&1 || true
     done
 
+    # The Bash management entry delegates OPS-23 to the Go manager. Seed that
+    # exact candidate binary into the Bash fixture: a Bash-only install has
+    # /bin/idleleo pointing back to install.sh, which would recurse into the
+    # menu instead of measuring anything. The normal migrated runtime has the
+    # Go executable at /usr/local/bin/idleleo.
+    if [[ "${E2E_OBSERVE_ONLY_OPS:-}" == "OPS-23" ]]; then
+        mkdir -p "$EVID/OPS-23/bash" "$EVID/OPS-23/go"
+        docker exec "$bserver" mkdir -p /opt/idleleo/bin
+        docker cp "$WORK/seed/idleleo" "$bserver:/opt/idleleo/bin/idleleo" >/dev/null
+        docker exec "$bserver" chmod 0755 /opt/idleleo/bin/idleleo
+        docker exec "$bserver" ln -sfn /opt/idleleo/bin/idleleo /usr/bin/idleleo
+        docker exec "$bserver" sh -c 'command -v idleleo; sha256sum "$(command -v idleleo)"' \
+            >"$EVID/OPS-23/bash/manager-binary.txt" 2>&1
+        ops_bash_expect "$bserver" "$EVID/OPS-23/bash" run OPS-23 120
+        ops_go_cli "$gserver" "$EVID/OPS-23/go" 10-op speedtest --json \
+            --server https://speed.cloudflare.com --bytes 10000000 --samples 3 --timeout 15s
+        python3 - "$EVID" <<'PY'
+import json, os, re, sys
+evid=sys.argv[1]
+base=os.path.join(evid, "OPS-23")
+def read(path):
+    try: return open(path, encoding="utf-8", errors="replace").read()
+    except OSError: return ""
+def rc(path):
+    try: return int(read(path).strip())
+    except ValueError: return None
+bash_log=read(os.path.join(base,"bash","run.log"))
+g_path=os.path.join(base,"go","10-op.out")
+try: go=json.loads(read(g_path))
+except (ValueError, TypeError): go={}
+b_bytes=re.search(r"bytes: ([1-9][0-9]*)",bash_log)
+b_sample=re.search(r"sample\[1\]: ([0-9]+\.[0-9]+) Mbps",bash_log)
+reasons=[]
+brc=rc(os.path.join(base,"bash","run.rc")); grc=rc(os.path.join(base,"go","10-op.rc"))
+if brc != 0: reasons.append("Bash menu rc=%r" % brc)
+if grc != 0: reasons.append("Go CLI rc=%r" % grc)
+if "server: https://speed.cloudflare.com" not in bash_log: reasons.append("Bash menu did not report the tested endpoint")
+if not b_bytes or not b_sample: reasons.append("Bash delegated output lacks positive bytes/sample evidence")
+if go.get("server") != "https://speed.cloudflare.com": reasons.append("Go CLI server does not match")
+if not isinstance(go.get("bytes"),int) or go["bytes"] <= 0: reasons.append("Go CLI has no positive byte count")
+if not isinstance(go.get("downMbps"),(int,float)) or go["downMbps"] <= 0: reasons.append("Go CLI has no positive throughput")
+if not isinstance(go.get("samplesMbps"),list) or not go["samplesMbps"]: reasons.append("Go CLI has no successful sample")
+entry={"id":"OPS-23","verdict":"PASS" if not reasons else "FAIL","reasons":reasons,
+       "opsRc":{"bash":brc,"go":grc},"expectedRc":{"bash":0,"go":0},
+       "details":{"bash":{"delegatesToGo":"idleleo speedtest","bytes":int(b_bytes.group(1)) if b_bytes else 0,
+                            "sampleMbps":float(b_sample.group(1)) if b_sample else 0},
+                  "go":{"bytes":go.get("bytes",0),"downMbps":go.get("downMbps",0),"samplesMbps":go.get("samplesMbps",[])}}}
+with open(os.path.join(base,"ops.json"),"w",encoding="utf-8") as f: json.dump(entry,f,ensure_ascii=False,indent=2,sort_keys=True); f.write("\n")
+print(json.dumps(entry,ensure_ascii=False,sort_keys=True))
+PY
+        [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" "$gserver" >/dev/null 2>&1 || true
+        docker network rm "$OPS_NET" >/dev/null 2>&1 || true
+        return
+    fi
+
     local d
     if [[ "${E2E_OBSERVE_BACKUP_ONLY:-0}" != "1" ]]; then
     # OPS-12/13: compare both bounded file snapshots and opt-in live follow.
@@ -2272,10 +2402,17 @@ ops_observe_job() {
     ops_bash_pipe "$bserver" "$EVID/OPS-18/bash" run 20 '6\n1\n'
     ops_go_cli "$gserver" "$EVID/OPS-18/go" 10-op tcp status --json
 
-    # OPS-23: Bash menu 6>6 delegates to the idleleo binary.
-    ops_bash_pipe "$bserver" "$EVID/OPS-23/bash" run 30 '6\n6\n'
+    # OPS-23: run the real menu under Expect's PTY and use the actual Cloudflare
+    # download endpoint. A pipe has no /dev/tty and a root URL returns 404.
+    docker exec "$bserver" mkdir -p /opt/idleleo/bin
+    docker cp "$WORK/seed/idleleo" "$bserver:/opt/idleleo/bin/idleleo" >/dev/null
+    docker exec "$bserver" chmod 0755 /opt/idleleo/bin/idleleo
+    docker exec "$bserver" ln -sfn /opt/idleleo/bin/idleleo /usr/bin/idleleo
+    docker exec "$bserver" sh -c 'command -v idleleo; sha256sum "$(command -v idleleo)"' \
+        >"$EVID/OPS-23/bash/manager-binary.txt" 2>&1
+    ops_bash_expect "$bserver" "$EVID/OPS-23/bash" run OPS-23 120
     ops_go_cli "$gserver" "$EVID/OPS-23/go" 10-op speedtest --json \
-        --server https://www.cloudflare.com --bytes 1024 --samples 1 --timeout 10s
+        --server https://speed.cloudflare.com --bytes 10000000 --samples 3 --timeout 15s
 
     # OPS-24: execute the real refresh on both sides. The old sequence stopped
     # at the submenu (6>7) and then timed out; it never selected the refresh.
@@ -2562,12 +2699,44 @@ write("OPS-18", "BLOCKED", [
     "Go tcp status rc=%s" % rc(os.path.join(evid, "OPS-18", "go", "10-op.rc")),
 ])
 
-# Bash no longer has an independent speedtest: menu 6>6 delegates to idleleo.
-b23 = out("OPS-23", "bash", "run")
-write("OPS-23", "BLOCKED", [
-    "Bash menu 6>6 delegates to the idleleo Go binary, so this is not an independent Bash implementation",
-    "delegation observed=%s" % ("idleleo" in b23 or "命令未找到" in b23 or "command not found" in b23),
-])
+# OPS-23 is a Bash-menu entry that intentionally delegates measurement to the
+# single Go binary. Verify both real invocations return measured nonzero data;
+# delegation is documented as the product boundary, not treated as missing.
+b23 = read(os.path.join(evid, "OPS-23", "bash", "run.log"))
+g23 = out("OPS-23", "go", "10-op")
+g23_rc = rc(os.path.join(evid, "OPS-23", "go", "10-op.rc"))
+b23_rc = rc(os.path.join(evid, "OPS-23", "bash", "run.rc"))
+reasons = []
+b23_bytes = re.search(r"bytes: ([1-9][0-9]*)", b23)
+b23_sample = re.search(r"sample\[1\]: ([0-9]+\.[0-9]+) Mbps", b23)
+if b23_rc != 0:
+    reasons.append("Bash management menu did not finish successfully (rc=%r)" % b23_rc)
+if "server: https://speed.cloudflare.com" not in b23:
+    reasons.append("Bash menu output does not name the validated speed-test endpoint")
+if not b23_bytes or not b23_sample:
+    reasons.append("Bash delegated measurement lacks positive bytes or a measured sample")
+try:
+    g23_payload = json.loads(g23)
+except (json.JSONDecodeError, TypeError):
+    g23_payload = {}
+if g23_rc != 0:
+    reasons.append("Go speedtest command failed (rc=%r)" % g23_rc)
+if g23_payload.get("server") != "https://speed.cloudflare.com":
+    reasons.append("Go speedtest did not use the validated endpoint")
+if not isinstance(g23_payload.get("bytes"), int) or g23_payload["bytes"] <= 0:
+    reasons.append("Go speedtest did not record positive downloaded bytes")
+if not isinstance(g23_payload.get("downMbps"), (int, float)) or g23_payload["downMbps"] <= 0:
+    reasons.append("Go speedtest did not record positive throughput")
+if not isinstance(g23_payload.get("samplesMbps"), list) or not g23_payload["samplesMbps"]:
+    reasons.append("Go speedtest did not record successful samples")
+write("OPS-23", "PASS" if not reasons else "FAIL", reasons, extra={
+    "details": {
+        "bash": {"delegatesToGo": "idleleo speedtest", "bytes": int(b23_bytes.group(1)) if b23_bytes else 0,
+                 "sampleMbps": float(b23_sample.group(1)) if b23_sample else 0},
+        "go": {"bytes": g23_payload.get("bytes", 0), "downMbps": g23_payload.get("downMbps", 0),
+               "samplesMbps": g23_payload.get("samplesMbps", [])},
+    },
+})
 
 # GeoData: the former probe stopped at the submenu and never invoked refresh.
 # The new probe confirms both real clients use the same immutable release tag,

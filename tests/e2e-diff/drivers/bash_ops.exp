@@ -10,7 +10,7 @@
 # only written when the menu cannot be reached at all.
 #
 # Environment:
-#   E2E_OPS_ID        OPS-04 | OPS-05 | OPS-06 | OPS-07 | OPS-10 | OPS-17c | OPS-30
+#   E2E_OPS_ID        OPS-04 | OPS-05 | OPS-06 | OPS-07 | OPS-10 | OPS-17c | OPS-23 | OPS-30
 #   E2E_LOG           transcript path (append)
 #   E2E_TIMEOUT       expect timeout seconds (default 900)
 #   E2E_TARGET        Reality target domain (default www.cloudflare.com)
@@ -292,6 +292,39 @@ proc ops22 {} {
     finish
 }
 
+proc ops23 {} {
+    # Drive the real nested menu with Expect's PTY. The speed test runs through
+    # the installed idleleo command and reports measured bytes/rate before the
+    # menu's final pause. A plain stdin pipe is not a valid probe because the
+    # menu action reads /dev/tty.
+    # The main-menu action calls clear/read on /dev/tty before rendering the
+    # tools submenu. `navigate` sends the next answer as soon as any prompt is
+    # observed, which can land in that flush window and be discarded. Match the
+    # submenu header before sending its choice so the probe drives the intended
+    # action rather than looping back to the main menu.
+    step {Xray 管理菜单} {请输入选项} 6 mainMenu
+    step {其他选项|Xray 管理选项} {请输入选项} 6 toolsMenu
+    expect {
+        -re {server: https://speed\.cloudflare\.com} { puts "STEP\[speedtestServer\]=ok" }
+        -re {speedtest failed:} { harness_error "ops23: delegated speedtest failed" }
+        eof { harness_error "ops23: eof before speedtest output" }
+        timeout { harness_error "ops23: timeout waiting for speedtest output" }
+    }
+    expect {
+        -re {bytes: ([1-9][0-9]*)} { puts "STEP\[speedtestBytes\]=$expect_out(1,string)" }
+        -re {speedtest failed:} { harness_error "ops23: delegated speedtest failed" }
+        eof { harness_error "ops23: eof before measured byte count" }
+        timeout { harness_error "ops23: timeout waiting for measured byte count" }
+    }
+    expect {
+        -re {sample\[1\]: ([0-9]+\.[0-9]+) Mbps} { puts "STEP\[speedtestSample\]=$expect_out(1,string)" }
+        -re {speedtest failed:} { harness_error "ops23: delegated speedtest failed" }
+        eof { harness_error "ops23: eof before measured sample" }
+        timeout { harness_error "ops23: timeout waiting for measured sample" }
+    }
+    finish
+}
+
 proc ops28 {} {
     navigate "7>4"
     # confirm uninstall, do not keep the config (matches Go --purge), keep the
@@ -344,6 +377,7 @@ switch -- $opsid {
     OPS-15 { ops15 }
     OPS-20 { ops20 }
     OPS-22 { ops22 }
+    OPS-23 { ops23 }
     OPS-27 { ops27 }
     OPS-28 { ops28 }
     default { harness_error "unknown E2E_OPS_ID '$opsid'" }

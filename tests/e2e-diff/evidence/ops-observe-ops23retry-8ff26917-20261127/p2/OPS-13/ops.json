@@ -1,0 +1,9 @@
+{
+  "id": "OPS-13",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [],
+  "verdict": "PASS"
+}

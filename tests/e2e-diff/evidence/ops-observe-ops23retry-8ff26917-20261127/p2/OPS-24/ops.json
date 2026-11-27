@@ -1,0 +1,35 @@
+{
+  "assetFacts": {
+    "bash": {
+      "path": "OPS-24/bash/after.txt",
+      "sha256": {},
+      "tag": "202611262204",
+      "xrayActive": true
+    },
+    "go": {
+      "path": "OPS-24/go/after.txt",
+      "sha256": {},
+      "tag": "202611262204",
+      "xrayActive": true
+    }
+  },
+  "expectedRc": {
+    "bash": 0,
+    "goInstall": 0,
+    "goRun": 0
+  },
+  "id": "OPS-24",
+  "opsRc": {
+    "bash": 0,
+    "go": 1
+  },
+  "reasons": [
+    "Bash output did not confirm a completed GeoData refresh",
+    "Go geodata-refresh job did not complete",
+    "Go results[] did not contain exactly one successful geodata-refresh",
+    "Bash did not leave both GeoData assets",
+    "Go did not leave both GeoData assets"
+  ],
+  "releaseTag": "202611262204",
+  "verdict": "FAIL"
+}

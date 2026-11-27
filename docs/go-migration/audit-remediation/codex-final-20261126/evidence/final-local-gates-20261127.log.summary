@@ -1,0 +1,60 @@
+== bash-syntax ==
+rc=0
+== expect-driver-bash-parse ==
+rc=2
+== diff-check ==
+rc=0
+== ledger-contract-tests ==
+Ran 38 tests in 1.892s
+OK
+rc=0
+== acceptance-artifact-guard ==
+Ran 38 tests in 2.041s
+OK
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests
+rc=0
+== privacy-hygiene-scan ==
+rc=1
+== summary ==
+== bash-syntax ==
+rc=0
+== expect-driver-tcl-completeness ==
+rc=0
+== diff-check ==
+rc=0
+== ledger-contract-tests ==
+Ran 38 tests in 3.279s
+OK
+rc=0
+== acceptance-artifact-guard ==
+Ran 38 tests in 2.878s
+OK
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests
+rc=0
+== strict-ledger ==
+rc=1
+== privacy-hygiene-scan ==
+hygiene: 0 finding(s) in 73543 file(s)
+rc=0
+== summary ==
+== bash-syntax ==
+rc=0
+== expect-driver-tcl-completeness ==
+rc=0
+== diff-check ==
+rc=0
+== ledger-contract-tests ==
+Ran 38 tests in 2.072s
+OK
+rc=0
+== acceptance-artifact-guard ==
+Ran 38 tests in 2.104s
+OK
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests
+rc=0
+== strict-ledger ==
+rc=1
+== privacy-hygiene-scan ==
+hygiene: 0 finding(s) in 73543 file(s)
+rc=0
+== summary ==

@@ -1,0 +1,110 @@
+
+== bash-syntax ==
+rc=0
+
+== expect-driver-tcl-completeness ==
+couldn't open "-": no such file or directory
+can't read "f": no such variable
+can't read "f": no such variable
+can't read "source": no such variable
+Tcl parser completeness: complete
+rc=0
+
+== diff-check ==
+rc=0
+
+== ledger-contract-tests ==
+......................................
+----------------------------------------------------------------------
+Ran 38 tests in 2.072s
+
+OK
+rc=0
+
+== acceptance-artifact-guard ==
+......................................
+----------------------------------------------------------------------
+Ran 38 tests in 2.104s
+
+OK
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests
+rc=0
+
+== strict-ledger ==
+ledger: FAIL rows present: OPS-12, OPS-13, OPS-14, OPS-16, OPS-27
+{
+  "total": 34,
+  "dualSideVerified": 26,
+  "dualSideVerifiedIds": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-03",
+    "OPS-04",
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-08",
+    "OPS-09",
+    "OPS-10",
+    "OPS-11",
+    "OPS-15",
+    "OPS-17b",
+    "OPS-17c",
+    "OPS-19",
+    "OPS-20",
+    "OPS-21",
+    "OPS-22",
+    "OPS-23",
+    "OPS-24",
+    "OPS-25",
+    "OPS-26",
+    "OPS-28",
+    "OPS-29",
+    "OPS-31",
+    "OPS-32"
+  ],
+  "goOnly": 0,
+  "fail": 5,
+  "failIds": [
+    "OPS-12",
+    "OPS-13",
+    "OPS-14",
+    "OPS-16",
+    "OPS-27"
+  ],
+  "bashOnly": 1,
+  "bashOnlyIds": [
+    "OPS-30"
+  ],
+  "blocked": 2,
+  "blockedIds": [
+    "OPS-17a",
+    "OPS-18"
+  ],
+  "notRun": 0,
+  "notRunIds": [],
+  "approvedDiff": 0,
+  "approvedDiffIds": [],
+  "approvedSingleSide": 0,
+  "approvedSingleSideIds": [],
+  "unresolvedIds": [
+    "OPS-12",
+    "OPS-13",
+    "OPS-14",
+    "OPS-16",
+    "OPS-17a",
+    "OPS-18",
+    "OPS-27",
+    "OPS-30"
+  ],
+  "generatedAt": "2026-11-27T15:20:33+00:00",
+  "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+  "source": "tests/e2e-diff/ledger.json"
+}
+rc=1
+
+== privacy-hygiene-scan ==
+hygiene: 0 finding(s) in 73543 file(s)
+rc=0
+
+== summary ==

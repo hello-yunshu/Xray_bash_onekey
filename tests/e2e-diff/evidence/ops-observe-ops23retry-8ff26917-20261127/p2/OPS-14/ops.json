@@ -1,0 +1,14 @@
+{
+  "id": "OPS-14",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "Bash entry is the interactive iftop UI; Go is a bounded stats query",
+    "bash output bytes=5007",
+    "go api enable rc=0",
+    "go stats rc=0"
+  ],
+  "verdict": "DIFF"
+}

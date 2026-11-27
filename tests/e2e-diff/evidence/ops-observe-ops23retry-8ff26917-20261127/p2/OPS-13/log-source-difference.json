@@ -1,0 +1,21 @@
+{
+  "approved": false,
+  "bash": {
+    "entry": "install.sh menu live tail",
+    "liveMarkerVisible": true,
+    "rc": 124,
+    "seededMarkerVisible": true
+  },
+  "go": {
+    "entry": "idleleo xray logs show (bounded file tail; optional follow)",
+    "liveMarkerVisible": true,
+    "rc": 0,
+    "seededMarkerVisible": true,
+    "snapshotBytes": 81
+  },
+  "id": "OPS-13",
+  "note": "Go defaults to a bounded tail of the same real Xray file and provides explicit follow; equality requires both snapshot and live marker probes to pass.",
+  "reasons": [],
+  "result": "PASS",
+  "source": "/var/log/xray/error.log"
+}

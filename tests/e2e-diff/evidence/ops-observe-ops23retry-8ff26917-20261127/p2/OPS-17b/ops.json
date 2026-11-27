@@ -1,0 +1,37 @@
+{
+  "details": {
+    "bash": {
+      "after": "1.30.6",
+      "backup": "backup-created",
+      "before": "1.27.5",
+      "buildAfter": "2026.10.15.7679",
+      "health": 0,
+      "previousBinary": "real",
+      "rc": 0
+    },
+    "expected": "1.30.6",
+    "go": {
+      "after": "1.30.6",
+      "backup": "/etc/idleleo/backup/nginx-1.27.5-1795789228834562814",
+      "before": "1.27.5",
+      "health": 0,
+      "previousBinary": "real",
+      "rc": 0
+    },
+    "goReport": {
+      "backupPath": "/etc/idleleo/backup/nginx-1.27.5-1795789228834562814",
+      "health": true,
+      "newVersion": "1.30.6",
+      "previousVersion": "1.27.5",
+      "restarted": true,
+      "verified": true
+    }
+  },
+  "id": "OPS-17b",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "verdict": "PASS"
+}
