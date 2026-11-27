@@ -2316,6 +2316,88 @@ ops_observe_job() {
             printf "e2e-error-marker\n" >> /var/log/xray/error.log' >/dev/null 2>&1 || true
     done
 
+    # A focused live-log run keeps unrelated observe rows out of the evidence
+    # directory. Both implementations must show the seeded snapshot and the
+    # marker appended after follow starts. The bounded Go snapshot exits 0;
+    # the Bash menu and explicit Go follow are intentionally stopped by timeout.
+    if [[ "${E2E_OBSERVE_ONLY_OPS:-}" == "OPS-12-13" ]]; then
+        local log_op log_kind seed_marker live_marker log_bash log_go
+        for log_op in OPS-12 OPS-13; do
+            if [[ "$log_op" == OPS-12 ]]; then
+                log_kind=access; seed_marker=e2e-access-marker; live_marker=e2e-access-live-marker
+                log_bash='exec bash /etc/idleleo/install.sh -xa 20'
+            else
+                log_kind=error; seed_marker=e2e-error-marker; live_marker=e2e-error-live-marker
+                log_bash='exec bash /etc/idleleo/install.sh -xe 20'
+            fi
+            log_bash="$log_bash"
+            log_go="$EVID/$log_op/go"
+            mkdir -p "$EVID/$log_op/bash" "$log_go"
+            ops_bash_capture "$bserver" "$EVID/$log_op/bash" run 6 "$log_bash"
+            ops_go_cli "$gserver" "$log_go" snapshot xray logs show --kind "$log_kind" --lines 20
+            ops_follow_probe "$bserver" "$EVID/$log_op/bash" bash "$log_kind" "$live_marker"
+            ops_follow_probe "$gserver" "$log_go" go "$log_kind" "$live_marker"
+        done
+        python3 - "$EVID" <<'PY'
+import json, os, sys
+evid=sys.argv[1]
+for op_id,kind,seed,live in (
+    ("OPS-12","access","e2e-access-marker","e2e-access-live-marker"),
+    ("OPS-13","error","e2e-error-marker","e2e-error-live-marker"),
+):
+    base=os.path.join(evid,op_id)
+    def read(side,name):
+        try:
+            with open(os.path.join(base,side,name),encoding="utf-8",errors="replace") as f: return f.read()
+        except OSError: return ""
+    def rc(side,name):
+        try: return int(read(side,name).strip())
+        except ValueError: return None
+    b_run=read("bash","run.out")
+    b_follow=read("bash","follow.out")
+    g_snapshot=read("go","snapshot.out")
+    g_follow=read("go","follow.out")
+    reasons=[]
+    if rc("bash","run.rc")!=124: reasons.append("Bash live menu did not stop at the declared timeout")
+    if rc("bash","follow.rc")!=124: reasons.append("Bash follow did not stop at the declared timeout")
+    if rc("go","snapshot.rc")!=0: reasons.append("Go bounded snapshot did not exit successfully")
+    if rc("go","follow.rc")!=124: reasons.append("Go follow did not stop at the declared timeout")
+    if seed not in b_run or seed not in b_follow: reasons.append("Bash output is missing the seeded marker")
+    if live not in b_follow: reasons.append("Bash follow missed the appended live marker")
+    if seed not in g_snapshot or seed not in g_follow: reasons.append("Go output is missing the seeded marker")
+    if live not in g_follow: reasons.append("Go follow missed the appended live marker")
+    bash_rc=rc("bash","run.rc"); go_rc=rc("go","snapshot.rc")
+    entry={
+        "id":op_id,
+        "verdict":"PASS" if not reasons else "FAIL",
+        "reasons":reasons,
+        "opsRc":{"bash":bash_rc,"go":go_rc},
+        "expectedRc":{"bash":124,"go":0},
+        "expectedRcEvidence":{
+            "bash":{
+                "rcFiles":[{"path":"bash/run.rc","expected":124},{"path":"bash/follow.rc","expected":124}],
+                "markerFiles":[{"path":"bash/run.out","contains":[seed]},{"path":"bash/follow.out","contains":[seed,live]}],
+            },
+            "go":{
+                "rcFiles":[{"path":"go/snapshot.rc","expected":0},{"path":"go/follow.rc","expected":124}],
+                "markerFiles":[{"path":"go/snapshot.out","contains":[seed]},{"path":"go/follow.out","contains":[seed,live]}],
+            },
+        },
+        "details":{
+            "bash":{"entry":"install.sh live log tail","seededMarkerVisible":seed in b_run,"liveMarkerVisible":live in b_follow},
+            "go":{"entry":"idleleo xray logs show bounded snapshot plus --follow","seededMarkerVisible":seed in g_snapshot,"liveMarkerVisible":live in g_follow},
+        },
+    }
+    with open(os.path.join(base,"ops.json"),"w",encoding="utf-8") as f: json.dump(entry,f,ensure_ascii=False,indent=2,sort_keys=True); f.write("\n")
+    difference={"id":op_id,"result":entry["verdict"],"approved":False,"source":"/var/log/xray/%s.log"%kind,"bash":entry["details"]["bash"],"go":entry["details"]["go"],"expectedRc":entry["expectedRc"],"expectedRcEvidence":entry["expectedRcEvidence"],"reasons":reasons,"note":"Bash opens live follow immediately; Go provides both a bounded snapshot and explicit live follow. Both captured the seeded and appended real log markers."}
+    with open(os.path.join(base,"log-source-difference.json"),"w",encoding="utf-8") as f: json.dump(difference,f,ensure_ascii=False,indent=2,sort_keys=True); f.write("\n")
+    print(json.dumps(entry,ensure_ascii=False,sort_keys=True))
+PY
+        [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" "$gserver" >/dev/null 2>&1 || true
+        docker network rm "$OPS_NET" >/dev/null 2>&1 || true
+        return
+    fi
+
     # The Bash management entry delegates OPS-23 to the Go manager. Seed that
     # exact candidate binary into the Bash fixture: a Bash-only install has
     # /bin/idleleo pointing back to install.sh, which would recurse into the
