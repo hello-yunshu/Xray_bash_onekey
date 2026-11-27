@@ -90,7 +90,86 @@
         "status": "completed",
         "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46075915776"
       }
-    ]
+    ],
+    "auditHead": {
+      "sha": "8b451b1e0e5f450e80b82fb38be54f7877389deb",
+      "status": "PASS",
+      "reason": "All seven PR workflows and push Privacy Guard passed on the pushed audit delivery head; product source SHA remains the separate candidate recorded above.",
+      "workflows": [
+        {
+          "databaseId": 46077638902,
+          "event": "pull_request",
+          "name": "Privacy Guard",
+          "headSha": "8b451b1e0e5f450e80b82fb38be54f7877389deb",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46077638902"
+        },
+        {
+          "databaseId": 46077638909,
+          "event": "pull_request",
+          "name": "Rill Xray Agent",
+          "headSha": "8b451b1e0e5f450e80b82fb38be54f7877389deb",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46077638909"
+        },
+        {
+          "databaseId": 46077638966,
+          "event": "pull_request",
+          "name": "Go preview qualification (NOT FOR RELEASE)",
+          "headSha": "8b451b1e0e5f450e80b82fb38be54f7877389deb",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46077638966"
+        },
+        {
+          "databaseId": 46077638985,
+          "event": "pull_request",
+          "name": "Go real-root change acceptance (container)",
+          "headSha": "8b451b1e0e5f450e80b82fb38be54f7877389deb",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46077638985"
+        },
+        {
+          "databaseId": 46077639036,
+          "event": "pull_request",
+          "name": "Go parity stage gate",
+          "headSha": "8b451b1e0e5f450e80b82fb38be54f7877389deb",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46077639036"
+        },
+        {
+          "databaseId": 46077638964,
+          "event": "pull_request",
+          "name": "Go production parity release qualification",
+          "headSha": "8b451b1e0e5f450e80b82fb38be54f7877389deb",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46077638964"
+        },
+        {
+          "databaseId": 46077638905,
+          "event": "pull_request",
+          "name": "Test Install",
+          "headSha": "8b451b1e0e5f450e80b82fb38be54f7877389deb",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46077638905"
+        },
+        {
+          "databaseId": 46077625458,
+          "event": "push",
+          "name": "Privacy Guard",
+          "headSha": "8b451b1e0e5f450e80b82fb38be54f7877389deb",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46077625458"
+        }
+      ]
+    }
   },
   "files": [
     {
@@ -1128,12 +1207,12 @@
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/report.md",
       "type": "candidate-source",
-      "sha256": "8c93332c9b605b27f9013997b1bac207f4075f24f4a3979a45c7300df44ca933"
+      "sha256": "f5cf7865ce86bfefec47fad640a309704778bb35d88b43255bca0e10e9e116f3"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/tasks.md",
       "type": "candidate-source",
-      "sha256": "1e8229f99d7a9de1390d73ce64cb7ecaeec12930d87d525f57bf4423fc844008"
+      "sha256": "8669d43125750e29515a46efa1b275c4a2db35de5233ac2fde0a8f4016e7bce6"
     },
     {
       "path": "internal/cli/cli.go",
