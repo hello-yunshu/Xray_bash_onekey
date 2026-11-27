@@ -42,11 +42,21 @@ jobs:
           set -euxo pipefail
           mkdir -p "$EVIDENCE"
           go build -trimpath -o "$BIN" ./cmd/idleleo
-          test ! -e /usr/local/bin/idleleo
-          sudo ln -s "$BIN" /usr/local/bin/idleleo
-          trap 'sudo rm -f /usr/local/bin/idleleo' EXIT
-          sudo env IDLELEO_BIN="$BIN" OPS18_EVIDENCE_DIR="$EVIDENCE" \
-            bash tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh
+          docker build -f tests/e2e-diff/collect/ops18-host-bbr.Dockerfile \
+            -t ops18-host-bbr:ci tests/e2e-diff/collect
+          docker image inspect ops18-host-bbr:ci --format '{{.Id}}' > "$EVIDENCE/image-id.txt"
+          docker image inspect ops18-host-bbr:ci --format '{{.Os}}/{{.Architecture}}' > "$EVIDENCE/platform.txt"
+          cp "$BIN" "$EVIDENCE/idleleo"
+          sha256sum "$BIN" > "$EVIDENCE/binary.sha256"
+          go version > "$EVIDENCE/go-version.txt"
+          docker run --rm --privileged --network host \
+            --mount "type=bind,source=$GITHUB_WORKSPACE,target=/src,readonly" \
+            --mount "type=bind,source=$BIN,target=/usr/local/bin/idleleo,readonly" \
+            --mount "type=bind,source=$EVIDENCE,target=/evidence" \
+            -e IDLELEO_BIN=/usr/local/bin/idleleo \
+            -e OPS18_EVIDENCE_DIR=/evidence \
+            ops18-host-bbr:ci \
+            bash /src/tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh
           cat "$EVIDENCE/result.txt"
       - name: Upload host-kernel evidence
         if: always()
