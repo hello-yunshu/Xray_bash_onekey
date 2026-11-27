@@ -1,10 +1,30 @@
-# 最新候选更新（2026-11-28）
+# 当前候选状态（2026-11-28，取代下方较早快照中的候选与分类）
 
-当前产品候选 `9e495b38a5574f53e37bd11e4b3c8f196f76e25b`。已将 OPS-14、OPS-16、OPS-20 的真实 Docker/Xray/Nginx/client 运行纳入严格 OPS-34；保留 OPS-14/16 的 FAIL，严格结果为 28 DUAL、3 FAIL（14/16/27）、1 BASH_ONLY（30）、2 BLOCKED（17a/18）、0 NOT_RUN，退出码 1。严格原始结果：`evidence/strict-ledger-final-9e495b38-20261128.log`。OPS-14 的 Go 30 样本 stats 与 Reality L4 成功；OPS-16 的只读证书状态 JSON、dry-run 预检与证书/私钥 SHA 不变均成功；OPS-20 当前候选双端 1 MiB HTTP/body SHA 与真实 inbound counter 增量通过。
+产品候选 SHA：`85340b4871fccfac703566a2ce00469e4a8a9371`；工作分支：`work/go-hardening-parity-20261119`。严格 OPS-34 已绑定此产品 SHA，正式三份摘要一致，严格验收真实退出码为 1：**29 DUAL、3 FAIL、1 BASH_ONLY、1 BLOCKED、0 NOT_RUN**。FAIL 为 OPS-14/16/27；BASH_ONLY 为 OPS-30；BLOCKED 为 OPS-18。OPS-17a、OPS-25/26 的当前候选证据已纳入并变为 DUAL。不得把严格 rc=1 描述为通过，当前 Docker 开发候选结论仍为 **NO_GO**，发布授权为 **NO**。
 
-历史复用链为 `7d3e19d9 → 8ff26917 → 9e495b38`，逐段通过验收器校验。末段仅 OPS-14/16 受影响，故当前候选对其补跑；OPS-03/17b 与四类冷恢复等原候选证据按链式映射保留原始 SHA，不改标为当前运行。
+当前候选 CI：提交 `85340b4871fccfac703566a2ce00469e4a8a9371` 的七项远程 workflow 均已通过（Go preview qualification、Privacy Guard、Go real-root acceptance、Go parity stage gate、Go production parity、Test Install、Rill Xray Agent；Privacy Guard push/PR 重复项也通过）。该 CI 与产品代码 SHA 对应；报告账本后续仅为审计文档与证据索引，不含产品源码变更。
 
-仍未闭环：OPS-14/16/27 需要在既有验收口径下取得可核验的正式差异裁决或达到契约一致；OPS-17a 需要 Bash 实际替换更新包的双端证据；OPS-18 需要真实宿主 BBR 验证；OPS-30 仍无 Go 等价实现/正式单侧裁决；当前 SHA 七项远程 CI 仍 CI_PENDING。Go 方案仅在有证据证明优于 Bash 时才能作为差异提案，不能由执行者自行批准。
+## 本轮新增真实证据
+
+本机复验：Go 1.27.4 Docker 工具链 `go test ./...` rc=0；71 个受影响 Bash 文件 `bash -n` rc=0，Expect/Tcl `info complete` 通过；采集器契约测试 43/43 通过；正式工件隔离门禁 rc=0，测试前后 ledger/matrix/acceptance 字节一致；最终证据隐私扫描覆盖 77,470 个文件、0 finding。记录见 `evidence/ledger-contract-tests-85340b48-20261128.log`、`evidence/artifact-guard-85340b48-20261128.log`、`evidence/privacy-scan-85340b48-20261128.log`。
+
+- **OPS-17a**：在一次性 Docker 中用本地签名发布夹具分别触发 Bash 菜单和 Go updater 实际替换更新资产。双方安装前后版本变化，安装二进制 SHA 与候选资产 SHA 精确匹配，Xray/Nginx 健康，更新后真实 Reality 客户端 L4 成功，且保持手动触发。正式状态 DUAL。证据：`tests/e2e-diff/evidence/codex-ops17a-85340b48-20261128/p2/OPS-17a/ops.json`。此前失败的 r0/r1/r2 诊断仍保留，不覆盖为成功。
+- **OPS-25/26**：Bash tar 与 Go 备份/恢复在实际容器中均完成归档、完整性校验、破坏 live 数据后恢复；记录业务文件摘要、权限、服务验证、canary 恢复和真实 Reality L4。双方实际命令 rc=0，正式状态 DUAL。Go 将服务恢复置于事务流程；Bash driver 在恢复后重启服务。证据：`tests/e2e-diff/evidence/codex-ops-backup-85340b48-20261128/p2/OPS-25/ops.json` 与 `OPS-26/ops.json`。
+- **OPS-14**：当前正式双端矩阵仍是 FAIL/DIFF，但已补做真实负载探针：在 Go `stats --watch` 20 秒采样期间，经存活的 Reality 客户端发起 35 个真实请求，HTTP 200 为 35/35；40 个 inbound 计数点中 32 个给出正速率，最高 1201.13 bytes/s，Xray active。初次单请求探针曾得到 0 正速率点，失败事实保留。Go 汇总速率有界、机器可读且不采集对端地址；Bash iftop 提供更细的 per-peer 观察。该证据证明 Go 实时汇总速率有效并有隐私优势，但两者能力粒度不同，未由执行者自行改变正式 DIFF/FAIL。证据：`tests/e2e-diff/evidence/codex-ops14-ratecheck-85340b48-20261128/p2/OPS-14/go/12-loaded-watch/summary.json`；初始完整双端证据仍见 `codex-ops14-85340b48-20261128/p2/OPS-14/ops.json`。
+- **OPS-16**：双方状态路径 rc=0。Go `cert status` 输出机器可读证书与 scheduler 状态，dry-run 预检成功，读取过程未改变证书/私钥摘要；Bash 提供交互菜单。可读性/自动化优势已有证据，但没有独立裁决替代原交互契约，仍 FAIL。证据：`tests/e2e-diff/evidence/codex-ops16-85340b48-20261128/p2/OPS-16/ops.json`。
+- 影响分析链：`7d3e19d9 → 8ff26917 → 9e495b38 → 85340b48`。末段的实际 Git 文件清单、二进制 diff SHA 与 OPS 互斥分区在 `evidence/impact-reuse-9e-to-85340b48.json`；涉及行由当前候选证据重跑，其余只复用不受影响的原始证据并保留原 SHA。
+
+## 仍未闭环与下一步
+
+1. OPS-14：在同一真实客户端持续流量期间重跑 Go watch，证实速率样本为正，并明确 bounded interval/rate 与 iftop 可观察性的业务映射；若结果达不到，需要修复 Go 行为或保留失败。
+2. OPS-16/27：把已展示的机器可读状态/只读完整性优势、以及 Go 防止递归删除第三方证书的安全优势交由契约所有者按既有口径确认是否接受。执行者未生成审批，也未把 FAIL 直接升级为 approved。
+3. OPS-18：需要真实支持 BBR 的宿主内核与权限；不得使用生产 VPS，本轮环境无法提供，继续 BLOCKED。
+4. OPS-30：Go 缺少等价行；需要实现并双端验证或由契约所有者做单侧裁决。
+5. OPS-14/16/27/30/18 状态未解决前严格验收必须非零。OPS-17a 已不在待办内。
+
+详细历史过程保留在下方报告和 `tasks.md`；遇到与本节冲突的旧快照时，以本节与正式 `tests/e2e-diff/ledger.json` 为当前状态。
+
+---
 
 # Xray Go 重构定向收尾与最终验收报告
 

@@ -1,0 +1,67 @@
+ledger: FAIL rows present: OPS-14, OPS-16, OPS-27
+{
+  "total": 34,
+  "dualSideVerified": 29,
+  "dualSideVerifiedIds": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-03",
+    "OPS-04",
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-08",
+    "OPS-09",
+    "OPS-10",
+    "OPS-11",
+    "OPS-12",
+    "OPS-13",
+    "OPS-15",
+    "OPS-17a",
+    "OPS-17b",
+    "OPS-17c",
+    "OPS-19",
+    "OPS-20",
+    "OPS-21",
+    "OPS-22",
+    "OPS-23",
+    "OPS-24",
+    "OPS-25",
+    "OPS-26",
+    "OPS-28",
+    "OPS-29",
+    "OPS-31",
+    "OPS-32"
+  ],
+  "goOnly": 0,
+  "fail": 3,
+  "failIds": [
+    "OPS-14",
+    "OPS-16",
+    "OPS-27"
+  ],
+  "bashOnly": 1,
+  "bashOnlyIds": [
+    "OPS-30"
+  ],
+  "blocked": 1,
+  "blockedIds": [
+    "OPS-18"
+  ],
+  "notRun": 0,
+  "notRunIds": [],
+  "approvedDiff": 0,
+  "approvedDiffIds": [],
+  "approvedSingleSide": 0,
+  "approvedSingleSideIds": [],
+  "unresolvedIds": [
+    "OPS-14",
+    "OPS-16",
+    "OPS-18",
+    "OPS-27",
+    "OPS-30"
+  ],
+  "generatedAt": "2026-11-27T20:43:46+00:00",
+  "codeSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
+  "source": "tests/e2e-diff/ledger.json"
+}

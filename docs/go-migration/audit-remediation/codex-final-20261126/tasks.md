@@ -31,3 +31,25 @@
 | D1 最终代码/测试 | PASS_LOCAL_WITH_STRICT_NO_GO | Go 1.27.4 linux/arm64 上 `go test ./...`、`go test -race ./...`、`go vet ./...`、`go build` 历史可靠记录均 rc=0；本轮 `bash -n`、Expect/Tcl `info complete`、40 个采集器 Python 契约测试、artifact guard 均 rc=0；证据索引更新后隐私扫描覆盖 75,366 个文件、0 finding，详见 `evidence/privacy-scan-coldrestore-final-20261128.log`；初扫的一条证书序列号/IPv6 误报及派生文本脱敏映射另存 `evidence/privacy-scan-coldrestore-initial-20261128.log`、`evidence/privacy-redaction-map-coldrestore-20261128.json`。完整 staged diff check 对历史原始证据文件的尾随空格曾 rc=2，没有改写日志；记录见 `evidence/staged-evidence-whitespace-20261127.log` | strict ledger rc=1 是真实未解决分类，不视为测试故障，也不降级验收口径；终端证据格式的 whitespace 结果透明保留 |
 | D2 Docker 开发候选资格 | NO_GO | 当前严格分母 34：28 DUAL、3 FAIL、1 BASH_ONLY、2 BLOCKED、0 NOT_RUN；strict rc=1 | OPS-14/16/27 FAIL、OPS-17a/18 BLOCKED、OPS-30 Bash-only；当前 SHA 七项远程 CI 未完成 |
 | D3 交付 | PRODUCT_COMMITTED / AUDIT_COMMITTED | 产品修复提交 `8ff26917`；此前审计提交为 `5aba12f9`；当前候选账本、OPS-14/16/20 新证据、报告与验收器更新已提交为 `c925b7fc`。未推送、未合并、未 tag/release/VPS | 七项远程 CI 仍为 CI_PENDING；按任务书无现成推送授权，保留本地分支提交 |
+
+
+## 当前候选更新（2026-11-28；以下状态取代上方旧候选账本）
+
+当前产品候选为 `85340b4871fccfac703566a2ce00469e4a8a9371`，分支 `work/go-hardening-parity-20261119`。任务书要求的本轮实际 OPS-17a 更新替换和 OPS-25/26 Bash/Go 完整备份恢复对照已补齐，均在当前 SHA 上真实运行 Docker、Xray、Nginx 与客户端，验收器更新后为 DUAL。严格账本及 matrix/acceptance 三份摘要一致：34 项，29 DUAL、3 FAIL（OPS-14/16/27）、1 BASH_ONLY（OPS-30）、1 BLOCKED（OPS-18）、0 NOT_RUN，严格退出码 1。正式日志 `evidence/strict-ledger-85340b48-20261128.log`。
+
+| 项目 | 当前状态 | 当前候选证据 / 下一步 |
+|---|---|---|
+| OPS-17a | DUAL，已关闭 | `tests/e2e-diff/evidence/codex-ops17a-85340b48-20261128/p2/OPS-17a/ops.json`；Bash 与 Go 均真实替换签名发布夹具中的更新包，核对版本、资产 SHA、Xray/Nginx 健康、手动触发及更新后 Reality 客户端 L4。旧失败探针保留。 |
+| OPS-25/26 | DUAL，已关闭 | `tests/e2e-diff/evidence/codex-ops-backup-85340b48-20261128/p2/OPS-25/ops.json`、`OPS-26/ops.json`；归档/校验/破坏后恢复、数据/权限/服务/canary/真实客户端均有 Bash 与 Go 当前 SHA 对照。 |
+| OPS-14 | FAIL/DIFF；持续流量已验证 | `codex-ops14-ratecheck-85340b48-20261128/p2/OPS-14/go/12-loaded-watch/summary.json`：真实 Reality 客户端 35/35 HTTP 200；Go watch 20 样本、32 个正 inbound rate 点，最高 1201.13 bytes/s；Xray active。初始零速率探针保留。Go 有界、机器可读并避免对端地址收集；Bash iftop 有 per-peer 视图。运行功能已证实，仍需契约所有者确认粒度/隐私取舍。 |
+| OPS-16 | FAIL，待契约裁决 | Go 只读 JSON 状态与 dry-run 实际成功且证书/私钥 hash 不变；Bash 交互菜单。证据 `tests/e2e-diff/evidence/codex-ops16-85340b48-20261128/p2/OPS-16/ops.json`。差异未获批准。 |
+| OPS-27 | FAIL，待契约裁决 | Go 保留第三方证书文件、Bash 递归删除的安全差异已有 canary 和故障边界证据；执行者不自行批准。 |
+| OPS-18 | BLOCKED | 需非生产真实 BBR 宿主内核/权限，本轮不可用；不触碰生产 VPS。 |
+| OPS-30 | BASH_ONLY | Go 对应行缺失；需要按任务书补齐 Go 行为并真实双端验证，或由契约所有者做有据单侧裁决。 |
+| CI | PASS（产品候选 SHA） | 远程 7 项 workflow 已对 `85340b4871fccfac703566a2ce00469e4a8a9371` 通过，证据和 run URL/ID 在 evidence-index。 |
+| 总结 | NO_GO | 仍有未裁决 FAIL、单侧项与环境 BLOCKED。Go 方案可以不同，但 OPS-14 尚未展示正实时速率，OPS-16/27 的优势不能由执行者代替所有者批准。 |
+
+复用链 `7d3e19d9 → 8ff26917 → 9e495b38 → 85340b48` 逐段绑定真实 Git ancestor/diff 证据；末段 map 位于 `evidence/impact-reuse-9e-to-85340b48.json`。未受影响证据按原始 product SHA 复用，不伪装成当前运行。
+
+
+附加 OPS-14 负载探针说明：另一次保持容器的真实 Docker run 初始矩阵结果仍为 DIFF；之后在同一个 Go Reality 服务和存活代理客户端上并行运行 stats watch 与 35 个连续 HTTP 请求，收集 20 个采样、40 个 inbound counters、32 个正速率点。Nginx 在该 direct Reality 场景 inactive，不在请求路径；Xray active，客户端 35 个结果均 HTTP 200。摘要记录此服务边界，不把 Nginx 标作通过。
