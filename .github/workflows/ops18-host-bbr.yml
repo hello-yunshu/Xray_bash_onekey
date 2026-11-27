@@ -1,0 +1,58 @@
+name: OPS-18 real host BBR acceptance
+
+on:
+  push:
+    branches:
+      - work/go-hardening-parity-20261119
+    paths:
+      - .github/workflows/ops18-host-bbr.yml
+      - tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh
+      - internal/tcpcfg/**
+      - internal/cli/tcp.go
+      - install.sh
+
+permissions:
+  contents: read
+
+jobs:
+  bbr:
+    name: Apply and rollback on ephemeral Linux VM
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Check runner kernel and load BBR module
+        run: |
+          set -euxo pipefail
+          uname -a
+          sudo modprobe tcp_bbr
+          cat /proc/sys/net/ipv4/tcp_available_congestion_control
+          grep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control
+      - name: Build Go manager and run real Bash-to-Go apply/rollback
+        env:
+          BIN: ${{ runner.temp }}/idleleo-ops18
+          EVIDENCE: ${{ runner.temp }}/ops18-host-bbr
+        run: |
+          set -euxo pipefail
+          mkdir -p "$EVIDENCE"
+          go build -trimpath -o "$BIN" ./cmd/idleleo
+          mkdir -p "${RUNNER_TEMP}/ops18-bin"
+          ln -sf "$BIN" "${RUNNER_TEMP}/ops18-bin/idleleo"
+          sudo env PATH="${RUNNER_TEMP}/ops18-bin:${PATH}" \
+            IDLELEO_BIN="$BIN" OPS18_EVIDENCE_DIR="$EVIDENCE" \
+            bash tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh
+          cat "$EVIDENCE/result.txt"
+      - name: Upload host-kernel evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ops18-host-bbr-${{ github.sha }}
+          path: ${{ runner.temp }}/ops18-host-bbr/
+          if-no-files-found: warn
+          retention-days: 30
