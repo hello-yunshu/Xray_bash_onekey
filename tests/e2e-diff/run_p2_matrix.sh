@@ -4928,13 +4928,15 @@ manifest_path = os.path.join(evid, "build-manifest.json")
 with open(manifest_path, "w", encoding="utf-8") as fh:
     json.dump(manifest, fh, ensure_ascii=False, indent=2, sort_keys=True)
     fh.write("\n")
+supersedes_ids = [item.strip() for item in os.environ.get("E2E_SUPERSEDES", "").split(",") if item.strip()]
+supersedes = None if not supersedes_ids else (supersedes_ids[0] if len(supersedes_ids) == 1 else supersedes_ids)
 run = {
     **{key: value for key, value in manifest.items() if key != "artifacts"},
     "runId": run_id,
     "layer": "L0-L4 docker matrix",
     # A red run stays red unless a later run names it here and states the fix
     # commit; build_ledger.py only promotes FAIL when both fields are present.
-    "supersedes": os.environ.get("E2E_SUPERSEDES") or None,
+    "supersedes": supersedes,
     "fixedBy": os.environ.get("E2E_FIXED_BY") or None,
     "fixedByKind": os.environ.get("E2E_FIXED_BY_KIND") or None,
     "startedAt": started,
