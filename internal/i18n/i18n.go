@@ -32,6 +32,8 @@ var zh = map[string]string{
 
 命令:
   version              显示版本
+  language show        显示持久默认语言
+  language set CODE    设置持久默认语言（zh/en/fr/fa/ru/ko）；--lang 可临时覆盖
   status               只读状态
   ops summary          只读运维摘要：端口、证书到期、最近变更与失败、重启次数
   show                 只读运行与分享信息
@@ -174,6 +176,8 @@ Usage: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <command>
 
 Commands:
   version              print version
+  language show        print the persistent default language
+  language set CODE    set zh/en/fr/fa/ru/ko as the default; --lang overrides per command
   status               read-only status
   show                 read-only runtime and share information
   config inspect       read-only structured config view
