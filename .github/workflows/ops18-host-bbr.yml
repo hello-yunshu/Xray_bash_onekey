@@ -42,10 +42,10 @@ jobs:
           set -euxo pipefail
           mkdir -p "$EVIDENCE"
           go build -trimpath -o "$BIN" ./cmd/idleleo
-          mkdir -p "${RUNNER_TEMP}/ops18-bin"
-          ln -sf "$BIN" "${RUNNER_TEMP}/ops18-bin/idleleo"
-          sudo env PATH="${RUNNER_TEMP}/ops18-bin:${PATH}" \
-            IDLELEO_BIN="$BIN" OPS18_EVIDENCE_DIR="$EVIDENCE" \
+          test ! -e /usr/local/bin/idleleo
+          sudo ln -s "$BIN" /usr/local/bin/idleleo
+          trap 'sudo rm -f /usr/local/bin/idleleo' EXIT
+          sudo env IDLELEO_BIN="$BIN" OPS18_EVIDENCE_DIR="$EVIDENCE" \
             bash tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh
           cat "$EVIDENCE/result.txt"
       - name: Upload host-kernel evidence
