@@ -1823,6 +1823,17 @@ PY
                     -servername guard-async-unknown.invalid -brief </dev/null \
                     >"$gdir/18-async-after-apply.sni.out" 2>&1
                 echo $? >"$gdir/18-async-after-apply.sni.rc"
+                # A fresh master is a new process instance even if the PID is
+                # reused. It must not inherit the previous runtime proof.
+                docker exec "$gserver" systemctl restart nginx \
+                    >"$gdir/19-master-restart.out" 2>&1
+                echo $? >"$gdir/19-master-restart.rc"
+                sleep 1
+                ops_go_cli "$gserver" "$gdir" 19-restart-show xray guard show --json
+                docker exec "$gserver" timeout 8 openssl s_client -connect 127.0.0.1:443 \
+                    -servername guard-restart-unknown.invalid -brief </dev/null \
+                    >"$gdir/20-restart-unknown-sni.out" 2>&1
+                echo $? >"$gdir/20-restart-unknown-sni.rc"
                 ;;
             OPS-11) ops_go_cli "$gserver" "$gdir" 10-op show --json ;;
             OPS-15) ops_go_cli "$gserver" "$gdir" 10-op service restart --container ;;
@@ -2008,9 +2019,23 @@ if not harness:
             reasons.append("unknown SNI did not retain the prior reject behavior through async reload rollback")
         if text(os.path.join(base, "go", "17-async-decoy-fragment.txt")) != "absent":
             reasons.append("the unconfirmed decoy policy remained on disk after rollback")
+        restarted = jload(os.path.join(base, "go", "19-restart-show.out")) or {}
+        restart_probe = {
+            "nginxRestartRc": rc(os.path.join(base, "go", "19-master-restart.rc")),
+            "showRc": rc(os.path.join(base, "go", "19-restart-show.rc")),
+            "reportedStatusAfterMasterRestart": restarted.get("status"),
+            "unknownSniRcAfterMasterRestart": rc(os.path.join(base, "go", "20-restart-unknown-sni.rc")),
+        }
+        if restart_probe["nginxRestartRc"] != 0 or restart_probe["showRc"] != 0:
+            reasons.append("Nginx master restart or subsequent Guard query failed")
+        if restarted.get("status") != "runtime-unverified":
+            reasons.append("Guard reused the prior runtime proof after Nginx master restart")
+        if restart_probe["unknownSniRcAfterMasterRestart"] in (None, 0):
+            reasons.append("unknown SNI was not rejected after Nginx master restart")
         for side in ("bash", "go"):
             biz_details.setdefault(side, {})["guardRuntime"] = runtime_probe
         biz_details.setdefault("go", {})["guardAsyncReload"] = async_probe
+        biz_details.setdefault("go", {})["guardMasterRestart"] = restart_probe
 
     elif oid == "OPS-11":
         b_out = text(os.path.join(base, "bash", "ops.out"))
