@@ -1,0 +1,16 @@
+{
+  "edits": [
+    "E7",
+    "E8"
+  ],
+  "installs": [],
+  "only": "OPS-21,E7,E8",
+  "ops": [
+    "OPS-21"
+  ],
+  "runId": "fix-20261120-p2c",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

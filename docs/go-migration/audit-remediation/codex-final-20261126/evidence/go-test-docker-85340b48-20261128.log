@@ -1,0 +1,36 @@
+$ docker run --rm -v "$PWD:/src" -w /src golang:1.27.4-bookworm go test ./...
+?   	github.com/hello-yunshu/Xray_bash_onekey/artifacts/intake-20261121/xray-audit-20261121	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo-recover	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/cmd/parity-adapter	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/acme	0.141s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/app	0.005s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/backup	2.142s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	0.269s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	2.216s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/clientprobe	0.008s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/compat	0.002s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/componentupdate	0.045s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/container	2.177s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	9.284s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/doctor	0.037s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/geodata	0.008s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/host	1.207s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/hotuser	0.002s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/i18n	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	2.225s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/netcfg	0.012s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/nginx	6.165s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/ops	0.003s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/release	0.059s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/repair	0.005s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/runtime	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	0.470s
+?   	github.com/hello-yunshu/Xray_bash_onekey/internal/service	[no test files]
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/speedtest	0.206s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	0.001s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/tcpcfg	0.004s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.026s
+?   	github.com/hello-yunshu/Xray_bash_onekey/tests/e2e-diff/drivers	[no test files]
+?   	github.com/hello-yunshu/Xray_bash_onekey/tests/go-parity/acme	[no test files]
+DOCKER_GO_TEST_RC=0

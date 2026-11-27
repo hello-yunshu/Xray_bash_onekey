@@ -1,0 +1,49 @@
+run_id=coldrestore-current-7d3e19d9 scenarios=reality tls relay multi
+commit=7d3e19d92ce0dc4f70ab90dedc81c13a41403f91
+image=idleleo-e2e:24.04
+image_id=sha256:f6c28602447747db6291384109d07dd376190c56f50bf2aadab3771c0f14ed9a
+building idleleo
+idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+building the local TLS target
+arch=arm64
+xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a arch=arm64
+nginx_cache=hit build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+[reality] source: starting e2e-coldrestore-current-7d3e19d9-cold-source-reality
+[reality] source: installing Go manager
+[reality] source: driver
+[reality] source_driver_rc=0
+[reality] source: destroying e2e-coldrestore-current-7d3e19d9-cold-source-reality
+[reality] target: starting e2e-coldrestore-current-7d3e19d9-cold-target-reality
+[reality] target: installing a fresh Go manager
+[reality] target: driver
+[reality] target_driver_rc=0
+[tls] source: starting e2e-coldrestore-current-7d3e19d9-cold-source-tls
+[tls] source: installing Go manager
+[tls] source: driver
+[tls] source_driver_rc=0
+[tls] source: destroying e2e-coldrestore-current-7d3e19d9-cold-source-tls
+[tls] target: starting e2e-coldrestore-current-7d3e19d9-cold-target-tls
+[tls] target: installing a fresh Go manager
+[tls] target: driver
+[tls] target_driver_rc=0
+[relay] source: starting e2e-coldrestore-current-7d3e19d9-cold-source-relay
+[relay] source: installing Go manager
+[relay] source: driver
+[relay] source_driver_rc=0
+[relay] source: destroying e2e-coldrestore-current-7d3e19d9-cold-source-relay
+[relay] target: starting e2e-coldrestore-current-7d3e19d9-cold-target-relay
+[relay] target: installing a fresh Go manager
+[relay] target: driver
+[relay] target_driver_rc=0
+[multi] source: starting e2e-coldrestore-current-7d3e19d9-cold-source-multi
+[multi] source: installing Go manager
+[multi] source: driver
+[multi] source_driver_rc=0
+[multi] source: destroying e2e-coldrestore-current-7d3e19d9-cold-source-multi
+[multi] target: starting e2e-coldrestore-current-7d3e19d9-cold-target-multi
+[multi] target: installing a fresh Go manager
+[multi] target: driver
+[multi] target_driver_rc=0
+evidence=tests/e2e-diff/evidence/goevo-coldrestore-coldrestore-current-7d3e19d9
+RESULT: PASS
+run_coldrestore_rc=0

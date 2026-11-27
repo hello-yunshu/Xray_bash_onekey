@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "action": "applied",
+  "manifestUrl": "http://127.0.0.1:18085/manifest.json",
+  "platform": "linux-arm64",
+  "newVersion": "0.3.0-phase04",
+  "previousSha256": "263de583c2024e7eef702955bd3002df675f4888c8a12bf1859111b56bb85240",
+  "newSha256": "a83110276ed772e593bd58cd926723c892e1a0113608133975a42baf51cf6b78",
+  "installPath": "/usr/local/bin/idleleo",
+  "backupPath": "/usr/local/bin/idleleo.previous",
+  "healthOutput": "idleleo 0.3.0-phase04 (go)"
+}

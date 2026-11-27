@@ -1,0 +1,16 @@
+{
+  "changed": true,
+  "entry": {
+    "id": "1795199137062448990-467",
+    "state": "COMMITTED",
+    "target": "/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/usr/local/bin/p3-service-apply",
+    "oldSha256": "8cfc41211fe8231d476134bf4203181b5a497b86cc7a254385ee845b04691f47",
+    "newSha256": "76286e954f3cfaf0ed82e556a69625d3c23bcf666349f5716594ffcaa4a8880a",
+    "startedAt": "2026-11-20T18:25:37Z",
+    "updatedAt": "2026-11-20T18:25:37Z"
+  },
+  "port": 10085,
+  "reachable": true,
+  "server": "127.0.0.1:10085"
+}

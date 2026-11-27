@@ -1,0 +1,3 @@
+#!/bin/sh
+printf '%s\n' "$*" >> '/out/f08-work/root-none/var/xray-test.log'
+exit 0

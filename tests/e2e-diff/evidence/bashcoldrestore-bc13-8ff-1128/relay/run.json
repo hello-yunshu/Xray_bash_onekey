@@ -1,0 +1,69 @@
+{
+  "archiveSHA256": "2074b147a41a5d8e3dc52598a5ebe7ca992efba05a37b723cd6570df7380714b",
+  "commit": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+  "imageId": "sha256:828040e78d98d640e238b799f1f1c4441a719307e1e80d0b57db89cb9556e5bc",
+  "manager": "bash",
+  "runId": "bc13-8ff-1128",
+  "scenario": "relay",
+  "schemaVersion": 1,
+  "sides": {
+    "source": {
+      "assertions": [
+        {
+          "label": "source client connected through Bash-managed services",
+          "result": "PASS"
+        },
+        {
+          "label": "Bash archive created, tar listing valid, archive mode 0600",
+          "result": "PASS"
+        }
+      ],
+      "failed": 0,
+      "passed": 2
+    },
+    "target": {
+      "assertions": [
+        {
+          "label": "fresh target Bash restore preserved managed state bytes",
+          "result": "PASS"
+        },
+        {
+          "label": "restored mode/owner matches (etc_idleleo_cert_thirdparty.crt.mode-owner)",
+          "result": "FAIL"
+        },
+        {
+          "label": "restored mode/owner matches (etc_idleleo_cert_thirdparty.key.mode-owner)",
+          "result": "FAIL"
+        },
+        {
+          "label": "restored mode/owner matches (etc_idleleo_conf_nginx_relay-stream.conf.mode-owner)",
+          "result": "PASS"
+        },
+        {
+          "label": "restored mode/owner matches (etc_idleleo_conf_thirdparty-note.txt.mode-owner)",
+          "result": "PASS"
+        },
+        {
+          "label": "restored mode/owner matches (etc_idleleo_install.sh.mode-owner)",
+          "result": "PASS"
+        },
+        {
+          "label": "restored mode/owner matches (etc_systemd_system_nginx.service.mode-owner)",
+          "result": "PASS"
+        },
+        {
+          "label": "restored mode/owner matches (usr_local_nginx_sbin_nginx.mode-owner)",
+          "result": "PASS"
+        },
+        {
+          "label": "restored validators, services, and real client connection succeeded",
+          "result": "PASS"
+        }
+      ],
+      "failed": 2,
+      "passed": 7
+    }
+  },
+  "sourceDriverExit": 0,
+  "targetDriverExit": 1
+}

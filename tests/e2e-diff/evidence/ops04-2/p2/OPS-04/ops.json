@@ -1,0 +1,28 @@
+{
+  "active": {
+    "bash": "active",
+    "go": "active"
+  },
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-04",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "ports": {
+    "bash": [
+      "9443"
+    ],
+    "go": [
+      "9443"
+    ]
+  },
+  "reasons": [
+    "bash inbound ports lack 8443: ['9443']",
+    "go inbound ports lack 8443: ['9443']"
+  ],
+  "verdict": "BLOCKER"
+}

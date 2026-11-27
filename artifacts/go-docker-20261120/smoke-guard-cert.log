@@ -1,0 +1,341 @@
+{
+  "applicable": true,
+  "tls": "Reality",
+  "managedFront": true,
+  "enabled": true,
+  "policy": "isolate",
+  "status": "active",
+  "metadataSynced": false,
+  "denyPort": 9403,
+  "evidence": [
+    "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/00-xray.conf",
+    "/tmp/idleleo-guard-smoke/usr/local/nginx/conf/nginx.conf"
+  ],
+  "warnings": [
+    "metadata has no sniGuard record; showing deployed artifacts, nothing was rewritten"
+  ]
+}
+{
+  "mode": "Reality",
+  "policy": "reject",
+  "denyPort": 9404,
+  "changed": true,
+  "dryRun": true,
+  "files": [
+    "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/00-xray.conf",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/tmp/idleleo-guard-smoke/usr/local/nginx/conf/nginx.conf",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": false,
+  "warnings": []
+}
+{
+  "mode": "Reality",
+  "policy": "isolate",
+  "denyPort": 9403,
+  "changed": true,
+  "dryRun": true,
+  "files": [
+    "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/tmp/idleleo-guard-smoke/usr/local/nginx/conf/nginx.conf",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": false,
+  "warnings": []
+}
+{
+  "mode": "Reality",
+  "policy": "decoy",
+  "decoyDomain": "decoy.local",
+  "denyPort": 9444,
+  "changed": true,
+  "dryRun": true,
+  "files": [
+    "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/00-xray.conf",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/decoy.crt",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/decoy.key",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/decoy/index.html",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/tmp/idleleo-guard-smoke/usr/local/nginx/conf/nginx.conf",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": false,
+  "selfSigned": true,
+  "warnings": []
+}
+{
+  "dir": "/tmp/idleleo-guard-smoke/etc/idleleo/cert",
+  "removed": [],
+  "skipped": [
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem"
+  ],
+  "planned": [
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": true,
+      "referencedBy": [
+        "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/02-site.conf",
+        "/tmp/idleleo-guard-smoke/etc/idleleo/schedule/jobs.json"
+      ],
+      "action": "keep",
+      "reason": "referenced by an effective configuration"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": true,
+      "referencedBy": [
+        "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/02-site.conf",
+        "/tmp/idleleo-guard-smoke/etc/idleleo/schedule/jobs.json"
+      ],
+      "action": "keep",
+      "reason": "referenced by an effective configuration"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven; not removed"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/xray.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/xray.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    }
+  ],
+  "missing": false,
+  "dryRun": true,
+  "warnings": [
+    "referenced by an effective configuration: /tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+    "referenced by an effective configuration: /tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+    "ownership is not proven; not removed: /tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem"
+  ]
+}
+{
+  "dir": "/tmp/idleleo-guard-smoke/etc/idleleo/cert",
+  "removed": [
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/xray.crt",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/xray.key"
+  ],
+  "skipped": [
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem"
+  ],
+  "planned": [
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": true,
+      "referencedBy": [
+        "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/02-site.conf",
+        "/tmp/idleleo-guard-smoke/etc/idleleo/schedule/jobs.json"
+      ],
+      "action": "keep",
+      "reason": "referenced by an effective configuration"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": true,
+      "referencedBy": [
+        "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/02-site.conf",
+        "/tmp/idleleo-guard-smoke/etc/idleleo/schedule/jobs.json"
+      ],
+      "action": "keep",
+      "reason": "referenced by an effective configuration"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven; not removed"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/xray.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/xray.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    }
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": [
+    "referenced by an effective configuration: /tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+    "referenced by an effective configuration: /tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+    "ownership is not proven; not removed: /tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem"
+  ]
+}
+{
+  "dir": "/tmp/idleleo-guard-smoke/etc/idleleo/cert",
+  "removed": [],
+  "skipped": [
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem"
+  ],
+  "planned": [
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": true,
+      "referencedBy": [
+        "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/02-site.conf",
+        "/tmp/idleleo-guard-smoke/etc/idleleo/schedule/jobs.json"
+      ],
+      "action": "keep",
+      "reason": "referenced by an effective configuration"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": true,
+      "referencedBy": [
+        "/tmp/idleleo-guard-smoke/etc/idleleo/conf/nginx/02-site.conf",
+        "/tmp/idleleo-guard-smoke/etc/idleleo/schedule/jobs.json"
+      ],
+      "action": "keep",
+      "reason": "referenced by an effective configuration"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven; not removed"
+    }
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": [
+    "referenced by an effective configuration: /tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+    "referenced by an effective configuration: /tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+    "ownership is not proven; not removed: /tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem"
+  ]
+}
+{
+  "dir": "/tmp/idleleo-guard-smoke/etc/idleleo/cert",
+  "removed": [],
+  "skipped": [
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem"
+  ],
+  "planned": [
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": true,
+      "referencedBy": [
+        "/tmp/idleleo-guard-smoke/etc/idleleo/schedule/jobs.json"
+      ],
+      "action": "keep",
+      "reason": "referenced by an effective configuration"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": true,
+      "referencedBy": [
+        "/tmp/idleleo-guard-smoke/etc/idleleo/schedule/jobs.json"
+      ],
+      "action": "keep",
+      "reason": "referenced by an effective configuration"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven; not removed"
+    }
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": [
+    "referenced by an effective configuration: /tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+    "referenced by an effective configuration: /tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+    "ownership is not proven; not removed: /tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem"
+  ]
+}
+{
+  "dir": "/tmp/idleleo-guard-smoke/etc/idleleo/cert",
+  "removed": [],
+  "skipped": [
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+    "/tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem"
+  ],
+  "planned": [
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven; not removed"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven; not removed"
+    },
+    {
+      "path": "/tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven; not removed"
+    }
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": [
+    "ownership is not proven; not removed: /tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.crt",
+    "ownership is not proven; not removed: /tmp/idleleo-guard-smoke/etc/idleleo/cert/example.com.key",
+    "ownership is not proven; not removed: /tmp/idleleo-guard-smoke/etc/idleleo/cert/third-party.pem"
+  ]
+}
+OPS-08/OPS-27 smoke: PASS

@@ -1,0 +1,6 @@
+02:34:55 building idleleo
+02:35:02 idleleo_sha256=7943fa0802466b9d981dfdbbfca1944407c1c5e037bbb40ccbbdda93359f0c9d xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328
+02:35:02 scenario A: bash install
+02:35:47 [S6] geo_update
+02:36:54 run_end=2026-11-20T18:36:54Z
+02:36:54 11 PASS / 0 FAIL

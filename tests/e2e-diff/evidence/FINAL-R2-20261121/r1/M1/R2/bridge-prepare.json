@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "state": "PREPARED",
+  "verdict": "convertible",
+  "planPath": "/var/lib/idleleo/bridge/plan.json",
+  "snapshotPath": "/var/lib/idleleo/bridge/snapshot",
+  "candidateSha256": "7943fa0802466b9d981dfdbbfca1944407c1c5e037bbb40ccbbdda93359f0c9d",
+  "candidateVersion": "0.2.0-phase04",
+  "candidatePinned": false,
+  "recoverySha256": "107c2a057d42bb50f8d11b7b83a6c38be7e06797dd9c4298aa3589e40dbba4fc",
+  "metadataPath": "/etc/idleleo/v1/metadata.json",
+  "projectCronLines": 0,
+  "retainedCronLines": [],
+  "customItems": 0,
+  "customAcknowledged": false,
+  "permissionFixes": 0,
+  "rillStatus": "absent",
+  "scheduledJobs": [
+    "auto-update",
+    "cert-renew",
+    "geodata-refresh",
+    "stats-collect"
+  ],
+  "degradedJobs": [
+    "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+  ],
+  "warnings": [
+    "candidate-unpinned: no --candidate-manifest given; sha256 7943fa0802466b9d981dfdbbfca1944407c1c5e037bbb40ccbbdda93359f0c9d was computed locally and is not compared with a trusted release manifest",
+    "degraded:auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+  ]
+}

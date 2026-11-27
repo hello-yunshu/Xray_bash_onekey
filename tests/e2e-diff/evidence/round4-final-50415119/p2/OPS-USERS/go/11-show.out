@@ -1,0 +1,17 @@
+[
+  {
+    "index": 0,
+    "uuid": "884c5488-3db9-4b33-89db-ce6edd9f98d1",
+    "email": "me@hey.run",
+    "flow": "xtls-rprx-vision",
+    "level": 0,
+    "primary": true
+  },
+  {
+    "index": 1,
+    "uuid": "22222222-3333-4444-5555-666666666666",
+    "email": "user2@example.com",
+    "level": 0,
+    "primary": false
+  }
+]

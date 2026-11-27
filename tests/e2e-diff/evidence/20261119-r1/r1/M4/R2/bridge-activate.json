@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "state": "COMMITTED",
+  "entry": "/usr/bin/idleleo",
+  "entryLink": "/opt/idleleo/bin/idleleo",
+  "installedSha256": "cbcb7049f9182074994702bcd7028a60476fe250da10490c8abfa0dfe8192eb3",
+  "removedCronLines": 0,
+  "retainedCronLines": [],
+  "deferredTasks": [],
+  "scheduledJobs": [
+    "auto-update",
+    "cert-renew",
+    "geodata-refresh",
+    "stats-collect"
+  ],
+  "degradedJobs": [
+    "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+  ],
+  "runtimeSha256": "fa536abb1d28004b628bc988cb480bb3d4fd88b53ccca57dd0cb58aa9ea8ee3f",
+  "serviceXray": "active",
+  "serviceNginx": "active",
+  "serviceEnabled": "enabled",
+  "timer": "enabled",
+  "permissionFixes": 1,
+  "rillStatus": "absent",
+  "rillUnchanged": true
+}

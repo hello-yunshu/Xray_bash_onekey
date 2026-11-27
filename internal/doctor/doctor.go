@@ -21,13 +21,25 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/clientprobe"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/runtime"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/service"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/store"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg"
 )
 
 const SchemaVersion = 1
+
+// Connectivity evidence levels. They are ordered from weakest to strongest so
+// an operator never reads a TCP connect as a working user session.
+const (
+	EvidenceFileAndService = "FILE_AND_SERVICE"
+	EvidenceTCP            = "TCP_REACHABLE"
+	EvidenceTLS            = "TLS_HANDSHAKE"
+	EvidenceRealClient     = "REAL_CLIENT_PASS"
+	EvidenceNotRun         = "NOT_RUN"
+)
 
 // Status is the severity of one check.
 type Status string
@@ -70,6 +82,10 @@ type Report struct {
 	Checks        []Check `json:"checks"`
 	Summary       Summary `json:"summary"`
 	Healthy       bool    `json:"healthy"`
+	// EvidenceLevel is the strongest thing this run actually proved. Healthy
+	// only means "no check failed"; it is not an end-to-end claim.
+	EvidenceLevel string   `json:"evidenceLevel"`
+	Limitations   []string `json:"limitations"`
 }
 
 // Options injects the seams a test needs. A zero Options still performs every
@@ -79,6 +95,16 @@ type Options struct {
 	Deep     bool
 	Services func(ctx context.Context, root string) (service.StatusReport, error)
 	Validate func(ctx context.Context, configPath string) error
+	// ClientProbe runs a real Xray client through one user-bearing inbound.
+	// It is opt-in because it needs a reachable HTTP origin and an installed
+	// xray binary.
+	ClientProbe bool
+	ProbeURL    string
+	ProbeExpect string
+	Probe       func(ctx context.Context, xrayBin string, link clientprobe.Link, addr, origin, marker string) (clientprobe.Result, error)
+	// ProbeForward proves a relay (raw TCP stream) with a real HTTP request
+	// through the listener. It is a test seam for the same reason as Probe.
+	ProbeForward func(ctx context.Context, addr, origin, marker string) (clientprobe.Result, error)
 }
 
 // Run is RunWith with production defaults.
@@ -101,19 +127,35 @@ func RunWith(ctx context.Context, root string, opts Options) Report {
 	rep.add(checkLayout(paths))
 	meta, _, metaErr := store.LoadMetadata(paths)
 	rep.add(checkMetadata(metaErr))
-	cfg, _ := checkConfig(paths, meta, opts, ctx)
-	rep.add(cfg)
-	rep.add(checkModes(paths))
+	// A relay owns no Xray runtime config or certificate; its health is the
+	// managed Nginx stream fragment plus a real request through it.
+	relay := metaErr == nil && meta.Role == "relay"
+	if relay {
+		rep.add(checkRelayConfig(paths))
+	} else {
+		cfg, _ := checkConfig(paths, meta, opts, ctx)
+		rep.add(cfg)
+		rep.add(checkModes(paths))
+	}
 	rep.add(checkServiceAccess(ctx, paths))
-	rep.add(checkCertificate(paths, meta))
+	if !relay {
+		rep.add(checkCertificate(paths, meta))
+	}
 	rep.add(checkNginx(paths))
-	rep.add(checkServices(ctx, root, opts))
+	rep.add(checkServices(ctx, root, opts, relay))
 	rep.add(checkBackup(paths, opts.Now))
 	rep.add(checkDisk(paths))
 	rep.add(checkLock(paths, opts.Now))
 	rep.add(checkGeodata(paths))
-	if opts.Deep {
+	if opts.Deep && !relay {
 		rep.add(checkConnectivity(ctx, paths))
+	}
+	if opts.ClientProbe {
+		if relay {
+			rep.add(checkRelayProbe(ctx, paths, opts))
+		} else {
+			rep.add(checkClientProbe(ctx, paths, opts))
+		}
 	}
 	return rep.finish()
 }
@@ -146,6 +188,34 @@ func (r *Report) finish() Report {
 		}
 	}
 	r.Healthy = r.Summary.Fail == 0
+	r.EvidenceLevel = EvidenceFileAndService
+	for _, c := range r.Checks {
+		if (c.ID == "client-probe" || c.ID == "relay-probe") && c.Status == StatusOK {
+			r.EvidenceLevel = EvidenceRealClient
+		}
+	}
+	if r.EvidenceLevel == EvidenceFileAndService {
+		for _, c := range r.Checks {
+			if c.ID != "connectivity" {
+				continue
+			}
+			switch c.Evidence {
+			case EvidenceTLS:
+				r.EvidenceLevel = EvidenceTLS
+			case EvidenceTCP:
+				r.EvidenceLevel = EvidenceTCP
+			case EvidenceNotRun:
+				r.EvidenceLevel = EvidenceNotRun
+			}
+		}
+	}
+	r.Limitations = []string{
+		"certificate chain, SAN matching and expiry are read from the managed PEM; no public CA trust store is consulted",
+		"an external origin, DNS and cloud security groups are outside this process; only what this host can reach is tested",
+		"a TCP connect or TLS handshake through a Reality inbound is not a user session; only --client-probe proves one",
+		"a TLS listener probe proves the tunnel, not the public certificate chain",
+		"a relay node has no Xray inbound or user credential; its --client-probe is a real HTTP request through the Nginx stream and proves forwarding, not a VLESS session",
+	}
 	return *r
 }
 
@@ -163,6 +233,10 @@ func defaultMethod(id string) string {
 		return "nginx -t"
 	case "connectivity":
 		return "tcp/tls dial"
+	case "relay-probe":
+		return "tcp http probe"
+	case "relay-config":
+		return "stream fragment parse"
 	case "permissions":
 		return "mode bits"
 	case "lock":
@@ -287,11 +361,34 @@ func checkModes(paths host.Paths) Check {
 	}
 	key := filepath.Join(paths.Root, "etc/idleleo/cert/xray.key")
 	if fi, err := os.Stat(key); err == nil {
-		if fi.Mode().Perm()&0o077 != 0 {
-			return Check{ID: "permissions", Status: StatusFail, Message: "private key is accessible beyond its owner", Detail: fmt.Sprintf("mode %04o", fi.Mode().Perm())}
+		perm := fi.Mode().Perm()
+		switch {
+		case perm&0o007 != 0:
+			return Check{ID: "permissions", Status: StatusFail, Message: "private key is world-accessible", Detail: fmt.Sprintf("mode %04o", perm)}
+		case perm&0o070 != 0 && !managedNginxKey(fi, perm):
+			return Check{ID: "permissions", Status: StatusFail, Message: "private key is accessible beyond its owner", Detail: fmt.Sprintf("mode %04o", perm)}
 		}
 	}
 	return Check{ID: "permissions", Status: StatusOK, Message: "config and key permissions are restrictive"}
+}
+
+// managedNginxKey accepts the one group-readable mode the manager itself
+// installs: 0640 owned by root:<nginx worker group>. The managed front reads
+// the key as that group, and the nginx installer separately proves the worker
+// cannot rewrite it. Everything else that grants group access is a failure.
+func managedNginxKey(fi os.FileInfo, perm os.FileMode) bool {
+	if perm != 0o640 {
+		return false
+	}
+	st, ok := fi.Sys().(*syscall.Stat_t)
+	if !ok {
+		return false
+	}
+	group, err := user.LookupGroupId(strconv.Itoa(int(st.Gid)))
+	if err != nil {
+		return false
+	}
+	return group.Name == "idleleo-nginx"
 }
 
 // checkServiceAccess proves that the service account can still read the
@@ -429,10 +526,10 @@ func checkConnectivity(ctx context.Context, paths host.Paths) Check {
 		return Check{ID: "connectivity", Status: StatusSkip, Message: "runtime config is not valid JSON, connectivity not probed"}
 	}
 	if len(cfg.Inbounds) == 0 {
-		return Check{ID: "connectivity", Status: StatusUnknown, Message: "no inbound to probe", Evidence: "not-run"}
+		return Check{ID: "connectivity", Status: StatusUnknown, Message: "no inbound to probe", Evidence: EvidenceNotRun}
 	}
 	probed := 0
-	evidence := "tcp-connect"
+	evidence := EvidenceTCP
 	for _, in := range cfg.Inbounds {
 		if probed == 3 {
 			break
@@ -453,7 +550,7 @@ func checkConnectivity(ctx context.Context, paths host.Paths) Check {
 			return Check{ID: "connectivity", Status: StatusFail,
 				Message:  fmt.Sprintf("inbound %s is not reachable", in.Tag),
 				Detail:   addr + ": " + err.Error(),
-				Evidence: "tcp-connect",
+				Evidence: EvidenceTCP,
 				Cause:    "the process is not listening or a firewall drops the probe",
 			}
 		}
@@ -470,17 +567,17 @@ func checkConnectivity(ctx context.Context, paths host.Paths) Check {
 				return Check{ID: "connectivity", Status: StatusFail,
 					Message:  fmt.Sprintf("inbound %s accepted TCP but not TLS", in.Tag),
 					Detail:   err.Error(),
-					Evidence: "tls-handshake",
+					Evidence: EvidenceTLS,
 					Cause:    "the listener is not the expected TLS inbound",
 				}
 			}
 			_ = tlsConn.Close()
-			evidence = "tls-handshake"
+			evidence = EvidenceTLS
 		case "reality":
 			_ = conn.Close()
 			return Check{ID: "connectivity", Status: StatusUnknown,
 				Message:  fmt.Sprintf("inbound %s is TCP-reachable; Reality handshake needs a client", in.Tag),
-				Evidence: "tcp-connect",
+				Evidence: EvidenceTCP,
 				Cause:    "doctor has no Xray client and must not fake a user-level success",
 			}
 		default:
@@ -492,7 +589,7 @@ func checkConnectivity(ctx context.Context, paths host.Paths) Check {
 		Evidence: evidence}
 }
 
-func checkServices(ctx context.Context, root string, opts Options) Check {
+func checkServices(ctx context.Context, root string, opts Options, relay bool) Check {
 	if root != "/" {
 		return Check{ID: "services", Status: StatusSkip, Message: "sandbox root: host units are not queried"}
 	}
@@ -506,9 +603,15 @@ func checkServices(ctx context.Context, root string, opts Options) Check {
 	if err != nil {
 		return Check{ID: "services", Status: StatusWarn, Message: "unit state is unavailable", Detail: err.Error()}
 	}
+	// A relay owns only the Nginx stream unit; requiring xray would report a
+	// healthy reverse proxy as broken.
+	required := "xray"
+	if relay {
+		required = "nginx"
+	}
 	for _, u := range st.Units {
-		if u.Name == "xray" && u.Active != "active" {
-			return Check{ID: "services", Status: StatusFail, Message: "xray unit is not active", Detail: u.Active}
+		if u.Name == required && u.Active != "active" {
+			return Check{ID: "services", Status: StatusFail, Message: required + " unit is not active", Detail: u.Active}
 		}
 	}
 	return Check{ID: "services", Status: StatusOK, Message: "owned units are active"}
@@ -576,6 +679,237 @@ func checkLock(paths host.Paths, now time.Time) Check {
 		return Check{ID: "lock", Status: StatusWarn, Message: "a stale update lock exists", Detail: fi.ModTime().UTC().Format(time.RFC3339)}
 	}
 	return Check{ID: "lock", Status: StatusWarn, Message: "an update lock is currently held"}
+}
+
+// checkClientProbe is the strongest read-only layer: it starts the real Xray
+// client from this installation, dials the managed listener and proves an HTTP
+// response arrives from the origin. A missing binary, no user-bearing inbound
+// or no probe URL is reported as NOT_RUN instead of a pass.
+func checkClientProbe(ctx context.Context, paths host.Paths, opts Options) Check {
+	const id = "client-probe"
+	if strings.TrimSpace(opts.ProbeURL) == "" {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "no probe URL supplied; the real-client layer was not exercised"}
+	}
+	configPath, err := paths.Join(paths.RuntimeConfig(), false)
+	if err != nil {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "runtime config missing, client probe not run"}
+	}
+	body, err := os.ReadFile(configPath)
+	if err != nil {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "runtime config unreadable, client probe not run"}
+	}
+	link, addr, ok, err := probeLink(body)
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceRealClient,
+			Message: "cannot build a client from the runtime config", Detail: err.Error()}
+	}
+	if !ok {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "no user-bearing vless inbound to probe"}
+	}
+	bin := xrayBinary(paths.Root)
+	if bin == "" {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "xray binary is not installed, client probe not run"}
+	}
+	probe := opts.Probe
+	if probe == nil {
+		probe = clientprobe.Probe
+	}
+	res, err := probe(ctx, bin, link, addr, opts.ProbeURL, opts.ProbeExpect)
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceRealClient,
+			Message: "a real client could not complete the request",
+			Detail:  err.Error(), Cause: "the tunnel, the credential or the origin is not usable"}
+	}
+	return Check{ID: id, Status: StatusOK, Evidence: EvidenceRealClient,
+		Message: fmt.Sprintf("a real client reached the origin through %s", addr),
+		Detail:  fmt.Sprintf("%s, %d body bytes", res.StatusLine, res.BodyBytes)}
+}
+
+// checkRelayConfig validates the managed stream fragment of a relay root. A
+// relay has no Xray runtime config, so this is its equivalent of the validator
+// check: the file exists and names both a listener and a backend.
+func checkRelayConfig(paths host.Paths) Check {
+	const id = "relay-config"
+	p := filepath.Join(paths.Root, paths.RelayConfig())
+	body, err := os.ReadFile(p)
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Message: "managed relay fragment is missing", Detail: p}
+	}
+	listen, backend, err := parseRelayConf(string(body))
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Message: "managed relay fragment is not understood", Detail: err.Error()}
+	}
+	return Check{ID: id, Status: StatusOK, Message: "relay forwards to " + backend, Detail: "listen " + listen}
+}
+
+// parseRelayConf extracts the first listen and proxy_pass of the managed
+// stream{} fragment written by xraycfg.RelayConf.
+func parseRelayConf(body string) (listen, backend string, err error) {
+	for _, raw := range strings.Split(body, "\n") {
+		line := strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(raw), ";"))
+		fields := strings.Fields(line)
+		if len(fields) < 2 {
+			continue
+		}
+		switch fields[0] {
+		case "listen":
+			if listen == "" {
+				listen = fields[1]
+			}
+		case "proxy_pass":
+			if backend == "" {
+				backend = fields[1]
+			}
+		}
+	}
+	if listen == "" {
+		return "", "", fmt.Errorf("relay fragment has no listen directive")
+	}
+	if backend == "" {
+		return "", "", fmt.Errorf("relay fragment has no proxy_pass directive")
+	}
+	return listen, backend, nil
+}
+
+// checkRelayProbe is the strongest honest layer a relay can offer: a real HTTP
+// client dials the managed stream listener and must receive the origin body.
+// It is never reported as a VLESS user session.
+func checkRelayProbe(ctx context.Context, paths host.Paths, opts Options) Check {
+	const id = "relay-probe"
+	if strings.TrimSpace(opts.ProbeURL) == "" {
+		return Check{ID: id, Status: StatusSkip, Evidence: EvidenceNotRun,
+			Message: "no probe URL supplied; the relay was not exercised"}
+	}
+	body, err := os.ReadFile(filepath.Join(paths.Root, paths.RelayConfig()))
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceNotRun,
+			Message: "managed relay fragment is not readable", Detail: err.Error()}
+	}
+	listen, backend, err := parseRelayConf(string(body))
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceNotRun,
+			Message: "cannot locate the relay listener", Detail: err.Error()}
+	}
+	host, port, err := net.SplitHostPort(listen)
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceNotRun,
+			Message: "relay listener is not host:port", Detail: listen}
+	}
+	switch host {
+	case "", "0.0.0.0", "::", "[::]":
+		host = "127.0.0.1"
+	}
+	addr := net.JoinHostPort(strings.Trim(host, "[]"), port)
+	probe := opts.ProbeForward
+	if probe == nil {
+		probe = clientprobe.ProbeForward
+	}
+	res, err := probe(ctx, addr, opts.ProbeURL, opts.ProbeExpect)
+	if err != nil {
+		return Check{ID: id, Status: StatusFail, Evidence: EvidenceRealClient,
+			Message: "a real request through the relay failed",
+			Detail:  err.Error(), Cause: "the listener, the backend or the stream config is not usable"}
+	}
+	return Check{ID: id, Status: StatusOK, Evidence: EvidenceRealClient,
+		Message: fmt.Sprintf("a real HTTP client reached the origin through the relay to %s", backend),
+		Detail:  fmt.Sprintf("%s, %d body bytes", res.StatusLine, res.BodyBytes)}
+}
+
+// probeLink projects the first user-bearing vless inbound onto a client link.
+// It never mutates the config and never persists the derived key.
+func probeLink(body []byte) (clientprobe.Link, string, bool, error) {
+	var doc struct {
+		Inbounds []struct {
+			Listen   string `json:"listen"`
+			Port     int    `json:"port"`
+			Protocol string `json:"protocol"`
+			Settings struct {
+				Clients []struct {
+					ID   string `json:"id"`
+					Flow string `json:"flow"`
+				} `json:"clients"`
+			} `json:"settings"`
+			Stream struct {
+				Network  string `json:"network"`
+				Security string `json:"security"`
+				Reality  struct {
+					PrivateKey  string   `json:"privateKey"`
+					ShortIDs    []string `json:"shortIds"`
+					ServerNames []string `json:"serverNames"`
+				} `json:"realitySettings"`
+				TLS struct {
+					ServerName string `json:"serverName"`
+				} `json:"tlsSettings"`
+				WS struct {
+					Path string `json:"path"`
+				} `json:"wsSettings"`
+				GRPC struct {
+					ServiceName string `json:"serviceName"`
+				} `json:"grpcSettings"`
+				XHTTP struct {
+					Path string `json:"path"`
+				} `json:"xhttpSettings"`
+			} `json:"streamSettings"`
+		} `json:"inbounds"`
+	}
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return clientprobe.Link{}, "", false, err
+	}
+	for _, in := range doc.Inbounds {
+		if in.Protocol != "vless" || len(in.Settings.Clients) == 0 || in.Port < 1 {
+			continue
+		}
+		link := clientprobe.Link{
+			UUID:        in.Settings.Clients[0].ID,
+			Flow:        in.Settings.Clients[0].Flow,
+			Network:     in.Stream.Network,
+			Security:    in.Stream.Security,
+			Path:        in.Stream.WS.Path,
+			ShortID:     firstString(in.Stream.Reality.ShortIDs),
+			SNI:         firstString(in.Stream.Reality.ServerNames),
+			Fingerprint: "chrome",
+		}
+		if link.Network == "" || link.Network == "tcp" {
+			link.Network = "raw"
+		}
+		switch link.Network {
+		case "grpc":
+			link.ServiceName = in.Stream.GRPC.ServiceName
+		case "xhttp":
+			link.Path = in.Stream.XHTTP.Path
+		}
+		if link.Security == "reality" {
+			pub, err := xraycfg.DerivePublicKey(in.Stream.Reality.PrivateKey)
+			if err != nil {
+				return clientprobe.Link{}, "", false, fmt.Errorf("derive the reality public key: %w", err)
+			}
+			link.PublicKey = pub
+		} else if link.Security == "tls" {
+			if in.Stream.TLS.ServerName != "" {
+				link.SNI = in.Stream.TLS.ServerName
+			}
+		}
+		listen := in.Listen
+		if listen == "" || listen == "0.0.0.0" || listen == "::" || listen == "[::]" {
+			listen = "127.0.0.1"
+		}
+		return link, net.JoinHostPort(listen, strconv.Itoa(in.Port)), true, nil
+	}
+	return clientprobe.Link{}, "", false, nil
+}
+
+func firstString(values []string) string {
+	for _, v := range values {
+		if strings.TrimSpace(v) != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 func checkGeodata(paths host.Paths) Check {

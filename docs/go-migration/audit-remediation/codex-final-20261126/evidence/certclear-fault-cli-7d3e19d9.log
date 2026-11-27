@@ -1,0 +1,5 @@
+command=bash tests/e2e-diff/evidence/certclear-fault-cli-7d3e19d9-20261127/run-fault-cases.sh
+exit=0
+partial_cli_rc=1
+recovery_cli_rc=1
+checks=tests/e2e-diff/evidence/certclear-fault-cli-7d3e19d9-20261127/checks.json

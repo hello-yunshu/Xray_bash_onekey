@@ -1,0 +1,49 @@
+{
+  "active": {
+    "bash": "active",
+    "go": "active"
+  },
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-04",
+  "l4": {
+    "bash": 0,
+    "go": 0
+  },
+  "listening443": {
+    "bash": false,
+    "go": false
+  },
+  "nginxListen": {
+    "bash": [
+      "listen       80;",
+      "listen 127.0.0.1:9403 ssl;",
+      "listen 8443 reuseport so_keepalive=on backlog=65535;"
+    ],
+    "go": [
+      "listen       80;",
+      "listen 127.0.0.1:9403 ssl;",
+      "listen 8443 reuseport so_keepalive=on backlog=65535;"
+    ]
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "go share port is None, expected 8443"
+  ],
+  "repeat": {
+    "bashFirst": 0,
+    "bashSecond": 0,
+    "goNegative": 2,
+    "goRepeat": 0
+  },
+  "sharePort": {
+    "bash": null,
+    "go": null
+  },
+  "verdict": "BLOCKER"
+}

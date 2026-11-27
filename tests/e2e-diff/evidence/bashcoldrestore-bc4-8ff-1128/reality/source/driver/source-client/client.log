@@ -1,0 +1,21 @@
+Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/27 16:55:25.262006 [Info] infra/conf/serial: Reading config: &{Name:/tmp/bash-cold-client.json Format:json}
+2026/11/27 16:55:25.262786 [Warning] core: Xray 26.11.9 started
+2026/11/27 16:55:25.353601 from tcp:127.0.0.1:59264 accepted tcp:1.2.3.4:18080
+2026/11/27 16:55:36.359714 from tcp:127.0.0.1:47384 accepted tcp:1.2.3.4:18080
+2026/11/27 16:55:47.368319 from tcp:127.0.0.1:58980 accepted tcp:1.2.3.4:18080
+2026/11/27 16:55:58.382345 from tcp:127.0.0.1:48204 accepted tcp:1.2.3.4:18080
+2026/11/27 16:56:09.391507 from tcp:127.0.0.1:35798 accepted tcp:1.2.3.4:18080
+2026/11/27 16:56:20.404488 from tcp:127.0.0.1:48302 accepted tcp:1.2.3.4:18080
+2026/11/27 16:56:31.413067 from tcp:127.0.0.1:46290 accepted tcp:1.2.3.4:18080
+2026/11/27 16:56:42.423588 from tcp:127.0.0.1:48358 accepted tcp:1.2.3.4:18080
+2026/11/27 16:56:49.010545 from tcp:127.0.0.1:48366 accepted tcp:1.2.3.4:18080
+2026/11/27 16:56:53.440833 from tcp:127.0.0.1:38144 accepted tcp:1.2.3.4:18080
+2026/11/27 16:57:04.453296 from tcp:127.0.0.1:59142 accepted tcp:1.2.3.4:18080
+2026/11/27 16:57:15.460716 from tcp:127.0.0.1:40714 accepted tcp:1.2.3.4:18080
+2026/11/27 16:57:26.176245 from tcp:127.0.0.1:54390 accepted tcp:1.2.3.4:18080
+2026/11/27 16:57:37.184242 from tcp:127.0.0.1:57844 accepted tcp:1.2.3.4:18080
+2026/11/27 16:57:48.192623 from tcp:127.0.0.1:35702 accepted tcp:1.2.3.4:18080
+2026/11/27 16:57:59.201494 from tcp:127.0.0.1:36058 accepted tcp:1.2.3.4:18080
+2026/11/27 16:58:10.213161 from tcp:127.0.0.1:45492 accepted tcp:1.2.3.4:18080

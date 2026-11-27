@@ -265,6 +265,14 @@ func seedNginx(t *testing.T, root, version string) map[string]string {
 func TestApplyNginxUpdateAndRollback(t *testing.T) {
 	root := sandbox(t)
 	seedNginx(t, root, "1.24.0")
+	managedConfig := "events {}\nhttp { include /etc/idleleo/conf/nginx/*.conf; }\n"
+	oldConfig := filepath.Join(root, "usr/local/nginx/conf/nginx.conf")
+	if err := os.WriteFile(oldConfig, []byte(managedConfig), 0o640); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(oldConfig, 0o640); err != nil {
+		t.Fatal(err)
+	}
 	dir := t.TempDir()
 	candidate := tarGz(t, map[string]string{
 		"nginx/sbin/nginx":      nginxScript(t, "1.24.1", true),
@@ -284,6 +292,17 @@ func TestApplyNginxUpdateAndRollback(t *testing.T) {
 	got, _ := os.ReadFile(filepath.Join(root, "usr/local/nginx/sbin/nginx"))
 	if !bytes.Equal(got, []byte(nginxScript(t, "1.24.1", true))) {
 		t.Fatal("nginx directory was not replaced")
+	}
+	gotConfig, err := os.ReadFile(oldConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(gotConfig) != managedConfig {
+		t.Fatalf("managed nginx config was replaced by the archive default: %q", gotConfig)
+	}
+	configInfo, err := os.Stat(oldConfig)
+	if err != nil || configInfo.Mode().Perm() != 0o640 {
+		t.Fatalf("managed nginx config mode was not preserved: info=%v err=%v", configInfo, err)
 	}
 	if _, err := os.Stat(report.BackupPath); err != nil {
 		t.Fatalf("nginx backup missing: %v", err)

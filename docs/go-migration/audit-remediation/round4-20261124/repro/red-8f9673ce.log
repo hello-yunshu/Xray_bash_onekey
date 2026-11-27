@@ -1,0 +1,14 @@
+=== RUN   TestReproUnregisteredIdenticalCopyIsKept
+    round4_repro_test.go:90: a copy that is only byte-identical, not registered by path, must survive: stat /tmp/TestReproUnregisteredIdenticalCopyIsKept2109294918/001/etc/idleleo/cert/copy-of-xray.crt: no such file or directory
+--- FAIL: TestReproUnregisteredIdenticalCopyIsKept (0.09s)
+=== RUN   TestReproUnboundReloadRecordDoesNotProveActive
+    round4_repro_test.go:137: a reload record without process identity must not prove active (alive=true reason="")
+--- FAIL: TestReproUnboundReloadRecordDoesNotProveActive (0.00s)
+=== RUN   TestReproNestedUserMarkerProtectsSubtree
+--- PASS: TestReproNestedUserMarkerProtectsSubtree (0.06s)
+=== RUN   TestReproThirdPartyACMEDirSurvives
+    round4_repro_test.go:188: third-party ACME state must be preserved: stat /tmp/TestReproThirdPartyACMEDirSurvives1538835251/002/.acme.sh/repro.example.com_ecc: no such file or directory
+--- FAIL: TestReproThirdPartyACMEDirSurvives (0.03s)
+FAIL
+FAIL	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.184s
+FAIL

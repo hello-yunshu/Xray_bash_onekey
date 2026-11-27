@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "archive": "/handoff/state.tar.gz",
+  "archiveSha256": "44dbe53a139a65ce352433808489a1aead0a74f844f737cca30ab772170118b6",
+  "bytes": 0,
+  "files": 10,
+  "createdAt": "",
+  "restored": [
+    "etc/idleleo/cert/xray.crt",
+    "etc/idleleo/cert/xray.key",
+    "etc/idleleo/conf/nginx/00-xray.conf",
+    "etc/idleleo/conf/nginx/01-xray-80.conf",
+    "etc/idleleo/conf/nginx/02-xray-server.conf",
+    "etc/idleleo/conf/nginx/127.0.0.1.wsServers",
+    "etc/idleleo/conf/nginx/nginx.default",
+    "etc/idleleo/conf/xray/config.json",
+    "etc/idleleo/v1/metadata.json",
+    "etc/idleleo/v1/nginx.json"
+  ],
+  "preBackup": "/etc/idleleo/backup/pre-restore-20261127T090943Z.tar.gz",
+  "sensitive": true
+}

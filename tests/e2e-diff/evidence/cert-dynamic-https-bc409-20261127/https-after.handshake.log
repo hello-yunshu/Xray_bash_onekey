@@ -1,0 +1,54 @@
+depth=0 CN = owned.local
+verify error:num=18:self-signed certificate
+verify return:1
+depth=0 CN = owned.local
+verify return:1
+CONNECTED(00000003)
+---
+Certificate chain
+ 0 s:CN = owned.local
+   i:CN = owned.local
+   a:PKEY: rsaEncryption, 2048 (bit); sigalg: RSA-SHA256
+   v:NotBefore: Nov 27 05:00:12 2026 GMT; NotAfter: Nov 29 05:00:12 2026 GMT
+-----BEGIN CERTIFICATE-----
+MIIDJTCCAg2gAwIBAgIUT12qiAK4072B+F0FAv6SK54y/F0wDQYJKoZIhvcNAQEL
+BQAwFjEUMBIGA1UEAwwLb3duZWQubG9jYWwwHhcNMjYxMTI3MDUwMDEyWhcNMjYx
+MTI5MDUwMDEyWjAWMRQwEgYDVQQDDAtvd25lZC5sb2NhbDCCASIwDQYJKoZIhvcN
+AQEBBQADggEPADCCAQoCggEBAIn1hF4vrUAX88mSel88GumC6d+lhBe3BtLA3Ehy
+oo+S40r33eHPdkvHKxV1VcA2ZwlsoEouwsaf8p9ih3IHDJF+NeoWugu/pvWusmJ1
+MI0qpjJXeQ5VVulnxGkiJzhzILliXPC8HrmHodut+Bu6bVJi8Ja7pdMftGVn+Mlf
+3KYE6+754DF1MsAfEyUiBEMlwj7uQjqvVIXjQMS3AleZY6Z9i0KGl1pFuF9HjNs8
+iYxixT2Ei2KxLzjN+Q/5mOSYWJLm7W1pMZF+TE8xJjbcTUs/DveuhFy2cifHBsi7
+aBJL4PFVoQNB0FE6n6zVsfIvKnD7ggCtsg4lsS3fiLdQt1UCAwEAAaNrMGkwHQYD
+VR0OBBYEFGsdKABNZY+b/qsT2AxINxZ52pW7MB8GA1UdIwQYMBaAFGsdKABNZY+b
+/qsT2AxINxZ52pW7MA8GA1UdEwEB/wQFMAMBAf8wFgYDVR0RBA8wDYILb3duZWQu
+bG9jYWwwDQYJKoZIhvcNAQELBQADggEBAELIPOlCgNazVpu0Ab60bngnCY6xnPsx
+Foqnm9l3V843dox0vfr+JnbZGLvggwcUIe7llStGoQXuyaU/0B6ZqLtzY1f2mxEp
+cEwUbCCZQyZGZJHzUeaIMjAavtAjL1T3hzxvWliSudKmVJf7NtEv+nk4XSbpgmbR
+6xaEJ10C6gYCaeXPov6ZLiSKJqPVijTvVdV7juR1gcsZd1e+Kria6ltPkBHEddvv
+okmUnEGZrHY7nz7Y1MRxzFsv+59Nvw3UdTIZDD10WMeAsyJK/bwc+YSa/612VKFY
+aDBgAOZQqqcMByVWeBTwlC68+ZfPTXrD+UwmTu0xr9VmiDypNal9BG8=
+-----END CERTIFICATE-----
+---
+Server certificate
+subject=CN = owned.local
+issuer=CN = owned.local
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: RSA-PSS
+Server Temp Key: X25519, 253 bits
+---
+SSL handshake has read 1369 bytes and written 397 bytes
+Verification error: self-signed certificate
+---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Server public key is 2048 bit
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 18 (self-signed certificate)
+---
+DONE

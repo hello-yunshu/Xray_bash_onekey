@@ -1,0 +1,26 @@
+PASS	M4 INJ bash install exits 0 (rc=0)
+PASS	M4 I1 corrupt config is refused (rc=1)
+PASS	M4 I1 error reports the rejected candidate
+PASS	M4 I1 error names the config file
+PASS	M4 I1 leaves units, certs and cron untouched
+PASS	M4 I1 the refused install does not overwrite the corrupt input
+PASS	M4 I1 restored config validates
+PASS	M4 I1 service recovers once the input is repaired (rc=0 state=active)
+PASS	M4 I2 missing certificate is refused (rc=1)
+PASS	M4 I2 error names the missing certificate
+PASS	M4 I2 leaves units and cron untouched
+PASS	M4 I2 restored certificate validates
+PASS	M4 I2 service recovers once the input is repaired (rc=0 state=active)
+PASS	M4 I4 read-only target is refused (rc=1)
+PASS	M4 I4 error names the write-refused path
+PASS	M4 I4 runtime config is byte-identical after the refusal
+PASS	M4 I4 the un-restorable rollback keeps a recovery journal
+PASS	M4 I4 xray recover clears the journal (rc=0)
+PASS	M4 I4 recovery journal is removed
+PASS	M4 I4 service stays active
+PASS	M4 I4 recovery leaves the runtime config unchanged
+PASS	I3 harness holds port 443 before the install
+PASS	I3 occupied port is refused (rc=1)
+PASS	I3 error reports the port conflict
+PASS	I3 refusal writes no runtime config
+PASS	I3 refusal writes no unit file

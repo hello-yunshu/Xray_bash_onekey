@@ -1,0 +1,12 @@
+{
+  "id": "OPS-18",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "Bash entry is an interactive host BBR switch; a container cannot change or prove the host kernel",
+    "Go tcp status rc=0"
+  ],
+  "verdict": "BLOCKED"
+}

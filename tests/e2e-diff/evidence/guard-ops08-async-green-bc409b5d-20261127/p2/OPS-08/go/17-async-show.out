@@ -1,0 +1,15 @@
+{
+  "applicable": true,
+  "tls": "Reality",
+  "managedFront": true,
+  "enabled": true,
+  "policy": "reject",
+  "status": "active",
+  "metadataSynced": true,
+  "denyPort": 9404,
+  "evidence": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/usr/local/nginx/conf/nginx.conf"
+  ],
+  "warnings": []
+}

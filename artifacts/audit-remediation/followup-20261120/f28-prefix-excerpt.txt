@@ -1,0 +1,13 @@
+# Pre-fix F28 reproduction (source d13fca44, binary idleleo-prefix)
+# Container: golang:1.27.4, /etc/idleleo/v1/metadata.json = tls None (foreign root)
+# Result: 35 passed, 2 failed
+FAIL share exit 0: rc=1 --public-security none conflicts with runtime stream security=reality
+FAIL share report: invalid JSON: --public-security none conflicts with runtime stream security=reality
+
+# The safe binary fixes the two failures: artifacts/audit-remediation/followup-20261120/f28
+# Pre-fix commands.log also recorded the transient x25519 private key in both the
+# argv line and the PASS detail. Values are removed from this copy:
+$ /opt/xray/xray x25519 (rc=0)
+PASS xray x25519 produced a private key expected=<non-empty> actual='<redacted>'
+$ /opt/xray/xray x25519 -i <redacted> (rc=0)
+# Post-fix commands.log records only: "$ <redacted command>" / "stdout: <redacted>".

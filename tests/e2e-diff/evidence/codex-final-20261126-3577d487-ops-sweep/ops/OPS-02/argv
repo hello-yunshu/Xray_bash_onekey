@@ -1,0 +1,1 @@
+xray user add --sandbox / --email e2e@example.com --uuid 11111111-2222-3333-4444-555555555555 --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply --container --json

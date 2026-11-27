@@ -1,0 +1,15 @@
+
+ 当前阻断规则配置: 
+  ✓ 国家/地区阻断 (cn)
+  ✓ BT 下载阻断 (protocol:bittorrent)
+  ✓ 私有网络阻断 (geoip:private)
+  ✓ 广告域名阻断 (geosite:category-ads-all)
+
+  应用规则将重建路由配置, 自定义路由规则将被覆盖 
+  以下 GeoData 文件有新版本可用: geoip.dat geosite.dat 
+ 是否立即手动刷新 [Y/N]? 
+
+  流量阻断规则 已应用 
+  Xray 已重启 
+  域名解析策略 已应用 
+  协议嗅探 已应用 

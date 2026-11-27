@@ -1,0 +1,15 @@
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go xray[<PID>]: 2026/11/27 08:47:02.801266 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M6-go xray[<PID>]: 2026/11/27 08:47:08.261170 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/27 08:47:02.805675 [Warning] core: Xray 26.11.9 started
+2026/11/27 08:47:05.757199 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:54312 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/27 08:47:05.757279 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:54322 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/27 08:47:08.262984 [Warning] core: Xray 26.11.9 started

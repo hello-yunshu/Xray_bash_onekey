@@ -1,0 +1,132 @@
+== building phase04 image ==
+#0 building with "orbstack" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 649B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852
+#2 DONE 0.1s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/2] FROM docker.io/library/ubuntu:24.04@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852
+#4 resolve docker.io/library/ubuntu:24.04@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852 0.0s done
+#4 DONE 0.0s
+
+#5 [2/2] RUN apt-get update     && apt-get install -y --no-install-recommends         systemd systemd-sysv dbus ca-certificates curl iproute2 procps python3         nginx libnginx-mod-stream openssl jq gettext bc util-linux shellcheck     && rm -rf /var/lib/apt/lists/*
+#5 CACHED
+
+#6 exporting to image
+#6 exporting layers done
+#6 exporting manifest sha256:a72bf0ca69e93f0b9ca338016eef1a91c7658e8af08c3158cfa1cb7da15a0128 done
+#6 exporting config sha256:34cfaf0fa17a767743ca439f21c3e65498573cdf851e9fa6b4554e3acd3fa87d done
+#6 exporting attestation manifest sha256:a96292e3827b1daa3fae395fc6cf906ac5244b9cfd510f12a206b7cc904d3a2d 0.0s done
+#6 exporting manifest list sha256:2ef2c8f0dfd2ad98e86ec93474217b49b2f2754c98b41425d1c84e2abeff4912 done
+#6 naming to docker.io/library/idleleo-phase04-test:24.04
+#6 naming to docker.io/library/idleleo-phase04-test:24.04 done
+#6 unpacking to docker.io/library/idleleo-phase04-test:24.04 done
+#6 DONE 0.1s
+image: idleleo-phase04-test:24.04
+image-id: sha256:2ef2c8f0dfd2ad98e86ec93474217b49b2f2754c98b41425d1c84e2abeff4912
+xray-bin: <REPO_ROOT>/tests/go-parity/.cache/xray-linux-arm64/xray arch=arm64 sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a
+== building linux/arm64 idleleo versions ==
+idleleo-old sha256=230d4a356f1e47d6e15cb0529d2ecf5ddba3a22693529ddea6e27bc57a414788
+idleleo-0.3.0 sha256=4a4ef0c2fcc87b04f01c7c66ee3d545fb4afa6fe3a91900d20e2d1a29e1d8e80
+idleleo-0.4.0 sha256=5f9fb3da13990515c3e3a532218b35365181a9f3f0f612a88e62ca4486d7b0fa
+== starting privileged systemd container ==
+systemd: running
+== running Phase 04 qualification ==
+phase04-start 2026-11-27T06:50:12Z arch=arm64
+old=230d4a356f1e47d6e15cb0529d2ecf5ddba3a22693529ddea6e27bc57a414788 new3=4a4ef0c2fcc87b04f01c7c66ee3d545fb4afa6fe3a91900d20e2d1a29e1d8e80 new4=5f9fb3da13990515c3e3a532218b35365181a9f3f0f612a88e62ca4486d7b0fa
+installed: idleleo 0.2.0-phase04 (go)
+PASS installed old candidate 0.2.0-phase04
+PASS update configure rc=0
+PASS update check available verified latest=0.3.0-phase04
+PASS update apply action=applied health=idleleo 0.3.0-phase04 (go) version=idleleo 0.3.0-phase04 (go)
+installed-binary-sha=4a4ef0c2fcc87b04f01c7c66ee3d545fb4afa6fe3a91900d20e2d1a29e1d8e80 expected=4a4ef0c2fcc87b04f01c7c66ee3d545fb4afa6fe3a91900d20e2d1a29e1d8e80
+PASS installed sha matches manifest
+PASS second apply is up-to-date
+PASS bad sha rejected rc=1
+PASS bad sha kept old binary
+PASS interrupted download rejected rc=1
+PASS interrupted download kept old binary
+PASS non-ELF asset rejected rc=1
+PASS non-ELF kept old binary
+PASS downgrade refused exit=4
+PASS downgrade kept old binary
+PASS disk full rejected rc=1
+PASS disk full kept old binary (idleleo 0.3.0-phase04 (go))
+umount: /mnt/full: target is busy.
+job=auto-update result=ok at=2026-11-27T06:50:13Z detail=updated 0.3.0-phase04 -> 0.4.0-phase04 sha256=5f9fb3da13990515c3e3a532218b35365181a9f3f0f612a88e62ca4486d7b0fa health=idleleo 0.4.0-phase04 (go)
+PASS scheduled auto-update applied 0.4.0 at=2026-11-27T06:50:13Z
+schedule-log: 2026-11-27T06:50:13Z job=auto-update result=ok detail=updated 0.3.0-phase04 -> 0.4.0-phase04 sha256=5f9fb3da13990515c3e3a532218b35365181a9f3f0f612a88e62ca4486d7b0fa health=idleleo 0.4.0-phase04 (go)
+PASS schedule log recorded the real run
+PASS schedule status sees the release channel
+PASS unconfigured auto-update is an explicit degradation
+PASS degraded run kept binary
+PASS cert baseline recorded without restart
+PASS changed certificate restarted xray once and reloaded nginx
+PASS unchanged certificate did not restart services
+PASS world-readable private key blocked the reload
+FAIL short cert result=failed
+PASS service status xray=active nginx=active
+PASS service restart restarted xray (starts 2->3)
+PASS service stop left xray inactive
+PASS service start restored xray
+PASS service logs returned journal lines
+PASS unmanaged unit rejected rc=2
+PASS service status refuses a sandbox root rc=2
+PASS rill status reports absent on a clean system
+PASS rill status active mode=observe-only
+PASS rill status detects a stale observation
+PASS help lists the new commands
+PASS stats --json returned a real inbound counter
+PASS show reads the runtime config
+PASS read-only commands wrote nothing under /etc/idleleo
+PASS non-root stats preserves the legacy exit 5
+PASS stats with API down reports exit 8
+phase04-end 2026-11-27T06:50:17Z pass=41 fail=1
+phase04-exit=1
+Nov 27 06:50:11 a8e026458dcd systemd[1]: Started nginx.service - A high performance web server and a reverse proxy server.
+Nov 27 06:50:11 a8e026458dcd systemd-logind[80]: New seat seat0.
+Nov 27 06:50:11 a8e026458dcd systemd[1]: Started systemd-logind.service - User Login Management.
+Nov 27 06:50:11 a8e026458dcd systemd[1]: Reached target multi-user.target - Multi-User System.
+Nov 27 06:50:11 a8e026458dcd systemd[1]: Reached target graphical.target - Graphical Interface.
+Nov 27 06:50:11 a8e026458dcd systemd[1]: Starting systemd-update-utmp-runlevel.service - Record Runlevel Change in UTMP...
+Nov 27 06:50:11 a8e026458dcd systemd[1]: systemd-update-utmp-runlevel.service: Deactivated successfully.
+Nov 27 06:50:11 a8e026458dcd systemd[1]: Finished systemd-update-utmp-runlevel.service - Record Runlevel Change in UTMP.
+Nov 27 06:50:11 a8e026458dcd systemd[1]: Startup finished in 81ms.
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Reloading requested from client PID 503 ('systemctl') (unit init.scope)...
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Reloading...
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Reloading finished in 21 ms.
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Configuration file /etc/systemd/system/xray.service is marked world-writable. Please remove world writability permission bits. Proceeding anyway.
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Reloading requested from client PID 519 ('systemctl') (unit init.scope)...
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Reloading...
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Configuration file /etc/systemd/system/xray.service is marked world-writable. Please remove world writability permission bits. Proceeding anyway.
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Reloading finished in 19 ms.
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Started xray.service - phase04 xray restart probe.
+Nov 27 06:50:13 a8e026458dcd sh[535]: phase04-xray-start
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Stopping xray.service - phase04 xray restart probe...
+Nov 27 06:50:13 a8e026458dcd systemd[1]: xray.service: Deactivated successfully.
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Stopped xray.service - phase04 xray restart probe.
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Started xray.service - phase04 xray restart probe.
+Nov 27 06:50:13 a8e026458dcd sh[578]: phase04-xray-start
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Reloading nginx.service - A high performance web server and a reverse proxy server...
+Nov 27 06:50:13 a8e026458dcd nginx[581]: 2026/11/27 06:50:13 [notice] 581#581: signal process started
+Nov 27 06:50:13 a8e026458dcd systemd[1]: Reloaded nginx.service - A high performance web server and a reverse proxy server.
+Nov 27 06:50:14 a8e026458dcd systemd[1]: Configuration file /etc/systemd/system/xray.service is marked world-writable. Please remove world writability permission bits. Proceeding anyway.
+Nov 27 06:50:14 a8e026458dcd systemd[1]: Stopping xray.service - phase04 xray restart probe...
+Nov 27 06:50:14 a8e026458dcd systemd[1]: xray.service: Deactivated successfully.
+Nov 27 06:50:14 a8e026458dcd systemd[1]: Stopped xray.service - phase04 xray restart probe.
+Nov 27 06:50:14 a8e026458dcd systemd[1]: Started xray.service - phase04 xray restart probe.
+Nov 27 06:50:14 a8e026458dcd sh[707]: phase04-xray-start
+Nov 27 06:50:14 a8e026458dcd systemd[1]: Stopping xray.service - phase04 xray restart probe...
+Nov 27 06:50:14 a8e026458dcd systemd[1]: xray.service: Deactivated successfully.
+Nov 27 06:50:14 a8e026458dcd systemd[1]: Stopped xray.service - phase04 xray restart probe.
+Nov 27 06:50:14 a8e026458dcd systemd[1]: Configuration file /etc/systemd/system/xray.service is marked world-writable. Please remove world writability permission bits. Proceeding anyway.
+Nov 27 06:50:14 a8e026458dcd systemd[1]: Started xray.service - phase04 xray restart probe.
+Nov 27 06:50:14 a8e026458dcd sh[752]: phase04-xray-start
+Nov 27 06:50:14 a8e026458dcd systemd[1]: Configuration file /etc/systemd/system/xray.service is marked world-writable. Please remove world writability permission bits. Proceeding anyway.

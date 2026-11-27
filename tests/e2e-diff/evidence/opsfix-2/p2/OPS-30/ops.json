@@ -1,0 +1,15 @@
+{
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-30",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "driver rc=124"
+  ],
+  "verdict": "HARNESS-ERROR"
+}

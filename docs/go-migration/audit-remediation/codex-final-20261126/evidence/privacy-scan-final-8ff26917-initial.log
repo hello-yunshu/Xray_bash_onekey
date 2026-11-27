@@ -1,0 +1,5 @@
+docs/go-migration/audit-remediation/codex-final-20261126/evidence/ledger-sanitize-tests-blockedids-retry.log:5: <workspace> (host user path)
+docs/go-migration/audit-remediation/codex-final-20261126/evidence/ledger-sanitize-tests-current.log:5: <workspace> (host user path)
+tests/e2e-diff/collect/test_sanitize_evidence.py:18: <workspace> (host user path)
+hygiene: 3 finding(s) in 72764 file(s)
+command_rc=1

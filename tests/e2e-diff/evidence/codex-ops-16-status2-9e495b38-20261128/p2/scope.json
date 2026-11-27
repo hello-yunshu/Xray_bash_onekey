@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-16",
+  "ops": [
+    "OPS-16"
+  ],
+  "runId": "codex-ops-16-status2-9e495b38-20261128",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

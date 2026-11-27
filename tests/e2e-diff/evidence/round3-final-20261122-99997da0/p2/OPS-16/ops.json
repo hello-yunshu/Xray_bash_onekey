@@ -1,0 +1,21 @@
+{
+  "certificate": {
+    "bashPresent": true,
+    "goNotExpired": true,
+    "goPresent": true,
+    "goState": "not-due"
+  },
+  "id": "OPS-16",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "Bash menu 4>2>1/4>2>2 shows certificate status/validity; Go 'cert renew --dry-run' is a renewal preflight",
+    "bash rc=0",
+    "go rc=0",
+    "bash certificate present=True",
+    "go certificate present=True notExpired=True state=not-due"
+  ],
+  "verdict": "DIFF"
+}

@@ -1,0 +1,1 @@
+Nginx reload command succeeded but no new worker generation appeared within 2s; the previous SNI Guard policy was restored

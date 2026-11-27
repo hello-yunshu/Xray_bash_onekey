@@ -382,6 +382,32 @@ func RemoveUser(raw []byte, inboundIndex int, ident string) ([]byte, UserView, e
 	return out, removed, nil
 }
 
+// ShortIDRemovalNotice explains the deliberate difference from the Bash menu.
+// Reality shortIds are inbound-level credentials: the runtime config holds no
+// per-client association, so removing one user cannot prove which sid was
+// theirs or whether another client still relies on it. The Bash menu reads a
+// separate install_config.reality_clients map, which Go does not maintain; the
+// manager therefore keeps the sid and tells the operator to remove it
+// explicitly via `xray edit --short-id-remove` if that is intended.
+func ShortIDRemovalNotice(raw []byte, inboundIndex int) string {
+	root, err := decode(raw)
+	if err != nil {
+		return ""
+	}
+	in, err := inboundAt(root, inboundIndex)
+	if err != nil {
+		return ""
+	}
+	stream, _ := in["streamSettings"].(map[string]any)
+	reality, _ := stream["realitySettings"].(map[string]any)
+	ids, _ := reality["shortIds"].([]any)
+	if len(ids) == 0 {
+		return ""
+	}
+	return "note: Reality shortIds are inbound-level and not attributable to one user; all shortIds were kept. " +
+		"Run `xray edit --short-id-remove <sid>` only if you have verified the sid is unused."
+}
+
 func clientsOf(in map[string]any, inboundIndex int) ([]UserView, error) {
 	settings, _ := in["settings"].(map[string]any)
 	if settings == nil {

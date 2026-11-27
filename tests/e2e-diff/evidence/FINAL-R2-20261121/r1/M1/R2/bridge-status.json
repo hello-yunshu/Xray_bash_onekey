@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "state": "COMMITTED",
+  "verdict": "convertible",
+  "entry": "/etc/idleleo/install.sh",
+  "root": "/",
+  "scheduledJobs": [
+    "auto-update",
+    "cert-renew",
+    "geodata-refresh",
+    "stats-collect"
+  ],
+  "degradedJobs": [
+    "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+  ],
+  "rillStatus": "absent",
+  "updatedAt": "2026-11-20T18:31:01Z"
+}

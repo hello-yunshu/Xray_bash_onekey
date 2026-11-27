@@ -1,0 +1,20 @@
+{
+  "note": "Sanitized runtime configuration samples; identifiers, credentials, domains and public DNS removed.",
+  "samples": [
+    {
+      "name": "reality-standard",
+      "source": "tests/e2e-diff/evidence/audit-final-20261119/p2/M1/go/config/config.sanitized.json",
+      "path": "artifacts/audit-remediation/fixtures/reality-standard.json"
+    },
+    {
+      "name": "tls-ws",
+      "source": "tests/e2e-diff/evidence/audit-final-20261119/p2/M4/go/config/config.sanitized.json",
+      "path": "artifacts/audit-remediation/fixtures/tls-ws.json"
+    },
+    {
+      "name": "none-ws",
+      "source": "tests/e2e-diff/evidence/audit-final-20261119/p2/M9/go/config/config.sanitized.json",
+      "path": "artifacts/audit-remediation/fixtures/none-ws.json"
+    }
+  ]
+}

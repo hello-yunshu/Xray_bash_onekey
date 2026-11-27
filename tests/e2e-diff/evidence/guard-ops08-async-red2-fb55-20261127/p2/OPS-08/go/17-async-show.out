@@ -1,0 +1,17 @@
+{
+  "applicable": true,
+  "tls": "Reality",
+  "managedFront": true,
+  "enabled": true,
+  "policy": "decoy",
+  "decoyDomain": "guard-async.local",
+  "status": "active",
+  "metadataSynced": true,
+  "denyPort": 9444,
+  "evidence": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/usr/local/nginx/conf/nginx.conf",
+    "/etc/idleleo/conf/nginx/03-decoy.conf"
+  ],
+  "warnings": []
+}

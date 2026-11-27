@@ -1,0 +1,21 @@
+<TS> e2e-FINAL-M-20261121-M7-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-FINAL-M-20261121-M7-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-FINAL-M-20261121-M7-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-FINAL-M-20261121-M7-go xray[<PID>]: 2026/11/20 18:10:00.330300 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-FINAL-M-20261121-M7-go xray[<PID>]: 2026/11/20 18:10:00.330772 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-FINAL-M-20261121-M7-go xray[<PID>]: 2026/11/20 18:10:00.330915 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+<TS> e2e-FINAL-M-20261121-M7-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-FINAL-M-20261121-M7-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-FINAL-M-20261121-M7-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-FINAL-M-20261121-M7-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-FINAL-M-20261121-M7-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-FINAL-M-20261121-M7-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-FINAL-M-20261121-M7-go xray[<PID>]: 2026/11/20 18:10:13.257229 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-FINAL-M-20261121-M7-go xray[<PID>]: 2026/11/20 18:10:13.257848 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-FINAL-M-20261121-M7-go xray[<PID>]: 2026/11/20 18:10:13.257855 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+2026/11/20 18:10:00.337359 [Warning] core: Xray 26.10.31 started
+2026/11/20 18:10:03.818523 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:36030 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 18:10:07.829374 [Warning] transport/internet/grpc/encoding: received "X-Forwarded-For" from 127.0.0.1:53106 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 18:10:11.848727 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:60388 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 18:10:11.848758 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:60400 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 18:10:13.262277 [Warning] core: Xray 26.10.31 started

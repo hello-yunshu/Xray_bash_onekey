@@ -1,0 +1,41 @@
+{
+  "archiveSHA256": "5cd5fcfe353fe4278fcc4734a37142144755bc054b2401792b2162f3eb3a6fe7",
+  "commit": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+  "imageId": "sha256:828040e78d98d640e238b799f1f1c4441a719307e1e80d0b57db89cb9556e5bc",
+  "manager": "bash",
+  "runId": "bc8-8ff-1128",
+  "scenario": "reality",
+  "schemaVersion": 1,
+  "sides": {
+    "source": {
+      "assertions": [
+        {
+          "label": "source client connected through Bash-managed services",
+          "result": "PASS"
+        },
+        {
+          "label": "Bash archive created, tar listing valid, archive mode 0600",
+          "result": "PASS"
+        }
+      ],
+      "failed": 0,
+      "passed": 2
+    },
+    "target": {
+      "assertions": [
+        {
+          "label": "fresh target Bash restore preserved bytes and permissions",
+          "result": "PASS"
+        },
+        {
+          "label": "restored validators, services, and real client connection succeeded",
+          "result": "PASS"
+        }
+      ],
+      "failed": 0,
+      "passed": 2
+    }
+  },
+  "sourceDriverExit": 0,
+  "targetDriverExit": 0
+}

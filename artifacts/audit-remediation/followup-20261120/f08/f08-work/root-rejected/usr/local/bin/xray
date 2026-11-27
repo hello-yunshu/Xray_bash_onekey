@@ -1,0 +1,4 @@
+#!/bin/sh
+printf '%s\n' "$*" >> '/out/f08-work/root-rejected/var/xray-test.log'
+echo 'fixture: xray -test rejected the candidate' >&2
+exit 1

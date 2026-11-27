@@ -1,0 +1,17 @@
+{
+  "goImportState": "IMPORTED",
+  "id": "OPS-26",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "Bash restore/import operates on the managed tree (tar archive); Go restore/import operates on JSON metadata",
+    "bash rc=0",
+    "go rc=0",
+    "restore canary present=True",
+    "go import state=IMPORTED"
+  ],
+  "restoreCanary": true,
+  "verdict": "DIFF"
+}

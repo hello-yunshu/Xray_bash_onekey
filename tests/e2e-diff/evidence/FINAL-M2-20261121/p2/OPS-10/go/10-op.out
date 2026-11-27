@@ -1,0 +1,52 @@
+{
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "changed": [
+    "server-names"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.serverNames[0]"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "7e2ca251fca2c6ddf285a6cb8c315923a8533446d153a6cadbd60dbd2d22be13",
+  "newSha256": "c05fc5f71c05d9e14dc153a11b92c3fff20b3c2aa390ecff3eef76a3ef2745db",
+  "backupDir": "/etc/idleleo/backup/edit-20261121T050754",
+  "noChanges": false,
+  "noRestart": false,
+  "noProbe": true,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://138da8b2-623d-4030-9590-6dc900321ac5@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=ops10.example.com&fp=chrome&pbk=cPcEsrAmCQwbEAgjPLxYUI0UiA3oJ6BW1JprXL0Hnhc&sid=9b23ffd8&type=raw#idleleo-reality-nginx",
+  "originProbe": "skipped: --no-probe",
+  "tlsSystemTrusted": false,
+  "disconnect": false,
+  "warnings": null,
+  "shortIds": [
+    "9b23ffd8"
+  ],
+  "oldShareUri": "vless://138da8b2-623d-4030-9590-6dc900321ac5@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=cPcEsrAmCQwbEAgjPLxYUI0UiA3oJ6BW1JprXL0Hnhc&sid=9b23ffd8&type=raw#idleleo-reality-nginx",
+  "upstreamSha256": "29b6208b18d3713bbd23e4b3ce6f7e9200abb2748ff821d9219c7b3b6e76b75f",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "7e2ca251fca2c6ddf285a6cb8c315923a8533446d153a6cadbd60dbd2d22be13",
+    "newSha256": "c05fc5f71c05d9e14dc153a11b92c3fff20b3c2aa390ecff3eef76a3ef2745db",
+    "changed": [
+      "server-names"
+    ],
+    "affectedServices": [
+      "nginx",
+      "xray"
+    ],
+    "disconnectRisk": "none: no live session is dropped",
+    "validationSteps": [
+      "xray -test",
+      "nginx -t"
+    ],
+    "rollbackScope": "runtime config + nginx front",
+    "ownership": "idleleo-managed",
+    "fingerprint": "0a6ee3d959114e58"
+  }
+}

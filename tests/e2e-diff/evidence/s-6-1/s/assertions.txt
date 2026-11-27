@@ -1,0 +1,58 @@
+PASS	S4 Bash reality install exits 0
+PASS	S4 normal run exits 0 (rc=0)
+PASS	S4 normal run reports the Shell is up to date
+PASS	S4 normal run reports Xray is up to date
+PASS	S4 repeat run exits 0 (rc=0)
+PASS	S4 repeat run leaves install_config.json unchanged
+PASS	S4 missing metadata fails safe with rc=0 (rc=0)
+PASS	S4 missing metadata is named and skipped
+PASS	S4 missing metadata does not touch install_config.json
+FAIL	S6 normal run exits 0 (rc=1)
+FAIL	S6 installs non-empty geoip.dat and geosite.dat
+FAIL	S6 records both GeoData versions
+PASS	S6 Xray is active after the update
+PASS	S6 repeat run exits 0 (rc=0)
+FAIL	S6 repeat run detects the files are current
+FAIL	S6 repeat run does not rewrite the GeoData files
+PASS	S6 failed download exits non-zero (rc=1)
+PASS	S6 failed download is reported
+PASS	S6 failed download leaves the installed GeoData intact
+PASS	S8 real-kernel plan refuses when a key is unavailable (rc=12)
+PASS	S8 refusal names the missing sysctl key
+PASS	S8 tcp plan exits 0 (rc=0)
+PASS	S8 tcp plan reports bbr support and a create action
+PASS	S8 tcp apply exits 0 (rc=0)
+PASS	S8 tcp apply writes the managed sysctl drop-in
+PASS	S8 tcp apply sets the runtime congestion control
+PASS	S8 tcp apply is repeatable (rc=0)
+PASS	S8 repeat apply reports noop
+PASS	S8 tcp rollback exits 0 (rc=0)
+PASS	S8 tcp rollback removes the managed drop-in
+PASS	S8 tcp rollback restores the previous runtime value
+PASS	S8 install.sh has no remote tcp.sh download
+PASS	S8 Bash legacy path fails closed without a local tcp.sh
+PASS	S8 historical tcp.sh downloads and passes bash -n (rc=0)
+PASS	S9 speedtest exits 0 (rc=0)
+PASS	S9 speedtest returns server and downMbps
+PASS	S9 speedtest is repeatable (rc=0)
+PASS	S9 speedtest fails with a non-zero code on an unreachable server (rc=1)
+PASS	S9 speedtest failure is a clean error, not a panic
+PASS	S9 historical superspeed.sh downloads and passes bash -n (rc=0)
+PASS	S7 get.acme.sh downloads and installs (rc=0)
+PASS	S7 acme.sh is installed and executable
+PASS	S7 acme.sh --version exits 0 (rc=0)
+PASS	S7 acme.sh --help exits 0 (rc=0)
+PASS	S7 legacy renewal without acme.sh state fails (rc=1)
+PASS	S7 legacy renewal names the missing acme.sh
+PASS	S5 Bash TLS+ACME install exits 0 (rc=0)
+PASS	S5 ssl_update renews against Pebble (rc=0)
+PASS	S5 renewal replaces the staged certificate
+PASS	S5 installed certificate is issued by the ACME server
+PASS	S5 Nginx is active after renewal
+PASS	S5 Xray is active after renewal
+PASS	S5 renewal is repeatable (rc=0)
+PASS	S5 second renewal replaces the certificate again
+PASS	S5 renewal with an unreachable CA fails (rc=1)
+PASS	S5 failed renewal keeps the working certificate
+PASS	S5 Nginx is not left stopped by a failed renewal
+PASS	S5 Xray is not left stopped by a failed renewal

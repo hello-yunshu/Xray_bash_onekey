@@ -1,0 +1,6 @@
+gofmt_rc=0
+vet_rc=0
+build_rc=0
+test_rc=0
+gofmt_files=0
+fail_lines=0

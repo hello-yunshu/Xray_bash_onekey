@@ -1,0 +1,7 @@
+Candidate binary SHA-256: 263de583c2024e7eef702955bd3002df675f4888c8a12bf1859111b56bb85240
+Command: disposable Docker container, --network none, --cap-drop=ALL; tcp status --json then tcp apply --profile bbr-fq --confirm --json.
+Kernel: 7.2.12-orbstack-00394-gbecdd6130068 (aarch64).
+Status: rc=0; available congestion algorithms [reno,cubic]; current cubic; bbr absent; default_qdisc proc path unavailable in this container.
+Apply: rc=12; explicit refusal because running kernel does not list bbr; changed=false; no applied keys.
+Before/after: congestion=cubic; qdisc=unavailable; /etc/sysctl.d/90-idleleo-tcp.conf absent; /var/lib/idleleo/tcp/state.json absent.
+Assertions passed: unsupported-kernel apply refused without changing runtime or writing managed config/state. This is a genuine negative-path result only; it does not prove successful BBR application on a capable kernel.

@@ -1,0 +1,9 @@
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	11.184s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	11.125s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	1.256s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	1.021s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	1.468s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/backup	3.557s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/repair	1.020s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	1.578s
+race_rc=0

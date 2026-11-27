@@ -1,0 +1,22 @@
+{
+  "applyError": "asset size mismatch: got 25 want 10551456 bytes",
+  "applyReport": {
+    "action": "",
+    "installPath": "/usr/local/bin/idleleo",
+    "manifestUrl": "http://127.0.0.1:18085/manifest.json",
+    "platform": "linux-arm64",
+    "schemaVersion": 1
+  },
+  "checkDidNotInstall": true,
+  "checkRc": 0,
+  "checkVerified": true,
+  "configureRc": 0,
+  "failedApplyPreservedBinary": true,
+  "failedApplyPreservedVersion": true,
+  "failedApplyRc": 1,
+  "nginxTestRc": 0,
+  "passed": true,
+  "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+  "servicesActive": true,
+  "xrayTestRc": 0
+}

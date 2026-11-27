@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "channel": "go",
+  "version": "0.3.0-phase04",
+  "assets": {
+    "linux-arm64": {
+      "name": "idleleo-linux-arm64",
+      "sha256": "8d04388490ba634457425839c9fd93ce4292dd5332acf0c70584fc47e9a5454e",
+      "size": 10551456
+    }
+  },
+  "signature": "ed25519:luH3qmeYfx9T4Sngx9EXbM7ZJ4kPD2a+x8FPyyPw7Dg4ofagjth6pros/X6Qsh7L9XCB8xL/KnhMvxFjar+6AA=="
+}

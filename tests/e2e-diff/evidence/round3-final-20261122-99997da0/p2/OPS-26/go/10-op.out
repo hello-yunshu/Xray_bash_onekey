@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "state": "IMPORTED",
+  "metadataPath": "/etc/idleleo/v1/metadata.json",
+  "metadataSha256": "de6d6b387a4e6accd466759f4be1fd6d393617598521ff087be34b21327e90ba",
+  "provenance": "legacy",
+  "role": "node",
+  "tls": "Reality",
+  "transport": "raw",
+  "runtimeSha256": "d794cf4b38c9bc5214c79c2aa61744e9db5424b2a679717555f9054de210337e",
+  "sourcePath": "/etc/idleleo/conf/install_config.json",
+  "sourceSha256": "e84c0765ff6de8f3addafd5bb948460bd914e4b179bce7ffb11baae738c41cb6",
+  "warnings": [
+    "install_config.json 无 role 字段，按 legacy 语义视为 node"
+  ]
+}

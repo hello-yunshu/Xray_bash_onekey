@@ -1,0 +1,334 @@
+Apply and rollback on ephemeral Linux VM	Set up job	﻿2026-11-27T21:24:35.4346624Z Current runner version: '2.338.2'
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4362812Z ##[group]Runner Image Provisioner
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4363472Z Hosted Compute Agent
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4363949Z Version: 20261111.635
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4364403Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4364928Z Build Date: 2026-11-11T01:49:01Z
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4365737Z Worker ID: {3cfcad15-44ce-4968-9e90-808c0af5e629}
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4366244Z Region: us-west-2
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4366653Z Cloud: AWS
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4367030Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4367961Z ##[group]Operating System
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4368407Z Ubuntu
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4368767Z 24.04.5
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4369126Z LTS
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4369507Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4369888Z ##[group]Runner Image
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4370559Z Image: ubuntu-24.04
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4370952Z Version: 20261122.23.1
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4371736Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261122.23/images/ubuntu/Ubuntu2404-Readme.md
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4372970Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261122.23
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4373644Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4374414Z ##[group]GITHUB_TOKEN Permissions
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4376229Z Contents: read
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4376641Z Metadata: read
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4377012Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4378674Z Secret source: Actions
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4379330Z Cache mode: write
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4380030Z Prepare workflow directory
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4602942Z Prepare all required actions
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.4638650Z Getting action download info
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:35.8149302Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:37.0695386Z Download action repository 'actions/setup-go@v5' (SHA:40f1582b2485089dde7abd97c1529aa768e1baff)
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:37.4024643Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:24:37.6922126Z Complete job name: Apply and rollback on ephemeral Linux VM
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	﻿2026-11-27T21:24:37.7616874Z ##[group]Run actions/checkout@v4
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7617924Z with:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7618621Z   persist-credentials: false
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7619602Z   repository: hello-yunshu/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7626242Z   token: ***
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7626983Z   ssh-strict: true
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7627669Z   ssh-user: git
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7628350Z   clean: true
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7629109Z   sparse-checkout-cone-mode: true
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7629954Z   fetch-depth: 1
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7630708Z   fetch-tags: false
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7631419Z   show-progress: true
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7632140Z   lfs: false
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7632843Z   submodules: false
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7633575Z   set-safe-directory: true
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7634410Z   allow-unsafe-pr-checkout: false
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:37.7635582Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.1044986Z Syncing repository: hello-yunshu/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.1046605Z ##[group]Getting Git version info
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.1047094Z Working directory is '<runner-home>/work/Xray_bash_onekey/Xray_bash_onekey'
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.1047805Z [command]/usr/bin/git version
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.2750450Z git version 2.56.1
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.2762757Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.2770995Z Temporarily overriding HOME='<runner-home>/work/_temp/89679cb4-15a5-4428-8b0e-1d2bfaab3a48' before making global git config changes
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.2771907Z Adding repository directory to the temporary git global config as a safe directory
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.2774089Z [command]/usr/bin/git config --global --add safe.directory <runner-home>/work/Xray_bash_onekey/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3194104Z Deleting the contents of '<runner-home>/work/Xray_bash_onekey/Xray_bash_onekey'
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3196849Z ##[group]Initializing the repository
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3199743Z [command]/usr/bin/git init <runner-home>/work/Xray_bash_onekey/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3710315Z hint: Using 'master' as the name for the initial branch. This default branch name
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3711056Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3711516Z hint: to use in all of your new repositories, which will suppress this warning,
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3711900Z hint: call:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3712179Z hint:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3712523Z hint: 	git config --global init.defaultBranch <name>
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3712845Z hint:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3713160Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3713596Z hint: 'development'. The just-created branch can be renamed via this command:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3713987Z hint:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3714221Z hint: 	git branch -m <name>
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3714468Z hint:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3714790Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3726212Z Initialized empty Git repository in <runner-home>/work/Xray_bash_onekey/Xray_bash_onekey/.git/
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3733130Z [command]/usr/bin/git remote add origin https://github.com/hello-yunshu/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3774900Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3775637Z ##[group]Disabling automatic garbage collection
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3778441Z [command]/usr/bin/git config --local gc.auto 0
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3800099Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3800748Z ##[group]Setting up auth
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3804656Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.3831304Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.7437197Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.7476479Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.7607704Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.7630001Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.7776046Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.7800696Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.7801197Z ##[group]Fetching the repository
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:40.7812092Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +df524f09322222b9e3419cb8a54d88dd18d35920:refs/remotes/origin/work/go-hardening-parity-20261119
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:44.0029307Z From https://github.com/hello-yunshu/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:44.0030020Z  * [new ref]           df524f09322222b9e3419cb8a54d88dd18d35920 -> origin/work/go-hardening-parity-20261119
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:44.0032924Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:44.0033408Z ##[group]Determining the checkout info
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:44.0035621Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:44.0041528Z [command]/usr/bin/git sparse-checkout disable
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:44.0136672Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:44.0147343Z ##[group]Checking out the ref
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:44.0148125Z [command]/usr/bin/git checkout --progress --force -B work/go-hardening-parity-20261119 refs/remotes/origin/work/go-hardening-parity-20261119
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.1095507Z Updating files:  30% (23977/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.2357143Z Updating files:  31% (24072/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.2465722Z Updating files:  32% (24849/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.2589395Z Updating files:  33% (25625/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.2700543Z Updating files:  34% (26402/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.2812269Z Updating files:  35% (27178/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.2940344Z Updating files:  36% (27955/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.3057727Z Updating files:  37% (28731/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.3156692Z Updating files:  38% (29508/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.3264082Z Updating files:  39% (30284/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.3365891Z Updating files:  40% (31061/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.3471765Z Updating files:  41% (31837/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.3582714Z Updating files:  42% (32614/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.3687788Z Updating files:  43% (33390/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.3794033Z Updating files:  44% (34167/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.3896260Z Updating files:  45% (34943/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.4007046Z Updating files:  46% (35720/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.4111285Z Updating files:  47% (36496/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.4290058Z Updating files:  48% (37273/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.4396458Z Updating files:  49% (38049/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.4501756Z Updating files:  50% (38826/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.4602389Z Updating files:  51% (39603/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.4696198Z Updating files:  52% (40379/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.6800932Z Updating files:  53% (41156/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.7834290Z Updating files:  54% (41932/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.7950674Z Updating files:  55% (42709/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.8063623Z Updating files:  56% (43485/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.9533755Z Updating files:  57% (44262/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.9696760Z Updating files:  58% (45038/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.9781504Z Updating files:  59% (45815/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:45.9939221Z Updating files:  60% (46591/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.0272606Z Updating files:  61% (47368/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.0653473Z Updating files:  62% (48144/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.1936882Z Updating files:  62% (48409/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.3698440Z Updating files:  63% (48921/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.5192433Z Updating files:  64% (49697/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.6398221Z Updating files:  65% (50474/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.6654578Z Updating files:  66% (51250/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.6836554Z Updating files:  67% (52027/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.7363641Z Updating files:  68% (52803/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.9310721Z Updating files:  69% (53580/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.9403476Z Updating files:  70% (54356/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.9499864Z Updating files:  71% (55133/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.9610845Z Updating files:  72% (55909/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.9716600Z Updating files:  73% (56686/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.9817261Z Updating files:  74% (57462/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:46.9928446Z Updating files:  75% (58239/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0047583Z Updating files:  76% (59015/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0160928Z Updating files:  77% (59792/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0258102Z Updating files:  78% (60568/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0367217Z Updating files:  79% (61345/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0459447Z Updating files:  80% (62121/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0553186Z Updating files:  81% (62898/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0652485Z Updating files:  82% (63674/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0653716Z Updating files:  82% (64450/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0765765Z Updating files:  83% (64451/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0870045Z Updating files:  84% (65227/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.0966681Z Updating files:  85% (66004/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.1068439Z Updating files:  86% (66780/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.1176620Z Updating files:  87% (67557/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.1275605Z Updating files:  88% (68333/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.1374815Z Updating files:  89% (69110/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.1479148Z Updating files:  90% (69886/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.1877326Z Updating files:  91% (70663/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.1996509Z Updating files:  92% (71439/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.2103165Z Updating files:  93% (72216/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.2218181Z Updating files:  94% (72992/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.3141837Z Updating files:  95% (73769/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.3309711Z Updating files:  96% (74545/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.3485335Z Updating files:  97% (75322/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.5115674Z Updating files:  98% (76098/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.5470708Z Updating files:  99% (76875/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.5471707Z Updating files: 100% (77651/77651)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.5472567Z Updating files: 100% (77651/77651), done.
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6527004Z Switched to a new branch 'work/go-hardening-parity-20261119'
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6528422Z branch 'work/go-hardening-parity-20261119' set up to track 'origin/work/go-hardening-parity-20261119'.
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6581335Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6614259Z [command]/usr/bin/git log -1 --format=%H
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6634627Z df524f09322222b9e3419cb8a54d88dd18d35920
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6642139Z ##[group]Removing auth
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6644962Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6668583Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6925669Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6941716Z http.https://github.com/.extraheader
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.6947837Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.7064843Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.7297001Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.7318428Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:24:47.7549612Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	﻿2026-11-27T21:24:47.7770794Z ##[group]Run actions/setup-go@v5
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.7771072Z with:
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.7771315Z   go-version-file: go.mod
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.7771558Z   cache: true
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.7771762Z   check-latest: false
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.7773589Z   token: ***
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.7773818Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.8733554Z Setup go version spec 1.27.4
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.9443882Z (node:2252) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.9445022Z (Use `node --trace-deprecation ...` to show where the warning was created)
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.9445677Z Found in cache @ /opt/hostedtoolcache/go/1.27.4/x64
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.9446093Z Added go to the path
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:47.9451030Z Successfully set up Go version 1.27.4
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:48.9564679Z [command]/opt/hostedtoolcache/go/1.27.4/x64/bin/go env GOMODCACHE
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:48.9588588Z [command]/opt/hostedtoolcache/go/1.27.4/x64/bin/go env GOCACHE
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:48.9643809Z <runner-home>/go/pkg/mod
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:48.9653921Z <runner-home>/.cache/go-build
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:49.2599309Z Cache is not found
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:49.2614421Z go version go1.27.4 linux/amd64
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:49.2614606Z 
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:49.2614902Z ##[group]go env
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2397548Z AR='ar'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2398067Z CC='gcc'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2398676Z CGO_CFLAGS='-O2 -g'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2398953Z CGO_CPPFLAGS=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2399242Z CGO_CXXFLAGS='-O2 -g'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2399460Z CGO_ENABLED='1'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2399693Z CGO_FFLAGS='-O2 -g'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2399924Z CGO_LDFLAGS='-O2 -g'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2400131Z CXX='g++'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2400568Z GCCGO='gccgo'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2400766Z GO111MODULE=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2400953Z GOAMD64='v1'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2401184Z GOARCH='amd64'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2401377Z GOAUTH='netrc'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2401588Z GOBIN='<runner-home>/go/bin'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2401845Z GOCACHE='<runner-home>/.cache/go-build'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2402298Z GOCACHEPROG=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2402615Z GODEBUG=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2403089Z GOENV='<runner-home>/.config/go/env'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2403411Z GOEXE=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2403678Z GOEXPERIMENT=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2403951Z GOFIPS140='off'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2404263Z GOFLAGS=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2404966Z GOGCCFLAGS='-fPIC -m64 -pthread -Wl,--no-gc-sections -fmessage-length=0 -ffile-prefix-map=/tmp/go-build3205410117=/tmp/go-build -gno-record-gcc-switches'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2406029Z GOHOSTARCH='amd64'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2406364Z GOHOSTOS='linux'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2406619Z GOINSECURE=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2406999Z GOMOD='<runner-home>/work/Xray_bash_onekey/Xray_bash_onekey/go.mod'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2407404Z GOMODCACHE='<runner-home>/go/pkg/mod'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2407686Z GONOPROXY=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2407948Z GONOSUMDB=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2408186Z GOOS='linux'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2408449Z GOPACKAGESDRIVER=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2408761Z GOPATH='<runner-home>/go'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2409183Z GOPRIVATE=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2409507Z GOPROXY='https://proxy.golang.org,direct'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2409860Z GOROOT='/opt/hostedtoolcache/go/1.27.4/x64'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2410272Z GOSUMDB='sum.golang.org'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2410583Z GOTELEMETRY='local'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2410893Z GOTELEMETRYDIR='<runner-home>/.config/go/telemetry'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2411234Z GOTMPDIR=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2411478Z GOTOOLCHAIN='auto'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2411895Z GOTOOLDIR='/opt/hostedtoolcache/go/1.27.4/x64/pkg/tool/linux_amd64'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2412306Z GOVCS=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2412552Z GOVERSION='go1.27.4'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2412824Z GOWORK=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2413093Z PKG_CONFIG='pkg-config'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2413270Z 
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2413689Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	﻿2026-11-27T21:24:50.2496373Z ##[group]Run set -euxo pipefail
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.2496749Z ^[[36;1mset -euxo pipefail^[[0m
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.2497005Z ^[[36;1muname -a^[[0m
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.2497283Z ^[[36;1msudo modprobe tcp_bbr^[[0m
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.2497586Z ^[[36;1mcat /proc/sys/net/ipv4/tcp_available_congestion_control^[[0m
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.2497964Z ^[[36;1mgrep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control^[[0m
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.6943424Z shell: /usr/bin/bash -e {0}
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.6943810Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.6998652Z + uname -a
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.7004400Z Linux ip-10-0-130-33 7.0.0-1018-aws #19~24.04.1-Ubuntu SMP PREEMPT Thu Nov 12 17:17:32 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.7005341Z + sudo modprobe tcp_bbr
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.7079082Z + cat /proc/sys/net/ipv4/tcp_available_congestion_control
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.7086479Z reno cubic bbr
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:24:50.7087142Z + grep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	﻿2026-11-27T21:24:50.7142179Z ##[group]Run set -euxo pipefail
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7142476Z ^[[36;1mset -euxo pipefail^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7142719Z ^[[36;1mmkdir -p "$EVIDENCE"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7143005Z ^[[36;1mgo build -trimpath -o "$BIN" ./cmd/idleleo^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7143296Z ^[[36;1mmkdir -p "${RUNNER_TEMP}/ops18-bin"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7143595Z ^[[36;1mln -sf "$BIN" "${RUNNER_TEMP}/ops18-bin/idleleo"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7143965Z ^[[36;1msudo env PATH="${RUNNER_TEMP}/ops18-bin:${PATH}" \^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7144308Z ^[[36;1m  IDLELEO_BIN="$BIN" OPS18_EVIDENCE_DIR="$EVIDENCE" \^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7144663Z ^[[36;1m  bash tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7144972Z ^[[36;1mcat "$EVIDENCE/result.txt"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7162841Z shell: /usr/bin/bash -e {0}
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7163106Z env:
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7163397Z   BIN: <runner-home>/work/_temp/idleleo-ops18
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7163729Z   EVIDENCE: <runner-home>/work/_temp/ops18-host-bbr
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7164081Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7197943Z + mkdir -p <runner-home>/work/_temp/ops18-host-bbr
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:24:50.7205959Z + go build -trimpath -o <runner-home>/work/_temp/idleleo-ops18 ./cmd/idleleo
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:25:06.0655759Z + mkdir -p <runner-home>/work/_temp/ops18-bin
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:25:06.0667135Z + ln -sf <runner-home>/work/_temp/idleleo-ops18 <runner-home>/work/_temp/ops18-bin/idleleo
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:25:06.0676263Z + sudo env PATH=<runner-home>/work/_temp/ops18-bin:<runner-home>/go/bin:/opt/hostedtoolcache/go/1.27.4/x64/bin:/snap/bin:<runner-home>/.local/bin:/opt/pipx_bin:<runner-home>/.cargo/bin:<runner-home>/.config/composer/vendor/bin:/usr/local/.ghcup/bin:<runner-home>/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin IDLELEO_BIN=<runner-home>/work/_temp/idleleo-ops18 OPS18_EVIDENCE_DIR=<runner-home>/work/_temp/ops18-host-bbr bash tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:25:06.4569676Z ##[error]Process completed with exit code 1.
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	﻿2026-11-27T21:25:06.4636107Z ##[group]Run actions/upload-artifact@v4
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.4636437Z with:
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.4636777Z   name: ops18-host-bbr-df524f09322222b9e3419cb8a54d88dd18d35920
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.4637174Z   path: <runner-home>/work/_temp/ops18-host-bbr/
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.4637462Z   if-no-files-found: warn
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.4637705Z   retention-days: 30
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.4637925Z   compression-level: 6
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.4638145Z   overwrite: false
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.4638413Z   include-hidden-files: false
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.4638684Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.5817715Z (node:4559) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.5818659Z (Use `node --trace-deprecation ...` to show where the warning was created)
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.5881271Z With the provided path, there will be 12 files uploaded
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.5881776Z Artifact name is valid!
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:06.5882169Z Root directory input is valid!
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:07.1039194Z Beginning upload of artifact content to blob storage
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:07.1255413Z (node:4559) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:07.4764643Z Uploaded bytes 3389
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:07.5680082Z Finished uploading artifact content to blob storage!
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:07.5680779Z SHA256 digest of uploaded artifact zip is e5cfcee2b19e73ae91cb45ae16bceef996187ad2f7f9d9d24c6e85a388f414cf
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:07.5681420Z Finalizing artifact upload
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:07.9620844Z Artifact ops18-host-bbr-df524f09322222b9e3419cb8a54d88dd18d35920.zip successfully finalized. Artifact ID 15232696607
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:07.9622129Z Artifact ops18-host-bbr-df524f09322222b9e3419cb8a54d88dd18d35920 has been successfully uploaded! Final size is 3389 bytes. Artifact ID is 15232696607
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:25:07.9624591Z Artifact download URL: https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070092391/artifacts/15232696607
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	﻿2026-11-27T21:25:07.9758729Z Post job cleanup.
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.0369531Z [command]/usr/bin/git version
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.0396362Z git version 2.56.1
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.0421786Z Temporarily overriding HOME='<runner-home>/work/_temp/c97ddbc1-cb92-41e7-b51a-ce0d04a5552e' before making global git config changes
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.0422793Z Adding repository directory to the temporary git global config as a safe directory
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.0425703Z [command]/usr/bin/git config --global --add safe.directory <runner-home>/work/Xray_bash_onekey/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.0452728Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.0475666Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.0740795Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.0764232Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.1023288Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:25:08.1047799Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Apply and rollback on ephemeral Linux VM	Complete job	﻿2026-11-27T21:25:08.1382477Z Cleaning up orphan processes
+Apply and rollback on ephemeral Linux VM	Complete job	2026-11-27T21:25:08.1631051Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-go@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

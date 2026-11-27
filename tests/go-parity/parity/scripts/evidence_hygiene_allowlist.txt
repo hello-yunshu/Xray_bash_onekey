@@ -36,3 +36,9 @@
 185.199.110.133  # GitHub Pages CDN address recorded by release-check logs
 185.199.111.133  # GitHub Pages CDN address recorded by release-check logs
 140.82.113.3  # GitHub API address recorded by an environment connectivity probe; not a host
+124.225.213.74  # exact IP entry in historical S6 GeoData fixture; preserve fixture bytes, not a capture host
+31.76.27.10  # exact IP entry in historical S6 GeoData fixture; preserve fixture bytes, not a capture host
+62.60.247.42  # exact IP entry in historical S6 GeoData fixture; preserve fixture bytes, not a capture host
+77.91.127.244  # exact IP entry in historical S6 GeoData fixture; preserve fixture bytes, not a capture host
+85.17.73.31  # exact IP entry in historical S6 GeoData fixture; preserve fixture bytes, not a capture host
+94.242.58.19  # exact IP entry in historical S6 GeoData fixture; preserve fixture bytes, not a capture host

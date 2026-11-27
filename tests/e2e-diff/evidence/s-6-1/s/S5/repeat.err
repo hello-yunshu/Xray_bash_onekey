@@ -1,0 +1,7 @@
+time=2026-11-20T15:08:58.794Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+time=2026-11-20T15:08:58.852Z level=INFO msg="Use solver." domain=example.com type=http-01
+time=2026-11-20T15:08:58.852Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+time=2026-11-20T15:08:58.853Z level=INFO msg="The server validated our request." domain=example.com
+time=2026-11-20T15:08:58.853Z level=INFO msg="Validations succeeded; requesting certificates." domains=example.com
+time=2026-11-20T15:08:58.853Z level=INFO msg="Waiting for certificates." timeout=2m0s interval=2s domains=example.com
+time=2026-11-20T15:08:58.854Z level=INFO msg="Server responded with a certificate." domains=example.com

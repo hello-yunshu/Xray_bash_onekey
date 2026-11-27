@@ -1,0 +1,4 @@
+Update time: 2026-11-27 10:47
+Script is up to date!
+Nginx not installed, skipping the Nginx update.
+Installed Xray 26.11.9 is newer than the metadata target 26.10.31; refusing to downgrade.

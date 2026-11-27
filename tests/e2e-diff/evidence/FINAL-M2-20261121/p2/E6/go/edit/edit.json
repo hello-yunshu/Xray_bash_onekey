@@ -1,0 +1,58 @@
+{
+  "mode": "tls",
+  "transport": "ws",
+  "changed": [
+    "cert-file",
+    "cert-key-file"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "de40165904b162b04df8f82cdf6e871f55beb0842994f6c4a6e0a8b828beec9f",
+  "newSha256": "de40165904b162b04df8f82cdf6e871f55beb0842994f6c4a6e0a8b828beec9f",
+  "backupDir": "/etc/idleleo/backup/edit-20261121T044726",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://cd6138a7-b6f0-43fb-8563-eabd092bcaa6@example.com:443?encryption=none&security=tls&sni=example.com&type=ws&path=/ray/&host=example.com#idleleo-tls",
+  "domain": "example.com",
+  "certFile": "/etc/idleleo/cert/e6-new.crt",
+  "certKeyFile": "/etc/idleleo/cert/e6-new.key",
+  "certNotAfter": "2026-12-21T04:47:26Z",
+  "certSans": [
+    "example.com"
+  ],
+  "tlsProbe": "skipped",
+  "tlsSystemTrusted": false,
+  "scheduleUpdated": true,
+  "schedulePath": "/etc/idleleo/schedule/jobs.json",
+  "disconnect": false,
+  "warnings": [
+    "certificate /etc/idleleo/cert/e6-new.crt expires in 29 days; this command never re-issues, run 'idleleo schedule run --job cert-renew' (or 'xray cert renew')"
+  ],
+  "upstreamSha256": "c3ba056c458c332de4723c414d429743681a3bcdb7eada5db6f797699eab6729",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "de40165904b162b04df8f82cdf6e871f55beb0842994f6c4a6e0a8b828beec9f",
+    "newSha256": "de40165904b162b04df8f82cdf6e871f55beb0842994f6c4a6e0a8b828beec9f",
+    "changed": [
+      "cert-file",
+      "cert-key-file"
+    ],
+    "affectedServices": [
+      "nginx",
+      "xray"
+    ],
+    "disconnectRisk": "none: no live session is dropped",
+    "validationSteps": [
+      "xray -test",
+      "nginx -t",
+      "local TLS handshake against the served certificate"
+    ],
+    "rollbackScope": "runtime config + nginx front + certificate renewal target",
+    "ownership": "idleleo-managed",
+    "fingerprint": "2bcac3d0edf9ea2e"
+  }
+}

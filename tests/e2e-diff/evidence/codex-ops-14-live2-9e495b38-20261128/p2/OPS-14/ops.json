@@ -1,0 +1,264 @@
+{
+  "bash": {
+    "driverRc": 124,
+    "iftopInstallRc": 0,
+    "l4": [],
+    "ready": false,
+    "uiObserved": true
+  },
+  "go": {
+    "apiEnableRc": 0,
+    "l4": [
+      {
+        "id": "L4-1",
+        "ok": false,
+        "rc": 0
+      },
+      {
+        "id": "L4-2",
+        "ok": false,
+        "rc": 0
+      },
+      {
+        "id": "L4-3",
+        "ok": false,
+        "rc": 0
+      }
+    ],
+    "positiveRatePoints": 18,
+    "sampleCount": 10,
+    "stats": [
+      {
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 447
+      },
+      {
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 673
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 271.8676203804191,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 718
+      },
+      {
+        "bytesPerSecond": 361.15255843893317,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 1033
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 269.7768973728743,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 989
+      },
+      {
+        "bytesPerSecond": 272.7633574913932,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 1307
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 268.9457092992028,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 1260
+      },
+      {
+        "bytesPerSecond": 318.5666888747015,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 1628
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 270.98637914063886,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 1531
+      },
+      {
+        "bytesPerSecond": 333.98321266779845,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 1962
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 269.8063639649201,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 1802
+      },
+      {
+        "bytesPerSecond": 272.7931502818749,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 2236
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 269.21141508493855,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 2073
+      },
+      {
+        "bytesPerSecond": 331.7956185917693,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 2570
+      },
+      {
+        "bytesPerSecond": 270.9172634932328,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 2344
+      },
+      {
+        "bytesPerSecond": 273.9163475909438,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 2844
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 269.90361749786786,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 2615
+      },
+      {
+        "bytesPerSecond": 302.7701096655049,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 3148
+      },
+      {
+        "bytesPerSecond": 267.0912604278243,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 2886
+      },
+      {
+        "bytesPerSecond": 307.4999013043586,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 3460
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      }
+    ],
+    "watchRc": 0
+  },
+  "id": "OPS-14",
+  "run": {
+    "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+    "binarySha256": "263de583c2024e7eef702955bd3002df675f4888c8a12bf1859111b56bb85240",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "be43f6cbf24d6a1d0ed58591f120a367255899a41de5d22759ca7b8f53219606",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "b3cdb54b8f4ec504c88fb84d2dbff60ab9ffc3cc48c91fe7e91d0b2c29cc907e",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "dfa72c1df64346719eee07e4e643ce4f951de1084323800c2b9ee4b72a20f340",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "6c4bf647125ba340b26ddf5ee428b5cf9e5e6ec3db6d5a045774aefbf717d6ec",
+    "finishedAt": "2026-11-27T19:12:01Z",
+    "fixedBy": null,
+    "fixedByKind": null,
+    "image": "sha256:aa1ef0a9d49e429de918aa8007ec95563b685226cae0378e68fcb3a1a5d53e82",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "25cc0e8e3203af7f87c92ccf80717ab61a6f2709c876cea5b7230972b6e16455",
+    "platform": "linux/arm64",
+    "productCodeSha": "9e495b38a5574f53e37bd11e4b3c8f196f76e25b",
+    "runId": "codex-ops-14-live2-9e495b38-20261128",
+    "startedAt": "2026-11-27T19:09:37Z",
+    "supersedes": null
+  },
+  "scope": "Bash 3>4 iftop versus Go bounded Xray API rate sampling",
+  "tradeoff": {
+    "bashProvidesPerPeerPacketView": true,
+    "goAvoidsPacketAndPeerAddressCapture": true,
+    "goBoundedSamples": true
+  },
+  "verdict": "DIFF"
+}

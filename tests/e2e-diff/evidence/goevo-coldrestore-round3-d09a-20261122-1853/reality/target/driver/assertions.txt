@@ -1,0 +1,21 @@
+PASS	target install is healthy before the restore (rc=0)
+PASS	the fresh target starts with different managed state (reality)
+PASS	target verifies the source archive (rc=0)
+PASS	the handoff archive digest matches the source
+PASS	cold restore exits 0 (rc=0)
+PASS	restored state is byte-identical to the source (reality)
+PASS	the restore wrote a pre-restore backup
+PASS	restored config is valid JSON
+PASS	restored config is mode 0640 (mode=640)
+PASS	restored config group is xray (group=xray)
+PASS	the target xray service account can read the restored config
+PASS	the restored config passes xray -test (rc=0)
+PASS	xray is active after the restore (state=active)
+PASS	doctor is healthy after the cold restore (rc=0)
+PASS	a real client reaches the origin after the cold restore (reality)
+PASS	target doctor --client-probe exits 0 (rc=0)
+PASS	target probe reports REAL_CLIENT_PASS
+PASS	xray survives a restart after the restore (state=active)
+PASS	a real client still reaches the origin after the post-restore restart (reality)
+PASS	the third-party certificate canary survived the restore
+PASS	the third-party config note survived the restore unchanged

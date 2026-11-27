@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/change"
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/deploy"
@@ -15,6 +16,23 @@ func xrayLogs(ctx context.Context, opts Options, cfg config, args []string) int 
 	action, rest := args[0], args[1:]
 	spec := deploy.LogsSpec{Root: cfg.root, AllowContainerWrites: hasFlag(rest, "--container")}
 	switch action {
+	case "show":
+		kind := flagValue(rest, "--kind")
+		if kind == "" {
+			return usage(opts, cfg.lang, "help")
+		}
+		lines := 20
+		if raw := flagValue(rest, "--lines"); raw != "" {
+			n, err := strconv.Atoi(raw)
+			if err != nil || n < 1 || n > 10000 {
+				return fail(opts, cfg, &change.UsageError{Msg: "--lines must be an integer between 1 and 10000"})
+			}
+			lines = n
+		}
+		if err := deploy.ShowLog(ctx, cfg.root, kind, lines, hasFlag(rest, "--follow"), opts.Out); err != nil {
+			return fail(opts, cfg, err)
+		}
+		return 0
 	case "clean":
 		if !hasFlag(rest, "--yes") {
 			return fail(opts, cfg, &change.UsageError{

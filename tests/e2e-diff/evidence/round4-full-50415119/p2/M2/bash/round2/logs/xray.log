@@ -1,0 +1,33 @@
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: 2026/11/23 18:37:07.464462 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: 2026/11/23 18:37:07.465581 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: 2026/11/23 18:37:09.613075 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: 2026/11/23 18:37:09.613326 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: 2026/11/23 18:37:28.221779 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: 2026/11/23 18:37:28.225125 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-round4-full-50415119-M2-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: 2026/11/23 18:37:30.423140 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round4-full-50415119-M2-bash xray[<PID>]: 2026/11/23 18:37:30.427090 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+2026/11/23 18:37:07.473074 [Warning] core: Xray 26.11.9 started
+2026/11/23 18:37:09.624193 [Warning] core: Xray 26.11.9 started
+2026/11/23 18:37:28.226399 [Warning] core: Xray 26.11.9 started
+2026/11/23 18:37:30.429073 [Warning] core: Xray 26.11.9 started

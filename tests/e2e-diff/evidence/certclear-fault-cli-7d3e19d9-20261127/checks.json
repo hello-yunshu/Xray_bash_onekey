@@ -1,0 +1,21 @@
+{
+  "partial": {
+    "cli_rc": 1,
+    "hashes_restored": true,
+    "modes_restored": true,
+    "state_files": [],
+    "journal_absent": true,
+    "staging_empty": true
+  },
+  "recovery": {
+    "cli_rc": 1,
+    "hashes_restored": true,
+    "modes_restored": true,
+    "state_files": [],
+    "journal_absent": true,
+    "staging_empty": true,
+    "recovered_cert_exists": true,
+    "recovered_key_exists": true,
+    "recovered_marker_exists": true
+  }
+}

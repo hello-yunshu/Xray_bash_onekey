@@ -1,0 +1,75 @@
+{
+  "bash": {
+    "after": {
+      "conf/install_config.json": "d9dc1c7ffd9cc3b738c9a0fc9aef9d8147c0722144bd7d2a72f809a8cd9f5309",
+      "conf/nginx/00-xray.conf": "90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424",
+      "conf/ops25-canary.txt": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225",
+      "conf/xray/config.json": "e0a57b136264b07f26078f1fc721ae717a38406ca99a697e19b1fc413e1778f3",
+      "config-mode": "600:root",
+      "nginx-active": "active",
+      "nginx-test-rc": "0",
+      "xray-active": "active",
+      "xray-test-rc": "0"
+    },
+    "archiveModeAndDigest": true,
+    "before": {
+      "conf/install_config.json": "d9dc1c7ffd9cc3b738c9a0fc9aef9d8147c0722144bd7d2a72f809a8cd9f5309",
+      "conf/nginx/00-xray.conf": "90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424",
+      "conf/ops25-canary.txt": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225",
+      "conf/xray/config.json": "e0a57b136264b07f26078f1fc721ae717a38406ca99a697e19b1fc413e1778f3",
+      "config-mode": "600:root",
+      "nginx-active": "active",
+      "nginx-test-rc": "0",
+      "xray-active": "active",
+      "xray-test-rc": "0"
+    },
+    "canaryRestored": true,
+    "checksumMatch": true,
+    "createRc": 0,
+    "managedFilesRestored": true,
+    "permissionsRestored": true,
+    "realClient": true,
+    "restoreRc": 0,
+    "restoreVerified": true,
+    "servicesAndValidators": true,
+    "verifyRc": 0
+  },
+  "go": {
+    "after": {
+      "conf/nginx/00-xray.conf": "90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424",
+      "conf/ops25-canary.txt": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225",
+      "conf/xray/config.json": "76f9b7e8daa9fa64aeaffb7a322c4fb86d8396b178caa55c189b077fb8190a7e",
+      "config-mode": "640:xray",
+      "nginx-active": "active",
+      "nginx-test-rc": "0",
+      "v1/metadata.json": "26faf8f35e4466e01be07cf1b0c2641b21231d8ce540b10c46283c08ad0c83d1",
+      "xray-active": "active",
+      "xray-test-rc": "0"
+    },
+    "archiveModeAndDigest": true,
+    "before": {
+      "conf/nginx/00-xray.conf": "90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424",
+      "conf/ops25-canary.txt": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225",
+      "conf/xray/config.json": "76f9b7e8daa9fa64aeaffb7a322c4fb86d8396b178caa55c189b077fb8190a7e",
+      "config-mode": "640:xray",
+      "nginx-active": "active",
+      "nginx-test-rc": "0",
+      "v1/metadata.json": "26faf8f35e4466e01be07cf1b0c2641b21231d8ce540b10c46283c08ad0c83d1",
+      "xray-active": "active",
+      "xray-test-rc": "0"
+    },
+    "canaryRestored": true,
+    "checksumMatch": true,
+    "createRc": 0,
+    "managedFilesRestored": true,
+    "permissionsRestored": true,
+    "realClient": true,
+    "restoreRc": 0,
+    "restoreVerified": true,
+    "servicesAndValidators": true,
+    "verifyRc": 0
+  },
+  "id": "OPS-25/26",
+  "note": "Native archive formats and scope are not treated as identical. Bash includes broader runtime files and preserves its 0600:root config policy; Go archives only managed state and preserves its 0640:xray policy. The probe compares common managed data, each manager's established permission policy, validation, service state and real-client connectivity. The harness restarts Bash services after restore because Bash restore does not start them; Go restarts services inside its restore transaction.",
+  "result": "DUAL"
+}

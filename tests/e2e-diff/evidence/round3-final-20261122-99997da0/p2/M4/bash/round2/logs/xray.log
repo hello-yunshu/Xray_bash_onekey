@@ -1,0 +1,20 @@
+<TS> e2e-round3-final-20261122-99997da0-M4-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-final-20261122-99997da0-M4-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-final-20261122-99997da0-M4-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-final-20261122-99997da0-M4-bash xray[<PID>]: 2026/11/22 12:36:43.072522 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-final-20261122-99997da0-M4-bash xray[<PID>]: 2026/11/22 12:36:43.072778 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-round3-final-20261122-99997da0-M4-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-round3-final-20261122-99997da0-M4-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-round3-final-20261122-99997da0-M4-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-round3-final-20261122-99997da0-M4-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-final-20261122-99997da0-M4-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-final-20261122-99997da0-M4-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-final-20261122-99997da0-M4-bash xray[<PID>]: 2026/11/22 12:37:16.001012 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-final-20261122-99997da0-M4-bash xray[<PID>]: 2026/11/22 12:37:16.001872 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/22 12:36:43.076610 [Warning] core: Xray 26.10.31 started
+2026/11/22 12:36:47.003612 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:49274 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/22 12:36:51.007955 [Error] app/dns: failed to retrieve response for example.com. > Post "https://dns.google/dns-query": context deadline exceeded
+2026/11/22 12:36:58.171268 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:45450 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/22 12:36:58.804121 [Error] app/dns: failed to retrieve response for example.com. > Post "https://dns.google/dns-query": context deadline exceeded
+2026/11/22 12:37:02.807664 [Error] app/dns: failed to retrieve response for example.com. > Post "https://dns.google/dns-query": context deadline exceeded
+2026/11/22 12:37:16.006949 [Warning] core: Xray 26.10.31 started

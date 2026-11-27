@@ -1,0 +1,8 @@
+repo_commit=7d3e19d92ce0dc4f70ab90dedc81c13a41403f91
+repo_dirty=0
+base_image=xray-matrix-tools:local
+test_image=sha256:46e79f219a3e11199d0ffc83b264852d23f3b1cba05ccaef984bea371c84f086
+docker_arch=arm64
+docker_version=29.8.2
+bash_install_sha256=a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf
+bash_install_path=install.sh

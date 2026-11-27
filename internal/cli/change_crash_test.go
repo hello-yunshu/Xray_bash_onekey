@@ -18,7 +18,7 @@ func buildCLI(t *testing.T) string {
 		t.Skip("go toolchain not available to build the crash fixture")
 	}
 	out := filepath.Join(t.TempDir(), "idleleo")
-	cmd := exec.Command("go", "build", "-o", out, "github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo")
+	cmd := exec.Command("go", "build", "-buildvcs=false", "-o", out, "github.com/hello-yunshu/Xray_bash_onekey/cmd/idleleo")
 	cmd.Env = append(os.Environ(), "CGO_ENABLED=0")
 	if b, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("build cli: %v: %s", err, b)

@@ -1,0 +1,73 @@
+{
+  "details": {
+    "bash": {
+      "bytes": 0,
+      "delegatesToGo": "idleleo speedtest",
+      "sampleMbps": 0
+    },
+    "go": {
+      "bytes": 10000000,
+      "downMbps": 7.76,
+      "samplesMbps": [
+        7.76
+      ]
+    }
+  },
+  "expectedRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-23",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "Bash menu did not report the tested endpoint",
+    "Bash delegated output lacks positive bytes/sample evidence"
+  ],
+  "run": {
+    "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+    "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "86a0c10c973135d90119db311469bf916cc791881d28579196de4476115d7765",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "a8a22013ffb13d6e93502b42c34de5882a78ee54887ecf34399a06edd157fea3",
+    "finishedAt": "2026-11-27T14:31:09Z",
+    "fixedBy": null,
+    "image": "sha256:e42b201a8d9d6febccb217e5327b60f23c63e2e5bd5914b3538efce1a6d7ac95",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "0d8d27492458c8096172bb2e863f3ed9318635af6ba7e726c79546c5e7675bbe",
+    "platform": "linux/arm64",
+    "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+    "runId": "ops23-dual-speedtest-8ff26917-20261127",
+    "startedAt": "2026-11-27T14:27:20Z",
+    "supersedes": null
+  },
+  "verdict": "FAIL"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "OPS-17b",
+  "opsRc": {
+    "bash": 124,
+    "go": 3
+  },
+  "reasons": [
+    "Nginx update needs the fixed local trusted package used by the real-root job",
+    "bash rc=124 go rc=3"
+  ],
+  "verdict": "BLOCKED"
+}

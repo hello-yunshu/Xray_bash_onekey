@@ -1,0 +1,4 @@
+8b88a61fdfcc9fffbae8fde7bf3a69dd34de8b298cce0ea38c56619bd1b4b9c0  /etc/idleleo/cert/xray.crt
+2100f0a32d23a2d41954eac9829b81f8076d852aff44a6b1c2b8de85dfac62c3  /etc/idleleo/cert/xray.key
+serial=3B49B4988861B5800D81DDD2AF7063C7A4FAB66E
+notBefore=Nov 22 15:57:01 2026 GMT

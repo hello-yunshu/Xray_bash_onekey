@@ -1,6 +1,9 @@
 // Package repair applies the safe, reversible subset of doctor findings. It
 // never invents configuration: it fixes directories, restrictive modes, stale
 // temporary files and expired locks, then reports what still needs a human.
+//
+// Every path is resolved with Lstat component by component: a symlink anywhere
+// in the chain is reported and never chmod/chown/removed.
 package repair
 
 import (
@@ -15,6 +18,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -54,6 +58,20 @@ func Run(ctx context.Context, root string, opts Options) (Report, error) {
 	if ctx.Err() != nil {
 		return rep, ctx.Err()
 	}
+	// A real repair shares the same mutex as backup/restore and install, so it
+	// cannot race a writer. A dry run stays read-only and takes no lock.
+	var held bool
+	if !opts.DryRun {
+		lock, err := host.AcquireUpdate(paths.LockFile())
+		if err != nil {
+			if errors.Is(err, host.ErrLocked) {
+				return rep, errors.New("another update is running; rerun repair after it finishes")
+			}
+			return rep, err
+		}
+		defer lock.Release()
+		held = true
+	}
 	for _, d := range []struct {
 		rel  string
 		mode os.FileMode
@@ -66,17 +84,27 @@ func Run(ctx context.Context, root string, opts Options) (Report, error) {
 		{"etc/idleleo/alerts", 0o750},
 		{"etc/idleleo/backup", 0o700},
 	} {
-		p := filepath.Join(root, d.rel)
-		fi, statErr := os.Stat(p)
+		p, statErr := resolve(root, d.rel, false)
 		switch {
 		case errors.Is(statErr, os.ErrNotExist):
-			rep.do(opts, "create "+d.rel, func() error { return os.MkdirAll(p, d.mode) })
+			rep.do(opts, "create "+d.rel, func() error {
+				_, err := mkdirSecure(root, d.rel, d.mode)
+				return err
+			})
 		case statErr != nil:
 			rep.Remaining = append(rep.Remaining, d.rel+": "+statErr.Error())
-		case !fi.IsDir():
-			rep.Remaining = append(rep.Remaining, d.rel+": not a directory")
-		case fi.Mode().Perm() != d.mode:
-			rep.do(opts, fmt.Sprintf("set mode of %s to %04o", d.rel, d.mode), func() error { return os.Chmod(p, d.mode) })
+		default:
+			fi, err := os.Lstat(p)
+			if err != nil {
+				rep.Remaining = append(rep.Remaining, d.rel+": "+err.Error())
+				continue
+			}
+			switch {
+			case !fi.IsDir():
+				rep.Remaining = append(rep.Remaining, d.rel+": not a directory")
+			case fi.Mode().Perm() != d.mode:
+				rep.do(opts, fmt.Sprintf("set mode of %s to %04o", d.rel, d.mode), func() error { return os.Chmod(p, d.mode) })
+			}
 		}
 	}
 	// A runtime config and its key must not be readable by other users.
@@ -89,13 +117,21 @@ func Run(ctx context.Context, root string, opts Options) (Report, error) {
 		{"etc/idleleo/cert/xray.crt", 0o644},
 		{"etc/idleleo/v1/metadata.json", 0o600},
 	} {
-		p := filepath.Join(root, f.rel)
-		fi, statErr := os.Stat(p)
+		p, statErr := resolve(root, f.rel, false)
 		if errors.Is(statErr, os.ErrNotExist) {
 			continue
 		}
 		if statErr != nil {
 			rep.Remaining = append(rep.Remaining, f.rel+": "+statErr.Error())
+			continue
+		}
+		fi, err := os.Lstat(p)
+		if err != nil {
+			rep.Remaining = append(rep.Remaining, f.rel+": "+err.Error())
+			continue
+		}
+		if !fi.Mode().IsRegular() {
+			rep.Remaining = append(rep.Remaining, f.rel+": not a regular file")
 			continue
 		}
 		if fi.Mode().Perm() != f.mode {
@@ -108,11 +144,68 @@ func Run(ctx context.Context, root string, opts Options) (Report, error) {
 	rep.fixServiceGroup(paths, opts)
 	rep.checkConfig(paths, opts)
 	rep.checkCertificate(root)
-	rep.checkLock(paths, opts)
+	rep.checkLock(paths, opts, held)
 	rep.checkTemp(root, opts)
 	sort.Strings(rep.Actions)
 	rep.Healthy = len(rep.Remaining) == 0
 	return rep, nil
+}
+
+// resolve walks rel under root and refuses any symlink component. With
+// allowMissing the caller gets the target path back when the tail is absent.
+func resolve(root, rel string, allowMissing bool) (string, error) {
+	parts := strings.Split(filepath.ToSlash(rel), "/")
+	cur := root
+	for i, part := range parts {
+		if part == "" || part == "." || part == ".." {
+			return "", fmt.Errorf("unsafe path %q", rel)
+		}
+		cur = filepath.Join(cur, part)
+		fi, err := os.Lstat(cur)
+		if err != nil {
+			if allowMissing && errors.Is(err, os.ErrNotExist) {
+				return cur, nil
+			}
+			return "", err
+		}
+		if fi.Mode()&os.ModeSymlink != 0 {
+			return "", fmt.Errorf("symlink refused: %s", cur)
+		}
+		if i < len(parts)-1 && !fi.IsDir() {
+			return "", fmt.Errorf("not a directory: %s", cur)
+		}
+	}
+	return cur, nil
+}
+
+// mkdirSecure creates rel one component at a time without ever passing through
+// an existing symlink.
+func mkdirSecure(root, rel string, mode os.FileMode) (string, error) {
+	parts := strings.Split(filepath.ToSlash(rel), "/")
+	cur := root
+	for _, part := range parts {
+		if part == "" || part == "." || part == ".." {
+			return "", fmt.Errorf("unsafe path %q", rel)
+		}
+		cur = filepath.Join(cur, part)
+		fi, err := os.Lstat(cur)
+		switch {
+		case err == nil:
+			if fi.Mode()&os.ModeSymlink != 0 {
+				return "", fmt.Errorf("symlink refused: %s", cur)
+			}
+			if !fi.IsDir() {
+				return "", fmt.Errorf("not a directory: %s", cur)
+			}
+		case errors.Is(err, os.ErrNotExist):
+			if err := os.Mkdir(cur, mode); err != nil {
+				return "", err
+			}
+		default:
+			return "", err
+		}
+	}
+	return cur, nil
 }
 
 // fixServiceGroup keeps the runtime config and its directory readable by the
@@ -127,9 +220,12 @@ func (r *Report) fixServiceGroup(paths host.Paths, opts Options) {
 		return
 	}
 	for _, rel := range []string{"etc/idleleo/conf", filepath.Dir(paths.RuntimeConfig()), paths.RuntimeConfig()} {
-		p := filepath.Join(paths.Root, rel)
-		fi, statErr := os.Stat(p)
+		p, statErr := resolve(paths.Root, rel, false)
 		if statErr != nil {
+			continue
+		}
+		fi, err := os.Lstat(p)
+		if err != nil {
 			continue
 		}
 		st, ok := fi.Sys().(*syscall.Stat_t)
@@ -171,7 +267,13 @@ func (r *Report) checkConfig(paths host.Paths, opts Options) {
 }
 
 func (r *Report) checkCertificate(root string) {
-	p := filepath.Join(root, "etc/idleleo/cert/xray.crt")
+	p, err := resolve(root, "etc/idleleo/cert/xray.crt", false)
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			r.Remaining = append(r.Remaining, "etc/idleleo/cert/xray.crt: "+err.Error())
+		}
+		return
+	}
 	body, err := os.ReadFile(p)
 	if err != nil {
 		return
@@ -186,18 +288,23 @@ func (r *Report) checkCertificate(root string) {
 	}
 }
 
-func (r *Report) checkLock(paths host.Paths, opts Options) {
+func (r *Report) checkLock(paths host.Paths, opts Options, selfHeld bool) {
 	fi, err := os.Stat(paths.LockFile())
 	if err != nil {
 		return
 	}
 	// A lock file that a finished transaction left behind is not held. Testing
-	// the flock avoids reporting a healthy root as busy forever.
-	held, heldErr := host.LockHeld(paths.LockFile())
-	if heldErr != nil {
-		return
+	// the flock avoids reporting a healthy root as busy forever. When this run
+	// holds the lock itself, the probe would always report "held", so skip it.
+	heldByOther := false
+	if !selfHeld {
+		held, heldErr := host.LockHeld(paths.LockFile())
+		if heldErr != nil {
+			return
+		}
+		heldByOther = held
 	}
-	if !held && opts.FixLock {
+	if !heldByOther && opts.FixLock {
 		r.do(opts, "remove stale update lock", func() error {
 			err := os.Remove(paths.LockFile())
 			if errors.Is(err, os.ErrNotExist) {
@@ -207,7 +314,7 @@ func (r *Report) checkLock(paths host.Paths, opts Options) {
 		})
 		return
 	}
-	if held {
+	if heldByOther {
 		r.Remaining = append(r.Remaining, "an update lock is held; rerun after it finishes")
 		return
 	}
@@ -227,22 +334,37 @@ func (r *Report) checkLock(paths host.Paths, opts Options) {
 	})
 }
 
-// checkTemp removes only our own abandoned restore staging directories.
+// checkTemp removes only our own abandoned restore staging directories. A
+// symlink is reported, never followed or removed.
 func (r *Report) checkTemp(root string, opts Options) {
-	dir := filepath.Join(root, "var/tmp")
+	dir, err := resolve(root, "var/tmp", false)
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			r.Remaining = append(r.Remaining, "var/tmp: "+err.Error())
+		}
+		return
+	}
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return
 	}
 	for _, e := range entries {
-		if !e.IsDir() || len(e.Name()) < 8 || e.Name()[:8] != "restore-" {
+		name := e.Name()
+		if len(name) < 8 || name[:8] != "restore-" {
 			continue
 		}
-		info, err := e.Info()
-		if err != nil || opts.Now.Sub(info.ModTime()) < time.Hour {
+		target := filepath.Join(dir, name)
+		fi, err := os.Lstat(target)
+		if err != nil {
 			continue
 		}
-		target := filepath.Join(dir, e.Name())
-		r.do(opts, "remove abandoned staging directory var/tmp/"+e.Name(), func() error { return os.RemoveAll(target) })
+		if fi.Mode()&os.ModeSymlink != 0 {
+			r.Remaining = append(r.Remaining, "refusing to remove symlink var/tmp/"+name)
+			continue
+		}
+		if !fi.IsDir() || opts.Now.Sub(fi.ModTime()) < time.Hour {
+			continue
+		}
+		r.do(opts, "remove abandoned staging directory var/tmp/"+name, func() error { return os.RemoveAll(target) })
 	}
 }

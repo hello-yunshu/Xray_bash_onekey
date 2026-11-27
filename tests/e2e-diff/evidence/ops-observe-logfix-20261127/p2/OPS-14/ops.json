@@ -1,0 +1,57 @@
+{
+  "id": "OPS-14",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "Bash entry is the interactive iftop UI; Go is a bounded stats query",
+    "bash output bytes=5007",
+    "go api enable rc=0",
+    "go stats rc=0"
+  ],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "1e75bb585ea7f7aa41007c684eba8677ed4a0d269f20a98487478368c16ddb9f",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "c7eb9fbdffe588e13b2d7b27e9a2cc9b51f0eb163730819359125f351eeedf31",
+    "finishedAt": "2026-11-27T05:32:39Z",
+    "fixedBy": null,
+    "image": "sha256:4284391e3c46b8cf320c96efb8e6911b4ac284d5e6c8c6ee209738d5acdc502c",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "540379dd42f7dfefd43f98644b5f3d848adb87816028995ec9857412bac7ecf4",
+    "platform": "linux/arm64",
+    "productCodeSha": "bc409b5d3ede629eb2a71e13e3d1fe27eec9b760",
+    "runId": "ops-observe-logfix-20261127",
+    "startedAt": "2026-11-27T05:28:11Z",
+    "supersedes": null
+  },
+  "verdict": "DIFF"
+}

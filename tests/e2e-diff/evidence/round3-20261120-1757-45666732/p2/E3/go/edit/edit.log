@@ -1,0 +1,2 @@
+edit_argv=idleleo xray config edit --target 127.0.0.1:1 --container --json
+edit_exit=2

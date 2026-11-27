@@ -1,0 +1,91 @@
+{
+  "details": {
+    "bash": {
+      "assetShaMatched": false,
+      "manualOnly": true,
+      "postUpdateClientOk": true,
+      "servicesHealthy": false,
+      "updateApplied": false,
+      "versionChanged": false
+    },
+    "go": {
+      "assetShaMatched": false,
+      "manualOnly": true,
+      "postUpdateClientOk": true,
+      "servicesHealthy": false,
+      "updateApplied": false,
+      "versionChanged": false
+    }
+  },
+  "reasons": [
+    "bash side failed verified update fact updateApplied",
+    "bash side failed verified update fact versionChanged",
+    "bash side failed verified update fact assetShaMatched",
+    "bash side failed verified update fact servicesHealthy",
+    "go side failed verified update fact updateApplied",
+    "go side failed verified update fact versionChanged",
+    "go side failed verified update fact assetShaMatched",
+    "go side failed verified update fact servicesHealthy",
+    "Bash menu update rc=124",
+    "Go signed apply rc=None"
+  ],
+  "run": {
+    "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+    "binarySha256": "263de583c2024e7eef702955bd3002df675f4888c8a12bf1859111b56bb85240",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "edf96a5f4a2eaaa1c302ab77aa05c181acb262dfb29ac659750a092160941160",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/prepare_ops17a_shell_release.py",
+        "sha256": "ec2ac0844547ff3a49a34c2519279f12c389c1baa5e12b98597fa3b07b5c780d",
+        "source": "tests/e2e-diff/collect/prepare_ops17a_shell_release.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/run_ops17a_go_update.sh",
+        "sha256": "f4d5f4184a018143ed227e8e2b2fdd8ef4d4459816866d5ce6beed94e5a3588a",
+        "source": "tests/e2e-diff/collect/run_ops17a_go_update.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/summarize_ops17a.py",
+        "sha256": "ea7bfbc7d27e8bb15e7c2444555066b4850f690c601328bbaa19924ae290c9bf",
+        "source": "tests/e2e-diff/collect/summarize_ops17a.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "79476b0063d29502af00f8edf9586c506585472dbf6230c7633293c520d45dbc",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "dfa72c1df64346719eee07e4e643ce4f951de1084323800c2b9ee4b72a20f340",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "7878ad05d9a09b8e1d0d2e07ddc99e64fa481ee4741e16cd9c5abfe9cbf18d5d",
+    "finishedAt": "2026-11-27T20:10:12Z",
+    "fixedBy": null,
+    "fixedByKind": null,
+    "image": "sha256:0495deab9dd05037da0a5f02e99d4b53972c9dcb771d0e48bca1a0e3eb3be742",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "dbf3b11d0dffd454af4c2c435a84586a4f5ec64b3907fb38262ec81edaa87b20",
+    "platform": "linux/arm64",
+    "productCodeSha": "523475c4b2ba44bb64861fed73642e7c73530eb9",
+    "runId": "codex-ops17a-local-update-20261128",
+    "startedAt": "2026-11-27T20:09:14Z",
+    "supersedes": null
+  }
+}

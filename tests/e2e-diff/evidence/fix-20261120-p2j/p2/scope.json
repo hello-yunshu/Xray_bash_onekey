@@ -1,0 +1,18 @@
+{
+  "edits": [
+    "E1",
+    "E2",
+    "E3",
+    "E4",
+    "E5",
+    "E6"
+  ],
+  "installs": [],
+  "only": "E1,E2,E3,E4,E5,E6",
+  "ops": [],
+  "runId": "fix-20261120-p2j",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

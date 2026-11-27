@@ -1,0 +1,52 @@
+{
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "changed": [
+    "server-names"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.serverNames[0]"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "70d66e9a6d3dd0001bdb2d53f848bea7c6aedaab206557d8a0d81239c2e4b919",
+  "newSha256": "ad8e35ee992895748e747fb1a8e11862a8854ed0fe14982d2067f30ba90d3d23",
+  "backupDir": "/etc/idleleo/backup/edit-20261127T083221",
+  "noChanges": false,
+  "noRestart": false,
+  "noProbe": true,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://358ce877-39e2-4343-a320-eaa9aa4e9a4a@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=ops10.example.com&fp=chrome&pbk=hv3S5-dzpAZv-nwlAxJrnzLUiKkWuOwTNG4xg6Pv5Vc&sid=88c79f9d&type=raw#idleleo-reality-nginx",
+  "originProbe": "skipped: --no-probe",
+  "tlsSystemTrusted": false,
+  "disconnect": false,
+  "warnings": null,
+  "shortIds": [
+    "88c79f9d"
+  ],
+  "oldShareUri": "vless://358ce877-39e2-4343-a320-eaa9aa4e9a4a@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=hv3S5-dzpAZv-nwlAxJrnzLUiKkWuOwTNG4xg6Pv5Vc&sid=88c79f9d&type=raw#idleleo-reality-nginx",
+  "upstreamSha256": "29b6208b18d3713bbd23e4b3ce6f7e9200abb2748ff821d9219c7b3b6e76b75f",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "70d66e9a6d3dd0001bdb2d53f848bea7c6aedaab206557d8a0d81239c2e4b919",
+    "newSha256": "ad8e35ee992895748e747fb1a8e11862a8854ed0fe14982d2067f30ba90d3d23",
+    "changed": [
+      "server-names"
+    ],
+    "affectedServices": [
+      "nginx",
+      "xray"
+    ],
+    "disconnectRisk": "none: no live session is dropped",
+    "validationSteps": [
+      "xray -test",
+      "nginx -t"
+    ],
+    "rollbackScope": "runtime config + nginx front",
+    "ownership": "idleleo-managed",
+    "fingerprint": "92c6f7786676a007"
+  }
+}

@@ -1,0 +1,9 @@
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  请确保备份文件在目录: /etc/idleleo 
+ 找到最新备份文件: /etc/idleleo/xray_bash_handoff_20261127171124.tar.gz 
+[OK]  检测到 Xray 的权限控制, 启动修改程序 
+[OK]  Xray 修改 完成 
+[信息]  未找到可用的 GeoData 资源, 跳过软链自愈 
+[警告]  未找到可执行的 Xray, 跳过 GeoData 自愈后自检 
+[OK]  恢复 成功 
+[信息]  已恢复脚本版本: 3.3.6 

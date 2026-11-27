@@ -1,0 +1,51 @@
+{
+  "details": {
+    "bash": {
+      "addRc": 0,
+      "addedClients": 2,
+      "addedShortIds": 2,
+      "beforeClients": 1,
+      "beforeShortIds": 1,
+      "clientConnected": true,
+      "newIds": [
+        "a70fc16f-e63b-5b8f-a731-3cf5b09b84c3"
+      ],
+      "removeRc": 0,
+      "removedClients": 1,
+      "removedShortIds": 1,
+      "showRc": 0
+    },
+    "go": {
+      "addRc": 0,
+      "addedClients": 2,
+      "addedShortIds": 2,
+      "beforeClients": 1,
+      "beforeShortIds": 1,
+      "clientConnected": true,
+      "newIds": [
+        "22222222-3333-4444-5555-666666666666"
+      ],
+      "removeRc": 0,
+      "removedClients": 1,
+      "removedShortIds": 2,
+      "showRc": 0
+    }
+  },
+  "id": "OPS-03",
+  "note": "no ops.json: the row is not claimed as dual-side verified",
+  "reasons": [
+    "shortId residue after remove: bash=1 go=2 (baseline 1/1)"
+  ],
+  "result": "DIFF",
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
+    "finishedAt": "2026-11-23T19:39:57Z",
+    "image": "sha256:a45a231a1449bb185360cc900ca9e976ed83140621f4678645c70d13c0480390",
+    "layer": "L0-L4 docker matrix",
+    "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+    "runId": "round4-bizfacts2-50415119",
+    "startedAt": "2026-11-23T19:25:24Z"
+  }
+}

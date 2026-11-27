@@ -1,0 +1,22 @@
+{
+  "edits": [],
+  "installs": [
+    "M1",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "M6",
+    "M7",
+    "M8",
+    "M9",
+    "M10"
+  ],
+  "only": "M1,M2,M3,M4,M5,M6,M7,M8,M9,M10",
+  "ops": [],
+  "runId": "matrix-current-7d3e19d9-20261127",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

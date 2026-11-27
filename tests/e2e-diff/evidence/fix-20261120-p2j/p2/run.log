@@ -1,0 +1,21 @@
+12:12:05 run_id=fix-20261120-p2j
+12:12:07 image_id=sha256:7a72ce686622501d0514d08cb899d90f801c022a6a62bd6128d45457ea66571f
+12:12:07 building idleleo
+12:12:15 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=04aaa7e0d259ce90cd18538c2918dad9a26969a74c47d251f3a9ca255054e1d3
+12:12:15 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+12:12:15 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+12:12:18 argv-verify written
+12:12:19 [E6] start
+12:12:19 [E5] start
+12:12:19 [E2] start
+12:12:19 [E3] start
+12:12:19 [E4] start
+12:12:19 [E1] start
+12:12:39 [E3] done
+12:12:45 [E1] done
+12:12:46 [E4] done
+12:12:46 [E2] done
+12:12:47 [E5] done
+12:12:56 [E6] done
+12:12:57 scope: installs=[] edits=[E1,E2,E3,E4,E5,E6] ops=[]
+12:12:57 P2 finished: tests/e2e-diff/evidence/fix-20261120-p2j/p2

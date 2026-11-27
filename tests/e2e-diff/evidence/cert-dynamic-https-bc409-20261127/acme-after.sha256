@@ -1,0 +1,4 @@
+ca8275bc59489813c3ad052d0c71a77d30a9340d99c5e0234f57e3e8ea2bc510  /root/.acme.sh/owned.local_ecc/account.conf
+7bc99e6cdabfaef8b1516b86d71dbe7cd398ac6f2af07339bcc6402d048ba0cf  /root/.acme.sh/owned.local_ecc/owned.local.cer
+c809c3cb141d5fa4622231975120cc0ae6f422d74fda21de7a2ff7a6f677dde4  /root/.acme.sh/owned.local_ecc/owned.local.key
+508437fa6b804acbabf175cc8ab4cbd66b204dbd17ab9d671a5fa241b30438b7  /root/.acme.sh/owned.local_ecc/renew-hook.sh

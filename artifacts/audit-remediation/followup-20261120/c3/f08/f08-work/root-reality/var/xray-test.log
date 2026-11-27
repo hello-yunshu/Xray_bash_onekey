@@ -1,0 +1,5 @@
+-test -config /src/artifacts/audit-remediation/followup-20261120/c3/f08/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-99136637.json
+-test -config /src/artifacts/audit-remediation/followup-20261120/c3/f08/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-2915272915.json
+-test -config /src/artifacts/audit-remediation/followup-20261120/c3/f08/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-1790274666.json
+-test -config /src/artifacts/audit-remediation/followup-20261120/c3/f08/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-3141596054.json
+-test -config /src/artifacts/audit-remediation/followup-20261120/c3/f08/f08-work/root-reality/etc/idleleo/conf/xray/.edit-candidate-1547858714.json

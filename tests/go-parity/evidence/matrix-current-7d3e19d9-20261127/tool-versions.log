@@ -1,0 +1,5 @@
+go version go1.27.4 linux/arm64
+Python 3.12.3
+jq-1.7
+git version 2.43.0
+tool_probe_rc=0

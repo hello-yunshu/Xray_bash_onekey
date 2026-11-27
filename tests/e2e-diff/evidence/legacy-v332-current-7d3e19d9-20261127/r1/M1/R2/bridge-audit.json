@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "legacyVersion": "3.3.2",
+  "xrayVersion": "26.11.9",
+  "role": "node",
+  "tls": "Reality",
+  "transport": "raw",
+  "nginxRequired": false,
+  "port": 443,
+  "userCount": 1,
+  "runtimePath": "/etc/idleleo/conf/xray/config.json",
+  "runtimeSha256": "18ac6cb23a747ac754707e059e251afb07ce18444b9fbdbbddd2b64a577b9b87",
+  "runtimeBytes": 1713,
+  "customDns": true,
+  "customRouting": true,
+  "customOutbounds": true,
+  "customItems": [],
+  "certFiles": [],
+  "nginxFiles": [],
+  "units": {
+    "nginx": {
+      "path": "/etc/systemd/system/nginx.service",
+      "present": false
+    },
+    "xray": {
+      "path": "/etc/systemd/system/xray.service",
+      "present": true,
+      "sha256": "cfc75dd93d5b1f043732d86f26e71f81378eb14d0a53f0b2f91d4001d5f6e189",
+      "user": "root",
+      "execStart": "/usr/local/bin/xray run -config /etc/idleleo/conf/xray/config.json"
+    }
+  },
+  "entry": {
+    "path": "/usr/bin/idleleo",
+    "exists": true,
+    "isSymlink": true,
+    "linkTarget": "/etc/idleleo/install.sh",
+    "sha256": "764ac1253591f1f9d46c1b69ac3ead593d2ea35012ffbf79f583ba993e5a5df4",
+    "isGoBridge": false
+  },
+  "legacyScript": {
+    "path": "/etc/idleleo/install.sh",
+    "sha256": "764ac1253591f1f9d46c1b69ac3ead593d2ea35012ffbf79f583ba993e5a5df4"
+  },
+  "geoLegacyCron": false,
+  "projectCronLines": 0,
+  "relayConf": {
+    "path": ""
+  },
+  "rill": {
+    "installed": false,
+    "observationAgeSeconds": 0,
+    "status": "absent",
+    "enabled": false
+  },
+  "permissionFixes": [],
+  "findings": [],
+  "verdict": "convertible"
+}

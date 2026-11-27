@@ -1,0 +1,19 @@
+{
+  "entry": {
+    "id": "1795104674199843295-296",
+    "state": "COMMITTED",
+    "target": "/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/usr/local/bin/e2e-service-apply",
+    "oldSha256": "efbfdaac854cd23cf901bba22a26dc752e3c25d9cd22872be4e28940fd8f5117",
+    "newSha256": "fe93b173d9e88b7f39930c875b574549f1a3c235283c13214a7c27eb5c1f761f",
+    "startedAt": "2026-11-19T16:11:14Z",
+    "updatedAt": "2026-11-19T16:11:14Z"
+  },
+  "user": {
+    "index": 1,
+    "uuid": "REDACTED",
+    "email": "e2e@example.com",
+    "level": 0,
+    "primary": false
+  }
+}

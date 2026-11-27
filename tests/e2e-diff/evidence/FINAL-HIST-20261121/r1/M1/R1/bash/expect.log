@@ -1,0 +1,10 @@
+SCENARIO=M1 ROUND=1 ARG=-2 MENU=
+spawn bash /src/install.sh -2
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+
+ 新版本(3.3.6) 更新内容: 
+[错误]  在线版本检测失败, 请稍后再试! 
+  
+[错误]  脚本更新失败! 
+HARNESS-ERROR: ip: eof before header '确定公网IP信息'

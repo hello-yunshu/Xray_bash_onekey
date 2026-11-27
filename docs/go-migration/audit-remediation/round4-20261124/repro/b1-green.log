@@ -1,0 +1,7 @@
+# B1 green: the same suite leaves every tracked artifact byte-identical at 50415119
+$ cd /tmp/repro-head && python3 -m unittest tests/e2e-diff/collect/test_build_ledger.py
+Ran 28 tests in 12.132s
+OK
+acceptance.json sha256 before = fd1a6dcf3460fe6462864f4d7fe88b03ab5482161532107b70146defb5d0a518
+acceptance.json sha256 after  = fd1a6dcf3460fe6462864f4d7fe88b03ab5482161532107b70146defb5d0a518
+guard: PASS: tracked acceptance artifacts are byte-identical after the ledger tests

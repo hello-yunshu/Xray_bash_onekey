@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "installed": false,
+  "intervalSeconds": 3600,
+  "jobs": [
+    "auto-update",
+    "cert-renew",
+    "geodata-refresh",
+    "stats-collect"
+  ],
+  "degradedJobs": [
+    "auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)"
+  ],
+  "unitPath": "/etc/systemd/system/idleleo-schedule.service",
+  "timerPath": "/etc/systemd/system/idleleo-schedule.timer",
+  "timer": "not-installed",
+  "releaseChannelConfigured": false,
+  "state": {
+    "schemaVersion": 1,
+    "runs": 0,
+    "jobs": {}
+  }
+}

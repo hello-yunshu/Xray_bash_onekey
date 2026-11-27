@@ -1,0 +1,4 @@
+SCENARIO=M1 ROUND=1 ARG=-2 MENU=
+INSTALL_SRC=/src/install.sh
+spawn bash /src/install.sh -2
+[OK]  当前用户是 root 用户, 开始安装 

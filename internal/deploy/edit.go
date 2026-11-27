@@ -196,6 +196,12 @@ func EditConfig(ctx context.Context, spec EditSpec) (EditReport, error) {
 		PrivateKeyRotated: res.PrivateKeyRotated,
 		BlockPreserved:    res.BlockPreserved, BlockRuleCount: res.BlockRuleCount,
 	}
+	if res.Mode == xraycfg.ModeReality && strings.TrimSpace(spec.Request.Host) == "" {
+		// serverNames is the SNI clients present, not the address they dial. Say
+		// so instead of leaving a link that nobody can connect to.
+		report.Warnings = append(report.Warnings,
+			"share links use the Reality SNI as the dial host because --host was not given; pass --host <address clients dial> to hand out a usable link")
+	}
 	if spec.Request.ListShortIDs {
 		// Read-only: the runtime config and the front are untouched.
 		report.NoChanges = true

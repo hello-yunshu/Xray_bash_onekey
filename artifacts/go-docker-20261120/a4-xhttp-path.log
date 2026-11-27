@@ -1,0 +1,5 @@
+a4_test.sh: line 6: cd: /tmp/a4: No such file or directory
+CASE=slash_match serverPath=/xhttp/ clientPath=/xhttp/ rc=0 http=301
+CASE=go_server_bash_client serverPath=/xhttp/ clientPath=/xhttp rc=0 http=301
+CASE=bash_server_go_client serverPath=/xhttp clientPath=/xhttp/ rc=0 http=301
+CASE=plain_match serverPath=/xhttp clientPath=/xhttp rc=0 http=301

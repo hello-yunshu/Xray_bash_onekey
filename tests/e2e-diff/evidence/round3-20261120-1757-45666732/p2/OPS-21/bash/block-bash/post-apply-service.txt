@@ -1,0 +1,14 @@
+active
+-rw------- 1 root root 2555 Nov 20 10:06 /etc/idleleo/conf/xray/config.json
+e861dc2cd4d4284efaa6afcd058b97361faa9fec647af8e6a05c28b48fc9efae  /etc/idleleo/conf/xray/config.json
+Nov 20 10:06:28 e2e-round3-20261120-1757-45666732-OPS-21-bash systemd[1]: Started xray.service - Xray Service.
+Nov 20 10:06:28 e2e-round3-20261120-1757-45666732-OPS-21-bash xray[1990]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 20 10:06:28 e2e-round3-20261120-1757-45666732-OPS-21-bash xray[1990]: A unified platform for anti-censorship.
+Nov 20 10:06:28 e2e-round3-20261120-1757-45666732-OPS-21-bash xray[1990]: 2026/11/20 10:06:28.478974 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 20 10:06:41 e2e-round3-20261120-1757-45666732-OPS-21-bash systemd[1]: Stopping xray.service - Xray Service...
+Nov 20 10:06:41 e2e-round3-20261120-1757-45666732-OPS-21-bash systemd[1]: xray.service: Deactivated successfully.
+Nov 20 10:06:41 e2e-round3-20261120-1757-45666732-OPS-21-bash systemd[1]: Stopped xray.service - Xray Service.
+Nov 20 10:06:41 e2e-round3-20261120-1757-45666732-OPS-21-bash systemd[1]: Started xray.service - Xray Service.
+Nov 20 10:06:41 e2e-round3-20261120-1757-45666732-OPS-21-bash xray[2743]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 20 10:06:41 e2e-round3-20261120-1757-45666732-OPS-21-bash xray[2743]: A unified platform for anti-censorship.
+Nov 20 10:06:41 e2e-round3-20261120-1757-45666732-OPS-21-bash xray[2743]: 2026/11/20 10:06:41.667290 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

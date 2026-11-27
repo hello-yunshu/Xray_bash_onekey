@@ -7,16 +7,17 @@ no root, no network).
 
 The fixture proves the documented language surface byte for byte: zh/en carry
 complete Go catalogs, fr/fa/ru/ko accept the code but fall back to English with
-exactly one notice, invalid codes are rejected before command dispatch, and the
-locale environment plus `etc/idleleo/language.conf` never influence the choice.
+exactly one notice, invalid codes are rejected before command dispatch, locale
+environment variables do not influence the choice, and the safe persistent
+`etc/idleleo/language.conf` preference is honored unless `--lang` overrides it.
 It then locks the non-localized TTY behaviour (no TTY error, 45-column menu),
 shows the help text has no narrow-screen wrapping, and compares all of that to
 the six real Bash `.mo` catalogs.
 
 Differences from the Bash baseline are recorded in `baseline-compare.json`
-instead of being claimed as parity: Bash is complete in six languages, reads
-language.conf, and renders a localized 45-column adaptive menu; Go is complete
-in two languages, ignores both, and prints an English single-line prompt.
+instead of being claimed as parity: Bash is complete in six languages and
+renders a localized 45-column adaptive menu; Go persists language selection
+but is complete in two languages and prints an English single-line prompt.
 """
 import fcntl
 import gettext
@@ -59,7 +60,7 @@ EXPECT_INFO = {
     "fa": "اطلاعات",
 }
 TOP_LEVEL = [
-    "version", "status", "show", "config", "change", "xray", "fail2ban",
+    "version", "language", "status", "show", "config", "change", "xray", "fail2ban",
     "bridge", "metadata", "schedule", "update", "stats", "service", "tcp",
     "speedtest", "rill", "recover", "help",
 ]
@@ -262,7 +263,7 @@ def main(f):
         }
     f.write_json("language-matrix.json", matrix)
 
-    # ---- 2) Environment and language.conf are ignored -----------------------
+    # ---- 2) Environment, persistent language.conf, and override precedence --
     env_fr = dict(f.env, LANG="fr_FR.UTF-8", LC_ALL="fr_FR.UTF-8")
     env_help = f.run([f.go, "help"], timeout=30, env=env_fr)
     f.check(env_help.rc == 0, "help succeeds under a French locale environment",
@@ -289,18 +290,35 @@ def main(f):
     (conf_root / "etc/idleleo").mkdir(parents=True)
     (conf_root / "etc/idleleo/language.conf").write_text(
         "LANG=fr_FR.UTF-8\nLC_MESSAGES=fr_FR.UTF-8\n", encoding="utf-8")
+    (conf_root / ".idleleo-phase01-sandbox").write_text(
+        "I_ACCEPT_DISPOSABLE_SANDBOX\n", encoding="utf-8")
+    conf_help = f.run([f.go, "--root", str(conf_root), "help"], timeout=30)
+    f.check(conf_help.rc == 0 and conf_help.out == en_help.out,
+            "language.conf selects its allowed persistent locale",
+            f"rc={conf_help.rc} len={len(conf_help.out or '')}")
+    f.check(conf_help.err == notice("fr"),
+            "incomplete persistent locale announces one English fallback",
+            repr(conf_help.err))
+    explicit_help = f.run([f.go, "--root", str(conf_root), "--lang", "en", "help"], timeout=30)
+    f.check(explicit_help.rc == 0 and explicit_help.out == en_help.out
+            and (explicit_help.err or "") == "",
+            "explicit --lang overrides the persistent preference",
+            f"rc={explicit_help.rc} err={explicit_help.err!r}")
     before = f.tree_digest(conf_root)
-    conf_status = f.run([f.go, "--root", str(conf_root), "status"], timeout=30)
-    f.check(conf_status.rc == 3, "language.conf root status exits 3",
-            f"rc={conf_status.rc}")
-    f.check("未安装" in (conf_status.err or ""),
-            "language.conf does not switch status to English",
-            repr(conf_status.err))
-    f.check((conf_status.out or "") == "",
-            "language.conf root status writes nothing to stdout",
-            repr(conf_status.out))
+    conf_status = f.run([f.go, "--root", str(conf_root), "--lang", "en", "status"], timeout=30)
+    f.check(conf_status.rc == 3 and "not installed" in (conf_status.err or ""),
+            "persistent language reads preserve read-only status behavior",
+            f"rc={conf_status.rc} err={conf_status.err!r}")
     f.check(f.tree_digest(conf_root) == before,
-            "language.conf root status leaves the tree unchanged")
+            "language reads leave the sandbox tree unchanged")
+    set_ko = f.run([f.go, "--root", str(conf_root), "language", "set", "ko"], timeout=30)
+    f.check(set_ko.rc == 0 and set_ko.out == "ko\n",
+            "language set persists one allowlisted locale in the marked sandbox",
+            f"rc={set_ko.rc} out={set_ko.out!r}")
+    show_ko = f.run([f.go, "--root", str(conf_root), "language", "show"], timeout=30)
+    f.check(show_ko.rc == 0 and show_ko.out == "ko\n",
+            "language show reports the persisted preference",
+            f"rc={show_ko.rc} out={show_ko.out!r}")
 
     env_default = dict(f.env)
     env_default.pop("LANG", None)
@@ -438,7 +456,7 @@ def main(f):
             "fallbackLanguages": FALLBACK,
             "defaultLanguage": "zh",
             "readsEnvironmentLocale": False,
-            "readsLanguageConf": False,
+            "readsLanguageConf": True,
             "ttyMenu": "English single-line prompt, not localized",
             "helpWidthAdaptation": False,
             "helpMaxWidth": {"zh": zh_width, "en": en_width},
@@ -456,7 +474,7 @@ def main(f):
             "catalogs only for zh and en.",
             "Bash falls back to English per missing message (_xray_i18n_setup); Go "
             "falls back for the whole language and prints one notice.",
-            "Bash reads etc/idleleo/language.conf; Go selects the language only from --lang.",
+            "Bash and Go read etc/idleleo/language.conf; Go also offers explicit language show/set commands and --lang overrides the stored default.",
             "Bash renders a localized 45-column adaptive menu box; Go renders an "
             "English single-line prompt with no width adaptation (not aligned).",
             "Bash suppresses ANSI without a TTY or with NO_COLOR; Go never emits "

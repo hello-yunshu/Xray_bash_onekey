@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "units": {
+    "nginx": {
+      "errorLines": 0,
+      "lines": 1,
+      "sampleErrors": [],
+      "sha256": "19c4e28b2f54ea8f217db4e622b0a5c758efa7b77ce2dc0394b6d159568c0b2e",
+      "warningLines": 0
+    },
+    "xray": {
+      "errorLines": 2,
+      "lines": 6,
+      "sampleErrors": [
+        "<TS> e2e-bc6-8ff-1128-cold-source-reality xray[<PID>]: Failed to start: main: failed to load config files: [/etc/idleleo/conf/xray/config.json] > infra/conf: failed to build inbound config with tag VLESS-Reality-in > infra/conf: Failed to build REALITY config. > infra/conf: please fill in a valid value for \"target\"",
+        "<TS> e2e-bc6-8ff-1128-cold-source-reality systemd[1]: xray.service: Failed with result 'exit-code'."
+      ],
+      "sha256": "dbf659b2f1ce540e2d233cbe7f10e374e6658f10afb8461ba7b1835bf660f18c",
+      "warningLines": 0
+    }
+  }
+}

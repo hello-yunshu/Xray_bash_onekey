@@ -7,4 +7,14 @@ tests/go-parity/.cache/
 * [0-9].*
 Dockerfile [0-9]
 tests/go-parity/evidence/preview-*/F[0-9][0-9]/
+tests/go-parity/evidence/*/idleleo-current
 .workbuddy/
+
+# Downloaded GeoData fixtures are large binaries that contain public address
+# literals; evidence keeps their sha256 sidecars instead.
+tests/e2e-diff/evidence/**/origin/geoip.dat
+tests/e2e-diff/evidence/**/origin/geosite.dat
+
+# 测试证据中的私钥不入库，仅保留证书/公钥
+tests/**/evidence/**/*.key
+tests/**/evidence/**/tls-key.pem

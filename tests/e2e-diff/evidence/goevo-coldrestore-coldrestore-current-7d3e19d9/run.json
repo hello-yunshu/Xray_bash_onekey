@@ -1,0 +1,26 @@
+{
+  "runId": "coldrestore-current-7d3e19d9",
+  "scenarios": {
+    "multi": {
+      "archiveSHA256": "18e6862ff3af911ceea45f67e5729a7886210e54682eac291bd8b90fa0006858",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    },
+    "reality": {
+      "archiveSHA256": "e4f250c3d031a9607226cf0abe17ece4bdc3f1130a884a3accbc3beae217d229",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    },
+    "relay": {
+      "archiveSHA256": "71a5fbf160cb3fc19fb59a1526d354c25594629cc839975dc56e6f6f91e44d30",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    },
+    "tls": {
+      "archiveSHA256": "44dbe53a139a65ce352433808489a1aead0a74f844f737cca30ab772170118b6",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    }
+  },
+  "schemaVersion": 1
+}

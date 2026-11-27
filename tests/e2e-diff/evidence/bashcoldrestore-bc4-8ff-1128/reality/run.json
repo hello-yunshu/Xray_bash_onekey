@@ -1,0 +1,23 @@
+{
+  "archiveSHA256": "",
+  "commit": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+  "imageId": "sha256:828040e78d98d640e238b799f1f1c4441a719307e1e80d0b57db89cb9556e5bc",
+  "manager": "bash",
+  "runId": "bc4-8ff-1128",
+  "scenario": "reality",
+  "schemaVersion": 1,
+  "sides": {
+    "source": {
+      "assertions": [],
+      "failed": 0,
+      "passed": 0
+    },
+    "target": {
+      "assertions": [],
+      "failed": 0,
+      "passed": 0
+    }
+  },
+  "sourceDriverExit": 0,
+  "targetDriverExit": 2
+}

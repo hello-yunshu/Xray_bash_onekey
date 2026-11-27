@@ -1,0 +1,64 @@
+{
+  "dir": "/etc/idleleo/cert",
+  "removed": [],
+  "skipped": [
+    "/etc/idleleo/cert/owned.crt",
+    "/etc/idleleo/cert/owned.key",
+    "/etc/idleleo/cert/xray.crt",
+    "/etc/idleleo/cert/xray.key",
+    "/root/.acme.sh/owned.local_ecc"
+  ],
+  "planned": [
+    {
+      "path": "/etc/idleleo/cert/owned.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "keep",
+      "reason": "the effective configuration could not be fully scanned; cannot prove this certificate is unused"
+    },
+    {
+      "path": "/etc/idleleo/cert/owned.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "keep",
+      "reason": "the effective configuration could not be fully scanned; cannot prove this certificate is unused"
+    },
+    {
+      "path": "/etc/idleleo/cert/xray.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "keep",
+      "reason": "the effective configuration could not be fully scanned; cannot prove this certificate is unused"
+    },
+    {
+      "path": "/etc/idleleo/cert/xray.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "keep",
+      "reason": "the effective configuration could not be fully scanned; cannot prove this certificate is unused"
+    },
+    {
+      "path": "/root/.acme.sh/owned.local_ecc",
+      "kind": "directory",
+      "owner": "third-party",
+      "inUse": false,
+      "action": "keep",
+      "reason": "external acme.sh accounts, renewal state, CA material, hooks, and files are retained for manual management"
+    }
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": [
+    "a certificate directive in /usr/local/nginx/conf/nginx.conf uses a variable or brace expression; certificates whose use cannot be proven will be kept",
+    "the effective configuration could not be fully scanned; cannot prove this certificate is unused: /etc/idleleo/cert/owned.crt",
+    "the effective configuration could not be fully scanned; cannot prove this certificate is unused: /etc/idleleo/cert/owned.key",
+    "the effective configuration could not be fully scanned; cannot prove this certificate is unused: /etc/idleleo/cert/xray.crt",
+    "the effective configuration could not be fully scanned; cannot prove this certificate is unused: /etc/idleleo/cert/xray.key",
+    "acme.sh state is preserved: external acme.sh accounts, renewal state, CA material, hooks, and files are retained for manual management",
+    "external acme.sh accounts, renewal state, CA material, hooks, and files are retained for manual management: /root/.acme.sh/owned.local_ecc"
+  ]
+}

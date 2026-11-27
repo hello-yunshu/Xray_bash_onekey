@@ -1,0 +1,3 @@
+== F15 go=/work/bin/idleleo bash=/repo host=aarch64
+PASS Bash xray_stats.sh baseline is present /repo/scripts/xray_stats.sh
+UNSUPPORTED_ENVIRONMENT xray binary not found; pass --xray-bin or set IDLELEO_XRAY_BIN

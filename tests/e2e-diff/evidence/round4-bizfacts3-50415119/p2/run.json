@@ -1,0 +1,11 @@
+{
+  "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+  "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+  "driverSha": "560a0aeb7f0fe0b2aa83b037855f1a5beab9459f363056cb57013ddc1d18d0d0",
+  "finishedAt": "2026-11-23T19:43:18Z",
+  "image": "sha256:20b016b46af698aab864bf57351d1114aa2f0e0658ef37aeee18f622919f3055",
+  "layer": "L0-L4 docker matrix",
+  "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+  "runId": "round4-bizfacts3-50415119",
+  "startedAt": "2026-11-23T19:42:15Z"
+}

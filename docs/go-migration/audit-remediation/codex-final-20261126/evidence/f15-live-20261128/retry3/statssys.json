@@ -1,0 +1,13 @@
+{
+    "Alloc": 2341808,
+    "Frees": 5240,
+    "LiveObjects": 10930,
+    "Mallocs": 16170,
+    "NumGC": 4,
+    "NumGoroutine": 47,
+    "PauseTotalNs": 1662307,
+    "Sys": 15325448,
+    "TotalAlloc": 2878344,
+    "Uptime": 1
+}
+

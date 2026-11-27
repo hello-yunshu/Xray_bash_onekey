@@ -1,0 +1,17 @@
+00:02:53 run_id=obsfix1
+00:02:54 image_id=sha256:d05eea2617b15be829399cd5598cbf825e0d477e97b3f0e4b52b174df9e94114
+00:02:54 building idleleo
+00:02:58 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6
+00:02:58 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+00:02:58 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+00:02:58 release_cache=seeded templates=vless_reality.json,vless_tls.json
+00:02:58 release_cache=hit
+00:02:58 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+00:02:58 apt_cache=hit (OPS offline apt)
+00:02:59 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+00:02:59 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+00:03:00 argv-verify written
+00:03:00 [observe] start
+00:06:33 [observe] verdicts written
+00:06:33 scope: installs=[] edits=[] ops=[OPS-OBSERVE]
+00:06:33 P2 finished: tests/e2e-diff/evidence/obsfix1/p2

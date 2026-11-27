@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [
+    "M6"
+  ],
+  "only": "M6",
+  "ops": [],
+  "runId": "codex-final-20261126-f4deaf77-M6",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

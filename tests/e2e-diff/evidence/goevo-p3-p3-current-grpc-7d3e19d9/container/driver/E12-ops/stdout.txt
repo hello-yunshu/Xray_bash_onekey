@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-27T09:08:06Z",
+  "status": {
+    "schemaVersion": 1,
+    "installed": true,
+    "engine": "xray",
+    "role": "node",
+    "tls": "Reality",
+    "transport": "grpc",
+    "config": {
+      "path": "/etc/idleleo/conf/xray/config.json",
+      "sha256": "ec1164d0018147cba3333d926e6cbd0e0363b61517f2d41e7b9007393be317df",
+      "matchesMetadata": true
+    },
+    "service": {
+      "xray": "active",
+      "nginx": "inactive",
+      "enabled": "enabled",
+      "source": "systemctl",
+      "sandbox": false
+    },
+    "drift": [],
+    "warnings": [
+      "custom-dns-present",
+      "custom-routing-present"
+    ]
+  },
+  "ports": [
+    {
+      "protocol": "vless",
+      "listen": "0.0.0.0",
+      "port": 443,
+      "tag": "VLESS-Reality-in"
+    },
+    {
+      "protocol": "vless",
+      "listen": "0.0.0.0",
+      "port": 10000,
+      "tag": "VLESS-gRPC-in"
+    },
+    {
+      "protocol": "dokodemo-door",
+      "listen": "127.0.0.1",
+      "port": 10085,
+      "tag": "api"
+    }
+  ],
+  "certificate": {
+    "path": "/etc/idleleo/cert/xray.crt",
+    "present": false
+  },
+  "lastChange": {
+    "id": "1795770485191021899-893",
+    "state": "COMMITTED",
+    "target": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "b7f913d40ddc7ea17a4301d7c0ea7b4f4670834d3de2f957cdae55d8996cba5c",
+    "newSha256": "ec1164d0018147cba3333d926e6cbd0e0363b61517f2d41e7b9007393be317df",
+    "startedAt": "2026-11-27T09:08:05Z",
+    "updatedAt": "2026-11-27T09:08:05Z"
+  },
+  "restartCount": 0
+}

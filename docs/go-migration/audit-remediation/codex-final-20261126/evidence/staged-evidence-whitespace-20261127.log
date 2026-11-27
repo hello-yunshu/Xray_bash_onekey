@@ -1,0 +1,9 @@
+Post-stage whitespace review
+
+Command: git diff --cached --check
+Result: rc=2; 2,832 trailing-whitespace diagnostics across 58 newly added raw evidence files. The affected paths are generated terminal transcripts, process/socket snapshots, and frozen source/dependency copies under tests/e2e-diff/evidence/. They were kept byte faithful to recorded runs; no runtime transcript was rewritten to manufacture a clean diff.
+
+Command: git diff --cached --check -- . ':(exclude)tests/e2e-diff/evidence/**'
+Result: rc=0. The staged product/test-driver edits, formal acceptance artifacts, reports, and audit metadata have no whitespace errors.
+
+The original diagnostics were captured locally in /tmp/xray-full-staged-check.txt. This summary records the command results without duplicating thousands of log lines.

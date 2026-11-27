@@ -1,0 +1,12 @@
+8681df828f7765a351a4fc708a46fc3f7f383c0155fe4b19002d20e5c4ee5431
+[Fri Nov 27 10:53:54 UTC 2026] Installing from online archive.
+[Fri Nov 27 10:53:54 UTC 2026] Downloading https://github.com/acmesh-official/acme.sh/archive/master.tar.gz
+[Fri Nov 27 10:54:08 UTC 2026] Extracting master.tar.gz
+[Fri Nov 27 10:54:08 UTC 2026] Installing to $HOME/.acme.sh
+[Fri Nov 27 10:54:08 UTC 2026] Installed to $HOME/.acme.sh/acme.sh
+[Fri Nov 27 10:54:08 UTC 2026] Installing alias to '$HOME/.profile'
+[Fri Nov 27 10:54:09 UTC 2026] Close and reopen your terminal to start using acme.sh
+[Fri Nov 27 10:54:09 UTC 2026] Installing cron job
+[Fri Nov 27 10:54:09 UTC 2026] bash has been found. Changing the shebang to use bash as preferred.
+[Fri Nov 27 10:54:15 UTC 2026] OK
+[Fri Nov 27 10:54:15 UTC 2026] Install success!

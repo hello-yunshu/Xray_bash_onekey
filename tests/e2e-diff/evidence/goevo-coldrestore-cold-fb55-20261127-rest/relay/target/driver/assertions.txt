@@ -1,0 +1,15 @@
+PASS	target install is healthy before the restore (rc=0)
+PASS	the fresh target starts with different managed state (relay)
+PASS	target verifies the source archive (rc=0)
+PASS	the handoff archive digest matches the source
+PASS	cold restore exits 0 (rc=0)
+PASS	restored state is byte-identical to the source (relay)
+PASS	the restore wrote a pre-restore backup
+PASS	nginx is active after the restore (state=active)
+PASS	doctor is healthy after the cold restore (rc=0)
+PASS	a real client reaches the origin after the cold restore (relay)
+PASS	target probe reports REAL_CLIENT_PASS
+PASS	nginx survives a restart after the restore (state=active)
+PASS	a real client still reaches the origin after the post-restore restart (relay)
+PASS	the third-party certificate canary survived the restore
+PASS	the third-party config note survived the restore unchanged

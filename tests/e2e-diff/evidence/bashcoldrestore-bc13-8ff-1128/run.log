@@ -1,0 +1,70 @@
+run_id=bc13-8ff-1128 scenarios=relay multi
+manager=bash
+commit=8ff26917e3e381d4023b7319d5405f7ba871f289
+image=idleleo-e2e:24.04
+image_id=sha256:828040e78d98d640e238b799f1f1c4441a719307e1e80d0b57db89cb9556e5bc
+building idleleo
+idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+building the local TLS target
+arch=arm64
+xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a arch=arm64
+nginx_cache=hit build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+bash_seed_cert_sha256=3e0c81790adb0517539849935ac2263d83115bc1552e79be55b14c0dd332edfa
+[relay] source: starting e2e-bc13-8ff-1128-cold-source-relay
+[relay] source: installing bash manager
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+[relay] source: driver
+source_archive_sha256=2074b147a41a5d8e3dc52598a5ebe7ca992efba05a37b723cd6570df7380714b mode=600
+[relay] source_driver_rc=0
+[relay] source: destroying e2e-bc13-8ff-1128-cold-source-relay
+[relay] target: starting e2e-bc13-8ff-1128-cold-target-relay
+[relay] target: installing a fresh bash manager
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+[relay] target: driver
+FAIL restored mode/owner differs etc_idleleo_cert_thirdparty.crt.mode-owner: source=644 0:0 target=640 0:996
+FAIL restored mode/owner differs etc_idleleo_cert_thirdparty.key.mode-owner: source=600 0:0 target=640 0:996
+DIFF Bash cold restore changed one or more managed state mode/owner values
+[relay] target_driver_rc=1
+[multi] source: starting e2e-bc13-8ff-1128-cold-source-multi
+[multi] source: installing bash manager
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=3e0c81790adb0517539849935ac2263d83115bc1552e79be55b14c0dd332edfa
+install_exit=0
+done=tls install_exit=0
+[multi] source: driver
+source_archive_sha256=87ec94e7363f72f6c39c8cd1ff2f33d908cde6ab88395097c4e98dbfd94c6f35 mode=600
+[multi] source_driver_rc=0
+[multi] source: destroying e2e-bc13-8ff-1128-cold-source-multi
+[multi] target: starting e2e-bc13-8ff-1128-cold-target-multi
+[multi] target: installing a fresh bash manager
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=3e0c81790adb0517539849935ac2263d83115bc1552e79be55b14c0dd332edfa
+install_exit=0
+done=tls install_exit=0
+[multi] target: driver
+FAIL restored mode/owner differs etc_idleleo_cert_thirdparty.crt.mode-owner: source=644 0:0 target=640 0:996
+FAIL restored mode/owner differs etc_idleleo_cert_thirdparty.key.mode-owner: source=600 0:0 target=640 0:996
+DIFF Bash cold restore changed one or more managed state mode/owner values
+[multi] target_driver_rc=1
+evidence=tests/e2e-diff/evidence/bashcoldrestore-bc13-8ff-1128
+RESULT: FAIL

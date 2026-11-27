@@ -1,0 +1,4 @@
+relay: listen=0.0.0.0:443 target=origin.example.com:443
+config=/etc/idleleo/conf/nginx/relay-stream.conf
+nginx managed=true verified=true dir=/etc/idleleo/conf/nginx
+warning=nginx version: nginx version: nginx/1.30.6

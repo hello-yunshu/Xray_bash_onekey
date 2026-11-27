@@ -139,7 +139,7 @@ PY
 }
 
 share_uri() { # email
-    "$IDLELEO" xray share --path "$CFG" --public-port 443 --user "$1" --json 2>/dev/null |
+    "$IDLELEO" xray share --path "$CFG" --host 127.0.0.1 --public-port 443 --user "$1" --json 2>/dev/null |
         python3 -c 'import json,sys; print(json.load(sys.stdin).get("shareUri",""))'
 }
 

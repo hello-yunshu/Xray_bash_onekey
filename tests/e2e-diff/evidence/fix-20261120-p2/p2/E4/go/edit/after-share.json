@@ -1,0 +1,1 @@
+--host is required to render a Reality share link: reality serverNames (local.test) are the SNI/camouflage identity, not the public address clients dial

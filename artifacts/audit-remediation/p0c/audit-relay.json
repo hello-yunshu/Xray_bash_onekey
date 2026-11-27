@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "root": "/work/roots/relay",
+  "legacyVersion": "3.3.4",
+  "role": "relay",
+  "tls": "None",
+  "transport": "stream",
+  "nginxRequired": true,
+  "userCount": 0,
+  "customDns": false,
+  "customRouting": false,
+  "customOutbounds": false,
+  "customItems": [],
+  "certFiles": [],
+  "nginxFiles": [
+    {
+      "path": "relay-stream.conf",
+      "sha256": "1afb02ea7a8a50b7e538ecf3370ae38e72fd9c7dbda2bede2803ced4ad1f5372",
+      "mode": "-rw-r--r--"
+    }
+  ],
+  "units": {
+    "nginx": {
+      "path": "/work/roots/relay/etc/systemd/system/nginx.service",
+      "present": false
+    },
+    "xray": {
+      "path": "/work/roots/relay/etc/systemd/system/xray.service",
+      "present": false
+    }
+  },
+  "entry": {
+    "path": "/work/roots/relay/usr/bin/idleleo",
+    "exists": true,
+    "isSymlink": true,
+    "linkTarget": "../../etc/idleleo/install.sh",
+    "sha256": "4a53aafd23b9b656770bc95377d168468c2d10d819ff0cfc062fdf83d74df65b",
+    "isGoBridge": false
+  },
+  "legacyScript": {
+    "path": "/work/roots/relay/etc/idleleo/install.sh",
+    "sha256": "4a53aafd23b9b656770bc95377d168468c2d10d819ff0cfc062fdf83d74df65b"
+  },
+  "geoLegacyCron": false,
+  "projectCronLines": 0,
+  "relayConf": {
+    "path": "/work/roots/relay/etc/idleleo/conf/nginx/relay-stream.conf",
+    "sha256": "1afb02ea7a8a50b7e538ecf3370ae38e72fd9c7dbda2bede2803ced4ad1f5372"
+  },
+  "rill": {
+    "installed": false,
+    "observationAgeSeconds": 0,
+    "status": "absent",
+    "enabled": false
+  },
+  "permissionFixes": [],
+  "findings": [
+    {
+      "code": "nginx-unit-missing",
+      "severity": "fix",
+      "message": "nginx.service is missing for a TLS/relay installation"
+    }
+  ],
+  "verdict": "needs-fix"
+}

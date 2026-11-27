@@ -1,0 +1,2 @@
+persisted=true applied=false: xray API is not enabled
+the committed config is the source of truth; run `idleleo xray api enable` if needed, then retry

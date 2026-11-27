@@ -1,0 +1,21 @@
+{
+  "runId": "bc12-8ff-1128",
+  "scenarios": {
+    "multi": {
+      "archiveSHA256": "2367b2642ccbb06da8221e62c53b81e29fac97e2910e4b7a99ce705d0aa16a08",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 1
+    },
+    "reality": {
+      "archiveSHA256": "577fbec3a2ba86212c326ff0999a0abce11306b133526833a4e764064fd88704",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    },
+    "relay": {
+      "archiveSHA256": "a7be9cd03640fa1b838eaa23f5d27b2f963b70854661e9d3475fcdaa868ebfc5",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 1
+    }
+  },
+  "schemaVersion": 1
+}

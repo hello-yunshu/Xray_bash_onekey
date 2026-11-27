@@ -1,0 +1,7 @@
+CASE configured-isolate FAIL (expected rc=0 status=configured policy=isolate deny=9403, got rc=0 status=active policy=isolate deny=9403)
+CASE missing-fragment FAIL (expected rc=0 status=inconsistent policy=, got rc=0 status=active policy=isolate)
+CASE missing-main PASS (rc=0 status=inconsistent)
+CASE unreadable-main PASS (rc=0 status=inconsistent)
+CASE active-running PASS (rc=0 started=1 status=active policy=isolate)
+CASE reject-configured FAIL (expected rc=0 status=configured policy=reject deny=9404, got rc=0 status=active policy=reject deny=9404)
+GUARD_SUMMARY failed=3

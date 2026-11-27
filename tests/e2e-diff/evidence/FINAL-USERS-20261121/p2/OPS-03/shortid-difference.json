@@ -1,0 +1,38 @@
+{
+  "details": {
+    "bash": {
+      "addRc": 0,
+      "addedClients": 2,
+      "addedShortIds": 2,
+      "beforeClients": 1,
+      "beforeShortIds": 1,
+      "newIds": [
+        "d67fff2d-0852-5f0f-964a-a4498c230b0e"
+      ],
+      "removeRc": 0,
+      "removedClients": 1,
+      "removedShortIds": 1,
+      "showRc": 0
+    },
+    "go": {
+      "addRc": 0,
+      "addedClients": 2,
+      "addedShortIds": 2,
+      "beforeClients": 1,
+      "beforeShortIds": 1,
+      "newIds": [
+        "22222222-3333-4444-5555-666666666666"
+      ],
+      "removeRc": 0,
+      "removedClients": 1,
+      "removedShortIds": 2,
+      "showRc": 0
+    }
+  },
+  "id": "OPS-03",
+  "note": "no ops.json: the row is not claimed as dual-side verified",
+  "reasons": [
+    "shortId residue after remove: bash=1 go=2 (baseline 1/1)"
+  ],
+  "result": "DIFF"
+}

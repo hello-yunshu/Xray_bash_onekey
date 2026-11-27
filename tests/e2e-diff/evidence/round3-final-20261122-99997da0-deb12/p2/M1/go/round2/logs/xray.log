@@ -1,0 +1,15 @@
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go xray[<PID>]: 2026/11/22 16:05:50.093609 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M1-go xray[<PID>]: 2026/11/22 16:06:11.140772 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/22 16:05:50.104641 [Warning] core: Xray 26.10.31 started
+2026/11/22 16:06:03.111265 [Error] app/dns: failed to retrieve response for example.com. > Post "https://dns.google/dns-query": context deadline exceeded
+2026/11/22 16:06:08.949457 [Error] app/dns: failed to retrieve response for example.com. > Post "https://dns.google/dns-query": context deadline exceeded
+2026/11/22 16:06:11.142501 [Warning] core: Xray 26.10.31 started

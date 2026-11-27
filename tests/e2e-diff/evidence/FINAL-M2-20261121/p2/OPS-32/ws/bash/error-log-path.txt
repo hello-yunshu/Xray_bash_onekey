@@ -1,0 +1,1 @@
+/usr/local/nginx/logs/error.log

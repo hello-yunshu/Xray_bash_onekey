@@ -1,0 +1,1 @@
+certificate /etc/idleleo/cert/xray.crt does not cover "other.test" (SAN [example.com]); renew the certificate before changing the domain

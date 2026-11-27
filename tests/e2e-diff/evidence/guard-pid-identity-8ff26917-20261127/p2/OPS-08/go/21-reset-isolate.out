@@ -1,0 +1,16 @@
+{
+  "mode": "Reality",
+  "policy": "isolate",
+  "denyPort": 9403,
+  "changed": true,
+  "dryRun": false,
+  "files": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/usr/local/nginx/conf/nginx.conf",
+    "/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": true,
+  "warnings": []
+}

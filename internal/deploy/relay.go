@@ -85,7 +85,9 @@ func InstallRelay(ctx context.Context, spec RelayInstallSpec) (RelayReport, erro
 
 	artifact, installedOK := nginx.InstalledArtifact(paths.Root)
 	if !installedOK {
-		artifact, err = resolveManagedNginx(ctx, nginx.Options{})
+		// Honour the same verified cache as a full Xray install so a relay can
+		// be reproduced offline and cannot be decided by a GitHub hiccup.
+		artifact, err = resolveManagedNginx(ctx, nginx.Options{CacheDir: os.Getenv("IDLELEO_NGINX_CACHE")})
 		if err != nil {
 			return rep, err
 		}

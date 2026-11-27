@@ -1,0 +1,8 @@
+{
+  "server": "",
+  "downMbps": 0,
+  "bytes": 0,
+  "durationMs": 0,
+  "samplesMbps": null,
+  "startedAt": "0001-01-01T00:00:00Z"
+}

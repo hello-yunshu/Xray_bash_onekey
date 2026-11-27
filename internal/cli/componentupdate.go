@@ -100,8 +100,9 @@ func updatePreflightCommand(ctx context.Context, opts Options, cfg config, rest 
 	if cfg.json {
 		return writeJSON(opts, report)
 	}
-	fmt.Fprintf(opts.Out, "component=%s action=%s %s -> %s compatible=%t\n",
-		report.Component, report.Action, report.PreviousVersion, report.CandidateVersion, report.Compatible)
+	fmt.Fprintf(opts.Out, "component=%s action=%s %s -> %s compatible=%t readiness=%s\n",
+		report.Component, report.Action, report.PreviousVersion, report.CandidateVersion,
+		report.Compatible, report.Readiness)
 	fmt.Fprintf(opts.Out, "sha256=%s size=%d verified=%t\n",
 		report.SHA256, report.SizeBytes, report.DigestVerified)
 	for _, level := range report.Levels {

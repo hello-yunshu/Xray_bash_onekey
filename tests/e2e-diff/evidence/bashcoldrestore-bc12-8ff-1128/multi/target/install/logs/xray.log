@@ -1,0 +1,7 @@
+<TS> e2e-bc12-8ff-1128-cold-target-multi systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-bc12-8ff-1128-cold-target-multi xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-bc12-8ff-1128-cold-target-multi xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-bc12-8ff-1128-cold-target-multi xray[<PID>]: 2026/11/27 17:27:39.956404 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-bc12-8ff-1128-cold-target-multi xray[<PID>]: 2026/11/27 17:27:39.960633 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-bc12-8ff-1128-cold-target-multi xray[<PID>]: 2026/11/27 17:27:39.960932 [Warning] common/errors: The feature gRPC transport (with unnecessary costs, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP stream-up H2 as soon as possible.
+2026/11/27 17:27:39.973812 [Warning] core: Xray 26.11.9 started

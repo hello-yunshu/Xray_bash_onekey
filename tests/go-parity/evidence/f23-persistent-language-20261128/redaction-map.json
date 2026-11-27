@@ -1,0 +1,30 @@
+{
+  "artifact": "tests/go-parity/evidence/f23-persistent-language-20261128/commands.log",
+  "redactions": [
+    {
+      "kind": "local repository path",
+      "replacement": "<repo>"
+    },
+    {
+      "kind": "host temporary path",
+      "replacement": "<host-temp>/xray-language-85340"
+    }
+  ],
+  "originalSha256": "8612623c45d85a06713964f40c1fb1273e04721d2f05e9691ceccd5ea13dd359",
+  "sanitizedSha256": "9d4c9c6cb9b20614704d5c08dfc1a6ab48717e57b3f74d4ac3b5ac8ea149a808",
+  "reason": "Remove host user and local filesystem paths from the preserved failed host-architecture attempt; Linux-container run remains intact.",
+  "formatNormalization": {
+    "kind": "trim trailing spaces emitted by fixture logger",
+    "inputSha256": "e5f1bbb66bda2d576dc2dcf7dbb3c1828342569819c23a7a51a8d71f807aa235",
+    "outputSha256": "9d4c9c6cb9b20614704d5c08dfc1a6ab48717e57b3f74d4ac3b5ac8ea149a808",
+    "preservesTestOutcomes": true
+  },
+  "formatNormalizations": [
+    {
+      "kind": "trim trailing spaces emitted by fixture logger",
+      "inputSha256": "e5f1bbb66bda2d576dc2dcf7dbb3c1828342569819c23a7a51a8d71f807aa235",
+      "outputSha256": "9d4c9c6cb9b20614704d5c08dfc1a6ab48717e57b3f74d4ac3b5ac8ea149a808",
+      "preservesTestOutcomes": true
+    }
+  ]
+}

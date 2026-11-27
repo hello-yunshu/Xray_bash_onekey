@@ -1,0 +1,13 @@
+{
+  "installed": true,
+  "jails": [
+    {
+      "name": "nginx-badbots",
+      "currentlyBanned": 1,
+      "totalBanned": 1,
+      "bannedIPs": [
+        "203.0.113.7"
+      ]
+    }
+  ]
+}

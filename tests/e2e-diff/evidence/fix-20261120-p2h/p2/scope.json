@@ -1,0 +1,14 @@
+{
+  "edits": [
+    "E7",
+    "E8"
+  ],
+  "installs": [],
+  "only": "E7,E8",
+  "ops": [],
+  "runId": "fix-20261120-p2h",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

@@ -1,0 +1,50 @@
+16:11:19 run_id=ops-feasible-7d3e19d9-20261127
+16:11:20 image_id=sha256:716747a33333bd3fed7ef62e220eb6d433bcfb24750211ac6f5f5d9266f2fcbd
+16:11:20 building idleleo
+16:11:24 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+16:11:24 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+16:11:24 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+16:11:24 release_cache=seeded templates=vless_reality.json,vless_tls.json
+16:11:24 release_cache=hit
+16:11:24 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+16:11:24 apt_cache=hit (OPS offline apt)
+16:11:25 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+16:11:25 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+16:11:26 argv-verify written
+16:11:26 [OPS-19] start
+16:13:05 [OPS-19] verdict=PASS
+16:13:05 [OPS-21] start
+16:15:01 [OPS-21] verdict=PASS
+16:15:01 [OPS-09] start upstream=ws
+16:15:52 [OPS-09] verdict=PASS
+16:15:52 [OPS-31] start upstream=reality
+16:17:05 [OPS-31] verdict=PASS
+16:17:05 [OPS-32] start upstream=ws
+16:22:16 [OPS-32/ws] verdict=PASS
+16:22:16 [OPS-32] start upstream=reality
+16:27:44 [OPS-32/reality] verdict=PASS
+16:27:44 [OPS-32] verdict=PASS
+16:27:44 [OPS-05] start
+16:28:41 [OPS-05] verdict=PASS
+16:28:41 [OPS-06] start
+16:30:12 [OPS-06] verdict=PASS
+16:30:12 [OPS-07] start
+16:31:10 [OPS-07] verdict=PASS
+16:31:10 [OPS-10] start
+16:32:31 [OPS-10] verdict=PASS
+16:32:32 [OPS-17c] start
+16:33:24 [OPS-17c] verdict=PASS
+16:33:24 [OPS-30] start
+16:34:22 [OPS-30] verdict=BASH-ONLY
+16:34:22 [OPS-11] start
+16:35:13 [OPS-11] verdict=PASS
+16:35:13 [OPS-15] start
+16:36:10 [OPS-15] verdict=PASS
+16:36:11 [OPS-16] start
+16:36:37 [OPS-16] verdict=DIFF
+16:36:37 [OPS-22] start
+16:37:27 [OPS-22] verdict=PASS
+16:37:27 [OPS-28] start
+16:38:27 [OPS-28] verdict=PASS
+16:38:27 scope: installs=[] edits=[] ops=[OPS-19,OPS-21,OPS-09,OPS-31,OPS-32,OPS-05,OPS-06,OPS-07,OPS-10,OPS-17c,OPS-30,OPS-11,OPS-15,OPS-16,OPS-22,OPS-28]
+16:38:28 P2 finished: tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2

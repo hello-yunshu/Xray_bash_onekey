@@ -32,6 +32,8 @@ var zh = map[string]string{
 
 命令:
   version              显示版本
+  language show        显示持久默认语言
+  language set CODE    设置持久默认语言（zh/en/fr/fa/ru/ko）；--lang 可临时覆盖
   status               只读状态
   ops summary          只读运维摘要：端口、证书到期、最近变更与失败、重启次数
   show                 只读运行与分享信息
@@ -57,6 +59,8 @@ var zh = map[string]string{
   xray user uuid --email E --new-uuid U [--inbound N]
                        改单个用户的 UUID；命中多个 inbound 时一次事务全改；
                        会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+  xray logs show --kind access|error [--lines N] [--follow]
+                       有界读取 Xray 日志；显式 follow 才持续跟读
   xray logs clean|rotate enable|disable
                        截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
   xray balance list --upstream reality|ws|grpc|xhttp
@@ -68,6 +72,14 @@ var zh = map[string]string{
   xray tls --version 1.3|1.2+
                        切换托管 Nginx 的 TLS 版本；nginx -t 失败自动还原
                        TLS 站只允许 1.3（h3/quic 要求）
+  xray guard show      只读查看 Reality+Nginx 的未知 SNI 策略
+  xray guard set --policy isolate|reject|decoy [--decoy-domain D] [--dry-run]
+                       在线切换未知 SNI 策略；decoy 需域名解析到本机；
+                       nginx -t 失败自动还原
+  xray cert clear [--yes] [--dry-run]
+                       清空 /etc/idleleo/cert 与管理托管的 ACME 状态
+  xray cert status [--json] [--cert REL] [--key REL]
+                       只读查看证书有效期与 Go 自动续期任务状态
   xray block status    只读查看阻断开关、已写规则数与 drift
   xray block apply|off [--yes] [--dry-run]
                        按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
@@ -104,6 +116,8 @@ var zh = map[string]string{
   update status|check|apply|configure --manifest-url URL
                        Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
   stats [--json]       只读查询 Xray 统计（reset=false）
+  stats --watch [--interval 5s] [--samples 3] [--json]
+                       有界采样并显示入站速率，不重置计数器、不读取连接地址
   service status|start|stop|restart|reload|logs [--unit xray|nginx]
                        服务类操作（仅真实 systemd）
   container status|up|down [--json] [--container] [--dry-run]
@@ -162,6 +176,8 @@ Usage: idleleo [--root PATH] [--lang zh|en|fr|fa|ru|ko] <command>
 
 Commands:
   version              print version
+  language show        print the persistent default language
+  language set CODE    set zh/en/fr/fa/ru/ko as the default; --lang overrides per command
   status               read-only status
   show                 read-only runtime and share information
   config inspect       read-only structured config view
@@ -189,6 +205,8 @@ Commands:
                        rotate one user's UUID; every inbound that carries it is
                        rewritten in one transaction; restarts Xray, so all
                        sessions drop for a few seconds; --dry-run previews only
+  xray logs show --kind access|error [--lines N] [--follow]
+                       read a bounded Xray log tail; follow only when explicitly requested
   xray logs clean|rotate enable|disable
                        truncate Xray/Nginx logs; install or remove logrotate rotation
   xray balance list --upstream reality|ws|grpc|xhttp
@@ -200,6 +218,14 @@ Commands:
   xray tls --version 1.3|1.2+
                        switch the managed Nginx TLS version; modular installs
                        accept both, TLS installs only 1.3 (h3/quic)
+  xray guard show      read the Reality+Nginx unknown-SNI policy
+  xray guard set --policy isolate|reject|decoy [--decoy-domain D] [--dry-run]
+                       switch the online unknown-SNI policy; decoy needs DNS
+                       pointing at this host; roll back if nginx -t fails
+  xray cert clear [--yes] [--dry-run]
+                       remove /etc/idleleo/cert and managed ACME state
+  xray cert status [--json] [--cert REL] [--key REL]
+                       read certificate lifetime and native renewal status
   xray block status    read-only view of switches, owned rule count and drift
   xray block apply|off [--yes] [--dry-run]
                        rebuild/remove Xray routing-layer block rules; apply
@@ -238,6 +264,8 @@ Commands:
   update status|check|apply|configure --manifest-url URL
                        Go release channel self-update (manifest/SHA256/ELF/health checks)
   stats [--json]       read-only Xray stats query (reset=false)
+  stats --watch [--interval 5s] [--samples 3] [--json]
+                       bounded inbound-rate sampling; no reset or peer addresses
   service status|start|stop|restart|reload|logs [--unit xray|nginx]
                        service-class operations (real systemd only)
   container status|up|down [--json] [--container] [--dry-run]

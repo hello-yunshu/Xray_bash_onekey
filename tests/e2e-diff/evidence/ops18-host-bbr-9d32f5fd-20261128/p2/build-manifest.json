@@ -1,0 +1,25 @@
+{
+  "artifacts": {
+    "bashScript": "build/install.sh",
+    "binary": "build/idleleo",
+    "driver": "build/ops18_host_bbr_acceptance.sh"
+  },
+  "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+  "binarySha256": "0170079bdead2cd54dbd598dddb7bfb12a82893f559ff625565ba9611893dfab",
+  "dependencies": [
+    {
+      "path": "build/ops18_host_bbr_acceptance.sh",
+      "sha256": "690e5b569494b5beb4c1e532b1414596a9ef090c2d9d65776350665f37a855a8",
+      "source": "tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh"
+    },
+    {
+      "path": "build/ops18-host-bbr.Dockerfile",
+      "sha256": "c5341a0407ab2053fff34bc328bd7e6ebd97585684e7f916c5f00b4ae72ae86b",
+      "source": "tests/e2e-diff/collect/ops18-host-bbr.Dockerfile"
+    }
+  ],
+  "driverSha": "690e5b569494b5beb4c1e532b1414596a9ef090c2d9d65776350665f37a855a8",
+  "image": "sha256:635b1cfffdfde441378c776712aa8e1f87a3fc87f62c2dbf6c6123018fa40893",
+  "platform": "linux/amd64",
+  "productCodeSha": "85340b4871fccfac703566a2ce00469e4a8a9371"
+}

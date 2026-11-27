@@ -1,0 +1,11 @@
+{
+  "id": "OPS-13",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot"
+  ],
+  "verdict": "DIFF"
+}

@@ -3,12 +3,38 @@ package cli
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/acme"
 )
+
+func TestCertStatusIsReadOnlyAndReportsMissing(t *testing.T) {
+	root := t.TempDir()
+	var out, errOut bytes.Buffer
+	code := xrayCertStatus(context.Background(), Options{Out: &out, Err: &errOut},
+		config{root: root, lang: "en"}, []string{"--json"})
+	if code != 0 {
+		t.Fatalf("status code=%d out=%s err=%s", code, out.String(), errOut.String())
+	}
+	var report certStatusReport
+	if err := json.Unmarshal(out.Bytes(), &report); err != nil {
+		t.Fatal(err)
+	}
+	if !report.Certificate.Missing || report.Renewal.Alert || report.Renewal.Timer != "not-installed" {
+		t.Fatalf("status report = %+v, want missing cert and no renewal timer", report)
+	}
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("read-only status wrote to root: %v", entries)
+	}
+}
 
 func captureCertSpec(t *testing.T, args ...string) acme.Config {
 	t.Helper()

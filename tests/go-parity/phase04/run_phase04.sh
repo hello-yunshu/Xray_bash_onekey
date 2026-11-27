@@ -16,9 +16,18 @@ aarch64 | arm64) ARCH=arm64 ;;
 *) echo "unsupported arch $ARCH" >&2; exit 2 ;;
 esac
 ASSET=idleleo-linux-$ARCH
+TEST_RELEASE_KEY=$ORIGIN_ROOT/test-release.key.pem
+TEST_RELEASE_PUBKEY=$ORIGIN_ROOT/test-release.pub.pem
 
 export IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY
 mkdir -p "$EVID" "$ORIGIN_ROOT"
+
+# This test has no production release key. Generate a per-run Ed25519 trust
+# anchor inside the disposable container and sign every fixed local manifest.
+openssl genpkey -algorithm Ed25519 -out "$TEST_RELEASE_KEY"
+chmod 0600 "$TEST_RELEASE_KEY"
+openssl pkey -in "$TEST_RELEASE_KEY" -pubout -out "$TEST_RELEASE_PUBKEY"
+export IDLELEO_RELEASE_PUBKEY_FILE="$TEST_RELEASE_PUBKEY"
 
 pass=0
 fail=0
@@ -29,9 +38,13 @@ size() { stat -c %s "$1"; }
 
 mkmanifest() {
     local dir=$1 version=$2 asset=$3 digest=$4 bytes=$5
-    cat >"$ORIGIN_ROOT/$dir/manifest.json" <<EOF
+    mkdir -p "$ORIGIN_ROOT/$dir"
+    cat >"$ORIGIN_ROOT/$dir/manifest.unsigned.json" <<EOF
 {"schemaVersion":1,"channel":"go","version":"$version","assets":{"linux-$ARCH":{"name":"$ASSET","sha256":"$digest","size":$bytes}}}
 EOF
+    /phase04/sign_json_ed25519.sh "$ORIGIN_ROOT/$dir/manifest.unsigned.json" \
+        "$TEST_RELEASE_KEY" signature >"$ORIGIN_ROOT/$dir/manifest.json"
+    rm -f "$ORIGIN_ROOT/$dir/manifest.unsigned.json"
 }
 
 prep() {
@@ -85,9 +98,11 @@ rc=$?
 echo "$out" >"$EVID/update-configure.json"
 [[ $rc -eq 0 ]] && ok "update configure rc=0" || bad "update configure rc=$rc: $out"
 
+check_before=$(sha "$BIN")
 out=$($BIN update check --json 2>&1)
 rc=$?
 echo "$out" >"$EVID/update-check.json"
+check_after=$(sha "$BIN")
 state=$(echo "$out" | jq -r '.state // empty')
 verified=$(echo "$out" | jq -r '.verified // false')
 latest=$(echo "$out" | jq -r '.latestVersion // empty')
@@ -95,6 +110,11 @@ if [[ $rc -eq 0 && "$state" == available && "$verified" == true && "$latest" == 
     ok "update check available verified latest=$latest"
 else
     bad "update check rc=$rc state=$state verified=$verified latest=$latest: $out"
+fi
+if [[ "$check_after" == "$check_before" ]]; then
+    ok "manual update check left the installed binary unchanged"
+else
+    bad "manual update check changed the installed binary: $check_before -> $check_after"
 fi
 
 # ---- real apply -----------------------------------------------------------

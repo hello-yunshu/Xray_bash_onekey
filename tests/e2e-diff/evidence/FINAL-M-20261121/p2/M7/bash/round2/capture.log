@@ -1,0 +1,16 @@
+systemd_state=running
+seeded_installer=yes
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=77190fd945eb80aa7da09a877b04ca6fcf814d25943cb122ee534fb8d9fd93ef
+install_exit=0
+manifest entries=67
+runtime collected
+logs collected
+idempotency ok=True
+identity fingerprints written to /out/round2/config/identity.json
+done=tls install_exit=0
+sanitized /out/round2/install.log
+sanitized /out/round2/expect.log
+sanitized /out/round2/capture.log

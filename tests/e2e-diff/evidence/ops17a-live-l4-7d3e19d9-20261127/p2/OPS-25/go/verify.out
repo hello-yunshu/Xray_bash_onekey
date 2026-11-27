@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-11-27T07:51:40Z",
+  "includeGeodata": true,
+  "sourceArch": "arm64",
+  "sourceVersion": "0.2.0-phase04",
+  "managedResources": [
+    "etc/idleleo/conf",
+    "etc/idleleo/cert",
+    "etc/idleleo/v1",
+    "etc/idleleo/info",
+    "etc/idleleo/alerts",
+    "etc/idleleo/share/xray"
+  ],
+  "restoreLimits": [
+    "only etc/idleleo/{conf,cert,v1,info,alerts} and opt-in geo assets",
+    "regular files only; symlinks, devices and path escapes are rejected",
+    "the whole archive must expand to at most 4 GiB",
+    "the staged xray config must pass the managed validator before any swap"
+  ],
+  "entries": [
+    {
+      "path": "etc/idleleo/conf/nginx/00-xray.conf",
+      "mode": 416,
+      "size": 1882,
+      "sha256": "90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/03-isolate.conf",
+      "mode": 416,
+      "size": 218,
+      "sha256": "29c607d4d5d5502aeeda1c3da75e676640dfe91b0eaa5c6cdbd3cc8bed5a1c11"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/127.0.0.1.realityServers",
+      "mode": 416,
+      "size": 61,
+      "sha256": "757ea7e9dae3baa433971841196938e3fe9fbc608eed8ca84f371ea149a95ac2"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/example.com.serverNames",
+      "mode": 416,
+      "size": 21,
+      "sha256": "0130d877d1f86407483ce2219d5258300b825aaa13cf432e784c411d8e114892"
+    },
+    {
+      "path": "etc/idleleo/conf/nginx/nginx.default",
+      "mode": 416,
+      "size": 2630,
+      "sha256": "28924d8c868aedb98e996bd4af1e3c4342d532e59f0ed7bd0e406905e0fb2fa0"
+    },
+    {
+      "path": "etc/idleleo/conf/ops25-canary.txt",
+      "mode": 438,
+      "size": 13,
+      "sha256": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225"
+    },
+    {
+      "path": "etc/idleleo/conf/xray/config.json",
+      "mode": 416,
+      "size": 2226,
+      "sha256": "2b1a02235216e232adf6662cedd476bb72b0ccc56603209ec620907ae526a8b2"
+    },
+    {
+      "path": "etc/idleleo/v1/metadata.json",
+      "mode": 420,
+      "size": 809,
+      "sha256": "d85df1e209cae75f6a0edfb606f80d052bbb3fcda6bd5c4474f0faf1973cc177"
+    },
+    {
+      "path": "etc/idleleo/v1/nginx.json",
+      "mode": 420,
+      "size": 391,
+      "sha256": "748aeb3fd3f2f631b4924ebe3e62dea92c4824348dd13d3bc6ec6bd3a0234499"
+    }
+  ],
+  "skipped": [
+    "etc/idleleo/cert (absent)",
+    "etc/idleleo/info (absent)",
+    "etc/idleleo/alerts (absent)",
+    "etc/idleleo/share/xray (absent)"
+  ]
+}

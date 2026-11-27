@@ -17,7 +17,8 @@ EVID="$SUITE/evidence/goevo-p3-$RUN_ID"
 WORK="${E2E_WORK:-/tmp/e2e-p3-$RUN_ID}"
 IMAGE_TAG="${E2E_IMAGE_TAG:-idleleo-e2e:24.04}"
 GO_IMAGE="${E2E_GO_IMAGE:-golang:1.27.4}"
-NAME="e2e-$RUN_ID-go"
+TRANSPORT="${E2E_TRANSPORT:-}"
+NAME="e2e-$RUN_ID-go${TRANSPORT:+-$TRANSPORT}"
 DOMAIN="${E2E_DOMAIN:-www.cloudflare.com}"
 TARGET="${E2E_TARGET:-127.0.0.1:8443}"
 
@@ -113,12 +114,16 @@ exit 1
     exit 2
 }
 
-log "installing Go manager (reality)"
-docker exec -e E2E_OUT=/out/install -e E2E_PROFILE=reality -e E2E_SCENARIO=P3 \
+log "installing Go manager (reality${TRANSPORT:+, transport=$TRANSPORT})"
+TRANSPORT_ARGS=()
+if [[ -n "$TRANSPORT" ]]; then
+    TRANSPORT_ARGS=(--transport "$TRANSPORT")
+fi
+docker exec -e E2E_OUT=/out/install -e E2E_PROFILE="reality${TRANSPORT:+-$TRANSPORT}" -e E2E_SCENARIO=P3 \
     -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" -e E2E_PORT=443 \
     "$NAME" bash /src/tests/e2e-diff/drivers/go_install.sh \
     --binary /usr/local/bin/xray --mode reality --domain "$DOMAIN" \
-    --target "$TARGET" --port 443 --container >>"$EVID/run.log" 2>&1
+    --target "$TARGET" --port 443 --container ${TRANSPORT_ARGS[@]+"${TRANSPORT_ARGS[@]}"} >>"$EVID/run.log" 2>&1
 install_rc=$?
 log "install_rc=$install_rc"
 if [[ $install_rc -ne 0 ]]; then

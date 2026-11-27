@@ -1,0 +1,35 @@
+{
+  "approved": false,
+  "bash": {
+    "entry": "install.sh --backup/--restore (tar tree)",
+    "rc": 0,
+    "restoreCanary": true
+  },
+  "go": {
+    "entry": "idleleo metadata import --from install_config.json",
+    "outputBytes": 597,
+    "rc": 0,
+    "state": "IMPORTED"
+  },
+  "id": "OPS-26",
+  "note": "Tar restore rewrites the managed tree; metadata import records the legacy tree as the single source of truth and never overwrites an existing metadata file. Both paths succeeded here; external approval is required before treating them as equal.",
+  "reasons": [
+    "Bash restore/import operates on the managed tree (tar archive); Go restore/import operates on JSON metadata",
+    "bash rc=0",
+    "go rc=0",
+    "restore canary present=True",
+    "go import state=IMPORTED"
+  ],
+  "result": "DIFF",
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "driverSha": "68029718cfda1060363393ba9e122f56c1bdee09796d7943b1c945ffaf115e20",
+    "finishedAt": "2026-11-24T00:55:10Z",
+    "image": "sha256:e7ad9b7bf18cdcebbf21b6b1204f1834abb8c7ce947ce79848650e3fea4108cb",
+    "layer": "L0-L4 docker matrix",
+    "productCodeSha": "d756dfff6b5091b2d2a9fea8188297fc50aa23a8",
+    "runId": "round5-obsc4-085130",
+    "startedAt": "2026-11-24T00:51:30Z"
+  }
+}

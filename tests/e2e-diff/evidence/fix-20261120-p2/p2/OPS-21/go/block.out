@@ -1,0 +1,73 @@
+00:39:44 seeded_geo=geoip.dat geosite.dat  asset_root=/etc/idleleo/share/xray
+00:39:46 control origin ready at 11.0.0.2:80
+00:39:47 check realityOriginLocal=true target=127.0.0.1:8443 sni=local.test
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+00:39:47 check shareUri=false cannot build a share link
+00:39:48 uri built network=
+00:39:58 check baselineControl=false error
+00:39:58 check customListConfigured=true 
+00:40:01 check serviceAliveAfterApply=true active
+00:40:01 check applyRcZero=true rc=0
+00:40:01 check rulesAdded=true before=2 after=8
+00:40:01 check fallbackDirect=true 
+00:40:01 check noCatchAllBlocked=true 
+00:40:01 check customRuleApplied=true 
+00:41:55 check controlAfterApply=false error
+00:42:05 check adsBlocked=false error
+00:42:16 check privateBlocked=false error
+00:42:26 check countryBlocked=false error
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+00:42:27 check editRcZero=true rc=0
+00:42:27 check editUuidApplied=true 6e7bca4b-5adf-491b-b655-decc518e3e7a
+00:42:27 check editRoutingIdentical=true 
+00:42:27 check editOwnedRulesKept=true owned=6 missing=0
+00:42:27 check editUserRuleKept=true 
+00:42:27 check editBlockReported=true blockRuleCount=6
+00:42:37 check controlAfterEdit=false error
+00:42:48 check adsBlockedAfterEdit=false error
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+00:42:48 check offRcZero=true rc=0
+00:42:48 check offRestored=true baseline=routing-with-user
+00:42:48 check customListKept=true 
+00:42:48 check customRuleRemoved=true 
+00:44:42 check controlAfterOff=false error
+failed=shareUri,baselineControl,controlAfterApply,adsBlocked,privateBlocked,countryBlocked,controlAfterEdit,adsBlockedAfterEdit,controlAfterOff

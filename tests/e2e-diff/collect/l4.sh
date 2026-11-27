@@ -37,9 +37,24 @@ EXTRA_CA="${E2E_EXTRA_CA:-}"
 # server container). Edit scenarios point it at whatever Nginx currently
 # serves, so a certificate swap stays probe-able without rewriting the file.
 CERT_PIN="${E2E_L4_CERT:-/etc/idleleo/cert/xray.crt}"
+# A port change moves the public listener; the probe must dial the new port
+# instead of the install default.
+SERVER_PORT="${E2E_L4_PORT:-443}"
+# E2E_L4_EMAIL/E2E_L4_UUID bind the probe to one user entry. The new-user OPS
+# rows set them so a successful request proves the added client, not any
+# pre-existing one.
+L4_EMAIL="${E2E_L4_EMAIL:-}"
+L4_UUID="${E2E_L4_UUID:-}"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET_URL="${E2E_L4_URL:-http://example.com/}"
 MARKER="${E2E_L4_MARKER:-Example Domain}"
+EXPECTED_BODY_SHA256="${E2E_L4_EXPECTED_SHA256:-}"
+EXPECTED_BODY_BYTES="${E2E_L4_EXPECTED_BYTES:-}"
+
+cleanup_client() {
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$CLIENT" >/dev/null 2>&1 || true
+}
+trap cleanup_client EXIT
 
 mkdir -p "$OUT" "$SECRET_DIR"
 # A previous failed attempt leaves a "L4 skipped" marker behind; remove it so
@@ -68,14 +83,18 @@ EXTRA=()
 if [[ "$PROFILE" == "none" ]] || { [[ "$PROFILE" == "reality" ]] && [[ "$TRANSPORT" != "reality" && "$TRANSPORT" != "auto" ]]; }; then
     EXTRA+=(--use-inbound-port)
 fi
+SELECT=()
+[[ -n "$L4_EMAIL" ]] && SELECT+=(--email "$L4_EMAIL")
+[[ -n "$L4_UUID" ]] && SELECT+=(--uuid "$L4_UUID")
 docker exec "$SERVER" python3 /src/tests/e2e-diff/collect/client_config.py \
     --config /etc/idleleo/conf/xray/config.json \
     --mode "$PROFILE" \
     --transport "$TRANSPORT" \
     --server-address "$server_ip" \
-    --server-port 443 \
+    --server-port "$SERVER_PORT" \
     --domain "$DOMAIN" \
     ${EXTRA[@]+"${EXTRA[@]}"} \
+    ${SELECT[@]+"${SELECT[@]}"} \
     --cert "$CERT_PIN" \
     --output /tmp/e2e-client.json >"$OUT/client-config.log" 2>&1 || fail "client config generation failed"
 docker cp "$SERVER:/tmp/e2e-client.json" "$SECRET_DIR/client.json" >/dev/null 2>&1 || fail "cannot extract client config"
@@ -97,40 +116,59 @@ docker exec -d "$CLIENT" sh -c '/opt/xray/xray run -c /client/client.json >/clie
 sleep 2
 docker exec "$CLIENT" sh -c 'ss -lnt | grep -q 127.0.0.1:1080' || fail "client socks did not listen"
 
-body=""
 rc=1
 for _ in $(seq 1 20); do
     set +e
-    body=$(docker exec "$CLIENT" curl -sS --max-time 10 --socks5-hostname 127.0.0.1:1080 "$TARGET_URL" 2>"$OUT/curl.err")
+    docker exec "$CLIENT" curl -sS --max-time 10 --socks5-hostname 127.0.0.1:1080 \
+        -o /client/response.body "$TARGET_URL" 2>"$OUT/curl.err"
     rc=$?
     set -e
-    [[ $rc -eq 0 && "$body" == *"$MARKER"* ]] && break
+    [[ $rc -eq 0 ]] && break
     sleep 1
 done
 
 docker cp "$CLIENT:/client/client.log" "$OUT/client.log" >/dev/null 2>&1 || true
 docker cp "$CLIENT:/client/curl.err" "$OUT/curl.err" >/dev/null 2>&1 || true
+docker cp "$CLIENT:/client/response.body" "$OUT/response.body" >/dev/null 2>&1 || true
 
-ok=false
-[[ $rc -eq 0 && "$body" == *"$MARKER"* ]] && ok=true
-
-python3 - "$OUT/connectivity.json" "$PROFILE" "$TARGET_URL" "$ok" "$rc" "$body" <<'PY'
+python3 - "$OUT/connectivity.json" "$OUT/response.body" "$PROFILE" "$TARGET_URL" "$rc" "$MARKER" \
+    "$EXPECTED_BODY_SHA256" "$EXPECTED_BODY_BYTES" <<'PY'
 import hashlib
 import json
 import sys
 
-out, profile, target, ok, rc, body = sys.argv[1:7]
+out, body_path, profile, target, rc, marker, expected_sha, expected_bytes = sys.argv[1:9]
+try:
+    with open(body_path, "rb") as fh:
+        body = fh.read()
+except OSError:
+    body = b""
+body_sha = hashlib.sha256(body).hexdigest()
+body_bytes = len(body)
+body_text = body.decode("utf-8", errors="replace")
+body_match = marker in body_text
+expected_match = (not expected_sha or body_sha == expected_sha) and (
+    not expected_bytes or body_bytes == int(expected_bytes))
+ok = int(rc) == 0 and body_match and expected_match
 json.dump({
     'profile': profile,
     'target': target,
-    'ok': ok == 'true',
+    'ok': ok,
     'curlExit': int(rc),
-    'bodySha256': hashlib.sha256(body.encode()).hexdigest(),
-    'bodyMatch': 'Example Domain' in body,
+    'bodySha256': body_sha,
+    'bodyBytes': body_bytes,
+    'expectedBodySha256': expected_sha or None,
+    'expectedBodyBytes': int(expected_bytes) if expected_bytes else None,
+    'expectedBodyMatch': expected_match,
+    'bodyMatch': body_match,
 }, open(out, 'w'), indent=2, sort_keys=True)
 PY
 
-[[ "$ok" == true ]] || fail "business request failed (curl exit $rc, body bytes ${#body})"
+python_ok=$(python3 -c 'import json,sys; print("true" if json.load(open(sys.argv[1])).get("ok") else "false")' "$OUT/connectivity.json")
+if [[ "$python_ok" != true ]]; then
+    echo "business request failed (curl exit $rc)" | tee -a "$OUT/connectivity.log"
+    exit 1
+fi
 # The client is single-use; leaving it behind pins its network and eventually
 # exhausts Docker's address pools on repeat runs.
 [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$CLIENT" >/dev/null 2>&1 || true

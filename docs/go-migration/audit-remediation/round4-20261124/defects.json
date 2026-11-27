@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "round": "round4-20261124",
+  "branch": "work/go-hardening-parity-20261119",
+  "auditBaselineSha": "8f9673ce9d5ec485bb360cb932a5ce381475885e",
+  "productCandidateSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+  "productCodeShaTested": "5041511998575851eb5cb16533e9fe999d29d5a8",
+  "artifacts": {
+    "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "image": "sha256:cfeff9d6182fb380d55ca48b2dcb060ccdefc29551068cea2f185b17f0382961"
+  },
+  "defects": [
+    {
+      "id": "R4-A1a",
+      "title": "证书所有权只按内容哈希，未登记的同内容副本被误判为项目所有",
+      "severity": "P1",
+      "reproduced": true,
+      "reproduction": "docs/go-migration/audit-remediation/round4-20261124/repro/red-8f9673ce.log::TestReproUnregisteredIdenticalCopyIsKept（基线 FAIL：未登记副本被删除）",
+      "fixed": true,
+      "fixCommit": "8a457bec",
+      "validation": [
+        "docs/go-migration/audit-remediation/round4-20261124/repro/green-50415119.log::TestReproUnregisteredIdenticalCopyIsKept PASS",
+        "internal/deploy/certclear_round3_test.go::TestClearCertificatesKeepsUnregisteredIdenticalCopy",
+        "internal/deploy/certclear_round3_test.go::TestClearCertificatesRequiresIdentityBoundOwnership"
+      ],
+      "status": "CLOSED"
+    },
+    {
+      "id": "R4-A1b",
+      "title": "递归目录跳过子目录 .user-managed，嵌套用户托管子树可能随父目录一起移动",
+      "severity": "P1",
+      "reproduced": false,
+      "reproduction": "docs/go-migration/audit-remediation/round4-20261124/repro/red-8f9673ce.log::TestReproNestedUserMarkerProtectsSubtree 在基线已 PASS，本夹具未复现删除；第四轮独立复审将其列为源码风险（未完整执行删除）",
+      "fixed": true,
+      "fixCommit": "8a457bec",
+      "validation": [
+        "internal/deploy/certclear.go::subtreeHasUserMarker（任意层级标记、深度/不可读 fail-closed）",
+        "internal/deploy/certclear_round3_test.go::TestClearCertificatesKeepsSubtreeWithNestedUserMarker",
+        "docs/go-migration/audit-remediation/round4-20261124/repro/green-50415119.log PASS"
+      ],
+      "status": "CLOSED_DEFENSE_IN_DEPTH_NOT_REPRODUCED"
+    },
+    {
+      "id": "R4-A1c",
+      "title": "同叶证书的第三方 ~/.acme.sh 目录被当作项目状态删除",
+      "severity": "P1",
+      "reproduced": true,
+      "reproduction": "docs/go-migration/audit-remediation/round4-20261124/repro/red-8f9673ce.log::TestReproThirdPartyACMEDirSurvives（基线 FAIL：ACME 目录被删）",
+      "fixed": true,
+      "fixCommit": "8a457bec",
+      "validation": [
+        "docs/go-migration/audit-remediation/round4-20261124/repro/green-50415119.log::TestReproThirdPartyACMEDirSurvives PASS",
+        "internal/deploy/certclear_round3_test.go::TestClearCertificatesKeepsIdenticalACMEWithoutOwnershipRecord",
+        "internal/deploy/certclear_round3_test.go::TestClearCertificatesKeepsThirdPartyACMESameDomain",
+        "internal/acme/acme.go::markManaged 写 v2 路径绑定记录"
+      ],
+      "status": "CLOSED"
+    },
+    {
+      "id": "R4-A2",
+      "title": "Guard 用 /proc/<pid> 目录 mtime 推断启动时间，且 reload 记录未绑定进程实例，旧策略可被误报 active",
+      "severity": "P1",
+      "reproduced": true,
+      "reproduction": "docs/go-migration/audit-remediation/round4-20261124/repro/red-8f9673ce.log::TestReproUnboundReloadRecordDoesNotProveActive（基线 FAIL：verified=true）",
+      "fixed": true,
+      "fixCommit": "8a457bec",
+      "validation": [
+        "internal/deploy/guard.go::processStartTime 读取 /proc/<pid>/stat starttime 与 /proc/stat btime",
+        "internal/deploy/guard.go::nginxPolicyRuntimeVerified 要求 record.PID 与 StartTicks 匹配当前实例",
+        "internal/deploy/guard_round3_test.go::TestInspectSNIGuardRejectsReloadRecordFromAnotherProcessInstance",
+        "internal/deploy/guard_round3_test.go::TestProcessStartTimeComesFromProcStat",
+        "docs/go-migration/audit-remediation/round4-20261124/repro/green-50415119.log PASS"
+      ],
+      "status": "CLOSED"
+    },
+    {
+      "id": "R4-B1",
+      "title": "账本契约测试未隔离输出，改写仓库正式 acceptance.json",
+      "severity": "P1",
+      "reproduced": true,
+      "reproduction": "docs/go-migration/audit-remediation/round4-20261124/repro/b1-red.log：基线运行 19 个账本测试后 acceptance.json SHA256 改变；8f9673ce 已提交污染内容 codeSha=test、FAIL OPS-08、NOT_RUN=33",
+      "fixed": true,
+      "fixCommit": "8a457bec",
+      "validation": [
+        "tests/e2e-diff/collect/build_ledger.py --allow-repo-write 写入门禁（默认拒绝覆盖仓库内工件，退出码 2）",
+        "tests/e2e-diff/collect/test_build_ledger.py 全部 28 个测试使用临时路径，setUp/tearDown 校验正式工件 SHA 未变",
+        "tests/e2e-diff/collect/guard_acceptance_artifacts.sh：PASS: tracked acceptance artifacts are byte-identical after the ledger tests",
+        "docs/go-migration/audit-remediation/round4-20261124/repro/b1-green.log",
+        "重新生成 ledger.json / matrix.json / acceptance.json，三者 codeSha 与 OPS 计数一致（50415119）"
+      ],
+      "status": "CLOSED"
+    },
+    {
+      "id": "R4-B2",
+      "title": "账本只校验 verdict/退出码，缺少证据归属与业务事实；批准未绑定差异内容",
+      "severity": "P1",
+      "reproduced": true,
+      "reproduction": "旧账本（99997da0）将 OPS-04 记为 DUAL_SIDE_VERIFIED，而其证据 sharePort.bash=null、listening443=false：tests/e2e-diff/evidence/round3-final-20261122-99997da0/p2/OPS-04/ops.json 对比 8f9673ce 的 ledger.json",
+      "fixed": true,
+      "fixCommit": "8a457bec",
+      "validation": [
+        "tests/e2e-diff/collect/build_ledger.py::PROVENANCE_FIELDS / provenance_problems_run（产品 SHA、二进制、脚本、驱动、runId、层级、时间）",
+        "tests/e2e-diff/collect/build_ledger.py2001:db8::1USINESS_FACTS（OPS-01/02/04/08/10/20/25/26/32）",
+        "tests/e2e-diff/collect/build_ledger.py2001:db8::1pproval_problems（opId/scope/指纹/有效期）",
+        "tests/e2e-diff/collect/build_ledger.py::supersedes/fixedBy 语义",
+        "tests/e2e-diff/collect/test_build_ledger.py 28/28 PASS（含 PASS 缺业务证据、旧 SHA、缺 provenance、旧 FAIL 无依据覆盖、批准不同内容等负例）",
+        "新账本将 OPS-04/08 记为 BLOCKED（缺业务证据），OPS-01/02 未达 DUAL"
+      ],
+      "status": "CLOSED"
+    },
+    {
+      "id": "R4-B3",
+      "title": "14 项 user 批准缺少可核对的授权来源、差异指纹与有效期",
+      "severity": "P1",
+      "reproduced": true,
+      "reproduction": "8f9673ce 的 approvals/round3-20261122.json schemaVersion=1，条目仅有 id/approvedBy/reason/scope，无 opId、provenance、fingerprint、expiresAt",
+      "fixed": true,
+      "fixCommit": "8a457bec",
+      "validation": [
+        "tests/e2e-diff/approvals/round3-20261122.json 升级 schemaVersion=2：opId、provenance（会话文本授权来源）、fingerprintOf、fingerprint、expiresAt=2026-12-31",
+        "tests/e2e-diff/collect/test_build_ledger.py::test_approval_fingerprint_must_match_cited_evidence",
+        "tests/e2e-diff/collect/test_build_ledger.py::test_expired_approval_does_not_resolve_a_difference",
+        "本轮新证据与旧指纹不匹配：12 行保持 FAIL/待重新批准，未自行批准"
+      ],
+      "status": "CLOSED_TOOLING_APPROVAL_PENDING"
+    },
+    {
+      "id": "R4-B4",
+      "title": "OPS 驱动运行 PASS 但未把已测得的业务事实写入 ops.json；OPS-08 首版判定器另有 report 作用域错误",
+      "severity": "P2",
+      "reproduced": true,
+      "reproduction": "round4-full-50415119 与 round4-bizfacts2-50415119：OPS-04/08/10/32 的 ops.json 缺 details；OPS-08 首轮因 NameError: report 未生成 ops.json",
+      "fixed": true,
+      "validation": [
+        "tests/e2e-diff/run_p2_matrix.sh::ops_generic_verdict 写 OPS-04 portListening/clientConnected/shareInfo 与 OPS-10 serverNames",
+        "tests/e2e-diff/run_p2_matrix.sh::ops_state_probe/ops_state_verdict 写 OPS-08 真实 sniProbe",
+        "tests/e2e-diff/run_p2_matrix.sh::ops32_merge 写 OPS-32 faultRemoved/recovered",
+        "tests/e2e-diff/collect/client_config.py::select_client 与 l4.sh 按 email 绑定新增用户",
+        "tests/e2e-diff/run_p2_matrix.sh::ops_users_job/ops_users_verdict 写 OPS-01/02 clientConnected",
+        "round4-bizfacts2-50415119 与 round4-bizfacts3-50415119 双端 PASS，账本升为 DUAL"
+      ],
+      "status": "CLOSED"
+    }
+  ],
+  "openRisks": [
+    {
+      "id": "R4-OPEN-01",
+      "title": "OPS-01/02 真实新用户业务连接证据",
+      "severity": "P1",
+      "status": "CLOSED",
+      "closedBy": "tests/e2e-diff/evidence/round4-bizfacts2-50415119/p2/OPS-01/ops.json（双端 clientConnected=true）"
+    },
+    {
+      "id": "R4-OPEN-02",
+      "title": "OPS-04/08/10/32 的端口、分享链接、SNI、故障移除/恢复业务事实",
+      "severity": "P1",
+      "status": "CLOSED",
+      "closedBy": "round4-bizfacts2/3 的 ops.json details 与账本 DUAL"
+    },
+    {
+      "id": "R4-OPEN-03",
+      "title": "13 行差异/单侧证据的批准绑定了旧证据指纹，新候选需用户重新批准",
+      "severity": "P1",
+      "status": "APPROVAL_PENDING"
+    },
+    {
+      "id": "R4-OPEN-04",
+      "title": "生产 VPS、公网 ACME/IPv6、宿主 BBR、掉电恢复未验证",
+      "severity": "P1",
+      "status": "VPS_DEFERRED"
+    },
+    {
+      "id": "R4-OPEN-05",
+      "title": "OPS-17b Bash 分支超时 124，依赖本地可信 Nginx 包",
+      "severity": "P2",
+      "status": "ENV_LIMITED"
+    },
+    {
+      "id": "R4-OPEN-06",
+      "title": "E1–E8 仅有 Go 侧证据；Bash 私钥重建菜单未覆盖",
+      "severity": "P1",
+      "status": "COVERAGE_GAP"
+    },
+    {
+      "id": "R4-OPEN-07",
+      "title": "OPS-20 只有 Go 单侧 trafficBytes，Bash 侧流量未采集",
+      "severity": "P2",
+      "status": "EVIDENCE_GAP"
+    }
+  ]
+}

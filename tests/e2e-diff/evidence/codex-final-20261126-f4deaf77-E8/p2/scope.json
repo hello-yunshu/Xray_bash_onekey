@@ -1,0 +1,13 @@
+{
+  "edits": [
+    "E8"
+  ],
+  "installs": [],
+  "only": "E8",
+  "ops": [],
+  "runId": "codex-final-20261126-f4deaf77-E8",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

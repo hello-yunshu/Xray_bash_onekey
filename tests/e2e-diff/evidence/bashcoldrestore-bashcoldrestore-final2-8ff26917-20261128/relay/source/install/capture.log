@@ -1,0 +1,4 @@
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_release_helpers=yes version=3.3.6

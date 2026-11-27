@@ -1,0 +1,9 @@
+conf/xray/config.json 4e382cfd4f3d8b3055af041ada1042ae44ad83c267111a70da4296faecbbcf86
+conf/install_config.json c84c093dbb75b706a01230af752d0980af243df1d2fe0eafed3616d4d5b88956
+conf/nginx/00-xray.conf 90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424
+conf/ops25-canary.txt 6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225
+config-mode 600:root
+xray-active active
+nginx-active active
+xray-test-rc 0
+nginx-test-rc 0

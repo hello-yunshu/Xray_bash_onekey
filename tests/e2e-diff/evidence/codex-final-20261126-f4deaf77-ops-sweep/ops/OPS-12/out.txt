@@ -1,0 +1,5 @@
+Nov 26 10:59:48 e2e-codex-final-20261126-f4deaf77-ops-sweep-server systemd[1]: Stopped xray.service - Xray Service.
+Nov 26 10:59:48 e2e-codex-final-20261126-f4deaf77-ops-sweep-server systemd[1]: Started xray.service - Xray Service.
+Nov 26 10:59:48 e2e-codex-final-20261126-f4deaf77-ops-sweep-server xray[333]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+Nov 26 10:59:48 e2e-codex-final-20261126-f4deaf77-ops-sweep-server xray[333]: A unified platform for anti-censorship.
+Nov 26 10:59:48 e2e-codex-final-20261126-f4deaf77-ops-sweep-server xray[333]: 2026/11/26 10:59:48.912822 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

@@ -1,0 +1,87 @@
+19:52:20 run_id=amd64-retry-current-7d3e19d9-20261127
+19:52:21 image_id=sha256:25e5281595ea5a39fb71aa5de99bf0086087adf0e29b6e3f8ba7b880cd465bb3
+19:52:21 building idleleo
+19:52:48 xray_sha256=e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d idleleo_sha256=411d4efe74ebf43abc7a4ad5b2188f13ca8600c97d30df71cbe8fd899a1b34b1
+19:54:26 nginx_cache=download build=2026.10.15.7679 arch=x86 tarball_sha256=819d265b9e9bd370106b3af1f7d6056e38fdf9dc791f548066f530f479ba2959
+19:54:26 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+19:54:26 release_cache=seeded templates=vless_reality.json,vless_tls.json
+19:54:26 release_cache=hit
+19:54:26 apt_cache=skipped (no OPS scenario selected)
+19:54:29 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+19:54:29 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+19:54:30 argv-verify written
+19:54:30 [M1] start
+19:54:30 [M4] start
+systemd_state=degraded
+systemd_state=degraded
+seeded_installer=yes source=/src/install.sh
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/amd64)
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/amd64)
+seeded_release_helpers=yes version=3.3.6
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=47b06c4f140a7b44265ab3da328b480db5e64fcd364c3d8e8616c07c674d14d1
+install_exit=0
+done=tls install_exit=0
+systemd_state=degraded
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/amd64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=47b06c4f140a7b44265ab3da328b480db5e64fcd364c3d8e8616c07c674d14d1
+install_exit=0
+done=reality install_exit=0
+systemd_state=degraded
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/amd64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+done=reality install_exit=0
+systemd_state=degraded
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/amd64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=47b06c4f140a7b44265ab3da328b480db5e64fcd364c3d8e8616c07c674d14d1
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+systemd_state=degraded
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/amd64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+done=tls install_exit=0
+install_exit=0
+done=reality install_exit=0
+systemd_state=degraded
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/amd64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=47b06c4f140a7b44265ab3da328b480db5e64fcd364c3d8e8616c07c674d14d1
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+systemd_state=degraded
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/amd64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+round2_mode=keep-config
+install_exit=0
+19:56:49 [M4] done
+done=reality install_exit=0
+19:57:06 [M1] done
+sanitize: M1/bash/config/config.sanitized.json
+sanitize: M1/bash/round2/config/config.sanitized.json
+sanitize: M1/go/config/config.sanitized.json
+sanitize: M1/go/round2/config/config.sanitized.json
+sanitize: M4/bash/config/config.sanitized.json
+sanitize: M4/bash/round2/config/config.sanitized.json
+sanitize: M4/go/config/config.sanitized.json
+sanitize: M4/go/round2/config/config.sanitized.json
+sanitize: 8 file(s) updated
+stamped 0 verdict file(s) with run provenance
+19:57:07 scope: installs=[M1,M4] edits=[] ops=[]
+19:57:07 P2 finished: tests/e2e-diff/evidence/amd64-retry-current-7d3e19d9-20261127/p2
+run_amd64_M1_M4_rc=0

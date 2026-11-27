@@ -57,6 +57,27 @@ def cert_sha256(path):
     return hashlib.sha256(proc.stdout).hexdigest()
 
 
+def select_client(clients, email, uuid):
+    """Pick the client entry the probe must prove.
+
+    Without --email/--uuid the historical clients[0] behaviour is kept. With a
+    selector, a miss is a hard error: silently probing another user would make
+    the new-user evidence meaningless.
+    """
+    if not email and not uuid:
+        return clients[0]
+    matches = [
+        client for client in clients
+        if (not email or client.get('email') == email)
+        and (not uuid or client.get('id') == uuid)
+    ]
+    if not matches:
+        available = sorted({client.get('email') or '<no-email>' for client in clients})
+        raise SystemExit('no client matches email=%r uuid=%r; available=%s'
+                         % (email, uuid, available))
+    return matches[0]
+
+
 def build(args):
     cfg = json.load(open(args.config))
     inbound = pick_inbound(cfg, args.transport)
@@ -65,7 +86,7 @@ def build(args):
     clients = (inbound.get('settings') or {}).get('clients') or []
     if not clients:
         raise SystemExit('no client entry in server config')
-    client = clients[0]
+    client = select_client(clients, args.email, args.uuid)
 
     outbound = {
         'protocol': 'vless',
@@ -163,6 +184,10 @@ def main(argv):
     parser.add_argument('--use-inbound-port', action='store_true',
                         help='connect to the inbound listen port (ws-only mode)')
     parser.add_argument('--domain', required=True)
+    parser.add_argument('--email', default='',
+                        help='select the client entry by email (new-user proof)')
+    parser.add_argument('--uuid', default='',
+                        help='select the client entry by UUID')
     parser.add_argument('--cert', default='/etc/idleleo/cert/xray.crt',
                         help='server certificate whose DER digest is pinned (tls mode)')
     parser.add_argument('--output', required=True)

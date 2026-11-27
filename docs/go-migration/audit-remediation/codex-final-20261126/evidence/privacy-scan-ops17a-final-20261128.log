@@ -1,0 +1,3 @@
+Command: python3 tests/go-parity/parity/scripts/check_evidence_hygiene.py .
+Return code: 0
+Result: hygiene reports 0 finding(s) in 75469 file(s), including the current evidence index and all OPS-17a supplemental artifacts.

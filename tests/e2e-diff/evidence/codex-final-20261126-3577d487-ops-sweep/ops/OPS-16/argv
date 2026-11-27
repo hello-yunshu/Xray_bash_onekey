@@ -1,0 +1,1 @@
+xray cert renew --dry-run --domain example.com --webroot /etc/idleleo/conf --cert-out /etc/idleleo/cert/xray.crt --key-out /etc/idleleo/cert/xray.key --json

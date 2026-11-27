@@ -1,0 +1,8 @@
+{
+  "jail": "nginx-badbots",
+  "ip": "203.0.113.7",
+  "wasBanned": true,
+  "unbanned": true,
+  "remainingIPs": [],
+  "alreadyAbsent": false
+}

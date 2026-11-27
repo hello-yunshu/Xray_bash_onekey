@@ -1,0 +1,5 @@
+<TS> e2e-FINAL-P3-xhttp-20261121-go-xhttp systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-FINAL-P3-xhttp-20261121-go-xhttp xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-FINAL-P3-xhttp-20261121-go-xhttp xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-FINAL-P3-xhttp-20261121-go-xhttp xray[<PID>]: 2026/11/20 18:26:26.058922 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/20 18:26:26.065907 [Warning] core: Xray 26.10.31 started

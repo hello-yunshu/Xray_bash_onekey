@@ -1,0 +1,18 @@
+time=2026-11-27T08:46:59.487Z level=INFO msg="Registering the account." email=e2e@example.com
+time=2026-11-27T08:46:59.488Z level=INFO msg="Obtaining bundled SAN certificate." domains=example.com
+time=2026-11-27T08:46:59.545Z level=INFO msg="Use solver." domain=example.com type=http-01
+time=2026-11-27T08:46:59.545Z level=INFO msg="http01: Trying to solve HTTP-01." domain=example.com
+time=2026-11-27T08:46:59.545Z level=INFO msg="The server validated our request." domain=example.com
+time=2026-11-27T08:46:59.546Z level=INFO msg="Validations succeeded; requesting certificates." domains=example.com
+time=2026-11-27T08:46:59.546Z level=INFO msg="Waiting for certificates." timeout=2m0s interval=2s domains=example.com
+time=2026-11-27T08:46:59.546Z level=INFO msg="Server responded with a certificate." domains=example.com
+cert issue: domain=example.com state=issued notAfter=2027-02-25T08:46:58Z
+certificate: /etc/idleleo/cert/xray.crt
+key: /etc/idleleo/cert/xray.key
+account: https://pebble:14000/my-account/646e54c94138fcd9
+installed: mode=tls transport=ws tls=TLS
+config=/etc/idleleo/conf/xray/config.json sha256=bebac9b4f60ef3de9594a2d7ca861d5793c7fe7f2e1b6013f9b7138171e29d1f
+service active=active enabled=enabled
+nginx managed=true verified=true dir=/etc/idleleo/conf/nginx
+warning=nginx version: nginx version: nginx/1.30.6
+warning=nginx-syntax-verified; routing verified only by the Docker e2e harness

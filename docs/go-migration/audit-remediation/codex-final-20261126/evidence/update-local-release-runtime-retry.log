@@ -1,0 +1,40 @@
+installed_before_sha256=0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3
+installed_pre_apply_sha256=0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3
+installed_after_sha256=0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3
+{
+  "appliedAssetDigestMatchesInstalledBinary": true,
+  "apply": {
+    "action": "applied",
+    "backupPath": "/usr/local/bin/idleleo.previous",
+    "healthOutput": "idleleo 0.2.0-phase04 (go)",
+    "installPath": "/usr/local/bin/idleleo",
+    "manifestUrl": "http://127.0.0.1:18080/go/manifest.json",
+    "newSha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+    "newVersion": "0.2.0",
+    "platform": "linux-arm64",
+    "previousSha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+    "schemaVersion": 1
+  },
+  "check": {
+    "asset": {
+      "name": "idleleo-linux-arm64",
+      "sha256": "0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3",
+      "size": 15326478
+    },
+    "detail": "no applied Go release recorded; the channel can install this version",
+    "latestVersion": "0.2.0",
+    "manifestUrl": "http://127.0.0.1:18080/go/manifest.json",
+    "platform": "linux-arm64",
+    "schemaVersion": 1,
+    "state": "available",
+    "verified": true
+  },
+  "noAutomaticReplacementBeforeExplicitApply": true
+}
+tampered_check_rc=1
+installed_before_bad_check_sha256=0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3
+installed_after_bad_check_sha256=0c8d1e6eeea4060d36892604066430c6fbd775fa33dfc62404672c057ef056c3
+manifest signature verification failed: manifest signature verification failed
+{'tamperedManifestRejected': True, 'binaryUnchangedAfterRefusal': True}
+
+command_rc=0

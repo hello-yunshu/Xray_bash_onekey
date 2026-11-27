@@ -1,0 +1,51 @@
+08:58:15 run_id=fix-20261120-p2b
+08:58:16 image_id=sha256:f37bf377025c123e5bbaefb83c0ac437c68216bfc3449c4a32c53132200633da
+08:58:16 building idleleo
+08:58:22 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=c6e24f97da2362d34c51906a5e031340d1372fb8580ec649a333fdd8aa5f4aa4
+08:58:23 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+08:58:23 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+08:58:26 argv-verify written
+08:58:26 [M2] start
+08:58:26 [M3] start
+08:58:26 [M1] start
+08:58:26 [M4] start
+09:00:22 [M3] done
+09:00:25 [M1] done
+09:01:19 [M4] done
+09:01:54 [M2] done
+09:01:54 [M8] start
+09:01:54 [M6] start
+09:01:54 [M7] start
+09:01:54 [M5] start
+09:01:56 [M8] pebble ready
+09:03:37 [M6] done
+09:03:48 [M8] done
+09:04:47 [M7] done
+09:05:11 [M5] done
+09:05:11 [M9] start
+09:05:11 [M10] start
+09:06:08 [M9] done
+09:06:14 [M10] done
+09:06:14 [E1] start
+09:06:14 [E8] start
+09:06:15 [E2] start
+09:06:15 [E6] start
+09:06:15 [E5] start
+09:06:15 [E7] start
+09:06:15 [E4] start
+09:06:15 [E3] start
+09:06:34 [E3] done
+09:06:38 [E5] done
+09:06:41 [E1] done
+09:06:41 [E2] done
+09:06:45 [E4] done
+09:06:48 [E6] done
+09:07:13 [E7] done
+09:07:21 [E8] done
+09:07:21 [OPS-19] start
+09:23:53 [OPS-19] verdict=BLOCKER
+09:23:53 [OPS-21] start
+09:30:12 [OPS-21] verdict=HARNESS-ERROR
+09:30:12 [OPS-09] start upstream=ws
+09:32:02 [OPS-09] verdict=PASS
+09:32:02 [OPS-31] start upstream=reality

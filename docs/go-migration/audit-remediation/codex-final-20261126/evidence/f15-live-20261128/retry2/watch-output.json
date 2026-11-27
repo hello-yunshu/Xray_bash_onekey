@@ -1,0 +1,5 @@
+{
+  "exitCode": 2,
+  "stderr": "--interval must be between 250ms and 5m\n",
+  "stdout": ""
+}

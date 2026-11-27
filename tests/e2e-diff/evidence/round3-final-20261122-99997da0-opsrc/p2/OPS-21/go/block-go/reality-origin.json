@@ -1,0 +1,54 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "target",
+    "server-names"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.serverNames[0]",
+    "inbounds[0].streamSettings.realitySettings.target"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "15f4eafe5a7df496222d9fde65da82a5ba64017d1c5d1e1049f4866d5112d424",
+  "newSha256": "7e8e3574e49ba4ce57a6046b9a4ef1e063fff8829c9c670f98fb6dd2b42e979b",
+  "backupDir": "/etc/idleleo/backup/edit-20261122T134724",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://0924545b-26bd-47a0-b126-67de0b706fb8@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=local.test&fp=chrome&pbk=Dp36scM6As6VkfCpmP-KTMFutX0lyAmw5IjupS0YUyQ&sid=d00e0172&type=raw#idleleo-reality",
+  "originTarget": "127.0.0.1:8443",
+  "originProbe": "tcp+tls(verify) 127.0.0.1:8443 (sni local.test)",
+  "tlsSystemTrusted": false,
+  "disconnect": false,
+  "warnings": [
+    "share links use the Reality SNI as the dial host because --host was not given; pass --host <address clients dial> to hand out a usable link"
+  ],
+  "shortIds": [
+    "d00e0172"
+  ],
+  "oldShareUri": "vless://0924545b-26bd-47a0-b126-67de0b706fb8@www.cloudflare.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=Dp36scM6As6VkfCpmP-KTMFutX0lyAmw5IjupS0YUyQ&sid=d00e0172&type=raw#idleleo-reality",
+  "upstreamUnchanged": true,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "15f4eafe5a7df496222d9fde65da82a5ba64017d1c5d1e1049f4866d5112d424",
+    "newSha256": "7e8e3574e49ba4ce57a6046b9a4ef1e063fff8829c9c670f98fb6dd2b42e979b",
+    "changed": [
+      "server-names",
+      "target"
+    ],
+    "affectedServices": [
+      "xray"
+    ],
+    "disconnectRisk": "none: no live session is dropped",
+    "validationSteps": [
+      "xray -test"
+    ],
+    "rollbackScope": "runtime config",
+    "ownership": "idleleo-managed",
+    "fingerprint": "12a3fefa8789d1ce"
+  }
+}

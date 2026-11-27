@@ -1,0 +1,20 @@
+{
+  "entry": {
+    "id": "1795462590235812937-617",
+    "state": "COMMITTED",
+    "target": "/etc/idleleo/conf/xray/config.json",
+    "servicePath": "/usr/local/bin/e2e-service-apply",
+    "oldSha256": "1b464a29431fa37dd51972a3f5b353fad9323152b4eb81b5d10d3cf631011286",
+    "newSha256": "135d546347760a7c6775211aca08e06af23a8efe69f83a381f3788652c952556",
+    "startedAt": "2026-11-23T19:36:30Z",
+    "updatedAt": "2026-11-23T19:36:30Z"
+  },
+  "notice": "note: Reality shortIds are inbound-level and not attributable to one user; all shortIds were kept. Run `xray edit --short-id-remove <sid>` only if you have verified the sid is unused.",
+  "user": {
+    "index": 1,
+    "uuid": "22222222-3333-4444-5555-666666666666",
+    "email": "user2@example.com",
+    "level": 0,
+    "primary": false
+  }
+}

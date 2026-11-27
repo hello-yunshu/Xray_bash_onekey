@@ -1,0 +1,8 @@
+{
+  "truncated": [
+    "/var/log/xray/access.log",
+    "/var/log/xray/e2e.log",
+    "/var/log/xray/error.log"
+  ],
+  "freedBytes": 76
+}

@@ -61,6 +61,34 @@ func TestEnableAPIAddsLoopbackInboundAndRule(t *testing.T) {
 	}
 }
 
+func TestEnableAPIEnablesInboundTrafficCounters(t *testing.T) {
+	cfg := `{"inbounds":[{"port":443,"protocol":"vless","tag":"reality"}],"policy":{"levels":{"3":{"handshake":5}},"system":{"statsOutboundUplink":true}}}`
+	out, changed, err := EnableAPI([]byte(cfg), 10085)
+	if err != nil || !changed {
+		t.Fatalf("enable failed: changed=%v err=%v", changed, err)
+	}
+	var doc struct {
+		Policy struct {
+			Levels map[string]map[string]any `json:"levels"`
+			System map[string]any            `json:"system"`
+		} `json:"policy"`
+	}
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatal(err)
+	}
+	for _, key := range []string{"statsInboundUplink", "statsInboundDownlink"} {
+		if doc.Policy.System[key] != true {
+			t.Errorf("system policy lacks %s counter: %#v", key, doc.Policy.System)
+		}
+	}
+	if doc.Policy.System["statsOutboundUplink"] != true {
+		t.Fatalf("existing system policy was not preserved: %#v", doc.Policy.System)
+	}
+	if doc.Policy.Levels["3"]["handshake"] != float64(5) {
+		t.Fatalf("existing policy was not preserved: %#v", doc.Policy.Levels["3"])
+	}
+}
+
 func TestEnableAPIIsIdempotent(t *testing.T) {
 	once, _, err := EnableAPI([]byte(baseConfig), 10085)
 	if err != nil {

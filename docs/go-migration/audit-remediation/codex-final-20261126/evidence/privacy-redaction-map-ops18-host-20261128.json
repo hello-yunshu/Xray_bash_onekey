@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "reason": "Repository privacy scan flags an ephemeral hosted-runner home/workspace prefix. Remote run artifacts remain available unchanged at the cited GitHub Actions runs; only repository copies are sanitized.",
+  "sourceRuns": [
+    46070092391,
+    46070894568
+  ],
+  "entries": [
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/workflow.log",
+      "originalSha256": "18eb6734d755df7ec0f7eed12ae18fdacfde9cb614b1d47e0b73b315571749bb",
+      "sanitizedSha256": "900199359863501e2fdab06907c1a32448fed0d789a6489bfbea0cf835157eb5",
+      "occurrences": 33,
+      "replacement": "hosted-runner path prefix -> <runner-home>"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/bash-apply.err",
+      "originalSha256": "c92c0505a585676a3a4f25d24a9b59b0286bf282229faffd5c65be5e57c4facb",
+      "sanitizedSha256": "f28a6c51776040a9d91297b55f6ee4749b1d2f628e2a12b737416bd75c25c598",
+      "occurrences": 1,
+      "replacement": "hosted-runner path prefix -> <runner-home>"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log",
+      "originalSha256": "46eb5281ebf6616660da24c90b7a6bc4fb5e6bf8e035d4feff4c1aaf3048c2d2",
+      "sanitizedSha256": "c829952efb2ae0c3ee2338e677f8639feb83f7ddca3df336bdacf11748684c8a",
+      "occurrences": 33,
+      "replacement": "hosted-runner path prefix -> <runner-home>"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/binary.sha256",
+      "originalSha256": "e0586a2ae4dd4640c4312e2a88c3c7166836ec37dba8f89121ef9b34df77d2ef",
+      "sanitizedSha256": "8fdcfed091654c4e632de99bd068bbf0f73a755cc8c2e61e5ef736f98199992b",
+      "occurrences": 1,
+      "replacement": "hosted-runner path prefix -> <runner-home>"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+02:21:05 run_id=round4-aa680ddf
+02:21:06 image_id=sha256:11834b6bd0dae7d69abe67fe5e37cc01b9ac9f55946cfdea46bf05348615ff95
+02:21:06 building idleleo
+02:21:11 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b
+02:21:11 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+02:21:11 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+02:21:11 release_cache=seeded templates=vless_reality.json,vless_tls.json
+02:21:11 release_cache=hit
+02:21:12 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+02:21:12 apt_cache=hit (OPS offline apt)
+02:21:12 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+02:21:12 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+02:21:15 argv-verify written
+02:21:15 [OPS-USERS] start
+02:22:18 [OPS-USERS] OPS-01/02 written; shortIdClean=False
+02:22:18 [OPS-04] start
+02:23:28 [OPS-04] verdict=PASS
+02:23:28 [OPS-08] start
+02:24:21 [OPS-08] verdict=PASS
+02:24:21 [OPS-16] start
+02:24:40 [OPS-16] verdict=DIFF
+02:24:40 [OPS-27] start
+02:25:27 [OPS-27] difference=DIFF
+02:25:28 scope: installs=[] edits=[] ops=[OPS-01,OPS-02,OPS-04,OPS-08,OPS-16,OPS-27]
+02:25:28 P2 finished: tests/e2e-diff/evidence/round4-aa680ddf/p2

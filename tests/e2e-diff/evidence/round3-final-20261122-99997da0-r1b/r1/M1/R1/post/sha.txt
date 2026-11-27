@@ -1,0 +1,2 @@
+c2f5266e8e6d4303ba51a175dda1b71f5c99035aef6caa380b0cb480ae2a12f4  /etc/idleleo/conf/xray/config.json
+f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3  /etc/systemd/system/xray.service

@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-28",
+  "findingCount": 2,
+  "findings": [
+    {
+      "path": "tests/e2e-diff/evidence/bashcoldrestore-bc10-8ff-1128/multi/source/driver/source-client/tls-server-cert.txt",
+      "scannerRule": "public IPv6",
+      "value": "[REDACTED_NON_IP_CERT_SERIAL]",
+      "review": "False positive: OpenSSL textual certificate serial number, not an IP address.",
+      "action": "Redacted the serial only in derived text diagnostics; original PEM certificate bytes remain preserved in tls-server.pem."
+    },
+    {
+      "path": "tests/e2e-diff/evidence/codex-ops-16-status-9e495b38-20261128/p2/run.log",
+      "line": 18,
+      "scannerRule": "host user path",
+      "value": "relative evidence path",
+      "review": "Diagnostic run was rejected before execution because the output directory already contained evidence; this host-specific path was not needed to interpret the refusal.",
+      "action": "Replaced absolute workspace prefix with relative evidence path; retained the diagnostic log and its line structure."
+    }
+  ]
+}

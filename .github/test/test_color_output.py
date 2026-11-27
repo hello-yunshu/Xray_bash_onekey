@@ -188,7 +188,18 @@ def scan_repository():
 ANSI_LITERAL = re.compile(r"\\033|\\x1[bB]|\\e(?![A-Za-z0-9_])")
 REAL_ESC = re.compile(r"\$'\\033")
 ANSI_TOOL = re.compile(r"\btput\b|_color_enabled\s*=")
-TEST_PREFIXES = (".github/test/", "i18n/tests/")
+# Directories where a literal escape is test tooling, never user-facing output.
+TEST_PREFIXES = (".github/test/", "i18n/tests/", "tests/")
+# Captured install logs from earlier differential runs. They are evidence, not
+# executable output; a scanner that treated them as production paths would
+# either stay red forever or force a blanket .log exclusion.
+HISTORICAL_PREFIXES = ("tests/e2e-diff/evidence/",)
+HISTORICAL_FILES = frozenset({
+    "docs/go-migration/audit-remediation/codex-final-20261126/evidence/xhttp-repeat-path-debug.log",
+})
+# Only these test trees must carry the per-file annotation; broader test
+# fixtures may legitimately contain ESC for parsing without color intent.
+ANNOTATED_PREFIXES = (".github/test/", "i18n/tests/")
 
 
 def tracked_files():
@@ -221,6 +232,8 @@ def ansi_category(rel, line):
     posix = rel.as_posix()
     suffix = pathlib.Path(posix).suffix.lower()
     stripped = line.strip()
+    if posix in HISTORICAL_FILES or posix.startswith(HISTORICAL_PREFIXES):
+        return "historical-evidence"
     if posix.startswith(TEST_PREFIXES):
         return "test-fixture"
     if posix == "scripts/rill_xray_agent_manager.sh":
@@ -272,7 +285,7 @@ def scan_ansi_repository():
             if not hit and not actual_esc and not tool:
                 continue
             category = ansi_category(rel, line)
-            if category == "test-fixture" and not annotated:
+            if category == "test-fixture" and rel.as_posix().startswith(ANNOTATED_PREFIXES) and not annotated:
                 annotation_missing.append(f"{rel}:{number}")
             if tool and not hit and not actual_esc and category != "test-fixture":
                 category = "tooling-variable"
@@ -315,6 +328,8 @@ def test_static():
                    if category == "test-fixture")
     canonical = sum(n for (_, category), n in ansi_table.items()
                     if category == "canonical-payload")
+    history = sum(n for (_, category), n in ansi_table.items()
+                  if category == "historical-evidence")
     canonical_non_b = sum(
         1 for path, _, _, _ in non_b_sites
         if path.name == "rill_xray_agent_manager.sh"
@@ -330,7 +345,7 @@ def test_static():
           f"types={dict(sorted(type_counts.items()))}")
     print(f"  INFO: ANSI inventory: total={sum(ansi_table.values())}, "
           f"production-risk={risk}, docs={docs}, "
-          f"test-fixtures={fixtures}, canonical={canonical}")
+          f"test-fixtures={fixtures}, canonical={canonical}, history={history}")
     print("  INFO: ANSI inventory by file type / category:")
     for (ext, category), count in sorted(ansi_table.items()):
         print(f"    {ext:12s} {category:24s} {count}")
@@ -343,6 +358,12 @@ def test_static():
           "the ANSI scanner flags a Markdown example")
     check(ansi_category(pathlib.Path("install.sh"), 'echo "\\033[31m"') == "production-output-risk",
           "the ANSI scanner flags a plain shell output")
+    check(ansi_category(pathlib.Path("tests/e2e-diff/evidence/run/bash/install.log"), "\x1b[32m") == "historical-evidence",
+          "captured differential logs are history, not production output")
+    check(ansi_category(pathlib.Path("docs/go-migration/audit-remediation/codex-final-20261126/evidence/xhttp-repeat-path-debug.log"), "\\033") == "historical-evidence",
+          "the indexed XHTTP diagnostic capture is treated as historical evidence")
+    check(ansi_category(pathlib.Path("tests/e2e-diff/collect/normalize.py"), "\\033") == "test-fixture",
+          "test tooling is a fixture regardless of the file name")
 
     # The scanner must be able to fail. A fixture using the pre-fix shape is
     # scanned with the same function; a green result here would mean the gate

@@ -1,0 +1,93 @@
+{
+  "certificate": {
+    "bashPresent": true,
+    "goNotExpired": true,
+    "goPresent": true,
+    "goState": "not-due"
+  },
+  "goStatus": {
+    "preflightRc": 0,
+    "rc": 0,
+    "report": {
+      "certificate": {
+        "certificateFile": "/etc/idleleo/cert/xray.crt",
+        "due": false,
+        "elapsedDays": 0,
+        "expired": false,
+        "keyFile": "/etc/idleleo/cert/xray.key",
+        "notAfter": "2036-11-24T19:33:42Z",
+        "notBefore": "2026-11-27T19:33:42Z",
+        "reason": "next renewal at 2036-10-25T19:33:42Z (expires in 87600h0m0s)",
+        "remainingDays": 3649,
+        "renewAt": "2036-10-25T19:33:42Z",
+        "renewBefore": "720h0m0s"
+      },
+      "keyPresent": true,
+      "renewal": {
+        "alert": false,
+        "configured": false,
+        "jobEnabled": false,
+        "timer": "not-installed"
+      }
+    }
+  },
+  "id": "OPS-16",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "Bash menu reports status/validity/scheduler interactively; Go cert status returns the same certificate facts and scheduler state as read-only JSON; renew --dry-run is separately recorded",
+    "bash rc=0",
+    "go cert status rc=0",
+    "go renewal preflight rc=0",
+    "bash certificate present=True",
+    "go certificate present=True notExpired=True state=not-due",
+    "Go status preserved certificate/key hashes=True"
+  ],
+  "run": {
+    "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+    "binarySha256": "263de583c2024e7eef702955bd3002df675f4888c8a12bf1859111b56bb85240",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "d4a42514f3fbfe5affa089001dedc2e1c04a24052e14c19d62707f254a176754",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "83770d174d8782f67716fa43b25146a278dc5ae5dc9e62e40bcf141deae5714f",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "dfa72c1df64346719eee07e4e643ce4f951de1084323800c2b9ee4b72a20f340",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "b1f2434bbc5bd7e76db36b3920c242ed94ee9e65bf0324017c9cf253f977dd0a",
+    "finishedAt": "2026-11-27T19:34:12Z",
+    "fixedBy": null,
+    "fixedByKind": null,
+    "image": "sha256:836ee3b1b78be5e25b88110166402e1403bc2375e6067a1a2040d9a676fc6136",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "a62357630a14e5451a707b3ff38553b7f5db171dd522d0f62311dc63b385add5",
+    "platform": "linux/arm64",
+    "productCodeSha": "9e495b38a5574f53e37bd11e4b3c8f196f76e25b",
+    "runId": "codex-ops-16-status2-9e495b38-20261128",
+    "startedAt": "2026-11-27T19:33:36Z",
+    "supersedes": null
+  },
+  "verdict": "DIFF"
+}

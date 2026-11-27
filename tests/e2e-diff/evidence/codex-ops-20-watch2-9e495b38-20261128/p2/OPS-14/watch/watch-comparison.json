@@ -1,0 +1,30 @@
+{
+  "bash": {
+    "counterNames": [
+      "VLESS-Reality-in"
+    ],
+    "l4Rc": 0,
+    "l4WaitRc": 0,
+    "maxObservedBytes": 2100076,
+    "rc": 124,
+    "samples": 8
+  },
+  "formalLedgerEffect": "supplemental only; OPS-14 remains subject to approval",
+  "go": {
+    "counterNames": [
+      "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+      "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+      "inbound>>>api>>>traffic>>>downlink",
+      "inbound>>>api>>>traffic>>>uplink"
+    ],
+    "l4Rc": 0,
+    "l4WaitRc": 0,
+    "positiveRatePoints": 10,
+    "ratePoints": 16,
+    "rc": 0,
+    "resetPoints": 0,
+    "samples": 5
+  },
+  "id": "OPS-14-watch",
+  "observed": true
+}

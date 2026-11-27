@@ -1,0 +1,28 @@
+04:48:18 run_id=codex-ops14-ratecheck-85340b48-20261128
+04:48:20 image_id=sha256:9a307c561b1b732bcfc5060963c39b43a1d0362919f2160ddd09c7bab3576726
+04:48:20 building idleleo
+04:48:28 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=263de583c2024e7eef702955bd3002df675f4888c8a12bf1859111b56bb85240
+04:48:28 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+04:48:28 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+04:48:28 release_cache=seeded templates=vless_reality.json,vless_tls.json
+04:48:28 release_cache=hit
+04:48:28 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+04:48:28 apt_cache=hit (OPS offline apt)
+04:48:29 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+04:48:29 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+04:48:30 argv-verify written
+04:48:30 [OPS-14] start exact iftop versus stats-watch probe
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+{"bash": {"driverRc": 0, "iftopInstallRc": 0, "l4": [{"id": "L4-1", "ok": true, "rc": 0}], "ready": true, "uiObserved": true}, "go": {"apiEnableRc": 0, "l4": [{"id": "L4-1", "ok": true, "rc": 0}], "positiveProxyRatePoints": 0, "positiveRatePoints": 0, "sampleCount": 30, "watchRc": 0}}
+04:50:04 [OPS-14] verdict=DIFF
+sanitize: OPS-14/bash/config/config.sanitized.json
+sanitize: 1 file(s) updated
+stamped 1 verdict file(s) with run provenance
+04:50:04 scope: installs=[] edits=[] ops=[OPS-14]
+04:50:04 P2 finished: tests/e2e-diff/evidence/codex-ops14-ratecheck-85340b48-20261128/p2

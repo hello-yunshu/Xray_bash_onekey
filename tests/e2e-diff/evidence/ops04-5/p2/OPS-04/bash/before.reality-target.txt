@@ -1,0 +1,2 @@
+www.cloudflare.com:443	((.serverNames // []) | join(
+))

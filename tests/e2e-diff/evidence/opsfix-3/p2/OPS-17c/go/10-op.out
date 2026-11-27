@@ -1,0 +1,8 @@
+config=/etc/idleleo/schedule/jobs.json
+service=/etc/systemd/system/idleleo-schedule.service
+timer=/etc/systemd/system/idleleo-schedule.timer
+alertService=/etc/systemd/system/idleleo-alert.service
+interval=3600s
+jobs=auto-update,cert-renew,geodata-refresh,stats-collect
+systemd=enabled
+degraded=auto-update: updates the Go binary through the Go release channel only when one is configured; legacy Xray/Nginx auto-update cron is retained until a Go equivalent exists (explicit degradation)

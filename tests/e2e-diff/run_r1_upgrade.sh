@@ -32,6 +32,46 @@ source "$ROOT/tests/go-parity/lib/docker_common.sh"
 
 mkdir -p "$EVID" "$WORK/seed/cert" "$WORK/secret"
 : >"$EVID/assertions.txt"
+
+# The Bash TLS install downloads a managed Nginx. Seed the verified offline
+# cache so a GitHub CDN hiccup cannot fail the takeover matrix.
+NGINX_BUILD="${E2E_NGINX_BUILD:-2026.10.15.7679}"
+case "$(docker_arch)" in
+    amd64) NGINX_ARCH=x86 ;;
+    arm64) NGINX_ARCH=arm ;;
+    *) NGINX_ARCH="" ;;
+esac
+NGINX_ASSET="xray-nginx-custom-${NGINX_ARCH}.tar.gz"
+NGINX_CACHE="${E2E_NGINX_CACHE:-$HOME/.cache/xray-audit/nginx/$NGINX_BUILD}"
+NGINX_ENVS=()
+if [[ -n "$NGINX_ARCH" && -f "$NGINX_CACHE/release-manifest.json" && -f "$NGINX_CACHE/$NGINX_ASSET" ]]; then
+    mkdir -p "$WORK/seed/nginx"
+    cp "$NGINX_CACHE/release-manifest.json" "$WORK/seed/nginx/"
+    cp "$NGINX_CACHE/$NGINX_ASSET" "$WORK/seed/nginx/"
+    printf '{"nginx_build_online_version":"%s"}\n' "$NGINX_BUILD" >"$WORK/seed/nginx/versions.json"
+    NGINX_ENVS=(-e IDLELEO_NGINX_CACHE=/seed/nginx -e E2E_NGINX_BUILD="$NGINX_BUILD")
+fi
+# The Bash installer also fetches its Xray config template from the release raw
+# tree. Seed the tracked templates so a raw.githubusercontent.com timeout cannot
+# turn a takeover regression into a false failure; the installer still validates
+# the JSON it reads.
+mkdir -p "$WORK/seed/release/config"
+for _tpl in vless_reality.json vless_tls.json; do
+    if [[ -f "$ROOT/config/$_tpl" ]]; then
+        cp "$ROOT/config/$_tpl" "$WORK/seed/release/config/$_tpl"
+    fi
+done
+if [[ "$(ls -A "$WORK/seed/release/config" 2>/dev/null | wc -l)" -gt 0 ]]; then
+    NGINX_ENVS+=(-e IDLELEO_RELEASE_CACHE=/seed/release)
+fi
+# Historical migration: point the driver at a real older installer (mounted as
+# /seed/historical.sh) instead of the tracked one. No snapshot is fabricated.
+if [[ -n "${E2E_HISTORICAL_INSTALLER:-}" ]]; then
+    install -m 0755 "$E2E_HISTORICAL_INSTALLER" "$WORK/seed/historical.sh"
+    # The driver must install from the mounted historical copy, not the
+    # tracked install.sh; otherwise the run silently tests the current shell.
+    export E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-/seed/historical.sh}"
+fi
 log() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$EVID/run.log"; }
 assert() { # assert <ok:0|1> <label>
     if [ "$1" -eq 0 ]; then
@@ -157,8 +197,10 @@ run_r1() { # run_r1 <sid> <profile> <bash-arg> <l4-profile> <l4-transport> <go-a
         log "[$sid/R1] container failed"; assert 1 "$sid R1 container started"; return
     fi
 
-    docker exec -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
+    docker exec "${NGINX_ENVS[@]}" \
+        -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
         -e E2E_PROFILE="$profile" -e E2E_ARG="$barg" -e E2E_MENU="" \
+        -e E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-}" \
         -e E2E_TRANSPORT=1 -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" \
         -e E2E_PORT=443 -e E2E_LOCAL_IP=127.0.0.1 \
         "$c" bash /src/tests/e2e-diff/drivers/bash_install.sh
@@ -260,8 +302,10 @@ run_r2() { # run_r2 <sid> <profile> <bash-arg> <l4-profile> <l4-transport>
     if ! start_server "$c" "$out/bash" "$net"; then
         log "[$sid/R2] container failed"; assert 1 "$sid R2 container started"; return
     fi
-    docker exec -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
+    docker exec "${NGINX_ENVS[@]}" \
+        -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
         -e E2E_PROFILE="$profile" -e E2E_ARG="$barg" -e E2E_MENU="" \
+        -e E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-}" \
         -e E2E_TRANSPORT=1 -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" \
         -e E2E_PORT=443 -e E2E_LOCAL_IP=127.0.0.1 \
         "$c" bash /src/tests/e2e-diff/drivers/bash_install.sh
@@ -273,7 +317,7 @@ run_r2() { # run_r2 <sid> <profile> <bash-arg> <l4-profile> <l4-transport>
     snap "$c" "$out/pre"
     docker exec "$c" install -m 0755 /seed/idleleo /usr/local/bin/idleleo
     docker exec "$c" install -m 0755 /seed/idleleo-recover /usr/local/bin/idleleo-recover
-    local -a envs=(-e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY)
+    local -a envs=(-e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY ${NGINX_ENVS[@]+"${NGINX_ENVS[@]}"})
     # Fault injection: a prepare that hits ENOSPC must leave no journal, plan,
     # snapshot or entry change behind, and a clean prepare must then succeed.
     docker exec "${envs[@]}" "$c" /usr/local/bin/idleleo bridge prepare \
@@ -359,14 +403,16 @@ run_injections() { # run_injections <sid> <profile> <bash-arg> <go-args...>
     local -a goargs=("$@")
     local net="e2e-$RUN_ID-$sid-inj-net" c="e2e-$RUN_ID-$sid-inj"
     local out="$EVID/$sid/INJ" cfg=/etc/idleleo/conf/xray/config.json
-    local -a envs=(-e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY)
+    local -a envs=(-e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY ${NGINX_ENVS[@]+"${NGINX_ENVS[@]}"})
     docker network create "$net" >/dev/null 2>&1 || true
     log "[$sid/INJ] start"
     if ! start_server "$c" "$out/bash" "$net"; then
         log "[$sid/INJ] container failed"; assert 1 "$sid INJ container started"; return
     fi
-    docker exec -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
+    docker exec "${NGINX_ENVS[@]}" \
+        -e E2E_OUT=/out -e E2E_ROUND=1 -e E2E_SCENARIO="$sid" \
         -e E2E_PROFILE="$profile" -e E2E_ARG="$barg" -e E2E_MENU="" \
+        -e E2E_INSTALL_SRC="${E2E_INSTALL_SRC:-}" \
         -e E2E_TRANSPORT=1 -e E2E_DOMAIN="$DOMAIN" -e E2E_TARGET="$TARGET" \
         -e E2E_PORT=443 -e E2E_LOCAL_IP=127.0.0.1 \
         "$c" bash /src/tests/e2e-diff/drivers/bash_install.sh

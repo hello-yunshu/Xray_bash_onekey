@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-OBSERVE",
+  "ops": [
+    "OPS-OBSERVE"
+  ],
+  "runId": "codex-ops-backup-85340b48-20261128",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

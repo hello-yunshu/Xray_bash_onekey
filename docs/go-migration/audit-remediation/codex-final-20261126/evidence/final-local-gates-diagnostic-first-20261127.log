@@ -1,0 +1,40 @@
+
+== bash-syntax ==
+rc=0
+
+== expect-driver-bash-parse ==
+tests/e2e-diff/drivers/bash_ops.exp: line 23: syntax error near unexpected token `('
+tests/e2e-diff/drivers/bash_ops.exp: line 23: `set timeout [expr {[info exists env(E2E_TIMEOUT)] ? $env(E2E_TIMEOUT) : 900}]'
+rc=2
+
+== diff-check ==
+rc=0
+
+== ledger-contract-tests ==
+......................................
+----------------------------------------------------------------------
+Ran 38 tests in 1.892s
+
+OK
+rc=0
+
+== acceptance-artifact-guard ==
+......................................
+----------------------------------------------------------------------
+Ran 38 tests in 2.041s
+
+OK
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests
+rc=0
+
+== privacy-hygiene-scan ==
+tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/install-config-after.json:4: 240e:*** (public IPv6)
+tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/install-config-after.json:7: 240e:*** (public IPv6)
+tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/install-config-before.json:4: 240e:*** (public IPv6)
+tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/install-config-before.json:7: 240e:*** (public IPv6)
+tests/e2e-diff/evidence/ops-observe-ops23retry-8ff26917-20261127/p2/OPS-17b/bash/run.out:53: 180.***.***.100 (public IPv4)
+tests/e2e-diff/evidence/ops17a-update-failure-retry2-8ff26917-20261127/candidate-asset.sha256:1: /Users/<redacted> (host user path)
+hygiene: 6 finding(s) in 73540 file(s)
+rc=1
+
+== summary ==

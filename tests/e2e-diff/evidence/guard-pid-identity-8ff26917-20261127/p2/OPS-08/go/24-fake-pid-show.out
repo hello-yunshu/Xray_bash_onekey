@@ -1,0 +1,18 @@
+{
+  "applicable": true,
+  "tls": "Reality",
+  "managedFront": true,
+  "enabled": true,
+  "policy": "isolate",
+  "status": "runtime-unverified",
+  "metadataSynced": true,
+  "denyPort": 9403,
+  "evidence": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/usr/local/nginx/conf/nginx.conf",
+    "/etc/idleleo/conf/nginx/03-isolate.conf"
+  ],
+  "warnings": [
+    "pid 834 runs /usr/bin/sleep, not the managed Nginx; reporting runtime-unverified"
+  ]
+}

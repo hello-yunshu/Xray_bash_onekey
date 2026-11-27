@@ -1,0 +1,14 @@
+{
+  "upstream": "ws",
+  "backends": [
+    {
+      "host": "127.0.0.1",
+      "port": 10000,
+      "weight": 50,
+      "file": "/etc/idleleo/conf/nginx/127.0.0.1.wsServers"
+    }
+  ],
+  "changed": false,
+  "probed": false,
+  "warnings": []
+}

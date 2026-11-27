@@ -1,0 +1,5 @@
+<TS> e2e-20261119-cold4-cold-source systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-20261119-cold4-cold-source xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-20261119-cold4-cold-source xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-20261119-cold4-cold-source xray[<PID>]: 2026/11/19 12:39:08.079432 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/19 12:39:08.081762 [Warning] core: Xray 26.10.31 started

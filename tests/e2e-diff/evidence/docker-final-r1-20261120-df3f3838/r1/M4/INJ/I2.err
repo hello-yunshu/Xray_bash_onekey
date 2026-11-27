@@ -1,0 +1,3 @@
+nginx -t rejected the configuration (exit 1): nginx: [emerg] cannot load certificate "/etc/idleleo/cert/xray.crt": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/etc/idleleo/cert/xray.crt, r) error:10000080:BIO routines::no such file)
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test failed; Nginx rollback failed: restore: restart: systemctl restart nginx failed (exit 1): Job for nginx.service failed because the control process exited with error code.
+See "systemctl status nginx.service" and "journalctl -xeu nginx.service" for details.; managed Nginx is installed at /etc/idleleo/conf/nginx and can be removed with 'idleleo xray uninstall'

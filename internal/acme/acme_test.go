@@ -335,7 +335,14 @@ func TestMigrateLegacyAccountMovesState(t *testing.T) {
 
 func TestMarkManagedWritesOwnershipMarker(t *testing.T) {
 	certPath := filepath.Join(t.TempDir(), "xray.crt")
-	if err := markManaged(certPath, ""); err != nil {
+	keyPath := filepath.Join(filepath.Dir(certPath), "xray.key")
+	if err := os.WriteFile(certPath, []byte("certificate"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(keyPath, []byte("private key"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := markManaged(certPath, keyPath, ""); err != nil {
 		t.Fatal(err)
 	}
 	info, err := os.Stat(ManagedMarker(certPath))
@@ -344,6 +351,19 @@ func TestMarkManagedWritesOwnershipMarker(t *testing.T) {
 	}
 	if info.Mode().Perm() != 0o644 {
 		t.Fatalf("marker mode = %o, want 0644", info.Mode().Perm())
+	}
+	raw, err := os.ReadFile(ManagedMarker(certPath))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, file := range []string{certPath, keyPath} {
+		sum, err := fileSHA256(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(string(raw), "sha256="+sum) {
+			t.Fatalf("ownership record must bind %s by content hash: %q", file, raw)
+		}
 	}
 	if IsUserManaged(certPath) {
 		t.Fatal("managed marker must not read as user-managed")
@@ -395,5 +415,21 @@ func TestInspectReportsMissingCertificate(t *testing.T) {
 	}
 	if !ins.Missing || !ins.Due {
 		t.Fatalf("inspection = %+v, want missing+due", ins)
+	}
+}
+
+func TestInspectReportsValidityWindow(t *testing.T) {
+	dir := t.TempDir()
+	certPath := filepath.Join(dir, "xray.crt")
+	chain, _ := testPair(t, 87, "example.com")
+	if err := os.WriteFile(certPath, chain, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ins, err := Inspect(certPath, 30*24*time.Hour)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ins.NotBefore == "" || ins.NotAfter == "" || ins.Expired || ins.ElapsedDays < 0 || ins.RemainingDays < 0 || !ins.Due {
+		t.Fatalf("inspection = %+v, want valid, dated, and inside the 30-day renewal window", ins)
 	}
 }

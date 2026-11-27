@@ -1,0 +1,49 @@
+depth=0 CN = example.com
+verify error:num=18:self-signed certificate
+verify return:1
+depth=0 CN = example.com
+verify return:1
+CONNECTED(00000003)
+---
+Certificate chain
+ 0 s:CN = example.com
+   i:CN = example.com
+   a:PKEY: id-ecPublicKey, 256 (bit); sigalg: ecdsa-with-SHA256
+   v:NotBefore: Nov 27 17:14:58 2026 GMT; NotAfter: Nov 30 17:14:58 2026 GMT
+-----BEGIN CERTIFICATE-----
+MIICMjCCAdegAwIBAgIJAPALx8R+MM7CMAoGCCqGSM49BAMCMBYxFDASBgNVBAMM
+C2V4YW1wbGUuY29tMB4XDTI2MTEyNzE3MTQ1OFoXDTI2MTEzMDE3MTQ1OFowFjEU
+MBIGA1UEAwwLZXhhbXBsZS5jb20wggFLMIIBAwYHKoZIzj0CATCB9wIBATAsBgcq
+hkjOPQEBAiEA/////wAAAAEAAAAAAAAAAAAAAAD///////////////8wWwQg////
+/wAAAAEAAAAAAAAAAAAAAAD///////////////wEIFrGNdiqOpPns+u9VXaYhrxl
+HQawzFOw9jvOPD4n0mBLAxUAxJ02CIbnBJNqZnjhE50mt4GffpAEQQRrF9Hy4SxC
+R/i85uVjpEDydwN9gS3rM6D0oTlF2JjClk/jQuL+Gn+bjufrSnwPnhYrzjNXazFe
+zsu2QGg3v1H1AiEA/////wAAAAD//////////7zm+q2nF56E87nKwvxjJVECAQED
+QgAEGDm1NLQnfOgXFo7LJ6pB0jwDrQEUUj694pMR7TPycuWt7/c8KTCrz4PubcyK
+Lak13uMy019coTtk9l+d9EB7dqMaMBgwFgYDVR0RBA8wDYILZXhhbXBsZS5jb20w
+CgYIKoZIzj0EAwIDSQAwRgIhALYpwiIr1LUO1a6G6dkdaZ4kH2SzXBTK1OfbEemN
+8x1nAiEA7w6p2YsD8hKZrjGf8dGbQugcPqFFZQolnwCJiHH6JO8=
+-----END CERTIFICATE-----
+---
+Server certificate
+subject=CN = example.com
+issuer=CN = example.com
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: ECDSA
+Server Temp Key: X25519, 253 bits
+---
+SSL handshake has read 940 bytes and written 393 bytes
+Verification error: self-signed certificate
+---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Server public key is 256 bit
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 18 (self-signed certificate)
+---
+DONE

@@ -1,0 +1,70 @@
+{
+  "active": {
+    "bash": "active",
+    "go": "active"
+  },
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "details": {
+    "bash": {
+      "clientConnected": true,
+      "portListening": true,
+      "shareInfo": "vless://e86bd9d6-7076-502c-ab9f-a393c07c9abe@[2001:db8::1]:8443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=3nsJ2Ti_BushsO54gmudt2QbO_r73qtQ4StNgoDbZmk&sni=www.cloudflare.com&target=www.cloudflare.com&sid=e6b2347b3c2648c9&spx=/api/status/726ldl62#240e%3A3a0%3A4050%3A361a%3A5dc6%3A7dba%3Acb94%3A9ee5+Reality%E5%8D%8F%E8%AE%AE"
+    },
+    "go": {
+      "clientConnected": true,
+      "portListening": true,
+      "shareInfo": "vless://0c587072-c63b-44d7-81e3-7f70e9bdc7f4@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=mwdlTV8soXBdgRIkf_muB7YU0zxEXJ_9H0zRlJQv31k&sid=7dcfd067&type=raw#idleleo-reality"
+    }
+  },
+  "id": "OPS-04",
+  "l4": {
+    "bash": 0,
+    "go": 0
+  },
+  "listening443": {
+    "bash": false,
+    "go": false
+  },
+  "nginxListen": {
+    "bash": [
+      "listen       80;",
+      "listen 127.0.0.1:9403 ssl;",
+      "listen 8443 reuseport so_keepalive=on backlog=65535;"
+    ],
+    "go": [
+      "listen       80;",
+      "listen 127.0.0.1:9403 ssl;",
+      "listen 8443 reuseport so_keepalive=on backlog=65535;"
+    ]
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "repeat": {
+    "bashFirst": 0,
+    "bashSecond": 0,
+    "goNegative": 2,
+    "goRepeat": 0
+  },
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "driverSha": "9d4f03c2ed6f55725b92f5c5245026a81aab45ec2a8fb8ca18e30957c1ad1476",
+    "finishedAt": "2026-11-23T19:39:57Z",
+    "image": "sha256:a45a231a1449bb185360cc900ca9e976ed83140621f4678645c70d13c0480390",
+    "layer": "L0-L4 docker matrix",
+    "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+    "runId": "round4-bizfacts2-50415119",
+    "startedAt": "2026-11-23T19:25:24Z"
+  },
+  "sharePort": {
+    "bash": null,
+    "go": 8443
+  },
+  "verdict": "PASS"
+}

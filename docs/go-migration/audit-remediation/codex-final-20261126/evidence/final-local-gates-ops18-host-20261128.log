@@ -1,0 +1,14 @@
+$ actionlint .github/workflows/ops18-host-bbr.yml
+exit: 0
+
+$ bash -n tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh
+exit: 0
+
+$ bash tests/e2e-diff/collect/guard_acceptance_artifacts.sh
+exit: 0
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests
+...........................................
+----------------------------------------------------------------------
+Ran 43 tests in 3.588s
+
+OK

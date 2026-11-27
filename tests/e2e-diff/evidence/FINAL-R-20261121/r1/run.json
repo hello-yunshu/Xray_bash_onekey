@@ -1,0 +1,7 @@
+{
+  "branch": "work/go-hardening-parity-20261119",
+  "commit": "c0f382f2bbc805556b0dd72b4a800af51de2312c",
+  "imageTag": "idleleo-e2e:24.04",
+  "runId": "FINAL-R-20261121",
+  "scenarios": "M1,M4"
+}

@@ -1,0 +1,1 @@
+xray api enable --sandbox / --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply --container --json

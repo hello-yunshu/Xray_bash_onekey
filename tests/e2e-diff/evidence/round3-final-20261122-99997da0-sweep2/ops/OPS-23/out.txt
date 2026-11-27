@@ -1,0 +1,10 @@
+{
+  "server": "http://e2e-round3-final-20261122-99997da0-sweep2-origin",
+  "downMbps": 2988.15,
+  "bytes": 1048576,
+  "durationMs": 2,
+  "samplesMbps": [
+    2988.15
+  ],
+  "startedAt": "2026-11-22T15:38:25.125039732Z"
+}

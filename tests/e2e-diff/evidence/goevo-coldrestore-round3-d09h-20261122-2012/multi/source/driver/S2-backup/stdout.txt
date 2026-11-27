@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "archive": "/handoff/state.tar.gz",
+  "archiveSha256": "0b645b24a619c730c6843158011bb90b6b38f3df53ac86aa8987b558955c6066",
+  "bytes": 5013,
+  "files": 12,
+  "createdAt": "2026-11-22T10:41:50Z",
+  "sensitive": true
+}

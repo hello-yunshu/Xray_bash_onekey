@@ -317,6 +317,14 @@ func Generate(spec Spec) (Generated, error) {
 	if !strings.HasPrefix(spec.Path, "/") {
 		spec.Path = "/" + spec.Path
 	}
+	if spec.Transport == TransportXHTTP {
+		// Install, generate, edit and share-link import all converge here. Keep
+		// the Xray and managed Nginx paths aligned after Nginx URI normalization.
+		if err := ValidateXHTTPPath(spec.Path); err != nil {
+			return Generated{}, err
+		}
+		spec.Path = normalizeXHTTPPath(spec.Path)
+	}
 	if spec.ServiceName == "" {
 		spec.ServiceName = defaultGRPCService
 	}

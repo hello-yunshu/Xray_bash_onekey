@@ -1,0 +1,31 @@
+{
+  "afterSha": "6ac6216fdf23e54356645fad9ce95dca241e64847095aa94a4b1adc7faaa36df",
+  "allPassed": true,
+  "backups": 1,
+  "beforeSha": "7cd861d4945124a7ba0438143698c447142a77a524e4700e96a41f64f206c9c7",
+  "checks": {
+    "backupExists": true,
+    "configChanged": true,
+    "configRestored": false,
+    "editRcNonZero": false,
+    "editRcZero": true,
+    "noBackup": false,
+    "probeRefused": false,
+    "probeReported": true,
+    "rollbackReported": false,
+    "serviceActive": true,
+    "shareUriUpdated": false,
+    "targetApplied": true,
+    "uuidApplied": false
+  },
+  "editRc": 0,
+  "scenario": "E4",
+  "service": "active",
+  "wanted": [
+    "editRcZero",
+    "configChanged",
+    "targetApplied",
+    "probeReported",
+    "serviceActive"
+  ]
+}

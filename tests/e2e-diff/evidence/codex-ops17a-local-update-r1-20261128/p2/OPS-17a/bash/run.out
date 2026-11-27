@@ -1,0 +1,5 @@
+OPS_ID=OPS-17a
+spawn bash /etc/idleleo/install.sh
+[32m[OK][0m [42;30m 当前用户是 root 用户, 开始安装 [0m
+[1;31m[错误][0m [41;30m 在线版本检测失败, 请稍后再试! [0m
+HARNESS-ERROR: updateMenu: eof before prompt '请输入选项'

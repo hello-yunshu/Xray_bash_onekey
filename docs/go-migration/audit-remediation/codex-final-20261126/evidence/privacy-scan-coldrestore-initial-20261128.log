@@ -1,0 +1,2 @@
+tests/e2e-diff/evidence/bashcoldrestore-bc10-8ff-1128/multi/source/driver/source-client/tls-server-cert.txt:5: [REDACTED_NON_IP_CERT_SERIAL] (public IPv6)
+hygiene: 1 finding(s) in 75360 file(s)

@@ -1,0 +1,29 @@
+{
+  "active": {
+    "bash": "active",
+    "go": "active"
+  },
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-04",
+  "nginxListen": {
+    "bash": [
+      "listen       80;",
+      "listen 127.0.0.1:9403 ssl;",
+      "listen 8443 reuseport so_keepalive=on backlog=65535;"
+    ],
+    "go": [
+      "listen       80;",
+      "listen 127.0.0.1:9403 ssl;",
+      "listen 8443 reuseport so_keepalive=on backlog=65535;"
+    ]
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "verdict": "PASS"
+}

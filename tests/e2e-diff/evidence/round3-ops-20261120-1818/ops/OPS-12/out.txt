@@ -1,0 +1,5 @@
+Nov 20 10:18:59 e2e-round3-ops-20261120-1818-server systemd[1]: Stopped xray.service - Xray Service.
+Nov 20 10:18:59 e2e-round3-ops-20261120-1818-server systemd[1]: Started xray.service - Xray Service.
+Nov 20 10:18:59 e2e-round3-ops-20261120-1818-server xray[324]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+Nov 20 10:18:59 e2e-round3-ops-20261120-1818-server xray[324]: A unified platform for anti-censorship.
+Nov 20 10:18:59 e2e-round3-ops-20261120-1818-server xray[324]: 2026/11/20 10:18:59.496754 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

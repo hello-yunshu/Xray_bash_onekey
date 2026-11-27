@@ -1,0 +1,16 @@
+{
+  "runId": "bc13-8ff-1128",
+  "scenarios": {
+    "multi": {
+      "archiveSHA256": "87ec94e7363f72f6c39c8cd1ff2f33d908cde6ab88395097c4e98dbfd94c6f35",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 1
+    },
+    "relay": {
+      "archiveSHA256": "2074b147a41a5d8e3dc52598a5ebe7ca992efba05a37b723cd6570df7380714b",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 1
+    }
+  },
+  "schemaVersion": 1
+}

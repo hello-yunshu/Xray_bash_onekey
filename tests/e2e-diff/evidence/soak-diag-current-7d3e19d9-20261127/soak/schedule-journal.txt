@@ -1,0 +1,14 @@
+Nov 27 10:39:12 e2e-soak-diag-current-7d3e19d9-20261127-sched systemd[1]: Starting idleleo-schedule.service - idleleo Go scheduled maintenance (Bridge migration takeover)...
+Nov 27 10:39:12 e2e-soak-diag-current-7d3e19d9-20261127-sched idleleo[212]: 2026-11-27T10:39:12Z job=auto-update result=degraded no Go release channel is configured; no automatic update runs (explicit product degradation, see `idleleo update configure`)
+Nov 27 10:39:12 e2e-soak-diag-current-7d3e19d9-20261127-sched idleleo[212]: 2026-11-27T10:39:12Z job=cert-renew result=skipped no certificate files to monitor
+Nov 27 10:39:12 e2e-soak-diag-current-7d3e19d9-20261127-sched idleleo[212]: 2026-11-27T10:39:12Z job=geodata-refresh result=ok geoip.dat=3312784 bytes geosite.dat=7554929 bytes; xray not active, no reload
+Nov 27 10:39:12 e2e-soak-diag-current-7d3e19d9-20261127-sched idleleo[212]: 2026-11-27T10:39:12Z job=stats-collect result=skipped no runtime config (relay role has no Xray stats)
+Nov 27 10:39:12 e2e-soak-diag-current-7d3e19d9-20261127-sched systemd[1]: idleleo-schedule.service: Deactivated successfully.
+Nov 27 10:39:12 e2e-soak-diag-current-7d3e19d9-20261127-sched systemd[1]: Finished idleleo-schedule.service - idleleo Go scheduled maintenance (Bridge migration takeover).
+Nov 27 10:39:28 e2e-soak-diag-current-7d3e19d9-20261127-sched systemd[1]: Starting idleleo-schedule.service - idleleo Go scheduled maintenance (Bridge migration takeover)...
+Nov 27 10:39:28 e2e-soak-diag-current-7d3e19d9-20261127-sched idleleo[276]: 2026-11-27T10:39:28Z job=auto-update result=degraded no Go release channel is configured; no automatic update runs (explicit product degradation, see `idleleo update configure`)
+Nov 27 10:39:28 e2e-soak-diag-current-7d3e19d9-20261127-sched idleleo[276]: 2026-11-27T10:39:28Z job=cert-renew result=skipped no certificate files to monitor
+Nov 27 10:39:28 e2e-soak-diag-current-7d3e19d9-20261127-sched idleleo[276]: 2026-11-27T10:39:28Z job=geodata-refresh result=ok geoip.dat=3312784 bytes geosite.dat=7554929 bytes; xray not active, no reload
+Nov 27 10:39:28 e2e-soak-diag-current-7d3e19d9-20261127-sched idleleo[276]: 2026-11-27T10:39:28Z job=stats-collect result=skipped no runtime config (relay role has no Xray stats)
+Nov 27 10:39:28 e2e-soak-diag-current-7d3e19d9-20261127-sched systemd[1]: idleleo-schedule.service: Deactivated successfully.
+Nov 27 10:39:28 e2e-soak-diag-current-7d3e19d9-20261127-sched systemd[1]: Finished idleleo-schedule.service - idleleo Go scheduled maintenance (Bridge migration takeover).

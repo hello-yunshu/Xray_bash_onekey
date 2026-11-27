@@ -1,0 +1,21 @@
+{
+  "mode": "Reality",
+  "policy": "decoy",
+  "decoyDomain": "guard-async.local",
+  "denyPort": 9444,
+  "changed": true,
+  "dryRun": false,
+  "files": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/etc/idleleo/cert/decoy.crt",
+    "/etc/idleleo/cert/decoy.key",
+    "/etc/idleleo/decoy/index.html",
+    "/etc/idleleo/conf/nginx/03-decoy.conf",
+    "/etc/idleleo/conf/nginx/03-isolate.conf",
+    "/usr/local/nginx/conf/nginx.conf",
+    "/etc/idleleo/v1/metadata.json"
+  ],
+  "reloaded": true,
+  "selfSigned": true,
+  "warnings": []
+}

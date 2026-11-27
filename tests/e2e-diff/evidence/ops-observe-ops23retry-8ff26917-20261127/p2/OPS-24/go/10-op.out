@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "startedAt": "2026-11-27T14:17:35Z",
+  "results": [
+    {
+      "job": "geodata-refresh",
+      "result": "failed",
+      "detail": "geoip.dat: download interrupted: context deadline exceeded (Client.Timeout or context cancellation while reading body)",
+      "at": "2026-11-27T14:17:35Z"
+    }
+  ]
+}

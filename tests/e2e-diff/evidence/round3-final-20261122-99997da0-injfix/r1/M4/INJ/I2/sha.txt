@@ -1,0 +1,3 @@
+38a9a41282d2064b0beba05b5d95d9e9abcc09e77b7bd0d2e0fd544bf35ff0cb  /etc/idleleo/conf/xray/config.json
+cfc75dd93d5b1f043732d86f26e71f81378eb14d0a53f0b2f91d4001d5f6e189  /etc/systemd/system/xray.service
+d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d  /etc/systemd/system/nginx.service

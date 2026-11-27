@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "units": {
+    "nginx": {
+      "errorLines": 0,
+      "lines": 11,
+      "sampleErrors": [],
+      "sha256": "372c612e6068c046eeebbc4cd170a6b4decde94486bcc0bcd5a93626b0727189",
+      "warningLines": 0
+    },
+    "xray": {
+      "errorLines": 1,
+      "lines": 16,
+      "sampleErrors": [
+        "2026/11/27 08:46:42.959563 [Error] app/dns: failed to retrieve response for example.com. > Post \"https://dns.google/dns-query\": context deadline exceeded"
+      ],
+      "sha256": "f7e3061cf699a73369e3e176426a668da4de0e247a52173f9985569cc2f7bd9f",
+      "warningLines": 4
+    }
+  }
+}

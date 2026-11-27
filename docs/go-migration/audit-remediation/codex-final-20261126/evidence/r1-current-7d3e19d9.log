@@ -1,0 +1,59 @@
+19:01:21 building idleleo
+19:01:25 idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d recover_sha256=275c5dfdbdbb0174643d9afd66fd5a0fa328cda3e41e1b5bda387b63fc9df0d0 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a
+19:01:25 run_start=2026-11-27T11:01:25Z only=M1,M4 paths=both
+19:01:25 [M1/R1] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+19:03:13 [M1/R2] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+19:04:26 [M1/INJ] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+19:06:00 [M4/R1] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=d94ed3efcc600af4d5ef5931cbc1f2b796928d71bab8db7faf11199c6c38859b
+install_exit=0
+done=tls install_exit=0
+19:09:22 [M4/R2] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=d94ed3efcc600af4d5ef5931cbc1f2b796928d71bab8db7faf11199c6c38859b
+install_exit=0
+done=tls install_exit=0
+19:10:32 [M4/INJ] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=d94ed3efcc600af4d5ef5931cbc1f2b796928d71bab8db7faf11199c6c38859b
+install_exit=0
+done=tls install_exit=0
+19:11:41 [I3] start
+19:11:43 run_end=2026-11-27T11:11:43Z
+106 PASS
+0 FAIL
+run_r1_upgrade_rc=0

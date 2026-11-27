@@ -1,0 +1,31 @@
+# Cold restore real-machine evidence (relay)
+
+- run-id: `coldrestore-current-7d3e19d9`
+- commit: `7d3e19d92ce0dc4f70ab90dedc81c13a41403f91`
+- image id: `sha256:f6c28602447747db6291384109d07dd376190c56f50bf2aadab3771c0f14ed9a`
+- source driver rc: 0
+- target driver rc: 0
+- archive sha256: `71a5fbf160cb3fc19fb59a1526d354c25594629cc839975dc56e6f6f91e44d30`
+
+- **PASS** [source] source install is healthy before the backup (rc=0)
+- **PASS** [source] source backup create exits 0 (rc=0)
+- **PASS** [source] source archive exists
+- **PASS** [source] source archive is mode 0600 (mode=600)
+- **PASS** [source] source archive verifies (rc=0)
+- **PASS** [source] a real client reaches the origin on the source machine (relay)
+- **PASS** [source] source probe reports REAL_CLIENT_PASS
+- **PASS** [target] target install is healthy before the restore (rc=0)
+- **PASS** [target] the fresh target starts with different managed state (relay)
+- **PASS** [target] target verifies the source archive (rc=0)
+- **PASS** [target] the handoff archive digest matches the source
+- **PASS** [target] cold restore exits 0 (rc=0)
+- **PASS** [target] restored state is byte-identical to the source (relay)
+- **PASS** [target] the restore wrote a pre-restore backup
+- **PASS** [target] nginx is active after the restore (state=active)
+- **PASS** [target] doctor is healthy after the cold restore (rc=0)
+- **PASS** [target] a real client reaches the origin after the cold restore (relay)
+- **PASS** [target] target probe reports REAL_CLIENT_PASS
+- **PASS** [target] nginx survives a restart after the restore (state=active)
+- **PASS** [target] a real client still reaches the origin after the post-restore restart (relay)
+- **PASS** [target] the third-party certificate canary survived the restore
+- **PASS** [target] the third-party config note survived the restore unchanged

@@ -1,0 +1,49 @@
+{
+  "mode": "tls",
+  "transport": "xhttp",
+  "changed": [
+    "xhttp-path"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.xhttpSettings.path"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "31e713663d5d65a76cbb4b91105fb5cccab45903f236bc6f77e8c3a897ee65bb",
+  "newSha256": "4e8b7e617256b6ef544a0862b8a24ec635a6923304d57d59761a4d93c51e9100",
+  "backupDir": "/etc/idleleo/backup/edit-20261126T105032",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://a072e733-e98b-48ab-9142-73915114e4ce@example.com:443?encryption=none&security=tls&sni=example.com&type=xhttp&path=/ray/&host=example.com#idleleo-tls",
+  "domain": "example.com",
+  "certFile": "/etc/idleleo/cert/xray.crt",
+  "certKeyFile": "/etc/idleleo/cert/xray.key",
+  "tlsSystemTrusted": false,
+  "disconnect": false,
+  "warnings": null,
+  "upstreamSha256": "39676994ab18eae09c622945b23d3b1b204ceb7c33c02e8c368f7294a7249e5e",
+  "upstreamUnchanged": false,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "31e713663d5d65a76cbb4b91105fb5cccab45903f236bc6f77e8c3a897ee65bb",
+    "newSha256": "4e8b7e617256b6ef544a0862b8a24ec635a6923304d57d59761a4d93c51e9100",
+    "changed": [
+      "xhttp-path"
+    ],
+    "affectedServices": [
+      "nginx",
+      "xray"
+    ],
+    "disconnectRisk": "none: no live session is dropped",
+    "validationSteps": [
+      "xray -test",
+      "nginx -t"
+    ],
+    "rollbackScope": "runtime config + nginx front",
+    "ownership": "idleleo-managed",
+    "fingerprint": "016636dcb2c65490"
+  }
+}

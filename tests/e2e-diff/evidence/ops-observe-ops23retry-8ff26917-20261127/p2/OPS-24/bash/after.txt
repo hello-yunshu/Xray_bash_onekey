@@ -1,0 +1,3 @@
+geoip.dat absent
+geosite.dat absent
+active

@@ -1,0 +1,24 @@
+{
+  "id": "OPS-24",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "Bash GeoData menu refreshes from the hard-coded public GitHub release; this isolated job has no public origin",
+    "bash output shows the GeoData menu, bytes=380375",
+    "go schedule status rc=0; real Go geodata refresh is covered by the ops sweep with a local origin"
+  ],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "driverSha": "68029718cfda1060363393ba9e122f56c1bdee09796d7943b1c945ffaf115e20",
+    "finishedAt": "2026-11-24T00:55:10Z",
+    "image": "sha256:e7ad9b7bf18cdcebbf21b6b1204f1834abb8c7ce947ce79848650e3fea4108cb",
+    "layer": "L0-L4 docker matrix",
+    "productCodeSha": "d756dfff6b5091b2d2a9fea8188297fc50aa23a8",
+    "runId": "round5-obsc4-085130",
+    "startedAt": "2026-11-24T00:51:30Z"
+  },
+  "verdict": "BLOCKED"
+}

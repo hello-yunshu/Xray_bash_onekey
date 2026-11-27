@@ -1,0 +1,17 @@
+23:15:13 run_id=audit-p1a2-20261119
+23:15:15 image_id=sha256:f4b6e239e7e3c90d2fb2812d6ed0174b1735fc5eb0fc55dc9b8f9c64a0350c4f
+23:15:15 building idleleo
+23:15:20 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=df100b2c97050f30796d96bc3c1c9318abf45021981801b3873826680aefd088
+23:15:20 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+23:15:20 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+23:15:23 argv-verify written
+23:15:23 [M6] start
+23:15:23 [M5] start
+23:15:23 [M10] start
+23:15:23 [M3] start
+23:18:48 [M6] done
+23:20:36 [M5] done
+23:20:44 [M10] done
+23:23:25 [M3] done
+23:23:25 scope: installs=[M3,M5,M6,M10] edits=[] ops=[]
+23:23:26 P2 finished: tests/e2e-diff/evidence/audit-p1a2-20261119/p2

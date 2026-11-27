@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-03",
+  "ops": [
+    "OPS-03"
+  ],
+  "runId": "round5-cand-ops03c-131954",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

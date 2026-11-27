@@ -1,0 +1,12 @@
+{
+  "id": "OPS-17a",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "update check requires the public distribution; this job has no pinned manifest",
+    "bash rc=124 go rc=0"
+  ],
+  "verdict": "BLOCKED"
+}

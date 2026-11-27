@@ -1,0 +1,9 @@
+56
+2026/11/27 06:39:16.444408 [Info] infra/conf/serial: Reading config: &{Name:/client/client.json Format:json}
+2026/11/27 06:39:16.445312 [Warning] core: Xray 26.11.9 started
+2026/11/27 06:39:18.447062 from tcp:127.0.0.1:48638 accepted tcp:example.com:80
+2026/11/27 06:39:18.801092 [Error] [3102070237] transport/internet/reality: REALITY: received real certificate (potential MITM or redirection)
+2026/11/27 06:39:19.190468 [Error] [3102070237] transport/internet/reality: REALITY: received real certificate (potential MITM or redirection)
+2026/11/27 06:39:19.852218 [Error] [3102070237] transport/internet/reality: REALITY: received real certificate (potential MITM or redirection)
+2026/11/27 06:39:20.624987 [Error] [3102070237] transport/internet/reality: REALITY: received real certificate (potential MITM or redirection)
+2026/11/27 06:39:21.646767 [Error] [3102070237] transport/internet/reality: REALITY: received real certificate (potential MITM or redirection)

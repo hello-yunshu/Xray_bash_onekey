@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "runId": "scripts-current-retry2-7d3e19d9-20261127",
+  "productCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+  "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+  "driverSha256": "82ce1c3518fe955dc9026a0d4f711cd53b4df8e63f045a450ac5b989936ca447",
+  "dependencies": [
+    {
+      "path": "tests/e2e-diff/run_s_scripts.sh",
+      "sha256": "82ce1c3518fe955dc9026a0d4f711cd53b4df8e63f045a450ac5b989936ca447"
+    },
+    {
+      "path": "tests/go-parity/lib/docker_common.sh",
+      "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55"
+    },
+    {
+      "path": "tests/e2e-diff/drivers/bash_install.sh",
+      "sha256": "8449d237e94de047ab5a6b28c4fc68b002b0c79c7942d04e3515f17844660ba9"
+    },
+    {
+      "path": "tests/e2e-diff/collect/l4.sh",
+      "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327"
+    },
+    {
+      "path": "tests/e2e-diff/collect/client_config.py",
+      "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef"
+    },
+    {
+      "path": "tests/go-parity/acme/pebble-config.json",
+      "sha256": "59fb1468d4a78f3c05dcbf61e68a7eaa12ded753cb67b50af2686720572275f9"
+    }
+  ],
+  "platform": "linux/arm64",
+  "images": {
+    "e2e": "sha256:7803c2c26d730bad30ec7eda008e7e17cd5f63d64314fa797360b827ef552902",
+    "golang": "sha256:205c7636d74e0ffbe3d007162df7d74f859f5a8c8322dfb9f907977686c126cf",
+    "pebble": "sha256:ddf230642b1a584f519f32e347de1b05a6e4c1f6c35c1863b33effeab5f78199"
+  },
+  "xraySha256": "c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a",
+  "rows": [
+    "S4",
+    "S5",
+    "S6",
+    "S7",
+    "S8",
+    "S9"
+  ],
+  "startedAt": "2026-11-27T10:50:59Z",
+  "finishedAt": "2026-11-27T10:55:43Z",
+  "verdict": "PASS",
+  "actualRc": 0,
+  "assertions": {
+    "pass": 64,
+    "fail": 0
+  },
+  "firstRun": {
+    "runId": "scripts-current-7d3e19d9-20261127",
+    "pass": 63,
+    "fail": 1,
+    "rc": 1,
+    "reason": "Installed Xray 26.11.9 correctly refused downgrade to metadata target 26.10.31; stale harness asserted “up to date”."
+  },
+  "resultLog": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/s4-s9-current-retry2-7d3e19d9.log"
+}

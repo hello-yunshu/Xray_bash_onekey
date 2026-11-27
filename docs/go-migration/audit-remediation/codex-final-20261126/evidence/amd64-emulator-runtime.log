@@ -1,0 +1,4 @@
+host_uname=arm64
+docker_server_arch=arm64
+container_platform=linux/amd64
+container_uname=x86_64

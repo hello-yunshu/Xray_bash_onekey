@@ -1,0 +1,125 @@
++ set -euo pipefail
++ ROOT=<REPO_ROOT>
++ EVID=<REPO_ROOT>/tests/e2e-diff/evidence/ops17a-live-l4-7d3e19d9-20261127/p2/OPS-17a/go/local-signed-update
++ SERVER=e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go
++ NETWORK=e2e-ops17a-live-l4-7d3e19d9-20261127-observe
+++ mktemp -d <TMP_ROOT>/xray-ops17a-live.<RUN>
++ TMP=<TMP_ROOT>/xray-ops17a-live.<RUN>
++ trap 'python3 - "$TMP" <<"PYTRAP"
+import pathlib, shutil, sys
+p=pathlib.Path(sys.argv[1])
+if p.parent==pathlib.Path("/tmp") and p.name.startswith("xray-ops17a-live."):
+    shutil.rmtree(p, ignore_errors=True)
+PYTRAP' EXIT
++ BIN=<TMP_ROOT>/xray-ops17a-live.<RUN>/idleleo-linux-arm64
++ XRAY=<TMP_ROOT>/xray-ops17a-live.<RUN>/xray
++ docker run --rm -v <REPO_ROOT>:/src:ro -v <TMP_ROOT>/xray-ops17a-live.<RUN>:/out -w /src golang:1.27.4 env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags '-s -w -X github.com/hello-yunshu/Xray_bash_onekey/internal/cli.Version=0.3.0-phase04' -o /out/idleleo-linux-arm64 ./cmd/idleleo
++ chmod 0755 <TMP_ROOT>/xray-ops17a-live.<RUN>/idleleo-linux-arm64
++ sha256sum <TMP_ROOT>/xray-ops17a-live.<RUN>/idleleo-linux-arm64
++ docker cp <TMP_ROOT>/xray-ops17a-live.<RUN>/idleleo-linux-arm64 e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go:/tmp/idleleo-linux-arm64
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go chmod 0755 /tmp/idleleo-linux-arm64
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go mkdir -p /tmp/idleleo-update
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go openssl genpkey -algorithm Ed25519 -out /tmp/idleleo-update/test-release-key.pem
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go chmod 0600 /tmp/idleleo-update/test-release-key.pem
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go openssl pkey -in /tmp/idleleo-update/test-release-key.pem -pubout -out /tmp/idleleo-update/test-release-pub.pem
++ docker cp scripts/sign_json_ed25519.sh e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go:/tmp/idleleo-update/sign_json_ed25519.sh
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go sh -c 'd=$(sha256sum /tmp/idleleo-linux-arm64 | cut -d" " -f1); n=$(wc -c </tmp/idleleo-linux-arm64); printf "{\"schemaVersion\":1,\"channel\":\"go\",\"version\":\"0.3.0-phase04\",\"assets\":{\"linux-arm64\":{\"name\":\"idleleo-linux-arm64\",\"sha256\":\"%s\",\"size\":%s}}}\n" "$d" "$n" > /tmp/idleleo-update/manifest.unsigned.json'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go bash /tmp/idleleo-update/sign_json_ed25519.sh /tmp/idleleo-update/manifest.unsigned.json /tmp/idleleo-update/test-release-key.pem signature
++ docker cp e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go:/tmp/idleleo-update/test-release-pub.pem <REPO_ROOT>/tests/e2e-diff/evidence/ops17a-live-l4-7d3e19d9-20261127/p2/OPS-17a/go/local-signed-update/test-release-pub.pem
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go cp /tmp/idleleo-linux-arm64 /tmp/idleleo-update/idleleo-linux-arm64
++ docker exec -d e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go python3 -m http.server 18083 --bind 127.0.0.1 --directory /tmp/idleleo-update
+++ seq 1 30
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ for _ in '$(seq 1 30)'
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
++ sleep 0.2
++ docker exec e2e-ops17a-live-l4-7d3e19d9-20261127-observe-go curl -fsS http://127.0.0.1:18083/manifest.json
+curl: (22) The requested URL returned error: 404
++ python3 - <TMP_ROOT>/xray-ops17a-live.<RUN>
+exit=22

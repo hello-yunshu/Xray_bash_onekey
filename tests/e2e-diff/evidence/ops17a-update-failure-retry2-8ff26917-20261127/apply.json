@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "action": "",
+  "manifestUrl": "http://127.0.0.1:18085/manifest.json",
+  "platform": "linux-arm64",
+  "installPath": "/usr/local/bin/idleleo"
+}

@@ -1,0 +1,36 @@
+# Cold restore real-machine evidence
+
+- run-id: `docker-final-cold-20261120-df3f3838`
+- commit: `df3f38381a8d3c4f8c8bc9681d589c891f5133f6`
+- image id: `sha256:76b8b5d49b44c070978723937426452d9f00a3fc4bc5711c82880512b121ca9c`
+- source driver rc: 0
+- target driver rc: 0
+- archive sha256: `6b54208c115dbb7a9af22bd47dc0621d28243a2d65b7521478c45924c6799902`
+
+- **PASS** [source] source install is healthy before the backup (rc=0)
+- **PASS** [source] source backup create exits 0 (rc=0)
+- **PASS** [source] source archive exists
+- **PASS** [source] source archive is mode 0600 (mode=600)
+- **PASS** [source] source archive verifies (rc=0)
+- **PASS** [source] a real client reaches the origin on the source machine
+- **PASS** [source] source doctor --client-probe exits 0 (rc=0)
+- **PASS** [source] source probe reports REAL_CLIENT_PASS
+- **PASS** [target] target install is healthy before the restore (rc=0)
+- **PASS** [target] the fresh target starts with different managed state
+- **PASS** [target] target verifies the source archive (rc=0)
+- **PASS** [target] the handoff archive digest matches the source
+- **PASS** [target] cold restore exits 0 (rc=0)
+- **PASS** [target] restored config is byte-identical to the source
+- **PASS** [target] restored config is valid JSON
+- **PASS** [target] the restore wrote a pre-restore backup
+- **PASS** [target] restored config is mode 0640 (mode=640)
+- **PASS** [target] restored config group is xray (group=xray)
+- **PASS** [target] the target xray service account can read the restored config
+- **PASS** [target] the restored config passes xray -test (rc=0)
+- **PASS** [target] xray is active after the restore (state=active)
+- **PASS** [target] doctor is healthy after the cold restore (rc=0)
+- **PASS** [target] a real client reaches the origin after the cold restore
+- **PASS** [target] target doctor --client-probe exits 0 (rc=0)
+- **PASS** [target] target probe reports REAL_CLIENT_PASS
+- **PASS** [target] xray survives a restart after the restore (state=active)
+- **PASS** [target] a real client still reaches the origin after the post-restore restart

@@ -1,0 +1,12 @@
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+TERM environment variable not set.
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+E: Unable to locate package iftop
+/etc/idleleo/install.sh: line 10506: iftop: command not found
+TERM environment variable not set.
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+E: Unable to locate package iftop

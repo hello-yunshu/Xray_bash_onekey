@@ -1900,7 +1900,21 @@ download_json_file() {
 
     mkdir -p "$(dirname "${dest_file}")"
     rm -f "${tmp_file}"
-    if ! curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o "${tmp_file}" "$url"; then
+    # Optional offline release cache (IDLELEO_RELEASE_CACHE): a directory that
+    # mirrors the release raw tree (e.g. config/vless_reality.json). A hit
+    # replaces the download and still passes the JSON validation below, so a
+    # corrupt cache fails closed instead of installing unverified bytes.
+    local cache_root="${IDLELEO_RELEASE_CACHE:-}"
+    if [[ -n "${cache_root}" && -n "${shell_release_raw_base:-}" &&
+          "${url}" == "${shell_release_raw_base}/"* ]]; then
+        local rel="${url#"${shell_release_raw_base}/"}"
+        if [[ "${rel}" != *".."* && -f "${cache_root}/${rel}" ]] &&
+           cp "${cache_root}/${rel}" "${tmp_file}" 2>/dev/null; then
+            log_echo "${Info} ${GreenBG} $(gettext "使用离线缓存"): ${rel} ${Font}"
+        fi
+    fi
+    if [[ ! -s "${tmp_file}" ]] &&
+       ! curl -fsSL --connect-timeout 10 --retry 2 --retry-delay 1 -o "${tmp_file}" "$url"; then
         rm -f "${tmp_file}"
         return 1
     fi
@@ -2310,6 +2324,29 @@ validate_supported_system() {
     return 1
 }
 
+# Offline apt mode (IDLELEO_APT_CACHE): E2E/CI seeds the exact .deb closure so
+# no apt call reaches the network. The cache directory is authoritative: a
+# missing or broken closure fails closed instead of silently downloading.
+apt_offline_mode() {
+    [[ -n "${IDLELEO_APT_CACHE:-}" && -d "${IDLELEO_APT_CACHE}" ]] &&
+        type -P dpkg >/dev/null 2>&1
+}
+
+# Install the seeded .deb closure in one dpkg call: dpkg orders the set itself
+# and skips packages that are already installed at the same version.
+apt_offline_install() {
+    local -a debs=("${IDLELEO_APT_CACHE}"/*.deb)
+    if [[ ! -e "${debs[0]}" ]]; then
+        log_echo "${Error} ${RedBG} $(gettext "离线 apt 缓存为空"): ${IDLELEO_APT_CACHE} ${Font}"
+        return 1
+    fi
+    if ! dpkg -i "${debs[@]}" >/dev/null 2>&1; then
+        log_echo "${Error} ${RedBG} $(gettext "离线 apt 缓存安装失败") ${Font}"
+        return 1
+    fi
+    return 0
+}
+
 check_system() {
     if is_rpm_family && [[ ${VERSION_ID%%.*} -ge 10 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} ${VERSION} ${Font}"
@@ -2327,7 +2364,11 @@ check_system() {
         if [[ ! -f "${xray_install_config_file}" ]]; then
             wait_for_apt_lock 60 || exit 1
             dpkg --configure -a || exit 1
-            $INS update || exit 1
+            if apt_offline_mode; then
+                log_echo "${Info} ${GreenBG} $(gettext "使用离线 apt 缓存, 跳过软件源更新"): ${IDLELEO_APT_CACHE} ${Font}"
+            else
+                $INS update || exit 1
+            fi
         fi
     elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 24 ]]; then
         log_echo "${OK} ${GreenBG} $(gettext "当前系统为") Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME} ${Font}"
@@ -2342,7 +2383,11 @@ check_system() {
             fi
             # Configure any interrupted packages — safe now that we hold the lock.
             dpkg --configure -a || exit 1
-            $INS update || exit 1
+            if apt_offline_mode; then
+                log_echo "${Info} ${GreenBG} $(gettext "使用离线 apt 缓存, 跳过软件源更新"): ${IDLELEO_APT_CACHE} ${Font}"
+            else
+                $INS update || exit 1
+            fi
         fi
     else
         log_echo "${Error} ${RedBG} $(gettext "当前系统为") ${ID} ${VERSION_ID} $(gettext "不在支持的系统列表内, 安装中断")! ${Font}"
@@ -2729,6 +2774,25 @@ pkg_install() {
     local install_array=(${1//,/ })
     local failed=0
     local need_install=0
+    if apt_offline_mode; then
+        for p in "${install_array[@]}"; do
+            if [[ -z $(pkg_install_judge "${p}") ]]; then
+                need_install=1
+            fi
+        done
+        if [[ ${need_install} -eq 1 ]]; then
+            apt_offline_install || return 1
+            for p in "${install_array[@]}"; do
+                if [[ -z $(pkg_install_judge "${p}") ]]; then
+                    log_echo "${Error} ${RedBG} $(gettext "离线 apt 缓存缺少软件包"): ${p} ${Font}"
+                    return 1
+                fi
+            done
+        fi
+        log_echo "${OK} ${GreenBG} $(gettext "已安装") ${1//,/ } ${Font}"
+        sleep 0.5
+        return 0
+    fi
     for p in "${install_array[@]}"; do
         if [[ -z $(pkg_install_judge "${p}") ]]; then
             need_install=1
@@ -5080,6 +5144,17 @@ verify_nginx_layered_permissions() {
 }
 
 modify_nginx_port() {
+    # Menu actions (e.g. changing the SNI guard policy) can call the config
+    # writers before basic_information has populated `port`. An empty value
+    # would turn "listen 443 reuseport ..." into "listen reuseport ..." and
+    # make nginx refuse to start. The port is unchanged on these paths, so
+    # leave the existing listen lines alone instead of rewriting them blank.
+    if [[ -z "${port:-}" ]]; then
+        if [[ -f "${xray_install_config_file}" ]]; then
+            port=$(jq -r '.port // empty' "${xray_install_config_file}" 2>/dev/null)
+        fi
+        [[ -z "${port:-}" || "${port}" == "null" ]] && return 0
+    fi
     if [[ ${tls_mode} == "Reality" ]] && [[ ${reality_add_nginx} == "on" ]]; then
         sed -i "s/^\( *\)listen.*so_keepalive=on.*/\1listen ${port} reuseport so_keepalive=on backlog=65535;/" "${nginx_conf}"
         judge "Nginx port $(gettext "修改")"
@@ -6961,8 +7036,29 @@ nginx_install() {
     local base_url="https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v${nginx_build_version}"
     local manifest_file="${temp_dir}/release-manifest.json"
 
+    # Optional offline artifact cache (IDLELEO_NGINX_CACHE): a directory holding
+    # versions.json, release-manifest.json and the arch tarball. When both files
+    # are present they replace the two downloads; every manifest, filename,
+    # SHA256 and tar check below still runs, so a corrupt cache fails closed.
+    # A partial cache falls back to the network instead of installing
+    # unverified bytes.
+    local nginx_cache_dir="${IDLELEO_NGINX_CACHE:-}"
+    local nginx_cache_hit=0
+    local nginx_cache_asset=""
+    if [[ -n "${nginx_cache_dir}" ]]; then
+        nginx_cache_asset="${nginx_cache_dir}/${expected_nginx_filename}"
+        if [[ -f "${nginx_cache_dir}/release-manifest.json" && -f "${nginx_cache_asset}" ]] &&
+           cp "${nginx_cache_dir}/release-manifest.json" "${manifest_file}" 2>/dev/null; then
+            nginx_cache_hit=1
+            log_echo "${Info} ${GreenBG} Nginx $(gettext "使用离线缓存"): ${nginx_cache_dir} ${Font}"
+        else
+            log_echo "${Warning} ${YellowBG} Nginx $(gettext "离线缓存不完整, 回退在线下载"): ${nginx_cache_dir} ${Font}"
+        fi
+    fi
+
     # Manifest is mandatory (fail-closed). Missing/invalid manifest = abort.
-    if ! download_json_file "${base_url}/release-manifest.json" "${manifest_file}"; then
+    if [[ ${nginx_cache_hit} -eq 0 ]] &&
+       ! download_json_file "${base_url}/release-manifest.json" "${manifest_file}"; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "release-manifest.json 下载失败或无效, 拒绝安装") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
         return 1
@@ -7009,7 +7105,14 @@ nginx_install() {
 
     local url="${base_url}/${nginx_filename}"
 
-    if ! nginx_download_release_asset "$url" "$nginx_filename"; then
+    if [[ ${nginx_cache_hit} -eq 1 ]]; then
+        if ! cp "${nginx_cache_asset}" "${nginx_filename}" 2>/dev/null; then
+            log_echo "${Error} ${RedBG} Nginx $(gettext "缓存产物复制失败, 拒绝安装") ${Font}"
+            cd "$current_dir" && rm -rf "$temp_dir"
+            return 1
+        fi
+        log_echo "${OK} ${GreenBG} Nginx $(gettext "使用缓存产物") (${nginx_filename}) ${Font}"
+    elif ! nginx_download_release_asset "$url" "$nginx_filename"; then
         log_echo "${Error} ${RedBG} Nginx $(gettext "下载") $(gettext "失败") ${Font}"
         cd "$current_dir" && rm -rf "$temp_dir"
         return 1
@@ -14982,7 +15085,12 @@ function restore_directories() {
         fi
     fi
 
-    if ! cp -a "${staging}/." "${restore_root}/"; then
+    # Overlay atomically per file. A plain `cp -a` opens the destination with
+    # O_TRUNC, so restoring over a live install fails with ETXTBSY on the
+    # running xray/nginx binaries (the menu does not stop services). Replacing
+    # the destination first keeps the running processes on their old inode and
+    # makes the documented "restore while services run" path actually succeed.
+    if ! cp -a --remove-destination "${staging}/." "${restore_root}/"; then
         rm -rf "${staging}" "${_legacy_geo_source}"
         log_echo "${Error} ${RedBG} $(gettext "恢复") $(gettext "失败") ${Font}"
         return 1
@@ -15039,6 +15147,16 @@ function restore_directories() {
     # A failure rolls the layout and config back; never leave a half-healed tree.
     local _legacy_geo_arg=""
     [[ -n "${_legacy_geo_source}" ]] && _legacy_geo_arg="${_legacy_geo_source}/xray"
+    # A clean restore target has no Xray runtime log directory. The restored
+    # config points its access/error logs at /var/log/xray, and the subsequent
+    # GeoData validation runs the real binary before systemd can create that
+    # path. Reapply the unit-aware ownership/mode policy before validation so
+    # a valid archive is restorable on a fresh host.
+    if [[ "${restore_root}" == "/" ]] && ! xray_privilege_escalation; then
+        rm -rf "${_legacy_geo_source}"
+        log_echo "${Error} ${RedBG} $(gettext "恢复失败: Xray 日志目录权限初始化失败") ${Font}"
+        return 1
+    fi
     if ! restore_geodata_layout_selfheal "${restore_root}" "${_legacy_geo_arg}"; then
         rm -rf "${_legacy_geo_source}"
         log_echo "${Error} ${RedBG} $(gettext "恢复失败: GeoData 资源目录自愈未通过") ${Font}"

@@ -1,0 +1,16 @@
+{
+  "applicable": true,
+  "tls": "Reality",
+  "managedFront": true,
+  "enabled": true,
+  "policy": "isolate",
+  "status": "active",
+  "metadataSynced": true,
+  "denyPort": 9403,
+  "evidence": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/usr/local/nginx/conf/nginx.conf",
+    "/etc/idleleo/conf/nginx/03-isolate.conf"
+  ],
+  "warnings": []
+}

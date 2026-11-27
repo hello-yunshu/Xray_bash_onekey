@@ -1,0 +1,5 @@
+present=true
+subject=CN = example.com
+notAfter=Nov 24 18:44:32 2036 GMT
+notExpired=true
+sha256=9a2c62a2b6ebcf676de1482f89684471091554ea9d56b5abfa821a7585de9ef0

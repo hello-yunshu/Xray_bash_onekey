@@ -1,0 +1,52 @@
+{
+  "mode": "reality",
+  "transport": "raw",
+  "changed": [
+    "reality-private-key"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.privateKey"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "e870ca3fc10b6b91161f96b0afac9d2aba26c91f955903764951552f5c334ecf",
+  "newSha256": "f2cb0aaab7bf3021bf1df82b9579b1d126c26229793db006a19b1c08cb88ab76",
+  "backupDir": "/etc/idleleo/backup/edit-20261120T102733",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://ac9ac161-e001-41e3-92e9-f55420c4020d@127.0.0.1:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=dg4D5m8u_5gCs_Ptv3TnHg0dGWcOuo5WwKxpr42DIBg&sid=e9e73501&type=raw#idleleo-reality",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": null,
+  "shortIds": [
+    "e9e73501"
+  ],
+  "oldShareUri": "vless://ac9ac161-e001-41e3-92e9-f55420c4020d@127.0.0.1:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.cloudflare.com&fp=chrome&pbk=e7thm9KRDO00LPS2VB9YpZgxwT7qubGLrU74mJ5xhi4&sid=e9e73501&type=raw#idleleo-reality",
+  "privateKeyRotated": true,
+  "realityProbe": "failed: reality handshake with example.com:443 failed: read tcp 127.0.0.1:38282->127.0.0.1:42877: read: connection reset by peer ()",
+  "realityRollbackProbe": "ok: old link still completes a vless+reality handshake+request",
+  "failurePoint": "reality-handshake",
+  "upstreamUnchanged": true,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "e870ca3fc10b6b91161f96b0afac9d2aba26c91f955903764951552f5c334ecf",
+    "newSha256": "f2cb0aaab7bf3021bf1df82b9579b1d126c26229793db006a19b1c08cb88ab76",
+    "changed": [
+      "reality-private-key"
+    ],
+    "affectedServices": [
+      "xray"
+    ],
+    "disconnectRisk": "drops live client sessions until clients reconnect",
+    "validationSteps": [
+      "xray -test",
+      "vless+reality handshake with the new link"
+    ],
+    "rollbackScope": "runtime config",
+    "ownership": "idleleo-managed",
+    "fingerprint": "98a315b9893ddc6a"
+  }
+}

@@ -1,0 +1,31 @@
+17:11:31 run_id=soak-current-7d3e19d9-20261127 iterations=31 interval=60s min=1800s
+17:11:48 iter=1 ok active=active test=0 listen=1 rss=37216KiB l4=ok/577B
+17:12:49 iter=2 ok active=active test=0 listen=1 rss=13876KiB l4=ok/577B
+17:13:50 iter=3 ok active=active test=0 listen=1 rss=21732KiB l4=ok/577B
+17:14:51 iter=4 ok active=active test=0 listen=1 rss=15232KiB l4=ok/577B
+17:15:53 iter=5 ok active=active test=0 listen=1 rss=14980KiB l4=ok/577B
+17:16:56 iter=6 ok active=active test=0 listen=1 rss=15084KiB l4=ok/577B
+17:17:57 iter=7 ok active=active test=0 listen=1 rss=23256KiB l4=ok/577B
+17:18:58 iter=8 ok active=active test=0 listen=1 rss=17228KiB l4=ok/577B
+17:19:59 iter=9 ok active=active test=0 listen=1 rss=17420KiB l4=ok/577B
+17:21:00 iter=10 ok active=active test=0 listen=1 rss=18404KiB l4=ok/577B
+17:22:06 iter=11 ok active=active test=0 listen=1 rss=17056KiB l4=ok/577B
+17:23:07 iter=12 ok active=active test=0 listen=1 rss=17372KiB l4=ok/577B
+17:24:08 iter=13 ok active=active test=0 listen=1 rss=16416KiB l4=ok/577B
+17:25:10 iter=14 ok active=active test=0 listen=1 rss=16500KiB l4=ok/577B
+17:26:11 iter=15 ok active=active test=0 listen=1 rss=16580KiB l4=ok/577B
+17:27:13 iter=16 ok active=active test=0 listen=1 rss=17324KiB l4=ok/577B
+17:28:14 iter=17 ok active=active test=0 listen=1 rss=19692KiB l4=ok/577B
+17:29:16 iter=18 ok active=active test=0 listen=1 rss=18324KiB l4=ok/577B
+17:30:17 iter=19 ok active=active test=0 listen=1 rss=18968KiB l4=ok/577B
+17:31:19 iter=20 ok active=active test=0 listen=1 rss=19188KiB l4=ok/577B
+17:32:21 iter=21 ok active=active test=0 listen=1 rss=19304KiB l4=ok/577B
+17:33:22 iter=22 ok active=active test=0 listen=1 rss=22396KiB l4=ok/577B
+17:34:23 iter=23 ok active=active test=0 listen=1 rss=22056KiB l4=ok/577B
+17:35:24 iter=24 ok active=active test=0 listen=1 rss=16492KiB l4=ok/577B
+17:36:26 iter=25 ok active=active test=0 listen=1 rss=15408KiB l4=ok/577B
+17:37:37 iter=26 FAIL: client business request failed (curl rc=28, bytes=0)
+17:37:37 elapsed=1556s client_ok=25 client_fail=1
+BLOCKER
+17:37:37 verdict=BLOCKER iterations=26/31 elapsed=1556s
+run_soak_rc=1

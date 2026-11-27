@@ -1,0 +1,6 @@
+17:44:57 building idleleo
+17:45:02 nginx_artifact=xray-nginx-custom-arm.tar.gz version=1.30.6 sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+17:45:03 OPS-08 guard cases
+17:45:03 OPS-27 cert clear cases
+17:45:05 run_end=2026-11-22T09:45:05Z
+17:45:05 26 PASS / 0 FAIL

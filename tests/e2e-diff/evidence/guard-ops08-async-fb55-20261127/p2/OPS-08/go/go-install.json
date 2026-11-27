@@ -1,0 +1,30 @@
+{
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "tls": "Reality",
+  "binaryPath": "/usr/local/bin/xray",
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "unitPath": "/etc/systemd/system/xray.service",
+  "metadataPath": "/etc/idleleo/v1/metadata.json",
+  "configSha256": "79db639fe6c3924e9b6a6e5aa9d58f19e2375b212ebc2c42fab2cd82c075bae8",
+  "serviceActive": "active",
+  "serviceEnabled": "enabled",
+  "preservedConfig": false,
+  "validatorExit": 0,
+  "ownedResources": [
+    "usr/local/bin/xray",
+    "etc/idleleo/conf/xray/config.json",
+    "etc/systemd/system/xray.service",
+    "etc/idleleo/conf/nginx/00-xray.conf",
+    "etc/idleleo/conf/nginx/127.0.0.1.realityServers",
+    "etc/idleleo/conf/nginx/example.com.serverNames",
+    "etc/idleleo/conf/nginx/03-isolate.conf"
+  ],
+  "warnings": [
+    "nginx version: nginx version: nginx/1.30.6",
+    "nginx-syntax-verified; routing verified only by the Docker e2e harness"
+  ],
+  "nginxManaged": true,
+  "nginxVerified": true,
+  "nginxDir": "/etc/idleleo/conf/nginx"
+}

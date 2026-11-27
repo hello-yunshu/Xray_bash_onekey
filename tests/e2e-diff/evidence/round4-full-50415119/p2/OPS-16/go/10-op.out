@@ -1,0 +1,10 @@
+{
+  "domain": "example.com",
+  "certificateFile": "/etc/idleleo/cert/xray.crt",
+  "keyFile": "/etc/idleleo/cert/xray.key",
+  "notAfter": "2036-11-20T18:36:22Z",
+  "renewAt": "2036-10-21T18:36:22Z",
+  "renewBefore": "720h0m0s",
+  "due": false,
+  "reason": "next renewal at 2036-10-21T18:36:22Z (expires in 87600h0m0s)"
+}

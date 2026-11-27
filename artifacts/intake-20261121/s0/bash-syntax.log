@@ -1,0 +1,12 @@
+install.sh rc=0
+tests/e2e-diff/run_ops_sweep.sh rc=0
+tests/e2e-diff/run_ops_realroot.sh rc=0
+tests/e2e-diff/run_p2_matrix.sh rc=0
+tests/e2e-diff/run_r1_upgrade.sh rc=0
+tests/e2e-diff/run_soak.sh rc=0
+tests/e2e-diff/run_s_scripts.sh rc=0
+tests/e2e-diff/run_xray_versions.sh rc=0
+tests/e2e-diff/run_coldrestore.sh rc=0
+tests/e2e-diff/drivers/cert_clear_cases.sh rc=0
+tests/e2e-diff/drivers/guard_cases.sh rc=0
+tests/e2e-diff/drivers/bash_install.sh rc=0

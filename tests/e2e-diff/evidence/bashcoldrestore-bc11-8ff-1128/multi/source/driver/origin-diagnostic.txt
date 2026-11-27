@@ -1,0 +1,5 @@
+--- before origin ---
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+ip_addr_add_rc=0
+lo               UNKNOWN        127.0.0.1/8 1.2.3.4/32 ::1/128 
+GET /fast

@@ -1,0 +1,4 @@
+-- No entries --
+2026/11/27 11:56:35.117705 [Warning] core: Xray 26.11.9 started
+2026/11/27 11:56:39.577991 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:55328 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/27 11:56:43.503497 [Warning] core: Xray 26.11.9 started

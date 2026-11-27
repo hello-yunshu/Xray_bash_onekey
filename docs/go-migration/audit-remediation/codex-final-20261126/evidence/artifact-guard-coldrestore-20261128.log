@@ -1,0 +1,6 @@
+........................................
+----------------------------------------------------------------------
+Ran 40 tests in 2.734s
+
+OK
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests

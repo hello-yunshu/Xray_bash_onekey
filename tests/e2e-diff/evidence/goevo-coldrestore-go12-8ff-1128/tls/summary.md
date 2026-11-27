@@ -1,0 +1,43 @@
+# Cold restore real-machine evidence (tls)
+
+- run-id: `go12-8ff-1128`
+- commit: `8ff26917e3e381d4023b7319d5405f7ba871f289`
+- image id: `sha256:828040e78d98d640e238b799f1f1c4441a719307e1e80d0b57db89cb9556e5bc`
+- source driver rc: 0
+- target driver rc: 0
+- archive sha256: `bb0ddb875d99c45b18ab937f1ea2f9ba3e9d33db8c2bcd212a2ba30f4cfe616b`
+
+- **PASS** [source] source install is healthy before the backup (rc=0)
+- **PASS** [source] source backup create exits 0 (rc=0)
+- **PASS** [source] source archive exists
+- **PASS** [source] source archive is mode 0600 (mode=600)
+- **PASS** [source] source archive verifies (rc=0)
+- **PASS** [source] a real client reaches the origin on the source machine (tls)
+- **PASS** [source] source probe reports REAL_CLIENT_PASS
+- **PASS** [target] target install is healthy before the restore (rc=0)
+- **PASS** [target] the fresh target starts with different managed state (tls)
+- **PASS** [target] target verifies the source archive (rc=0)
+- **PASS** [target] the handoff archive digest matches the source
+- **PASS** [target] cold restore exits 0 (rc=0)
+- **PASS** [target] restored state is byte-identical to the source (tls)
+- **PASS** [target] the restore wrote a pre-restore backup
+- **PASS** [target] third-party canary remained unchanged (thirdparty-note.txt.mode-owner)
+- **PASS** [target] third-party canary remained unchanged (thirdparty-note.txt.sha256)
+- **PASS** [target] third-party canary remained unchanged (thirdparty.crt.mode-owner)
+- **PASS** [target] third-party canary remained unchanged (thirdparty.crt.sha256)
+- **PASS** [target] third-party canary remained unchanged (thirdparty.key.mode-owner)
+- **PASS** [target] third-party canary remained unchanged (thirdparty.key.sha256)
+- **PASS** [target] restored config is valid JSON
+- **PASS** [target] restored config is mode 0640 (mode=640)
+- **PASS** [target] restored config group is xray (group=xray)
+- **PASS** [target] the target xray service account can read the restored config
+- **PASS** [target] the restored config passes xray -test (rc=0)
+- **PASS** [target] restored TLS layout keeps the ws inbound (networks=ws)
+- **PASS** [target] xray is active after the restore (state=active)
+- **PASS** [target] doctor is healthy after the cold restore (rc=0)
+- **PASS** [target] a real client reaches the origin after the cold restore (tls)
+- **PASS** [target] target probe reports REAL_CLIENT_PASS
+- **PASS** [target] xray survives a restart after the restore (state=active)
+- **PASS** [target] a real client still reaches the origin after the post-restore restart (tls)
+- **PASS** [target] the third-party certificate canary survived the restore
+- **PASS** [target] the third-party config note survived the restore unchanged

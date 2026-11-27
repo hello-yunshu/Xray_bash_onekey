@@ -1,0 +1,15 @@
+<TS> e2e-FINAL-M2-20261121-M6-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-FINAL-M2-20261121-M6-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-FINAL-M2-20261121-M6-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-FINAL-M2-20261121-M6-go xray[<PID>]: 2026/11/21 04:46:20.891548 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-FINAL-M2-20261121-M6-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-FINAL-M2-20261121-M6-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-FINAL-M2-20261121-M6-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-FINAL-M2-20261121-M6-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-FINAL-M2-20261121-M6-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-FINAL-M2-20261121-M6-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-FINAL-M2-20261121-M6-go xray[<PID>]: 2026/11/21 04:46:29.029658 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/21 04:46:20.895636 [Warning] core: Xray 26.10.31 started
+2026/11/21 04:46:24.383479 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:45954 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/21 04:46:24.383494 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:45962 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/21 04:46:29.035456 [Warning] core: Xray 26.10.31 started

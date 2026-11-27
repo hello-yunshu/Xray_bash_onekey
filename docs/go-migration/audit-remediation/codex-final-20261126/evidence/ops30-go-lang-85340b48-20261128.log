@@ -1,0 +1,10 @@
+binary=tests/e2e-diff/evidence/codex-ops17a-85340b48-20261128/p2/build/idleleo
+263de583c2024e7eef702955bd3002df675f4888c8a12bf1859111b56bb85240  tests/e2e-diff/evidence/codex-ops17a-85340b48-20261128/p2/build/idleleo
+zh_rc=126
+bash: line 1: /opt/idleleo: Permission denied
+en_rc=126
+bash: line 1: /opt/idleleo: Permission denied
+fr_rc=126
+bash: line 1: /opt/idleleo: Permission denied
+root_entries=0
+docker_rc=0

@@ -1,0 +1,6 @@
+=== RUN   TestClearCertificatesKeepsInUseCertificate
+    certclear_test.go:26: in-use certificate xray.crt was deleted: stat /tmp/TestClearCertificatesKeepsInUseCertificate2277602763/001/etc/idleleo/cert/xray.crt: no such file or directory
+--- FAIL: TestClearCertificatesKeepsInUseCertificate (0.00s)
+FAIL
+FAIL	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	0.002s
+FAIL

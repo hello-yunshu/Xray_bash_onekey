@@ -1,0 +1,6 @@
+{
+  "ok": false,
+  "profile": "reality",
+  "reason": "client config generation failed",
+  "target": "http://example.com/"
+}

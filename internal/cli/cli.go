@@ -50,8 +50,10 @@ func Run(ctx context.Context, args []string, opts Options) int {
 		opts.Err = os.Stderr
 	}
 	cfg := config{root: "/", lang: "zh"}
+	langExplicit := false
 	var cmd string
 	var rest []string
+	helpRequested, versionRequested := false, false
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--root":
@@ -66,20 +68,40 @@ func Run(ctx context.Context, args []string, opts Options) int {
 			}
 			i++
 			cfg.lang = args[i]
+			langExplicit = true
 		case "--json":
 			cfg.json = true
 		case "--help", "-h":
-			announceFallback(opts, cfg.lang)
-			printHelp(opts, cfg.lang)
-			return 0
+			helpRequested = true
 		case "--version":
-			announceFallback(opts, cfg.lang)
-			fmt.Fprintf(opts.Out, i18n.T(cfg.lang, "version"), Version)
-			return 0
+			versionRequested = true
 		default:
 			cmd, rest = args[i], args[i+1:]
 			i = len(args)
 		}
+	}
+	if !langExplicit {
+		if paths, err := host.NewPaths(cfg.root); err == nil {
+			cfg.lang = readLanguagePreference(paths)
+		}
+	}
+	if helpRequested {
+		lang := cfg.lang
+		if !i18n.Supported(lang) {
+			lang = "en"
+		}
+		announceFallback(opts, lang)
+		printHelp(opts, lang)
+		return 0
+	}
+	if versionRequested {
+		lang := cfg.lang
+		if !i18n.Supported(lang) {
+			lang = "en"
+		}
+		announceFallback(opts, lang)
+		fmt.Fprintf(opts.Out, i18n.T(lang, "version"), Version)
+		return 0
 	}
 	if !i18n.Supported(cfg.lang) {
 		return usage(opts, "en", "help")
@@ -172,6 +194,8 @@ func dispatch(ctx context.Context, opts Options, cfg config, cmd string, args []
 		return 0
 	case "config":
 		return configCommand(opts, cfg, a, args)
+	case "language":
+		return languageCommand(opts, cfg, paths, args)
 	case "change":
 		return changeCommand(ctx, opts, cfg, a, args)
 	case "xray":

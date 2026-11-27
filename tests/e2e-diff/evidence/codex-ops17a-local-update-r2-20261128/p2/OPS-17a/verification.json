@@ -1,0 +1,27 @@
+{
+  "details": {
+    "bash": {
+      "assetShaMatched": false,
+      "manualOnly": true,
+      "postUpdateClientOk": true,
+      "servicesHealthy": true,
+      "updateApplied": false,
+      "versionChanged": false
+    },
+    "go": {
+      "assetShaMatched": false,
+      "manualOnly": true,
+      "postUpdateClientOk": true,
+      "servicesHealthy": true,
+      "updateApplied": false,
+      "versionChanged": true
+    }
+  },
+  "reasons": [
+    "bash side failed verified update fact updateApplied",
+    "bash side failed verified update fact versionChanged",
+    "bash side failed verified update fact assetShaMatched",
+    "go side failed verified update fact updateApplied",
+    "go side failed verified update fact assetShaMatched"
+  ]
+}

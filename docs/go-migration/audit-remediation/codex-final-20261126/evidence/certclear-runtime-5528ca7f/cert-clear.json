@@ -1,0 +1,65 @@
+{
+  "dir": "/etc/idleleo/cert",
+  "removed": [],
+  "skipped": [
+    "/etc/idleleo/cert/thirdparty.crt",
+    "/etc/idleleo/cert/thirdparty.key",
+    "/etc/idleleo/cert/xray.crt",
+    "/etc/idleleo/cert/xray.key",
+    "/root/.acme.sh/cert-name-variable.invalid_ecc"
+  ],
+  "planned": [
+    {
+      "path": "/etc/idleleo/cert/thirdparty.crt",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven by the manager's ownership record; not removed"
+    },
+    {
+      "path": "/etc/idleleo/cert/thirdparty.key",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven by the manager's ownership record; not removed"
+    },
+    {
+      "path": "/etc/idleleo/cert/xray.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "keep",
+      "reason": "the effective configuration could not be fully scanned; cannot prove this certificate is unused"
+    },
+    {
+      "path": "/etc/idleleo/cert/xray.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "keep",
+      "reason": "the effective configuration could not be fully scanned; cannot prove this certificate is unused"
+    },
+    {
+      "path": "/root/.acme.sh/cert-name-variable.invalid_ecc",
+      "kind": "directory",
+      "owner": "third-party",
+      "inUse": false,
+      "action": "keep",
+      "reason": "external acme.sh accounts, renewal state, CA material, hooks, and files are retained for manual management"
+    }
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": [
+    "a certificate directive in /etc/idleleo/conf/nginx/03-isolate.conf uses a variable or brace expression; certificates whose use cannot be proven will be kept",
+    "the included configuration /usr/local/nginx/mime.types cannot be read; certificates whose use cannot be proven will be kept",
+    "ownership is not proven by the manager's ownership record; not removed: /etc/idleleo/cert/thirdparty.crt",
+    "ownership is not proven by the manager's ownership record; not removed: /etc/idleleo/cert/thirdparty.key",
+    "the effective configuration could not be fully scanned; cannot prove this certificate is unused: /etc/idleleo/cert/xray.crt",
+    "the effective configuration could not be fully scanned; cannot prove this certificate is unused: /etc/idleleo/cert/xray.key",
+    "acme.sh state is preserved: external acme.sh accounts, renewal state, CA material, hooks, and files are retained for manual management",
+    "external acme.sh accounts, renewal state, CA material, hooks, and files are retained for manual management: /root/.acme.sh/cert-name-variable.invalid_ecc"
+  ]
+}

@@ -1,0 +1,15 @@
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash xray[<PID>]: 2026/11/27 06:11:46.757086 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash xray[<PID>]: 2026/11/27 06:11:46.757694 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash xray[<PID>]: 2026/11/27 06:11:49.001516 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-ops-observe-23fa585f-20261127-observe-bash xray[<PID>]: 2026/11/27 06:11:49.002021 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+2026/11/27 06:11:46.761474 [Warning] core: Xray 26.11.9 started
+2026/11/27 06:11:49.007025 [Warning] core: Xray 26.11.9 started

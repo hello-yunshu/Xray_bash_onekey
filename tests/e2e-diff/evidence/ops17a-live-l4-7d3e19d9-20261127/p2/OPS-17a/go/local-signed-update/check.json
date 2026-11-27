@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "manifestUrl": "http://127.0.0.1:18084/manifest.json",
+  "platform": "linux-arm64",
+  "latestVersion": "0.3.0-phase04",
+  "state": "available",
+  "asset": {
+    "name": "idleleo-linux-arm64",
+    "sha256": "8d04388490ba634457425839c9fd93ce4292dd5332acf0c70584fc47e9a5454e",
+    "size": 10551456
+  },
+  "verified": true,
+  "detail": "no applied Go release recorded; the channel can install this version"
+}

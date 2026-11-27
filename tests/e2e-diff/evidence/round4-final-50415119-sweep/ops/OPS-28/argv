@@ -1,0 +1,1 @@
+xray uninstall --purge --container --json

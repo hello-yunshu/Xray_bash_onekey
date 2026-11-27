@@ -1,0 +1,56 @@
+{
+  "dir": "/etc/idleleo/cert",
+  "removed": [
+    "/etc/idleleo/cert/.managed-by-idleleo",
+    "/etc/idleleo/cert/xray.crt",
+    "/etc/idleleo/cert/xray.key",
+    "/root/.acme.sh/node.example.com_ecc"
+  ],
+  "skipped": [
+    "/root/.acme.sh/other.com_ecc"
+  ],
+  "planned": [
+    {
+      "path": "/etc/idleleo/cert/.managed-by-idleleo",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    },
+    {
+      "path": "/etc/idleleo/cert/xray.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    },
+    {
+      "path": "/etc/idleleo/cert/xray.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    },
+    {
+      "path": "/root/.acme.sh/node.example.com_ecc",
+      "kind": "acme-directory",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    },
+    {
+      "path": "/root/.acme.sh/other.com_ecc",
+      "kind": "acme-directory",
+      "owner": "third-party",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ACME domain is not one of this project's certificates; preserving it"
+    }
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": [
+    "ACME domain is not one of this project's certificates; preserving it: /root/.acme.sh/other.com_ecc"
+  ]
+}
+A1-ACME real-root: PASS

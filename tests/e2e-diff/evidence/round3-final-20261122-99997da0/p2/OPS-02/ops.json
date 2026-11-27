@@ -1,0 +1,39 @@
+{
+  "details": {
+    "bash": {
+      "addRc": 0,
+      "addedClients": 2,
+      "addedShortIds": 2,
+      "beforeClients": 1,
+      "beforeShortIds": 1,
+      "newIds": [
+        "1ae2527a-bc86-5c54-9641-3395fbe66c6f"
+      ],
+      "removeRc": 0,
+      "removedClients": 1,
+      "removedShortIds": 1,
+      "showRc": 0
+    },
+    "go": {
+      "addRc": 0,
+      "addedClients": 2,
+      "addedShortIds": 2,
+      "beforeClients": 1,
+      "beforeShortIds": 1,
+      "newIds": [
+        "22222222-3333-4444-5555-666666666666"
+      ],
+      "removeRc": 0,
+      "removedClients": 1,
+      "removedShortIds": 2,
+      "showRc": 0
+    }
+  },
+  "id": "OPS-02",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "verdict": "PASS"
+}

@@ -1,0 +1,15 @@
+{
+  "edits": [],
+  "installs": [
+    "M1"
+  ],
+  "only": "M1,OPS-19",
+  "ops": [
+    "OPS-19"
+  ],
+  "runId": "debian12-1",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

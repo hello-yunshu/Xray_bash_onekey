@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "generatedAt": "2026-11-21T04:47:15Z",
+  "checks": [
+    {
+      "id": "layout",
+      "status": "ok",
+      "message": "managed directories are present",
+      "method": "read-only inspection",
+      "evidence": "ok"
+    },
+    {
+      "id": "metadata",
+      "status": "ok",
+      "message": "manager metadata is readable",
+      "method": "read-only inspection",
+      "evidence": "ok"
+    },
+    {
+      "id": "relay-config",
+      "status": "ok",
+      "message": "relay forwards to origin.example.com:443",
+      "detail": "listen 0.0.0.0:443",
+      "method": "stream fragment parse",
+      "evidence": "ok"
+    },
+    {
+      "id": "service-access",
+      "status": "skip",
+      "message": "service account xray is not present",
+      "method": "read-only inspection",
+      "evidence": "skip"
+    },
+    {
+      "id": "nginx",
+      "status": "ok",
+      "message": "nginx accepted the managed config",
+      "method": "nginx -t",
+      "evidence": "ok"
+    },
+    {
+      "id": "services",
+      "status": "ok",
+      "message": "owned units are active",
+      "method": "systemctl is-active",
+      "evidence": "ok"
+    },
+    {
+      "id": "backup",
+      "status": "warn",
+      "message": "no backup is available",
+      "method": "read-only inspection",
+      "evidence": "warn",
+      "suggestion": "run idleleo backup create"
+    },
+    {
+      "id": "disk",
+      "status": "ok",
+      "message": "enough free disk space",
+      "detail": "178526 MiB",
+      "method": "statfs",
+      "evidence": "ok"
+    },
+    {
+      "id": "lock",
+      "status": "ok",
+      "message": "no update lock is held",
+      "method": "lstat",
+      "evidence": "ok"
+    },
+    {
+      "id": "geodata",
+      "status": "warn",
+      "message": "geo assets are missing",
+      "detail": "[geoip.dat geosite.dat]",
+      "method": "read-only inspection",
+      "evidence": "warn",
+      "suggestion": "inspect the detail; this check never writes"
+    },
+    {
+      "id": "relay-probe",
+      "status": "ok",
+      "message": "a real HTTP client reached the origin through the relay to origin.example.com:443",
+      "detail": "HTTP/1.0 200 OK, 24 body bytes",
+      "method": "tcp http probe",
+      "evidence": "REAL_CLIENT_PASS"
+    }
+  ],
+  "summary": {
+    "ok": 8,
+    "warn": 2,
+    "fail": 0,
+    "skip": 1,
+    "unknown": 0
+  },
+  "healthy": true,
+  "evidenceLevel": "REAL_CLIENT_PASS",
+  "limitations": [
+    "certificate chain, SAN matching and expiry are read from the managed PEM; no public CA trust store is consulted",
+    "an external origin, DNS and cloud security groups are outside this process; only what this host can reach is tested",
+    "a TCP connect or TLS handshake through a Reality inbound is not a user session; only --client-probe proves one",
+    "a TLS listener probe proves the tunnel, not the public certificate chain",
+    "a relay node has no Xray inbound or user credential; its --client-probe is a real HTTP request through the Nginx stream and proves forwarding, not a VLESS session"
+  ]
+}

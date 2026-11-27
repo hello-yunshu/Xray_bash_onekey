@@ -1,0 +1,32 @@
+# Second-distro image for the differential suite: Debian 12.
+#
+# Same package set as the Ubuntu 24.04 image so a scenario that passes on one
+# distro is comparable on the other. Kept as a separate tag (idleleo-e2e:debian12)
+# so the primary Ubuntu baseline is never replaced.
+FROM debian:12
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# deb.debian.org is unreachable from this network; the aliyun mirror serves the
+# same bookworm archives and keeps the package set identical. Bookworm images
+# use either sources.list or the deb822 debian.sources file, so rewrite whichever
+# exists.
+RUN for f in /etc/apt/sources.list /etc/apt/sources.list.d/debian.sources; do \
+        if [ -f "$f" ]; then \
+            sed -i -e 's|deb.debian.org|mirrors.aliyun.com|g' \
+                   -e 's|security.debian.org|mirrors.aliyun.com|g' "$f"; \
+        fi; \
+    done; \
+    apt-get update \
+    && apt-get install -y --no-install-recommends \
+        systemd systemd-sysv dbus ca-certificates curl iproute2 procps \
+        python3 python3-pip python3-pexpect expect jq \
+        nftables iptables cron openssl gettext locales-all \
+        fail2ban \
+        bc git lsof qrencode iputils-ping nmap \
+    && rm -f /etc/fail2ban/jail.d/defaults-debian.conf \
+    && rm -rf /var/lib/apt/lists/*
+
+STOPSIGNAL SIGRTMIN+3
+
+CMD ["/usr/lib/systemd/systemd"]

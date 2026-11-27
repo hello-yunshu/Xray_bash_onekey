@@ -1,0 +1,34 @@
+{
+  "id": "OPS-03",
+  "productCodeSha": "23fa585fa4a471fc73f4ac2b0b0c57d627b8b7c2",
+  "sides": {
+    "bash": {
+      "evidence": "OPS-USERS/bash/post-remove-*",
+      "removeRc": 0,
+      "serviceAndConfigHealthRc": 0,
+      "serviceRestartRc": 0,
+      "sharedInboundShortIdsPreserved": true,
+      "shortIdCleanupRc": 0,
+      "shortIdsAfterCleanupCount": 1,
+      "shortIdsBeforeCount": 1,
+      "staleAddedUserNewConnectionCurlRcAfterRemove": 56,
+      "staleAddedUserNewConnectionCurlRcAfterServiceRestart": 56,
+      "survivingBaselineUserConnectedAfterRemove": true,
+      "survivingBaselineUserConnectedAfterRestart": true
+    },
+    "go": {
+      "evidence": "OPS-USERS/go/post-remove-*",
+      "removeRc": 0,
+      "serviceAndConfigHealthRc": 0,
+      "serviceRestartRc": 0,
+      "sharedInboundShortIdsPreserved": true,
+      "shortIdCleanupRc": 0,
+      "shortIdsAfterCleanupCount": 1,
+      "shortIdsBeforeCount": 1,
+      "staleAddedUserNewConnectionCurlRcAfterRemove": 52,
+      "staleAddedUserNewConnectionCurlRcAfterServiceRestart": 52,
+      "survivingBaselineUserConnectedAfterRemove": true,
+      "survivingBaselineUserConnectedAfterRestart": true
+    }
+  }
+}

@@ -1,0 +1,16 @@
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go xray[<PID>]: 2026/11/22 16:05:26.607893 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go xray[<PID>]: 2026/11/22 16:05:26.608069 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go xray[<PID>]: 2026/11/22 16:05:31.963259 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-final-20261122-99997da0-deb12-M4-go xray[<PID>]: 2026/11/22 16:05:31.966365 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/22 16:05:26.609887 [Warning] core: Xray 26.10.31 started
+2026/11/22 16:05:30.018885 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:39546 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/22 16:05:31.968375 [Warning] core: Xray 26.10.31 started

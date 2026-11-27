@@ -1,0 +1,20 @@
+<TS> e2e-round3-20261120-1757-45666732-M6-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M6-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-20261120-1757-45666732-M6-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-20261120-1757-45666732-M6-bash xray[<PID>]: 2026/11/20 09:59:38.933847 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-round3-20261120-1757-45666732-M6-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-round3-20261120-1757-45666732-M6-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-round3-20261120-1757-45666732-M6-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M6-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-round3-20261120-1757-45666732-M6-bash xray[<PID>]: Xray 26.10.31 (Xray, Penetrates Everything.) a4a3dff (go1.27.3 linux/arm64)
+<TS> e2e-round3-20261120-1757-45666732-M6-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-round3-20261120-1757-45666732-M6-bash xray[<PID>]: 2026/11/20 10:00:05.230404 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/20 09:59:38.939219 [Warning] core: Xray 26.10.31 started
+2026/11/20 09:59:42.884532 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:35886 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 09:59:42.884878 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:35898 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 09:59:46.891199 [Error] app/dns: failed to retrieve response for example.com. > Post "https://dns.google/dns-query": context deadline exceeded
+2026/11/20 09:59:47.207946 [Error] app/dns: failed to retrieve response for example.com. > Post "https://cloudflare-dns.com/dns-query": EOF
+2026/11/20 09:59:49.074587 [Error] app/dns: failed to retrieve response for example.com. > Post "https://doh.opendns.com/dns-query": EOF
+2026/11/20 09:59:53.986678 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:51784 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 09:59:53.986695 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:51778 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/20 10:00:05.239036 [Warning] core: Xray 26.10.31 started

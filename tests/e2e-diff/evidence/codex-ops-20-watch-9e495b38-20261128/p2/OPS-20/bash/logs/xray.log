@@ -1,0 +1,5 @@
+<TS> e2e-codex-ops-20-watch-9e495b38-20261128-OPS-20-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-codex-ops-20-watch-9e495b38-20261128-OPS-20-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-codex-ops-20-watch-9e495b38-20261128-OPS-20-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-codex-ops-20-watch-9e495b38-20261128-OPS-20-bash xray[<PID>]: 2026/11/27 18:54:33.861743 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/27 18:54:33.864698 [Warning] core: Xray 26.11.9 started

@@ -1,0 +1,10 @@
+{
+  "server": "http://e2e-round3-fix-20261122-1742-origin",
+  "downMbps": 3529.11,
+  "bytes": 1048576,
+  "durationMs": 2,
+  "samplesMbps": [
+    3529.11
+  ],
+  "startedAt": "2026-11-22T09:42:25.233262761Z"
+}

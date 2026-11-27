@@ -1,0 +1,10 @@
+{
+  "server": "http://e2e-FINAL-OPS2-20261121-origin",
+  "downMbps": 7581.44,
+  "bytes": 1048576,
+  "durationMs": 1,
+  "samplesMbps": [
+    7581.44
+  ],
+  "startedAt": "2026-11-20T18:19:50.119930642Z"
+}

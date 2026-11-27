@@ -1,0 +1,7 @@
+source_sha=fb55adf78ee960eda695e6e5742f4c16ff328639
+$ docker run --rm -v <workspace>/Documents/GitHub/Xray_bash_onekey:/src -w /src golang:1.27.4 ... gofmt -d; go test -count=1 affected packages; go test -race componentupdate; go vet ./...
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/componentupdate	0.022s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	1.938s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	7.709s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/nginx	6.094s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/componentupdate	1.033s

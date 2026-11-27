@@ -1,0 +1,10 @@
+run_id=bashcold-restore-retry-current-7d3e19d9-20261127
+product_base=7d3e19d9
+product_patch=restore initializes unit-owned Xray log dir before real xray -test
+6b89e281d1361aa6ea6e2c5a73ea28b38835d29121f2c05b2afcc5ad7850df9c  /etc/idleleo/xray_bash_codexcoldrestore_retry_20261127_20261127120915.tar.gz
+archive_mode=600 archive_size=22094752 archive_owner=root:root
+6b89e281d1361aa6ea6e2c5a73ea28b38835d29121f2c05b2afcc5ad7850df9c  /tmp/bashcold-restore-retry-current-7d3e19d9-20261127.5LnLVQ/archive.tar.gz
+restore_rc=0
+service_validation_rc=0
+hash_permission_match=true
+real_tls_ws_l4_rc=0

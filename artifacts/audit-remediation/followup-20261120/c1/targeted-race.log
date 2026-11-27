@@ -1,0 +1,580 @@
+## targeted
+=== RUN   TestBackupCreateVerifyRestoreRoundTrip
+--- PASS: TestBackupCreateVerifyRestoreRoundTrip (0.06s)
+=== RUN   TestBackupRefusesUnmarkedSandbox
+--- PASS: TestBackupRefusesUnmarkedSandbox (0.00s)
+=== RUN   TestBackupVerifyRejectsTamperedArchive
+--- PASS: TestBackupVerifyRejectsTamperedArchive (0.00s)
+=== RUN   TestRepairFixesModesAndReports
+--- PASS: TestRepairFixesModesAndReports (0.00s)
+=== RUN   TestRepairDryRunChangesNothing
+--- PASS: TestRepairDryRunChangesNothing (0.00s)
+=== RUN   TestDoctorHealthySandbox
+--- PASS: TestDoctorHealthySandbox (0.00s)
+=== RUN   TestXrayBalanceList
+--- PASS: TestXrayBalanceList (0.00s)
+=== RUN   TestXrayBalanceListJSON
+--- PASS: TestXrayBalanceListJSON (0.00s)
+=== RUN   TestXrayBalanceRefusesRealityNginx
+--- PASS: TestXrayBalanceRefusesRealityNginx (0.00s)
+=== RUN   TestXrayBalanceRequiresUpstreamAndHost
+--- PASS: TestXrayBalanceRequiresUpstreamAndHost (0.00s)
+=== RUN   TestCertDefaultsToStaging
+--- PASS: TestCertDefaultsToStaging (0.00s)
+=== RUN   TestCertProductionFlag
+--- PASS: TestCertProductionFlag (0.00s)
+=== RUN   TestCertDirectoryEnvOverride
+--- PASS: TestCertDirectoryEnvOverride (0.00s)
+=== RUN   TestCertExplicitDirectoryWins
+--- PASS: TestCertExplicitDirectoryWins (0.00s)
+=== RUN   TestCertAccountStateDefaultsOutsideCertTree
+--- PASS: TestCertAccountStateDefaultsOutsideCertTree (0.00s)
+=== RUN   TestCertProductionRunsStagingPreflightByDefault
+--- PASS: TestCertProductionRunsStagingPreflightByDefault (0.00s)
+=== RUN   TestCertNoStagingCheckSkipsPreflight
+--- PASS: TestCertNoStagingCheckSkipsPreflight (0.00s)
+=== RUN   TestCertExplicitDirectorySkipsPreflight
+--- PASS: TestCertExplicitDirectorySkipsPreflight (0.00s)
+=== RUN   TestCertRenewDryRunDoesNotContactCA
+--- PASS: TestCertRenewDryRunDoesNotContactCA (0.00s)
+=== RUN   TestCertUserManagedSkipsStagingPreflight
+--- PASS: TestCertUserManagedSkipsStagingPreflight (0.00s)
+=== RUN   TestCertTakeoverRunsStagingPreflight
+--- PASS: TestCertTakeoverRunsStagingPreflight (0.00s)
+=== RUN   TestChangeHardKillIsRecovered
+--- PASS: TestChangeHardKillIsRecovered (2.35s)
+=== RUN   TestChangeRealRootIsRefusedWithoutContainerAck
+--- PASS: TestChangeRealRootIsRefusedWithoutContainerAck (0.00s)
+=== RUN   TestChangeRealRootIsRefusedWithoutEnvAck
+--- PASS: TestChangeRealRootIsRefusedWithoutEnvAck (0.00s)
+=== RUN   TestChangeRollsBackWhenMetadataRefreshFails
+--- PASS: TestChangeRollsBackWhenMetadataRefreshFails (0.01s)
+=== RUN   TestChangeRealRootRequiresManagerMetadata
+--- PASS: TestChangeRealRootRequiresManagerMetadata (0.00s)
+=== RUN   TestChangeRefusesFaultOnRealRoot
+--- PASS: TestChangeRefusesFaultOnRealRoot (0.00s)
+=== RUN   TestXrayUserAddInSandbox
+--- PASS: TestXrayUserAddInSandbox (0.01s)
+=== RUN   TestDoctorJSONReportsUnhealthyRoot
+--- PASS: TestDoctorJSONReportsUnhealthyRoot (0.00s)
+=== RUN   TestSpecFromPrivateKeyFile
+--- PASS: TestSpecFromPrivateKeyFile (0.00s)
+=== RUN   TestVersionHelpAndNoTTY
+--- PASS: TestVersionHelpAndNoTTY (0.00s)
+=== RUN   TestHelpListsEveryTopLevelCommand
+--- PASS: TestHelpListsEveryTopLevelCommand (0.00s)
+=== RUN   TestSubcommandHelpIsNotExecuted
+--- PASS: TestSubcommandHelpIsNotExecuted (0.00s)
+=== RUN   TestStatsUnavailableIsReadOnly
+--- PASS: TestStatsUnavailableIsReadOnly (0.00s)
+=== RUN   TestUpdateUnconfiguredIsReadOnly
+--- PASS: TestUpdateUnconfiguredIsReadOnly (0.00s)
+=== RUN   TestPrintStatusPrintsAlertsFirst
+--- PASS: TestPrintStatusPrintsAlertsFirst (0.00s)
+=== RUN   TestStatusCommandShowsScheduledAlert
+--- PASS: TestStatusCommandShowsScheduledAlert (0.00s)
+=== RUN   TestStatusSeparatesNoAlertsFromUnreadableStore
+--- PASS: TestStatusSeparatesNoAlertsFromUnreadableStore (0.00s)
+=== RUN   TestScheduleStatusExitReflectsUnreadableAlerts
+--- PASS: TestScheduleStatusExitReflectsUnreadableAlerts (0.00s)
+=== RUN   TestScheduleAlertCommandWritesAlert
+--- PASS: TestScheduleAlertCommandWritesAlert (0.00s)
+=== RUN   TestScheduleAlertCommandFailsWhenAlertIsLost
+--- PASS: TestScheduleAlertCommandFailsWhenAlertIsLost (0.00s)
+=== RUN   TestScheduleRunExitsNonZeroOnFailedJob
+--- PASS: TestScheduleRunExitsNonZeroOnFailedJob (0.00s)
+=== RUN   TestStatusMissingRootCreatesNothing
+--- PASS: TestStatusMissingRootCreatesNothing (0.00s)
+=== RUN   TestStatusJSONAndNoWrites
+--- PASS: TestStatusJSONAndNoWrites (0.00s)
+=== RUN   TestStatusReportsDriftWithoutWriting
+--- PASS: TestStatusReportsDriftWithoutWriting (0.00s)
+=== RUN   TestInspectDoesNotModifyConfig
+--- PASS: TestInspectDoesNotModifyConfig (0.00s)
+=== RUN   TestChangeRequiresSandboxMarker
+--- PASS: TestChangeRequiresSandboxMarker (0.00s)
+=== RUN   TestChangeSuccessInSandbox
+--- PASS: TestChangeSuccessInSandbox (0.01s)
+=== RUN   TestUnknownCommand
+--- PASS: TestUnknownCommand (0.00s)
+=== RUN   TestInteractiveMenuExitsOnEOF
+--- PASS: TestInteractiveMenuExitsOnEOF (0.00s)
+=== RUN   TestUnknownFlagIsRejectedForEveryCommand
+--- PASS: TestUnknownFlagIsRejectedForEveryCommand (0.00s)
+=== RUN   TestMisspelledScheduleFlagNoLongerBecomesADefault
+--- PASS: TestMisspelledScheduleFlagNoLongerBecomesADefault (0.00s)
+=== RUN   TestKnownFlagFormsAreAccepted
+--- PASS: TestKnownFlagFormsAreAccepted (0.00s)
+=== RUN   TestFlagValueSupportsInlineValues
+--- PASS: TestFlagValueSupportsInlineValues (0.00s)
+=== RUN   TestStatsRejectsUnsafePathOverrides
+--- PASS: TestStatsRejectsUnsafePathOverrides (0.00s)
+=== RUN   TestStatsRejectsInvalidTimeout
+--- PASS: TestStatsRejectsInvalidTimeout (0.00s)
+=== RUN   TestUpdatePreflightReportsLevelsAndExitCodes
+--- PASS: TestUpdatePreflightReportsLevelsAndExitCodes (0.00s)
+=== RUN   TestXrayShareUsesMetadataForPublicTLS
+--- PASS: TestXrayShareUsesMetadataForPublicTLS (0.00s)
+=== RUN   TestXrayShareUsesMetadataForReality
+--- PASS: TestXrayShareUsesMetadataForReality (0.00s)
+=== RUN   TestXrayShareRealityRefusesToDialTheSNI
+--- PASS: TestXrayShareRealityRefusesToDialTheSNI (0.00s)
+=== RUN   TestXrayShareIgnoresMetadataFromAnotherRoot
+--- PASS: TestXrayShareIgnoresMetadataFromAnotherRoot (0.00s)
+=== RUN   TestXrayShareRefusesStaleMetadata
+--- PASS: TestXrayShareRefusesStaleMetadata (0.00s)
+=== RUN   TestXrayShareMatchesMetadataThroughNormalizedPath
+--- PASS: TestXrayShareMatchesMetadataThroughNormalizedPath (0.00s)
+=== RUN   TestXrayShareUsesMetadataToResolveLoopbackNone
+--- PASS: TestXrayShareUsesMetadataToResolveLoopbackNone (0.00s)
+=== RUN   TestXrayShareExplicitFlagWinsOverMetadata
+--- PASS: TestXrayShareExplicitFlagWinsOverMetadata (0.00s)
+=== RUN   TestXrayShareWithoutMetadataStillRefusesAmbiguousLoopback
+--- PASS: TestXrayShareWithoutMetadataStillRefusesAmbiguousLoopback (0.00s)
+=== RUN   TestXrayShareMetadataKeepsSelectedUser
+--- PASS: TestXrayShareMetadataKeepsSelectedUser (0.00s)
+=== RUN   TestSpeedtestJSONSchema
+--- PASS: TestSpeedtestJSONSchema (0.00s)
+=== RUN   TestSpeedtestFailsClosed
+--- PASS: TestSpeedtestFailsClosed (0.00s)
+=== RUN   TestSpeedtestReportsUnreachableServer
+--- PASS: TestSpeedtestReportsUnreachableServer (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/cli	2.442s
+=== RUN   TestBuildBlockRulesMatchesBashOrder
+--- PASS: TestBuildBlockRulesMatchesBashOrder (0.00s)
+=== RUN   TestBuildBlockRulesRejectsBadInput
+--- PASS: TestBuildBlockRulesRejectsBadInput (0.00s)
+=== RUN   TestApplyRoutingBlockIsIdempotent
+--- PASS: TestApplyRoutingBlockIsIdempotent (0.00s)
+=== RUN   TestApplyRoutingBlockRefusesCatchAllUserRule
+--- PASS: TestApplyRoutingBlockRefusesCatchAllUserRule (0.00s)
+=== RUN   TestRemoveRoutingBlockRestoresPreviousValues
+--- PASS: TestRemoveRoutingBlockRestoresPreviousValues (0.00s)
+=== RUN   TestEditUUIDKeepsTrafficBlock
+--- PASS: TestEditUUIDKeepsTrafficBlock (0.00s)
+=== RUN   TestApplyReplacesBashRulesOnFirstRun
+--- PASS: TestApplyReplacesBashRulesOnFirstRun (0.00s)
+=== RUN   TestEditWithoutBlockStateStillRefusesRoutingChanges
+--- PASS: TestEditWithoutBlockStateStillRefusesRoutingChanges (0.00s)
+=== RUN   TestPatchDirectTLSRotatesOnlyThePair
+--- PASS: TestPatchDirectTLSRotatesOnlyThePair (0.00s)
+=== RUN   TestPatchDirectTLSUpdatesExistingServerName
+--- PASS: TestPatchDirectTLSUpdatesExistingServerName (0.00s)
+=== RUN   TestPatchDirectTLSMovesListener
+--- PASS: TestPatchDirectTLSMovesListener (0.00s)
+=== RUN   TestPatchDirectTLSNoChanges
+--- PASS: TestPatchDirectTLSNoChanges (0.00s)
+=== RUN   TestPatchDirectTLSRejectsPartialPair
+--- PASS: TestPatchDirectTLSRejectsPartialPair (0.00s)
+=== RUN   TestPatchDirectTLSRejectsGeneratedFields
+--- PASS: TestPatchDirectTLSRejectsGeneratedFields (0.00s)
+=== RUN   TestPatchDirectTLSRejectsNonTLSConfig
+--- PASS: TestPatchDirectTLSRejectsNonTLSConfig (0.00s)
+=== RUN   TestPatchDirectTLSRejectsMultiInboundPortMove
+--- PASS: TestPatchDirectTLSRejectsMultiInboundPortMove (0.00s)
+=== RUN   TestEditRuntimeDirectTLSResult
+--- PASS: TestEditRuntimeDirectTLSResult (0.00s)
+=== RUN   TestEditRuntimeDirectTLSNoChanges
+--- PASS: TestEditRuntimeDirectTLSNoChanges (0.00s)
+=== RUN   TestEditUUIDKeepsEveryOtherValue
+--- PASS: TestEditUUIDKeepsEveryOtherValue (0.00s)
+=== RUN   TestEditPortOnlyTouchesPort
+--- PASS: TestEditPortOnlyTouchesPort (0.00s)
+=== RUN   TestEditTransportRebuildsInbounds
+--- PASS: TestEditTransportRebuildsInbounds (0.00s)
+=== RUN   TestEditTargetAndServerNames
+--- PASS: TestEditTargetAndServerNames (0.00s)
+=== RUN   TestEditRefusesUnknownTopLevelChanges
+--- PASS: TestEditRefusesUnknownTopLevelChanges (0.00s)
+=== RUN   TestEditRefusesMultiUserUUID
+--- PASS: TestEditRefusesMultiUserUUID (0.00s)
+=== RUN   TestEditMultiUserUUIDPointsAtUserCommand
+--- PASS: TestEditMultiUserUUIDPointsAtUserCommand (0.00s)
+=== RUN   TestEditRejectsFrontOwnedFields
+--- PASS: TestEditRejectsFrontOwnedFields (0.00s)
+=== RUN   TestEditNoOpWhenNothingRequested
+--- PASS: TestEditNoOpWhenNothingRequested (0.00s)
+=== RUN   TestEditTLSDomainRewritesNginxWithoutRuntimeDiff
+--- PASS: TestEditTLSDomainRewritesNginxWithoutRuntimeDiff (0.00s)
+=== RUN   TestEditTLSCertificatePairIsAFrontOwnedChange
+--- PASS: TestEditTLSCertificatePairIsAFrontOwnedChange (0.00s)
+=== RUN   TestEditTLSNoOpWhenValuesMatch
+--- PASS: TestEditTLSNoOpWhenValuesMatch (0.00s)
+=== RUN   TestEditRejectsTLSOwnedFieldsOutsideTLSMode
+--- PASS: TestEditRejectsTLSOwnedFieldsOutsideTLSMode (0.00s)
+=== RUN   TestEditShortIDAppendKeepsOldClients
+--- PASS: TestEditShortIDAppendKeepsOldClients (0.00s)
+=== RUN   TestEditRealityLinkKeepsPortWithoutPublicDefault
+--- PASS: TestEditRealityLinkKeepsPortWithoutPublicDefault (0.00s)
+=== RUN   TestEditShortIDEmptyClearsExplicitly
+--- PASS: TestEditShortIDEmptyClearsExplicitly (0.00s)
+=== RUN   TestEditShortIDAutoIsSeparateFromClear
+--- PASS: TestEditShortIDAutoIsSeparateFromClear (0.00s)
+=== RUN   TestEditShortIDRemove
+--- PASS: TestEditShortIDRemove (0.00s)
+=== RUN   TestEditLinkPreferencesDoNotTouchRuntime
+--- PASS: TestEditLinkPreferencesDoNotTouchRuntime (0.00s)
+=== RUN   TestEditRotatePrivateKeyChangesCredential
+--- PASS: TestEditRotatePrivateKeyChangesCredential (0.00s)
+=== RUN   TestValidShortIDAcceptsEmptyAndHex
+--- PASS: TestValidShortIDAcceptsEmptyAndHex (0.00s)
+=== RUN   TestRelayConfKeepsExplicitListenAddress
+--- PASS: TestRelayConfKeepsExplicitListenAddress (0.00s)
+=== RUN   TestRelayConfBracketsIPv6Backend
+--- PASS: TestRelayConfBracketsIPv6Backend (0.00s)
+=== RUN   TestRelayConfRejectsInvalidInput
+--- PASS: TestRelayConfRejectsInvalidInput (0.00s)
+=== RUN   TestShareRefusesAmbiguousLoopbackNone
+--- PASS: TestShareRefusesAmbiguousLoopbackNone (0.00s)
+=== RUN   TestSharePublicSecurityTLS
+--- PASS: TestSharePublicSecurityTLS (0.00s)
+=== RUN   TestSharePublicSecurityNone
+--- PASS: TestSharePublicSecurityNone (0.00s)
+=== RUN   TestShareSelectsUserByEmailAndUUID
+--- PASS: TestShareSelectsUserByEmailAndUUID (0.00s)
+=== RUN   TestShareRealityRequiresExplicitHost
+--- PASS: TestShareRealityRequiresExplicitHost (0.00s)
+=== RUN   TestSetUserUUIDUpdatesEveryInboundAtomically
+--- PASS: TestSetUserUUIDUpdatesEveryInboundAtomically (0.00s)
+=== RUN   TestSetUserUUIDRejectsDuplicate
+--- PASS: TestSetUserUUIDRejectsDuplicate (0.00s)
+=== RUN   TestSetUserUUIDNoOp
+--- PASS: TestSetUserUUIDNoOp (0.00s)
+=== RUN   TestSetUserUUIDRestrictedInboundKeepsOther
+--- PASS: TestSetUserUUIDRestrictedInboundKeepsOther (0.00s)
+=== RUN   TestSetUserUUIDNotFoundListsUsers
+--- PASS: TestSetUserUUIDNotFoundListsUsers (0.00s)
+=== RUN   TestSetUserUUIDRefusesAmbiguousEmail
+--- PASS: TestSetUserUUIDRefusesAmbiguousEmail (0.00s)
+=== RUN   TestSetUserUUIDRejectsBadUUID
+--- PASS: TestSetUserUUIDRejectsBadUUID (0.00s)
+=== RUN   TestPortAvailableSeesOccupiedLoopback
+--- PASS: TestPortAvailableSeesOccupiedLoopback (0.00s)
+=== RUN   TestGenerateReality
+--- PASS: TestGenerateReality (0.00s)
+=== RUN   TestGenerateTLSRequiresDomainAndLoopback
+--- PASS: TestGenerateTLSRequiresDomainAndLoopback (0.00s)
+=== RUN   TestGenerateXHTTPClashIsExplicit
+--- PASS: TestGenerateXHTTPClashIsExplicit (0.00s)
+=== RUN   TestGenerateMultiTransportNone
+--- PASS: TestGenerateMultiTransportNone (0.00s)
+=== RUN   TestGenerateNoneMultiTransportHonoursListen
+--- PASS: TestGenerateNoneMultiTransportHonoursListen (0.00s)
+=== RUN   TestGenerateMultiTransportTLSRoutesEachInbound
+--- PASS: TestGenerateMultiTransportTLSRoutesEachInbound (0.00s)
+=== RUN   TestGenerateTLSMatchesBashFront
+--- PASS: TestGenerateTLSMatchesBashFront (0.00s)
+=== RUN   TestGenerateTLSHonoursPublicPort
+--- PASS: TestGenerateTLSHonoursPublicPort (0.00s)
+=== RUN   TestGenerateTLSReportsBackendPort
+--- PASS: TestGenerateTLSReportsBackendPort (0.00s)
+=== RUN   TestGenerateRealityNginxFrontsBackendPort
+--- PASS: TestGenerateRealityNginxFrontsBackendPort (0.00s)
+=== RUN   TestGenerateMultiTransportRealityKeepsRawPrimary
+--- PASS: TestGenerateMultiTransportRealityKeepsRawPrimary (0.00s)
+=== RUN   TestGenerateIPv6ShareAuthority
+--- PASS: TestGenerateIPv6ShareAuthority (0.00s)
+=== RUN   TestUserLifecyclePreservesCustomFields
+--- PASS: TestUserLifecyclePreservesCustomFields (0.00s)
+=== RUN   TestA1HostnameValidation
+--- PASS: TestA1HostnameValidation (0.00s)
+=== RUN   TestA1BindIPv4IPv6
+--- PASS: TestA1BindIPv4IPv6 (0.00s)
+=== RUN   TestA1UserScaleOneFourTwenty
+--- PASS: TestA1UserScaleOneFourTwenty (0.00s)
+=== RUN   TestUserRejectsDuplicate
+--- PASS: TestUserRejectsDuplicate (0.00s)
+=== RUN   TestAdoptRuntimePreservesEveryValue
+--- PASS: TestAdoptRuntimePreservesEveryValue (0.00s)
+=== RUN   TestAdoptRuntimeRefusesUnusableConfig
+--- PASS: TestAdoptRuntimeRefusesUnusableConfig (0.00s)
+=== RUN   TestShareFromExistingConfig
+--- PASS: TestShareFromExistingConfig (0.00s)
+=== RUN   TestGenerateRealityBalancePrimary
+--- PASS: TestGenerateRealityBalancePrimary (0.00s)
+=== RUN   TestGenerateRealityBalanceSecondary
+--- PASS: TestGenerateRealityBalanceSecondary (0.00s)
+=== RUN   TestGenerateRejectsReservedPublicPort
+--- PASS: TestGenerateRejectsReservedPublicPort (0.00s)
+=== RUN   TestGenerateRealityBalanceBackendsAndRefusals
+--- PASS: TestGenerateRealityBalanceBackendsAndRefusals (0.00s)
+=== RUN   TestRealitySingleTransportKeepsRealityPrimary
+--- PASS: TestRealitySingleTransportKeepsRealityPrimary (0.00s)
+=== RUN   TestExtraPortsUseBashPools
+--- PASS: TestExtraPortsUseBashPools (0.00s)
+=== RUN   TestExtraPortsSkipBusyCandidates
+--- PASS: TestExtraPortsSkipBusyCandidates (0.00s)
+=== RUN   TestExtraPortsHonourExplicitOverrides
+--- PASS: TestExtraPortsHonourExplicitOverrides (0.00s)
+=== RUN   TestExtraPortsRejectBusyDuplicateAndReservedExplicit
+--- PASS: TestExtraPortsRejectBusyDuplicateAndReservedExplicit (0.00s)
+=== RUN   TestExtraPortsDoNotWrapAt65535
+--- PASS: TestExtraPortsDoNotWrapAt65535 (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.022s
+=== RUN   TestLoadMetadataErrors
+--- PASS: TestLoadMetadataErrors (0.01s)
+=== RUN   TestLoadConfigPreservesCustomSections
+--- PASS: TestLoadConfigPreservesCustomSections (0.00s)
+=== RUN   TestLoadConfigRefusesSymlinkAndBadJSON
+--- PASS: TestLoadConfigRefusesSymlinkAndBadJSON (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	0.010s
+=== RUN   TestCreateRecordsSourceAndRestoreLimits
+--- PASS: TestCreateRecordsSourceAndRestoreLimits (0.03s)
+=== RUN   TestRestoreDryRunReportsChangesWithoutWriting
+--- PASS: TestRestoreDryRunReportsChangesWithoutWriting (0.00s)
+=== RUN   TestVerifyRejectsDuplicateEntries
+--- PASS: TestVerifyRejectsDuplicateEntries (0.00s)
+=== RUN   TestCreateAndVerify
+--- PASS: TestCreateAndVerify (0.00s)
+=== RUN   TestVerifyRejectsTampering
+--- PASS: TestVerifyRejectsTampering (0.00s)
+=== RUN   TestVerifyRejectsTrailingGarbage
+--- PASS: TestVerifyRejectsTrailingGarbage (0.01s)
+=== RUN   TestRestorePreBackupNamesAreUniqueWithinASecond
+--- PASS: TestRestorePreBackupNamesAreUniqueWithinASecond (0.04s)
+=== RUN   TestVerifyRejectsPathEscape
+--- PASS: TestVerifyRejectsPathEscape (0.00s)
+=== RUN   TestRestoreRoundTripKeepsPreRestoreBackup
+--- PASS: TestRestoreRoundTripKeepsPreRestoreBackup (0.05s)
+=== RUN   TestRestoreAbortsWhenStagedConfigIsRejected
+--- PASS: TestRestoreAbortsWhenStagedConfigIsRejected (0.00s)
+=== RUN   TestVerifyRejectsUndeclaredEntry
+--- PASS: TestVerifyRejectsUndeclaredEntry (0.00s)
+=== RUN   TestVerifyRejectsModeMismatch
+--- PASS: TestVerifyRejectsModeMismatch (0.00s)
+=== RUN   TestVerifyRejectsDuplicateManifest
+--- PASS: TestVerifyRejectsDuplicateManifest (0.00s)
+=== RUN   TestVerifyRejectsConcatenatedGzipMember
+--- PASS: TestVerifyRejectsConcatenatedGzipMember (0.01s)
+=== RUN   TestVerifyRejectsOversizedManifest
+--- PASS: TestVerifyRejectsOversizedManifest (0.00s)
+=== RUN   TestVerifyRejectsNonCanonicalPath
+--- PASS: TestVerifyRejectsNonCanonicalPath (0.00s)
+=== RUN   TestCreateRefusesArchiveInsideManagedTree
+--- PASS: TestCreateRefusesArchiveInsideManagedTree (0.00s)
+=== RUN   TestCreateLeavesNoPartialArchiveWhenCancelled
+--- PASS: TestCreateLeavesNoPartialArchiveWhenCancelled (0.00s)
+=== RUN   TestCreateRefusesSymlinkedManagedDir
+--- PASS: TestCreateRefusesSymlinkedManagedDir (0.00s)
+=== RUN   TestCreateSkipsAbsentGeodataTree
+--- PASS: TestCreateSkipsAbsentGeodataTree (0.00s)
+=== RUN   TestCreateStillRefusesSymlinkedGeodataParent
+--- PASS: TestCreateStillRefusesSymlinkedGeodataParent (0.00s)
+=== RUN   TestRestoreRefusesSymlinkComponent
+--- PASS: TestRestoreRefusesSymlinkComponent (0.00s)
+=== RUN   TestRestoreRollsBackWhenServiceApplyFails
+--- PASS: TestRestoreRollsBackWhenServiceApplyFails (0.14s)
+=== RUN   TestRestoreRefusesWhileJournalIsInterrupted
+--- PASS: TestRestoreRefusesWhileJournalIsInterrupted (0.01s)
+=== RUN   TestRecoverPreparedDoesNotTouchFiles
+--- PASS: TestRecoverPreparedDoesNotTouchFiles (0.02s)
+=== RUN   TestRestoreHardKillConvergesWithExplicitRecover
+--- PASS: TestRestoreHardKillConvergesWithExplicitRecover (0.21s)
+=== RUN   TestRestoreKillHelper
+--- PASS: TestRestoreKillHelper (0.00s)
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/prepared
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/first-file
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/half
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/before-commit
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/before-service
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/after-service
+--- PASS: TestRestoreHardKillAtEveryDurablePointConverges (1.00s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/prepared (0.27s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/first-file (0.12s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/half (0.21s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/before-commit (0.08s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/before-service (0.22s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/after-service (0.11s)
+=== RUN   TestRestoreRollsBackOnFilesystemErrors
+=== RUN   TestRestoreRollsBackOnFilesystemErrors/enospc
+=== RUN   TestRestoreRollsBackOnFilesystemErrors/read-only
+=== RUN   TestRestoreRollsBackOnFilesystemErrors/permission
+--- PASS: TestRestoreRollsBackOnFilesystemErrors (0.21s)
+    --- PASS: TestRestoreRollsBackOnFilesystemErrors/enospc (0.11s)
+    --- PASS: TestRestoreRollsBackOnFilesystemErrors/read-only (0.04s)
+    --- PASS: TestRestoreRollsBackOnFilesystemErrors/permission (0.05s)
+=== RUN   TestRestoreLeavesThirdPartyFilesAlone
+--- PASS: TestRestoreLeavesThirdPartyFilesAlone (0.07s)
+=== RUN   TestRestoreRefusesWhileAnotherProcessHoldsLock
+--- PASS: TestRestoreRefusesWhileAnotherProcessHoldsLock (0.01s)
+=== RUN   TestRecoverRefusesCorruptJournalWithoutTouchingFiles
+--- PASS: TestRecoverRefusesCorruptJournalWithoutTouchingFiles (0.00s)
+=== RUN   TestRestoreRejectsTraversalWithoutTouchingCanary
+--- PASS: TestRestoreRejectsTraversalWithoutTouchingCanary (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/backup	1.845s
+=== RUN   TestRepairRefusesSymlinkedPaths
+--- PASS: TestRepairRefusesSymlinkedPaths (0.01s)
+=== RUN   TestRepairRefusesSymlinkedStagingEntry
+--- PASS: TestRepairRefusesSymlinkedStagingEntry (0.00s)
+=== RUN   TestRepairDryRunTakesNoLockAndWritesNothing
+--- PASS: TestRepairDryRunTakesNoLockAndWritesNothing (0.00s)
+=== RUN   TestRepairRefusesWhileAnotherUpdateHoldsTheLock
+--- PASS: TestRepairRefusesWhileAnotherUpdateHoldsTheLock (0.00s)
+=== RUN   TestRepairCreatesDirsAndRestrictsModes
+--- PASS: TestRepairCreatesDirsAndRestrictsModes (0.00s)
+=== RUN   TestRepairDryRunChangesNothing
+--- PASS: TestRepairDryRunChangesNothing (0.00s)
+=== RUN   TestRepairStaleLockNeedsExplicitFlag
+--- PASS: TestRepairStaleLockNeedsExplicitFlag (0.00s)
+=== RUN   TestRepairRemovesOldStagingDir
+--- PASS: TestRepairRemovesOldStagingDir (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/repair	0.014s
+=== RUN   TestAuditRealityDirectConvertible
+--- PASS: TestAuditRealityDirectConvertible (0.01s)
+=== RUN   TestAuditXTLSBlocked
+--- PASS: TestAuditXTLSBlocked (0.00s)
+=== RUN   TestAuditMissingMetadataBlocked
+--- PASS: TestAuditMissingMetadataBlocked (0.00s)
+=== RUN   TestAuditCorruptMetadataBlocked
+--- PASS: TestAuditCorruptMetadataBlocked (0.00s)
+=== RUN   TestAuditPortConflictBlocked
+--- PASS: TestAuditPortConflictBlocked (0.00s)
+=== RUN   TestAuditRealityKeyMissingBlocked
+--- PASS: TestAuditRealityKeyMissingBlocked (0.00s)
+=== RUN   TestAuditAlreadyMigratedBlocked
+--- PASS: TestAuditAlreadyMigratedBlocked (0.00s)
+=== RUN   TestPrepareLeavesRuntimeEntryCronUntouched
+--- PASS: TestPrepareLeavesRuntimeEntryCronUntouched (0.15s)
+=== RUN   TestActivateSwitchesEntryAndCronOnly
+--- PASS: TestActivateSwitchesEntryAndCronOnly (0.19s)
+=== RUN   TestActivateRefusesWithoutRecoveryEntry
+--- PASS: TestActivateRefusesWithoutRecoveryEntry (0.11s)
+=== RUN   TestValidateRejectsDrift
+--- PASS: TestValidateRejectsDrift (0.12s)
+=== RUN   TestPrepareRefusesUnfinishedJournal
+--- PASS: TestPrepareRefusesUnfinishedJournal (0.02s)
+=== RUN   TestPrepareDoesNotOverwriteRecoveryEvidence
+=== RUN   TestPrepareDoesNotOverwriteRecoveryEvidence/ACTIVATING
+=== RUN   TestPrepareDoesNotOverwriteRecoveryEvidence/ROLLBACK_REQUIRED
+=== RUN   TestPrepareDoesNotOverwriteRecoveryEvidence/RECOVERY_REQUIRED
+=== RUN   TestPrepareDoesNotOverwriteRecoveryEvidence/COMMITTED
+--- PASS: TestPrepareDoesNotOverwriteRecoveryEvidence (0.02s)
+    --- PASS: TestPrepareDoesNotOverwriteRecoveryEvidence/ACTIVATING (0.01s)
+    --- PASS: TestPrepareDoesNotOverwriteRecoveryEvidence/ROLLBACK_REQUIRED (0.00s)
+    --- PASS: TestPrepareDoesNotOverwriteRecoveryEvidence/RECOVERY_REQUIRED (0.01s)
+    --- PASS: TestPrepareDoesNotOverwriteRecoveryEvidence/COMMITTED (0.00s)
+=== RUN   TestRequireWriteAccessDelegatesToHostGate
+--- PASS: TestRequireWriteAccessDelegatesToHostGate (0.00s)
+=== RUN   TestActivateRefusesChangedEntry
+--- PASS: TestActivateRefusesChangedEntry (0.22s)
+=== RUN   TestRecoverPreservesThirdPartyEntry
+--- PASS: TestRecoverPreservesThirdPartyEntry (0.09s)
+=== RUN   TestRecoverPreparedDiscards
+--- PASS: TestRecoverPreparedDiscards (0.07s)
+=== RUN   TestRecoverActivatingRestoresEntryAndCron
+--- PASS: TestRecoverActivatingRestoresEntryAndCron (0.18s)
+=== RUN   TestRecoverCommittedRefuses
+--- PASS: TestRecoverCommittedRefuses (0.19s)
+=== RUN   TestRecoverCorruptJournal
+--- PASS: TestRecoverCorruptJournal (0.00s)
+=== RUN   TestRecoverIdempotentRolledBack
+--- PASS: TestRecoverIdempotentRolledBack (0.01s)
+=== RUN   TestStatusReadsJournal
+--- PASS: TestStatusReadsJournal (0.08s)
+=== RUN   TestPrepareRejectsTextCandidateWithExecBit
+--- PASS: TestPrepareRejectsTextCandidateWithExecBit (0.00s)
+=== RUN   TestPrepareRejectsWrongArchitectureCandidate
+--- PASS: TestPrepareRejectsWrongArchitectureCandidate (0.00s)
+=== RUN   TestPrepareAcceptsTrustedManifest
+--- PASS: TestPrepareAcceptsTrustedManifest (0.14s)
+=== RUN   TestPrepareRejectsManifestDigestMismatch
+--- PASS: TestPrepareRejectsManifestDigestMismatch (0.04s)
+=== RUN   TestPrepareRejectsManifestVersionMismatch
+--- PASS: TestPrepareRejectsManifestVersionMismatch (0.02s)
+=== RUN   TestRecoverAfterMetadataCrashLeavesNoHalfMigration
+--- PASS: TestRecoverAfterMetadataCrashLeavesNoHalfMigration (0.18s)
+=== RUN   TestRecoverAfterMetadataCrashRestoresPreviousMetadata
+--- PASS: TestRecoverAfterMetadataCrashRestoresPreviousMetadata (0.05s)
+=== RUN   TestNginxMainConfPrefersInstalledBashLayout
+--- PASS: TestNginxMainConfPrefersInstalledBashLayout (0.00s)
+=== RUN   TestImportMetadataWritesLegacyProvenanceWithoutTouchingSource
+--- PASS: TestImportMetadataWritesLegacyProvenanceWithoutTouchingSource (0.01s)
+=== RUN   TestExportRecordsRuntimeDigestAndRefusesManagedTarget
+--- PASS: TestExportRecordsRuntimeDigestAndRefusesManagedTarget (0.01s)
+=== RUN   TestDeactivateReleasesImportedMetadataWithoutJournal
+--- PASS: TestDeactivateReleasesImportedMetadataWithoutJournal (0.01s)
+=== RUN   TestDeactivateRequiresMatchingExportAndRestoresLegacyEntry
+--- PASS: TestDeactivateRequiresMatchingExportAndRestoresLegacyEntry (0.18s)
+=== RUN   TestRillStatusUsesCapturedAtEpochSeconds
+--- PASS: TestRillStatusUsesCapturedAtEpochSeconds (0.00s)
+=== RUN   TestRillStatusFreshCapturedAtWithOldMtime
+--- PASS: TestRillStatusFreshCapturedAtWithOldMtime (0.00s)
+=== RUN   TestRillStatusAbsentIsReadOnly
+--- PASS: TestRillStatusAbsentIsReadOnly (0.00s)
+=== RUN   TestRillStatusInstalledWithoutObservation
+--- PASS: TestRillStatusInstalledWithoutObservation (0.00s)
+=== RUN   TestRillStatusInvalidConfigDegrades
+--- PASS: TestRillStatusInvalidConfigDegrades (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	2.108s
+=== RUN   TestRunHealthySandbox
+--- PASS: TestRunHealthySandbox (0.00s)
+=== RUN   TestRunFindsExpiredCertificateAndLooseModes
+--- PASS: TestRunFindsExpiredCertificateAndLooseModes (0.00s)
+=== RUN   TestClientProbeReportsRealClientPass
+--- PASS: TestClientProbeReportsRealClientPass (0.00s)
+=== RUN   TestClientProbeFailureIsFailNotUnknown
+--- PASS: TestClientProbeFailureIsFailNotUnknown (0.00s)
+=== RUN   TestClientProbeWithoutURLIsNotRun
+--- PASS: TestClientProbeWithoutURLIsNotRun (0.00s)
+=== RUN   TestRelayProbeIsRealHTTPThroughTheStream
+--- PASS: TestRelayProbeIsRealHTTPThroughTheStream (0.00s)
+=== RUN   TestRelayProbeFailureIsFailNotUnknown
+--- PASS: TestRelayProbeFailureIsFailNotUnknown (0.00s)
+=== RUN   TestDeepTLSHandshake
+--- PASS: TestDeepTLSHandshake (0.01s)
+=== RUN   TestDeepRealityIsUnknownNotFaked
+--- PASS: TestDeepRealityIsUnknownNotFaked (0.00s)
+=== RUN   TestDeepClosedPortFails
+--- PASS: TestDeepClosedPortFails (0.00s)
+=== RUN   TestRunMissingInstall
+--- PASS: TestRunMissingInstall (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/doctor	0.017s
+=== RUN   TestCompareVersionsTable
+--- PASS: TestCompareVersionsTable (0.00s)
+=== RUN   TestLoadManifestRejectsBadRecords
+--- PASS: TestLoadManifestRejectsBadRecords (0.00s)
+=== RUN   TestCompareVersionsMatchesBashTable
+--- PASS: TestCompareVersionsMatchesBashTable (0.00s)
+=== RUN   TestFetchAssetVerifiesDigestAndSize
+--- PASS: TestFetchAssetVerifiesDigestAndSize (0.00s)
+=== RUN   TestPreflightQualifiesXrayWithoutTouchingInstalledBinary
+--- PASS: TestPreflightQualifiesXrayWithoutTouchingInstalledBinary (0.00s)
+=== RUN   TestPreflightRejectsCandidateThatCannotParseInstalledConfig
+--- PASS: TestPreflightRejectsCandidateThatCannotParseInstalledConfig (0.00s)
+=== RUN   TestPreflightRefusesDowngrade
+--- PASS: TestPreflightRefusesDowngrade (0.00s)
+=== RUN   TestPreflightRejectsScriptForRealRoot
+--- PASS: TestPreflightRejectsScriptForRealRoot (0.00s)
+=== RUN   TestPreflightWithoutInstalledConfigIsUnverifiedNotCompatible
+--- PASS: TestPreflightWithoutInstalledConfigIsUnverifiedNotCompatible (0.00s)
+=== RUN   TestPreflightNginxTestsCandidateAgainstInstalledConfig
+--- PASS: TestPreflightNginxTestsCandidateAgainstInstalledConfig (0.00s)
+=== RUN   TestApplyXrayUpdateAndReinstall
+--- PASS: TestApplyXrayUpdateAndReinstall (0.00s)
+=== RUN   TestApplyXrayRefusesDowngrade
+--- PASS: TestApplyXrayRefusesDowngrade (0.00s)
+=== RUN   TestApplyXrayDigestMismatchTouchesNothing
+--- PASS: TestApplyXrayDigestMismatchTouchesNothing (0.00s)
+=== RUN   TestApplyXrayHealthFailureRollsBack
+--- PASS: TestApplyXrayHealthFailureRollsBack (0.00s)
+=== RUN   TestApplyRejectsWrongComponentAndRealRoot
+--- PASS: TestApplyRejectsWrongComponentAndRealRoot (0.00s)
+=== RUN   TestApplyNginxUpdateAndRollback
+--- PASS: TestApplyNginxUpdateAndRollback (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/componentupdate	0.024s
+## race
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/backup	2.156s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/repair	1.012s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	2.502s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/schedule	1.268s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/store	1.008s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/change	1.196s

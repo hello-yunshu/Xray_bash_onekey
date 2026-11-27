@@ -1,0 +1,1 @@
+Nginx artifact download failed: https://github.com/hello-yunshu/Xray_bash_onekey_Nginx/releases/download/v2026.10.15.7679/xray-nginx-custom-arm.tar.gz read failed: context deadline exceeded (Client.Timeout or context cancellation while reading body)

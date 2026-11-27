@@ -1,0 +1,431 @@
+[
+  {
+    "at": "2026-11-27T20:49:35.359604222Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:36.360862079Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:37.370497214Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:38.377273771Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:39.391707158Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:40.393387964Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:41.403029137Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:42.407633227Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:43.410413262Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:44.41491881Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:45.416352074Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:46.418839904Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:47.421067612Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:48.429931419Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:49.432242291Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:50.441122929Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:51.442932641Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:52.445639379Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:53.447842834Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:54.449032887Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:55.458936256Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:56.464412821Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:57.467348636Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:58.467174335Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:49:59.471991534Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:50:00.477238767Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:50:01.483606939Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:50:02.485721764Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:50:03.496875273Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  },
+  {
+    "at": "2026-11-27T20:50:04.508199236Z",
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": 174,
+        "bytesPerSecond": 0
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": 988,
+        "bytesPerSecond": 0
+      }
+    ]
+  }
+]

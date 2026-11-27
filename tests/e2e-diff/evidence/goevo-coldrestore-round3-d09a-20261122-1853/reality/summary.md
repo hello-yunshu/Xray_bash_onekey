@@ -1,0 +1,38 @@
+# Cold restore real-machine evidence (reality)
+
+- run-id: `round3-d09a-20261122-1853`
+- commit: `d13abf2161872e204a626cf6a90b8b3e93390003`
+- image id: `sha256:f1ee6157c04ee60c95bf50306290923477ef21755aa1323876db180a3a6387a8`
+- source driver rc: 0
+- target driver rc: 0
+- archive sha256: `1f503a400f0c121b124617d6216dd94e8fd908b4f7f503d8f85c637d4a8296c3`
+
+- **PASS** [source] source install is healthy before the backup (rc=0)
+- **PASS** [source] source backup create exits 0 (rc=0)
+- **PASS** [source] source archive exists
+- **PASS** [source] source archive is mode 0600 (mode=600)
+- **PASS** [source] source archive verifies (rc=0)
+- **PASS** [source] a real client reaches the origin on the source machine (reality)
+- **PASS** [source] source doctor --client-probe exits 0 (rc=0)
+- **PASS** [source] source probe reports REAL_CLIENT_PASS
+- **PASS** [target] target install is healthy before the restore (rc=0)
+- **PASS** [target] the fresh target starts with different managed state (reality)
+- **PASS** [target] target verifies the source archive (rc=0)
+- **PASS** [target] the handoff archive digest matches the source
+- **PASS** [target] cold restore exits 0 (rc=0)
+- **PASS** [target] restored state is byte-identical to the source (reality)
+- **PASS** [target] the restore wrote a pre-restore backup
+- **PASS** [target] restored config is valid JSON
+- **PASS** [target] restored config is mode 0640 (mode=640)
+- **PASS** [target] restored config group is xray (group=xray)
+- **PASS** [target] the target xray service account can read the restored config
+- **PASS** [target] the restored config passes xray -test (rc=0)
+- **PASS** [target] xray is active after the restore (state=active)
+- **PASS** [target] doctor is healthy after the cold restore (rc=0)
+- **PASS** [target] a real client reaches the origin after the cold restore (reality)
+- **PASS** [target] target doctor --client-probe exits 0 (rc=0)
+- **PASS** [target] target probe reports REAL_CLIENT_PASS
+- **PASS** [target] xray survives a restart after the restore (state=active)
+- **PASS** [target] a real client still reaches the origin after the post-restore restart (reality)
+- **PASS** [target] the third-party certificate canary survived the restore
+- **PASS** [target] the third-party config note survived the restore unchanged

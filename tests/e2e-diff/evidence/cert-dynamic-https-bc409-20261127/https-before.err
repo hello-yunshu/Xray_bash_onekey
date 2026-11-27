@@ -1,0 +1,5 @@
+depth=0 CN = owned.local
+verify error:num=18:self-signed certificate
+verify return:1
+depth=0 CN = owned.local
+verify return:1

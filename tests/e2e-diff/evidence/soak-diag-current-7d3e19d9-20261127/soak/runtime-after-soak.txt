@@ -1,0 +1,7 @@
+MainPID=208
+NRestarts=0
+MemoryCurrent=36626432
+ActiveState=active
+SubState=running
+Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.

@@ -1,0 +1,60 @@
+{
+  "details": {
+    "bash": {
+      "addRc": 0,
+      "addedClients": 2,
+      "addedShortIds": 2,
+      "beforeClients": 1,
+      "beforeShortIds": 1,
+      "cleanedShortIds": 1,
+      "cleanupCommand": "none (user remove clears the sid on Bash)",
+      "cleanupRc": 0,
+      "clientConnected": true,
+      "newIds": [
+        "ebd7f694-ac9f-514c-9090-365d254b891d"
+      ],
+      "removeRc": 0,
+      "removedClients": 1,
+      "removedShortIds": 1,
+      "shortIdResidueAfterRemove": 0,
+      "showRc": 0
+    },
+    "go": {
+      "addRc": 0,
+      "addedClients": 2,
+      "addedShortIds": 2,
+      "beforeClients": 1,
+      "beforeShortIds": 1,
+      "cleanedShortIds": 1,
+      "cleanupCommand": "xray config edit --short-id-remove",
+      "cleanupRc": 0,
+      "clientConnected": true,
+      "newIds": [
+        "22222222-3333-4444-5555-666666666666"
+      ],
+      "removeRc": 0,
+      "removedClients": 1,
+      "removedShortIds": 2,
+      "shortIdResidueAfterRemove": 1,
+      "showRc": 0
+    }
+  },
+  "id": "OPS-01",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "driverSha": "8d1328f052ebfd201cdf34be92f57710543d740fb1fb92126a37094980c380ed",
+    "finishedAt": "2026-11-24T00:22:50Z",
+    "image": "sha256:83aa69a1f46d1b5f37739864767a37a3d8c527f4d4678ede3368ffa6dddcefbd",
+    "layer": "L0-L4 docker matrix",
+    "productCodeSha": "d756dfff6b5091b2d2a9fea8188297fc50aa23a8",
+    "runId": "round5-ops03c-082104",
+    "startedAt": "2026-11-24T00:21:04Z"
+  },
+  "verdict": "PASS"
+}

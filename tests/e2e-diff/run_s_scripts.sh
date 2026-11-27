@@ -149,8 +149,8 @@ run_s4() {
     assert "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "S4 normal run exits 0 (rc=$rc)"
     assert "$(docker exec "$A_C" grep -q 'Script is up to date' /etc/idleleo/logs/auto_update.log && echo 0 || echo 1)" \
         "S4 normal run reports the Shell is up to date"
-    assert "$(docker exec "$A_C" grep -q 'Xray is up to date' /etc/idleleo/logs/auto_update.log && echo 0 || echo 1)" \
-        "S4 normal run reports Xray is up to date"
+    assert "$(docker exec "$A_C" grep -Eq 'Installed Xray [0-9.]+ is newer than the metadata target [0-9.]+; refusing to downgrade\.' /etc/idleleo/logs/auto_update.log && echo 0 || echo 1)" \
+        "S4 refuses to downgrade a newer installed Xray to the pinned metadata target"
     local before after
     before=$(docker exec "$A_C" sha256sum /etc/idleleo/conf/install_config.json | awk '{print $1}')
     capture "$d/repeat" docker exec "$A_C" bash /etc/idleleo/scripts/auto_update.sh
@@ -181,7 +181,43 @@ geo_sha() {
 run_s6() {
     local d="$EVID/S6"; mkdir -p "$d"
     log "[S6] geo_update"
-    capture "$d/normal" docker exec "$A_C" bash /etc/idleleo/scripts/geo_update.sh
+    # Serve the pinned release from a local, checksum-verified origin. The
+    # updater still performs its real checksum, Xray -test and backup/rollback;
+    # only the network transport is local so S6 is deterministic.
+    local origin="$d/origin" geo_src="$HOME/.cache/xray-audit/share/xray-bin"
+    mkdir -p "$origin"
+    if [[ -s "$geo_src/geoip.dat" && -s "$geo_src/geosite.dat" ]]; then
+        cp "$geo_src/geoip.dat" "$geo_src/geosite.dat" "$origin/"
+        ( cd "$origin" && sha256sum geoip.dat >geoip.dat.sha256sum \
+            && sha256sum geosite.dat >geosite.dat.sha256sum )
+        docker exec "$A_C" sh -c 'rm -rf /tmp/geo-origin /tmp/geo-curl && mkdir -p /tmp/geo-origin /tmp/geo-curl'
+        for f in geoip.dat geosite.dat geoip.dat.sha256sum geosite.dat.sha256sum; do
+            docker cp "$origin/$f" "$A_C:/tmp/geo-origin/$f" >/dev/null
+        done
+        docker exec "$A_C" sh -c 'cat >/tmp/geo-curl/curl <<"EOF"
+#!/bin/sh
+out=""; prev=""
+for a in "$@"; do [ "$prev" = "-o" ] && out="$a"; prev="$a"; done
+last=""
+for a in "$@"; do case "$a" in http*) last="$a";; esac; done
+case "$last" in
+  */releases/latest) printf "%s" "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/tag/e2e-local"; exit 0 ;;
+  */geoip.dat) cp /tmp/geo-origin/geoip.dat "$out"; exit 0 ;;
+  */geosite.dat) cp /tmp/geo-origin/geosite.dat "$out"; exit 0 ;;
+  */geoip.dat.sha256sum) cp /tmp/geo-origin/geoip.dat.sha256sum "$out"; exit 0 ;;
+  */geosite.dat.sha256sum) cp /tmp/geo-origin/geosite.dat.sha256sum "$out"; exit 0 ;;
+esac
+exit 1
+EOF
+chmod 0755 /tmp/geo-curl/curl'
+        export E2E_GEO_PATH="/tmp/geo-curl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    else
+        log "[S6] WARN local GeoData seed missing; using the network origin"
+        export E2E_GEO_PATH=""
+    fi
+    local gpenv=()
+    [[ -n "${E2E_GEO_PATH:-}" ]] && gpenv=(-e "PATH=$E2E_GEO_PATH")
+    capture "$d/normal" docker exec "${gpenv[@]}" "$A_C" bash /etc/idleleo/scripts/geo_update.sh
     local rc; rc=$(cat "$d/normal.rc")
     docker exec "$A_C" cp /etc/idleleo/logs/geo_update.log /out/S6/geo_update-run1.log >/dev/null 2>&1 || true
     assert "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "S6 normal run exits 0 (rc=$rc)"
@@ -195,7 +231,7 @@ run_s6() {
         "S6 Xray is active after the update"
     local sums1 sums2
     sums1=$(geo_sha); echo "$sums1" >"$d/dat-run1.sha256"
-    capture "$d/repeat" docker exec "$A_C" bash /etc/idleleo/scripts/geo_update.sh
+    capture "$d/repeat" docker exec "${gpenv[@]}" "$A_C" bash /etc/idleleo/scripts/geo_update.sh
     rc=$(cat "$d/repeat.rc")
     docker exec "$A_C" cp /etc/idleleo/logs/geo_update.log /out/S6/geo_update-run2.log >/dev/null 2>&1 || true
     sums2=$(geo_sha); echo "$sums2" >"$d/dat-run2.sha256"
@@ -215,6 +251,51 @@ run_s6() {
     assert "$(docker exec "$A_C" grep -q 'Failed to resolve immutable GeoData release tag' /etc/idleleo/logs/geo_update.log && echo 0 || echo 1)" \
         "S6 failed download is reported"
     assert "$([ "$sums2" = "$sums3" ] && echo 0 || echo 1)" "S6 failed download leaves the installed GeoData intact"
+
+    # A 200 response with corrupt or truncated bytes must be rejected by the
+    # upstream checksum, not installed.
+    docker exec "$A_C" sh -c 'mkdir -p /tmp/corrupt-curl &&
+        cat >/tmp/corrupt-curl/curl <<"EOF"
+#!/bin/sh
+out=""; prev=""
+for a in "$@"; do [ "$prev" = "-o" ] && out="$a"; prev="$a"; done
+case "$out" in
+  *.dat) printf "corrupt-geodata" >"$out"; exit 0 ;;
+esac
+exec /usr/bin/curl "$@"
+EOF
+chmod 0755 /tmp/corrupt-curl/curl'
+    capture "$d/corrupt" docker exec -e PATH=/tmp/corrupt-curl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+        "$A_C" bash /etc/idleleo/scripts/geo_update.sh
+    rc=$(cat "$d/corrupt.rc")
+    docker exec "$A_C" cp /etc/idleleo/logs/geo_update.log /out/S6/geo_update-corrupt.log >/dev/null 2>&1 || true
+    local sums4; sums4=$(geo_sha); echo "$sums4" >"$d/dat-after-corrupt.sha256"
+    assert "$([ "$rc" -ne 0 ] && echo 0 || echo 1)" "S6 corrupt payload exits non-zero (rc=$rc)"
+    assert "$(docker exec "$A_C" grep -q 'checksum verification failed' /etc/idleleo/logs/geo_update.log && echo 0 || echo 1)" \
+        "S6 corrupt payload is rejected by the upstream checksum"
+    assert "$([ "$sums3" = "$sums4" ] && echo 0 || echo 1)" "S6 corrupt payload leaves the installed GeoData intact"
+
+    docker exec "$A_C" sh -c 'mkdir -p /tmp/trunc-curl &&
+        cat >/tmp/trunc-curl/curl <<"EOF"
+#!/bin/sh
+out=""; prev=""
+for a in "$@"; do [ "$prev" = "-o" ] && out="$a"; prev="$a"; done
+case "${out##*/}" in
+  geoip.dat) head -c 1024 /etc/idleleo/share/xray/geoip.dat >"$out"; exit 0 ;;
+  geosite.dat) head -c 1024 /etc/idleleo/share/xray/geosite.dat >"$out"; exit 0 ;;
+esac
+exec /usr/bin/curl "$@"
+EOF
+chmod 0755 /tmp/trunc-curl/curl'
+    capture "$d/truncated" docker exec -e PATH=/tmp/trunc-curl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+        "$A_C" bash /etc/idleleo/scripts/geo_update.sh
+    rc=$(cat "$d/truncated.rc")
+    docker exec "$A_C" cp /etc/idleleo/logs/geo_update.log /out/S6/geo_update-truncated.log >/dev/null 2>&1 || true
+    local sums5; sums5=$(geo_sha); echo "$sums5" >"$d/dat-after-truncated.sha256"
+    assert "$([ "$rc" -ne 0 ] && echo 0 || echo 1)" "S6 truncated payload exits non-zero (rc=$rc)"
+    assert "$(docker exec "$A_C" grep -q 'checksum verification failed' /etc/idleleo/logs/geo_update.log && echo 0 || echo 1)" \
+        "S6 truncated payload is rejected by the upstream checksum"
+    assert "$([ "$sums4" = "$sums5" ] && echo 0 || echo 1)" "S6 truncated payload leaves the installed GeoData intact"
 }
 
 sandbox_tcp_file() {

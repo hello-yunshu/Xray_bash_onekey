@@ -1,0 +1,20 @@
+{
+  "checks": {
+    "allReadOnlyShowsRc0": true,
+    "baselineActive": true,
+    "fakePidRejected": true,
+    "recordRestorationReactivates": true,
+    "restoredPidActive": true,
+    "sameNumericPid": true,
+    "staleStartTicksRejected": true
+  },
+  "details": {
+    "fakePid": "834",
+    "masterPid": "681",
+    "recordedStartTicks": 9194865,
+    "staleStartTicks": 9194866
+  },
+  "id": "GUARD-PID-IDENTITY",
+  "passed": true,
+  "scope": "real Nginx + full idleleo CLI; stale startTicks models reuse of same numeric PID, fake PID uses live non-Nginx process"
+}

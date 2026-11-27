@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-32",
+  "ops": [
+    "OPS-32"
+  ],
+  "runId": "round3-final-20261122-99997da0-ops32b",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

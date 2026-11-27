@@ -1,0 +1,7 @@
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  请确保备份文件在目录: /etc/idleleo 
+ 找到最新备份文件: /etc/idleleo/xray_bash_e2e-ops25_20261126182856.tar.gz 
+[信息]  未找到可用的 GeoData 资源, 跳过软链自愈 
+[OK]  GeoData 自愈后 Xray 自检通过 
+[OK]  恢复 成功 
+[信息]  已恢复脚本版本: 3.3.6 

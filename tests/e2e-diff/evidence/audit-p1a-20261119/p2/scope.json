@@ -1,0 +1,15 @@
+{
+  "edits": [],
+  "installs": [
+    "M1",
+    "M4",
+    "M9"
+  ],
+  "only": "M1,M4,M9",
+  "ops": [],
+  "runId": "audit-p1a-20261119",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

@@ -97,6 +97,11 @@ type Options struct {
 	ReleaseBaseURL string
 	Arch           string
 	Client         *http.Client
+	// CacheDir is an optional offline artifact cache holding versions.json,
+	// release-manifest.json and the arch tarball. When set, Resolve reads it and
+	// never touches the network: a missing or corrupt file is a hard error, so
+	// an automated run cannot silently replace a cache hit with a flaky download.
+	CacheDir string
 }
 
 func (o Options) client() *http.Client {
@@ -141,10 +146,14 @@ func Arch() (string, error) {
 
 // Resolve fetches the online build version, validates the mandatory manifest,
 // downloads the arch artifact and verifies its SHA256 before returning it.
+// With Options.CacheDir set it resolves entirely from local files.
 func Resolve(ctx context.Context, opts Options) (Artifact, error) {
 	arch, err := opts.arch()
 	if err != nil {
 		return Artifact{}, err
+	}
+	if dir := strings.TrimSpace(opts.CacheDir); dir != "" {
+		return ResolveFromCache(dir, arch)
 	}
 	build, err := FetchBuildVersion(ctx, opts)
 	if err != nil {
@@ -303,14 +312,84 @@ func DownloadVerified(ctx context.Context, client *http.Client, assetURL string,
 	if err != nil {
 		return nil, fmt.Errorf("Nginx artifact download failed: %w", err)
 	}
-	if int64(len(b)) != a.SizeBytes {
-		return nil, fmt.Errorf("Nginx artifact size mismatch: got %d want %d bytes", len(b), a.SizeBytes)
-	}
-	sum := sha256.Sum256(b)
-	if got := hex.EncodeToString(sum[:]); got != strings.ToLower(a.SHA256) {
-		return nil, fmt.Errorf("Nginx artifact sha256 mismatch: got %s want %s", got, a.SHA256)
+	if err := verifyArtifact(b, a); err != nil {
+		return nil, err
 	}
 	return b, nil
+}
+
+// ResolveFromCache resolves an artifact from dir without any network access.
+// The files are versions.json, release-manifest.json and the arch tarball; the
+// same manifest, filename, size and SHA256 checks as the download path run, so
+// a tampered or half-written cache fails closed.
+func ResolveFromCache(dir, arch string) (Artifact, error) {
+	versionsPath := filepath.Join(dir, "versions.json")
+	vb, err := readCachedFile(versionsPath, maxVersionsSize)
+	if err != nil {
+		return Artifact{}, fmt.Errorf("Nginx cache is incomplete: %w", err)
+	}
+	var v BuildVersion
+	if err := json.Unmarshal(vb, &v); err != nil {
+		return Artifact{}, fmt.Errorf("Nginx cache %s is invalid: %w", versionsPath, err)
+	}
+	build := strings.TrimSpace(v.NginxBuildOnlineVersion)
+	if !dottedVersion.MatchString(build) {
+		return Artifact{}, fmt.Errorf("Nginx cache nginx_build_online_version %q is not a dotted version", build)
+	}
+	manifestPath := filepath.Join(dir, "release-manifest.json")
+	mb, err := readCachedFile(manifestPath, maxManifestSize)
+	if err != nil {
+		return Artifact{}, fmt.Errorf("Nginx cache is incomplete: %w", err)
+	}
+	manifest, err := ParseManifest(mb)
+	if err != nil {
+		return Artifact{}, err
+	}
+	asset, err := manifest.AssetForArch(arch)
+	if err != nil {
+		return Artifact{}, err
+	}
+	if err := manifest.validate(build, asset); err != nil {
+		return Artifact{}, err
+	}
+	assetPath := filepath.Join(dir, asset.Filename)
+	data, err := readCachedFile(assetPath, maxArtifactSize)
+	if err != nil {
+		return Artifact{}, fmt.Errorf("Nginx cache is incomplete: %w", err)
+	}
+	if err := verifyArtifact(data, asset); err != nil {
+		return Artifact{}, err
+	}
+	return Artifact{
+		Build:       build,
+		Version:     manifest.Versions,
+		Asset:       asset,
+		ManifestURL: manifestPath,
+		AssetURL:    assetPath,
+		Data:        data,
+	}, nil
+}
+
+func readCachedFile(path string, limit int64) ([]byte, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(b)) > limit {
+		return nil, fmt.Errorf("%s exceeds the %d byte limit", path, limit)
+	}
+	return b, nil
+}
+
+func verifyArtifact(data []byte, a Asset) error {
+	if int64(len(data)) != a.SizeBytes {
+		return fmt.Errorf("Nginx artifact size mismatch: got %d want %d bytes", len(data), a.SizeBytes)
+	}
+	sum := sha256.Sum256(data)
+	if got := hex.EncodeToString(sum[:]); got != strings.ToLower(a.SHA256) {
+		return fmt.Errorf("Nginx artifact sha256 mismatch: got %s want %s", got, a.SHA256)
+	}
+	return nil
 }
 
 func fetchLimited(ctx context.Context, client *http.Client, rawURL string, limit int64) ([]byte, error) {

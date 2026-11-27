@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [
+    "M4"
+  ],
+  "only": "M4",
+  "ops": [],
+  "runId": "bashcold-src-current-7d3e19d9-20261127",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

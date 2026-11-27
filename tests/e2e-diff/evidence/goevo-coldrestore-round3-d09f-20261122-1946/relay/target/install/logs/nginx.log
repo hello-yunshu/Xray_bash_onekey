@@ -1,0 +1,6 @@
+<TS> e2e-round3-d09f-20261122-1946-cold-target-relay systemd[1]: Starting nginx.service - The NGINX HTTP and reverse proxy server...
+<TS> e2e-round3-d09f-20261122-1946-cold-target-relay nginx[<PID>]: nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+<TS> e2e-round3-d09f-20261122-1946-cold-target-relay nginx[<PID>]: nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+<TS> e2e-round3-d09f-20261122-1946-cold-target-relay systemd[1]: Started nginx.service - The NGINX HTTP and reverse proxy server.
+<TS> e2e-round3-d09f-20261122-1946-cold-target-relay systemd[1]: Reloading nginx.service - The NGINX HTTP and reverse proxy server...
+<TS> e2e-round3-d09f-20261122-1946-cold-target-relay systemd[1]: Reloaded nginx.service - The NGINX HTTP and reverse proxy server.

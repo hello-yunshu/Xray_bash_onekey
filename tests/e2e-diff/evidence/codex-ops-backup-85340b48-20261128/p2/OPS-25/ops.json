@@ -1,0 +1,144 @@
+{
+  "details": {
+    "bash": {
+      "after": {
+        "conf/install_config.json": "80d594b0c0cd827cf7d19e3e3610dc955a3b36d94047d5c00a980481f3fa742c",
+        "conf/nginx/00-xray.conf": "90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424",
+        "conf/ops25-canary.txt": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225",
+        "conf/xray/config.json": "1fe8b99d8b2edcd2453630ebb07552148132b5e8b339574279a89bb7d816261a",
+        "config-mode": "600:root",
+        "nginx-active": "active",
+        "nginx-test-rc": "0",
+        "xray-active": "active",
+        "xray-test-rc": "0"
+      },
+      "archiveModeAndDigest": true,
+      "before": {
+        "conf/install_config.json": "80d594b0c0cd827cf7d19e3e3610dc955a3b36d94047d5c00a980481f3fa742c",
+        "conf/nginx/00-xray.conf": "90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424",
+        "conf/ops25-canary.txt": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225",
+        "conf/xray/config.json": "1fe8b99d8b2edcd2453630ebb07552148132b5e8b339574279a89bb7d816261a",
+        "config-mode": "600:root",
+        "nginx-active": "active",
+        "nginx-test-rc": "0",
+        "xray-active": "active",
+        "xray-test-rc": "0"
+      },
+      "canaryRestored": true,
+      "checksumMatch": true,
+      "createRc": 0,
+      "managedFilesRestored": true,
+      "permissionsRestored": true,
+      "realClient": true,
+      "restoreRc": 0,
+      "restoreVerified": true,
+      "servicesAndValidators": true,
+      "verifyRc": 0
+    },
+    "go": {
+      "after": {
+        "conf/nginx/00-xray.conf": "90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424",
+        "conf/ops25-canary.txt": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225",
+        "conf/xray/config.json": "1e055e84d92d487d87b0195d393f75a9d966776b191a902f4f1ac39cd0280ede",
+        "config-mode": "640:xray",
+        "nginx-active": "active",
+        "nginx-test-rc": "0",
+        "v1/metadata.json": "d830fcd13204f25bd0eaa60eebbda75ad97c72c4c199689820e87b4417dc3ebe",
+        "xray-active": "active",
+        "xray-test-rc": "0"
+      },
+      "archiveModeAndDigest": true,
+      "before": {
+        "conf/nginx/00-xray.conf": "90a9ca34268ee9691b17d9f86d13e6807e4337e406ed62a7632846696f46e424",
+        "conf/ops25-canary.txt": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225",
+        "conf/xray/config.json": "1e055e84d92d487d87b0195d393f75a9d966776b191a902f4f1ac39cd0280ede",
+        "config-mode": "640:xray",
+        "nginx-active": "active",
+        "nginx-test-rc": "0",
+        "v1/metadata.json": "d830fcd13204f25bd0eaa60eebbda75ad97c72c4c199689820e87b4417dc3ebe",
+        "xray-active": "active",
+        "xray-test-rc": "0"
+      },
+      "canaryRestored": true,
+      "checksumMatch": true,
+      "createRc": 0,
+      "managedFilesRestored": true,
+      "permissionsRestored": true,
+      "realClient": true,
+      "restoreRc": 0,
+      "restoreVerified": true,
+      "servicesAndValidators": true,
+      "verifyRc": 0
+    }
+  },
+  "id": "OPS-25",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "Both sides exercised their native backup/restore path with real Docker services and clients",
+    "Bash result={\"archiveModeAndDigest\": true, \"canaryRestored\": true, \"checksumMatch\": true, \"createRc\": 0, \"managedFilesRestored\": true, \"permissionsRestored\": true, \"realClient\": true, \"restoreRc\": 0, \"restoreVerified\": true, \"servicesAndValidators\": true, \"verifyRc\": 0}",
+    "Go result={\"archiveModeAndDigest\": true, \"canaryRestored\": true, \"checksumMatch\": true, \"createRc\": 0, \"managedFilesRestored\": true, \"permissionsRestored\": true, \"realClient\": true, \"restoreRc\": 0, \"restoreVerified\": true, \"servicesAndValidators\": true, \"verifyRc\": 0}"
+  ],
+  "run": {
+    "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+    "binarySha256": "263de583c2024e7eef702955bd3002df675f4888c8a12bf1859111b56bb85240",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "603ff9b5c7d93109d9044ec45194e2868a8050d2e5c52faaa8933b3cdc35fb56",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/prepare_ops17a_shell_release.py",
+        "sha256": "310812e6bd78aab2fb55962313c80fbcf976b4580a6fbefcddbb2d1735841238",
+        "source": "tests/e2e-diff/collect/prepare_ops17a_shell_release.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/run_ops17a_go_update.sh",
+        "sha256": "f4d5f4184a018143ed227e8e2b2fdd8ef4d4459816866d5ce6beed94e5a3588a",
+        "source": "tests/e2e-diff/collect/run_ops17a_go_update.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/summarize_ops17a.py",
+        "sha256": "0018aee26294d0153f6fb4274850bd9b2bb8e12aaf5708b2c626fd1538523a2f",
+        "source": "tests/e2e-diff/collect/summarize_ops17a.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "79476b0063d29502af00f8edf9586c506585472dbf6230c7633293c520d45dbc",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "dfa72c1df64346719eee07e4e643ce4f951de1084323800c2b9ee4b72a20f340",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "a6ccb762846c6589d3641f10d6a146fa1dd36a553c661213529a3428904690fa",
+    "finishedAt": "2026-11-27T20:36:32Z",
+    "fixedBy": null,
+    "fixedByKind": null,
+    "image": "sha256:8dfec2dc2272806bf2f7662db805d629af593429e98dfabba818aecae207e5a6",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "c7fc2ee8f140792773108d21e63a8946cb6285069486a3351fb6ec820258d3fc",
+    "platform": "linux/arm64",
+    "productCodeSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
+    "runId": "codex-ops-backup-85340b48-20261128",
+    "startedAt": "2026-11-27T20:35:24Z",
+    "supersedes": null
+  },
+  "verdict": "PASS"
+}

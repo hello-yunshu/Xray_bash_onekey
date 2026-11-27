@@ -1,0 +1,18 @@
+run_id=p3-current-raw-7d3e19d9
+commit=7d3e19d92ce0dc4f70ab90dedc81c13a41403f91
+image=idleleo-e2e:24.04
+image_id=sha256:f6c28602447747db6291384109d07dd376190c56f50bf2aadab3771c0f14ed9a
+building idleleo
+idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+building the local TLS target
+arch=arm64
+xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a arch=arm64
+container=e2e-p3-current-raw-7d3e19d9-go
+starting the local TLS target
+installing Go manager (reality)
+install_rc=0
+running P3 driver
+driver_rc=0
+evidence=tests/e2e-diff/evidence/goevo-p3-p3-current-raw-7d3e19d9
+RESULT: PASS
+run_p3_rc=0

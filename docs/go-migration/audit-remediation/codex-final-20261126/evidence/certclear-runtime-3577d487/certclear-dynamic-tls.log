@@ -1,0 +1,19 @@
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+TLS_BEFORE_RC=0
+CERT_CLEAR_RC=0
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+TLS_AFTER_RC=0
+{
+  "acmeAccountAndRenewalPreserved": true,
+  "acmeTreeHashAfter": "ed642211b65493af4a829df9b7e58430742e7023cf5f3e70567d3f1380b97cef",
+  "acmeTreeHashBefore": "ed642211b65493af4a829df9b7e58430742e7023cf5f3e70567d3f1380b97cef",
+  "acmeTreePreservedExactly": true,
+  "certPreserved": true,
+  "certificateFragment": "/etc/idleleo/conf/nginx/03-isolate.conf",
+  "keyPreserved": true,
+  "tlsAfter": true,
+  "tlsBefore": true
+}
+command_rc=0

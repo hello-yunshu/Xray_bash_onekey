@@ -1,6 +1,7 @@
 package doctor
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"crypto/elliptic"
@@ -9,6 +10,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
@@ -19,6 +21,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/clientprobe"
 )
 
 func writeFile(t *testing.T, root, rel string, body []byte, mode os.FileMode) string {
@@ -112,6 +116,174 @@ func TestRunFindsExpiredCertificateAndLooseModes(t *testing.T) {
 	}
 }
 
+func rootWithRealityClient(t *testing.T, port int) string {
+	t.Helper()
+	root, _ := healthyRoot(t)
+	// A fixed 32-byte seed is a valid X25519 scalar for a test key.
+	priv := base64.RawURLEncoding.EncodeToString(bytes.Repeat([]byte{7}, 32))
+	config := []byte(fmt.Sprintf(`{"inbounds":[{"listen":"127.0.0.1","port":%d,"tag":"in","protocol":"vless","settings":{"clients":[{"id":"11111111-1111-1111-1111-111111111111"}]},"streamSettings":{"network":"ws","security":"reality","wsSettings":{"path":"/probe"},"realitySettings":{"privateKey":%q,"shortIds":["0123456789abcdef"],"serverNames":["doctor.example"]}}}]}`, port, priv))
+	writeFile(t, root, "etc/idleleo/conf/xray/config.json", config, 0o600)
+	// The probe seam is injected, so a placeholder binary is enough to pass the
+	// installed-binary precondition.
+	writeFile(t, root, "usr/local/bin/xray", []byte("#!/bin/sh\nexit 0\n"), 0o755)
+	sum := sha256.Sum256(config)
+	meta := map[string]any{
+		"schemaVersion": 1, "activeEngine": "xray", "role": "node", "tls": "Reality",
+		"transport": "ws", "runtimeConfigPath": "etc/idleleo/conf/xray/config.json",
+		"runtimeSha256": hex.EncodeToString(sum[:]), "ownedResources": []string{"xray"},
+		"updatedAt": "2026-11-18T00:00:00Z",
+	}
+	body, _ := json.Marshal(meta)
+	writeFile(t, root, "etc/idleleo/v1/metadata.json", body, 0o600)
+	return root
+}
+
+// TestClientProbeReportsRealClientPass proves the strongest evidence level is
+// only reported after the probe seam actually succeeded.
+func TestClientProbeReportsRealClientPass(t *testing.T) {
+	root := rootWithRealityClient(t, 24443)
+	var gotLink clientprobe.Link
+	var gotAddr string
+	rep := RunWith(context.Background(), root, Options{
+		ClientProbe: true,
+		ProbeURL:    "http://origin.example/fast",
+		Validate:    func(context.Context, string) error { return nil },
+		Probe: func(_ context.Context, _ string, link clientprobe.Link, addr, origin, marker string) (clientprobe.Result, error) {
+			gotLink, gotAddr = link, addr
+			if origin != "http://origin.example/fast" || marker != "" {
+				t.Fatalf("origin=%q marker=%q", origin, marker)
+			}
+			return clientprobe.Result{StatusLine: "HTTP/1.1 200 OK", BodyBytes: 42}, nil
+		},
+	})
+	check := find(rep, "client-probe")
+	if check.Status != StatusOK || check.Evidence != EvidenceRealClient {
+		t.Fatalf("client-probe = %+v", check)
+	}
+	if rep.EvidenceLevel != EvidenceRealClient {
+		t.Fatalf("evidenceLevel=%q", rep.EvidenceLevel)
+	}
+	if gotAddr != "127.0.0.1:24443" {
+		t.Fatalf("addr=%q", gotAddr)
+	}
+	if gotLink.UUID != "11111111-1111-1111-1111-111111111111" || gotLink.Network != "ws" ||
+		gotLink.SNI != "doctor.example" || gotLink.Path != "/probe" ||
+		gotLink.ShortID != "0123456789abcdef" || gotLink.PublicKey == "" {
+		t.Fatalf("link=%+v", gotLink)
+	}
+}
+
+func TestClientProbeFailureIsFailNotUnknown(t *testing.T) {
+	root := rootWithRealityClient(t, 24444)
+	rep := RunWith(context.Background(), root, Options{
+		ClientProbe: true,
+		ProbeURL:    "http://origin.example/",
+		Validate:    func(context.Context, string) error { return nil },
+		Probe: func(context.Context, string, clientprobe.Link, string, string, string) (clientprobe.Result, error) {
+			return clientprobe.Result{}, fmt.Errorf("origin returned 502")
+		},
+	})
+	check := find(rep, "client-probe")
+	if check.Status != StatusFail || check.Evidence != EvidenceRealClient {
+		t.Fatalf("client-probe = %+v", check)
+	}
+	if rep.Healthy {
+		t.Fatal("a failed client probe must not report healthy")
+	}
+}
+
+func TestClientProbeWithoutURLIsNotRun(t *testing.T) {
+	root := rootWithRealityClient(t, 24445)
+	rep := RunWith(context.Background(), root, Options{
+		ClientProbe: true,
+		Validate:    func(context.Context, string) error { return nil },
+	})
+	check := find(rep, "client-probe")
+	if check.Status != StatusSkip || check.Evidence != EvidenceNotRun {
+		t.Fatalf("client-probe = %+v", check)
+	}
+}
+
+// relayRoot builds a relay owned root: no Xray runtime config, only the managed
+// Nginx stream fragment and a role=relay metadata record.
+func relayRoot(t *testing.T, listen string) string {
+	t.Helper()
+	root, _ := healthyRoot(t)
+	_ = os.Remove(filepath.Join(root, "etc/idleleo/conf/xray/config.json"))
+	meta := map[string]any{
+		"schemaVersion": 1, "activeEngine": "xray", "role": "relay", "tls": "None",
+		"transport": "None", "ownedResources": []string{"etc/idleleo/conf/nginx/relay-stream.conf"},
+		"updatedAt": "2026-11-18T00:00:00Z",
+	}
+	body, _ := json.Marshal(meta)
+	writeFile(t, root, "etc/idleleo/v1/metadata.json", body, 0o644)
+	conf := "stream {\n    server {\n        listen " + listen + ";\n        proxy_pass origin.example.com:8080;\n    }\n}\n"
+	writeFile(t, root, "etc/idleleo/conf/nginx/relay-stream.conf", []byte(conf), 0o640)
+	return root
+}
+
+// TestRelayProbeIsRealHTTPThroughTheStream proves a relay is probed with a real
+// request through its listener and never with the VLESS client path.
+func TestRelayProbeIsRealHTTPThroughTheStream(t *testing.T) {
+	root := relayRoot(t, "127.0.0.1:24449")
+	var gotAddr string
+	rep := RunWith(context.Background(), root, Options{
+		ClientProbe: true,
+		ProbeURL:    "http://origin.example/relay",
+		ProbeExpect: "relay-ok",
+		Validate:    func(context.Context, string) error { return nil },
+		ProbeForward: func(_ context.Context, addr, origin, marker string) (clientprobe.Result, error) {
+			gotAddr = addr
+			if origin != "http://origin.example/relay" || marker != "relay-ok" {
+				t.Fatalf("origin=%q marker=%q", origin, marker)
+			}
+			return clientprobe.Result{StatusLine: "HTTP/1.1 200 OK", BodyBytes: 9}, nil
+		},
+	})
+	if gotAddr != "127.0.0.1:24449" {
+		t.Fatalf("addr=%q", gotAddr)
+	}
+	if c := find(rep, "client-probe"); c.Status != Status("missing") {
+		t.Fatal("a relay must not use the VLESS client probe")
+	}
+	if c := find(rep, "relay-config"); c.Status != StatusOK {
+		t.Fatalf("relay-config = %+v", c)
+	}
+	if c := find(rep, "relay-probe"); c.Status != StatusOK || c.Evidence != EvidenceRealClient {
+		t.Fatalf("relay-probe = %+v", c)
+	}
+	if rep.EvidenceLevel != EvidenceRealClient {
+		t.Fatalf("evidenceLevel=%q", rep.EvidenceLevel)
+	}
+	if !rep.Healthy {
+		t.Fatalf("relay root must be healthy: %+v", rep.Summary)
+	}
+}
+
+func TestRelayProbeFailureIsFailNotUnknown(t *testing.T) {
+	root := relayRoot(t, "0.0.0.0:24450")
+	var gotAddr string
+	rep := RunWith(context.Background(), root, Options{
+		ClientProbe: true,
+		ProbeURL:    "http://origin.example/",
+		Validate:    func(context.Context, string) error { return nil },
+		ProbeForward: func(_ context.Context, addr, _, _ string) (clientprobe.Result, error) {
+			gotAddr = addr
+			return clientprobe.Result{}, fmt.Errorf("backend refused the connection")
+		},
+	})
+	if gotAddr != "127.0.0.1:24450" {
+		t.Fatalf("wildcard relay listener was not normalized: %q", gotAddr)
+	}
+	check := find(rep, "relay-probe")
+	if check.Status != StatusFail || check.Evidence != EvidenceRealClient {
+		t.Fatalf("relay-probe = %+v", check)
+	}
+	if rep.Healthy {
+		t.Fatal("a failed relay probe must not report healthy")
+	}
+}
+
 func rootWithInbound(t *testing.T, port int, security string) string {
 	t.Helper()
 	root, _ := healthyRoot(t)
@@ -183,7 +355,7 @@ func TestDeepTLSHandshake(t *testing.T) {
 	root := rootWithInbound(t, port, "tls")
 	rep := RunWith(context.Background(), root, Options{Deep: true, Validate: func(context.Context, string) error { return nil }})
 	check := find(rep, "connectivity")
-	if check.Status != StatusOK || check.Evidence != "tls-handshake" {
+	if check.Status != StatusOK || check.Evidence != EvidenceTLS {
 		t.Fatalf("connectivity = %+v", check)
 	}
 }
@@ -207,7 +379,7 @@ func TestDeepRealityIsUnknownNotFaked(t *testing.T) {
 	root := rootWithInbound(t, port, "reality")
 	rep := RunWith(context.Background(), root, Options{Deep: true, Validate: func(context.Context, string) error { return nil }})
 	check := find(rep, "connectivity")
-	if check.Status != StatusUnknown || check.Evidence != "tcp-connect" {
+	if check.Status != StatusUnknown || check.Evidence != EvidenceTCP {
 		t.Fatalf("connectivity = %+v", check)
 	}
 }

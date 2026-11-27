@@ -1,0 +1,4 @@
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+[警告]  Release 未声明该校验值(兼容期), 继续安装: traffic_blocker.sh 
+将下载并替换 geoip.dat、geosite.dat 到 /etc/idleleo/share/xray
+若 Xray 正在运行会重启 Xray（短暂中断），通常需要 5–30 秒。是否继续？ [y/N]? curl: (28) Operation timed out after 87183 milliseconds with 7034094 out of 11565574 bytes received

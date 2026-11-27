@@ -42,20 +42,33 @@ fi
 
 # The installer treats a missing /etc/idleleo/install.sh as a fresh bootstrap and
 # refuses to continue without remote Release metadata. Seed the tracked copy so
-# the flow under test runs locally instead of downloading itself.
+# the flow under test runs locally instead of downloading itself. A historical
+# migration run points E2E_INSTALL_SRC at the real older installer instead.
+SRC_INSTALLER="${E2E_INSTALL_SRC:-/src/install.sh}"
 mkdir -p /etc/idleleo /etc/idleleo/tmp
-install -m 0755 /src/install.sh /etc/idleleo/install.sh
-log "seeded_installer=yes"
+install -m 0755 "$SRC_INSTALLER" /etc/idleleo/install.sh
+log "seeded_installer=yes source=$SRC_INSTALLER"
 
 # Local version metadata keeps read_version/check_online_version_connect off the
 # network. The shell version must match the tracked script under test.
-src_version=$(grep -m1 '^shell_version=' /src/install.sh | awk -F'=|"' '{print $3}')
+src_version=$(grep -m1 '^shell_version=' "$SRC_INSTALLER" | awk -F'=|"' '{print $3}')
 src_version="${src_version:-3.3.6}"
+# The Nginx build must match the offline cache seeded by the runner, so both
+# sides resolve the same artifact; the default keeps the historical build.
+nginx_build="${E2E_NGINX_BUILD:-2026.10.15.7679}"
+# The metadata pin must describe the runtime the runner actually seeded.
+# A stale pin made the installer treat the local Xray as newer, reinstall
+# through the harness placeholder ref and fail with a 404.
+seeded_xray_version=""
+if [[ -x /seed/xray ]]; then
+    seeded_xray_version=$(/seed/xray version 2>/dev/null | sed -n 's/^Xray \([0-9][0-9.]*\).*/\1/p' | head -n1)
+fi
+xray_version="${seeded_xray_version:-26.10.31}"
 cat >/etc/idleleo/versions.json <<JSON
-{"shell_online_version":"${src_version}","shell_release_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","xray_online_version":"26.10.31","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"2026.10.15.7679"}
+{"shell_online_version":"${src_version}","shell_release_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","xray_online_version":"${xray_version}","xray_installer_ref":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","xray_installer_sha256":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","nginx_build_online_version":"${nginx_build}"}
 JSON
 export XRAY_VERSIONS_FILE=/etc/idleleo/versions.json
-log "seeded_versions=yes shell=${src_version}"
+log "seeded_versions=yes shell=${src_version} nginx_build=${nginx_build}"
 
 # Seed the pinned Xray binary so the installer skips its own download; every
 # config/install step still executes for real.
@@ -107,7 +120,19 @@ fi
 # never contacts an ACME directory. M8 (E2E_ACME=1) is the exception: it must
 # reach Pebble, so the self-signed pair stays out of the way and the Bash acme()
 # helper gets the idleleo binary it shells out to.
-if [[ "${E2E_ACME:-0}" == "1" ]]; then
+if [[ "${E2E_ACME:-0}" == "1" && "${E2E_ACME_MODE:-go}" == "bash" ]]; then
+    # PURE_BASH_ACME: no Go binary may participate in issuance or renewal.
+    # The disposable image does not ship acme.sh and the runner has no network
+    # to fetch it, so the only honest result is BLOCKED, never PASS.
+    if [[ ! -x "${HOME}/.acme.sh/acme.sh" ]]; then
+        log "acme_mode=pure_bash status=BLOCKED reason=acme.sh-not-installed"
+        printf '%s\n' '{"status":"BLOCKED","acmeMode":"pure_bash","reason":"acme.sh is absent from the disposable image; pure Bash ACME cannot be claimed"}' \
+            >"$OUT/acme-pure-bash.json"
+        exit 3
+    fi
+    log "acme_mode=pure_bash acme.sh=$("${HOME}/.acme.sh/acme.sh" --version 2>/dev/null | head -1)"
+    log "acme_mode=pure_bash status=READY (no idleleo binary will be installed)"
+elif [[ "${E2E_ACME:-0}" == "1" ]]; then
     install -m 0755 /seed/idleleo /usr/local/bin/idleleo
     log "acme_mode=pebble idleleo=$(/usr/local/bin/idleleo --version 2>/dev/null | head -1)"
     # install.sh issues through `idleleo xray cert issue` but its Bash path never

@@ -1,0 +1,190 @@
+package deploy
+
+// Round-4 reproducer: this file is intentionally identical for the pre-fix
+// baseline (8f9673ce) and the fixed candidate. On the baseline both cases FAIL,
+// which is the evidence that the defects were real; on the candidate they PASS.
+
+import (
+	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/hex"
+	"encoding/json"
+	"encoding/pem"
+	"math/big"
+	"os"
+	"path/filepath"
+	"strconv"
+	"testing"
+	"time"
+
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/host"
+	"github.com/hello-yunshu/Xray_bash_onekey/internal/nginx"
+)
+
+func reproFile(t *testing.T, path string, body []byte) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, body, 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func reproPair(t *testing.T) ([]byte, []byte) {
+	t.Helper()
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	serial, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpl := x509.Certificate{
+		SerialNumber: serial,
+		Subject:      pkix.Name{CommonName: "repro.example.com"},
+		DNSNames:     []string{"repro.example.com"},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(90 * 24 * time.Hour),
+		KeyUsage:     x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+	}
+	der, err := x509.CreateCertificate(rand.Reader, &tmpl, &tmpl, &key.PublicKey, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}),
+		pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+}
+
+func reproSum(body []byte) string {
+	sum := sha256.Sum256(body)
+	return hex.EncodeToString(sum[:])
+}
+
+// A1/D03: the legacy record lists content hashes only, so a byte-identical
+// copy that the project never registered must not be treated as owned.
+func TestReproUnregisteredIdenticalCopyIsKept(t *testing.T) {
+	root := sandbox(t)
+	certDir := filepath.Join(root, "etc/idleleo/cert")
+	certPEM, keyPEM := reproPair(t)
+	certPath := filepath.Join(certDir, "xray.crt")
+	keyPath := filepath.Join(certDir, "xray.key")
+	reproFile(t, certPath, certPEM)
+	reproFile(t, keyPath, keyPEM)
+	// Legacy (pre-round-4) ownership record: hashes only, no path binding.
+	marker := "managed-by=idleleo\nsha256=" + reproSum(certPEM) + "\nsha256=" + reproSum(keyPEM) + "\n"
+	reproFile(t, filepath.Join(certDir, ".managed-by-idleleo"), []byte(marker))
+	copyPath := filepath.Join(certDir, "copy-of-xray.crt")
+	reproFile(t, copyPath, certPEM)
+
+	if _, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(copyPath); err != nil {
+		t.Fatalf("a copy that is only byte-identical, not registered by path, must survive: %v", err)
+	}
+}
+
+// A2/D04: a reload record that carries no process identity must not prove the
+// live master is running the new policy.
+func TestReproUnboundReloadRecordDoesNotProveActive(t *testing.T) {
+	root := sandbox(t)
+	paths := host.Paths{Root: root}
+	bin := filepath.Join(root, filepath.FromSlash(nginx.InstallDirRel), "sbin", "nginx")
+	if err := os.MkdirAll(filepath.Dir(bin), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// The live process must look like the managed binary: /proc/<pid>/exe is
+	// resolved through the symlink and therefore matches the test binary.
+	if err := os.Symlink(os.Args[0], bin); err != nil {
+		t.Fatal(err)
+	}
+	pidDir := filepath.Join(root, filepath.FromSlash(nginx.InstallDirRel), "logs")
+	if err := os.MkdirAll(pidDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(pidDir, "nginx.pid"), []byte(strconv.Itoa(os.Getpid())), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	evidence := guardRuntimeEvidence(paths)
+	future := time.Now().Add(time.Hour)
+	for _, path := range evidence {
+		reproFile(t, path, []byte("policy fragment\n"))
+		if err := os.Chtimes(path, future, future); err != nil {
+			t.Fatal(err)
+		}
+	}
+	record := guardRuntimeRecord{
+		SchemaVersion: 1,
+		Policy:        "isolate",
+		Digest:        guardEvidenceDigest(evidence),
+		VerifiedAt:    time.Now().UTC().Format(time.RFC3339),
+	}
+	body, err := json.Marshal(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reproFile(t, guardRuntimeRecordPath(paths), body)
+
+	verified, alive, reason := nginxPolicyRuntimeVerified(paths, evidence, "isolate")
+	if verified {
+		t.Fatalf("a reload record without process identity must not prove active (alive=%v reason=%q)", alive, reason)
+	}
+}
+
+// A1/D03: a .user-managed marker nested below the managed directory must
+// protect its whole subtree instead of being skipped.
+func TestReproNestedUserMarkerProtectsSubtree(t *testing.T) {
+	root := sandbox(t)
+	vault := filepath.Join(root, "etc/idleleo/cert", "vault")
+	certPEM, keyPEM := reproPair(t)
+	certPath := filepath.Join(vault, "old.crt")
+	keyPath := filepath.Join(vault, "old.key")
+	reproFile(t, certPath, certPEM)
+	reproFile(t, keyPath, keyPEM)
+	marker := "managed-by=idleleo\nsha256=" + reproSum(certPEM) + "\nsha256=" + reproSum(keyPEM) + "\n"
+	reproFile(t, filepath.Join(vault, ".managed-by-idleleo"), []byte(marker))
+	inner := filepath.Join(vault, "keep", "private.pem")
+	reproFile(t, inner, []byte("operator managed"))
+	reproFile(t, filepath.Join(vault, "keep", ".user-managed"), []byte("managed-by=user\n"))
+
+	if _, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root}); err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{inner, certPath} {
+		if _, err := os.Stat(path); err != nil {
+			t.Fatalf("a nested .user-managed marker must protect the whole subtree: %v", err)
+		}
+	}
+}
+
+// A1/D02: an identical leaf certificate inside ~/.acme.sh does not prove the
+// project owns that renewal account; the third-party directory must survive.
+func TestReproThirdPartyACMEDirSurvives(t *testing.T) {
+	root := sandbox(t)
+	home := t.TempDir()
+	certDir := filepath.Join(root, "etc/idleleo/cert")
+	certPEM, keyPEM := reproPair(t)
+	certPath := filepath.Join(certDir, "xray.crt")
+	keyPath := filepath.Join(certDir, "xray.key")
+	reproFile(t, certPath, certPEM)
+	reproFile(t, keyPath, keyPEM)
+	marker := "managed-by=idleleo\nsha256=" + reproSum(certPEM) + "\nsha256=" + reproSum(keyPEM) + "\n"
+	reproFile(t, filepath.Join(certDir, ".managed-by-idleleo"), []byte(marker))
+	acmeDir := filepath.Join(home, ".acme.sh", "repro.example.com_ecc")
+	reproFile(t, filepath.Join(acmeDir, "repro.example.com.cer"), certPEM)
+	reproFile(t, filepath.Join(acmeDir, "repro.example.com.key"), keyPEM)
+
+	if _, err := ClearCertificates(context.Background(), ClearCertsSpec{Root: root, HomeDir: home}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(acmeDir); err != nil {
+		t.Fatalf("third-party ACME state must be preserved: %v", err)
+	}
+}

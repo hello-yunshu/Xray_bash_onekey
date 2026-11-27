@@ -1,0 +1,11 @@
+CASE inline-multi PASS (rc=0 before=0 after=0 kept=1 removed=0)
+CASE external-include PASS (rc=0 before=0 after=0 kept=1 removed=0)
+CASE symlink-alias PASS (rc=0 before=0 after=0 kept=1 removed=0)
+CASE variable-path PASS (rc=0 before=0 after=0 kept=1 removed=0)
+CASE xray-second-config PASS (rc=0 before=0 after=0 kept=1 removed=0)
+CASE unused-pair PASS (rc=0 removed=2 canary=1 after=0)
+CASE broken-config PASS (rc=0 before=broken kept=1 removed=0 warn=1)
+CASE quoted-inline PASS (rc=0 before=0 after=0 kept=1 removed=0)
+CASE invalid-nginx-refuse PASS (rc=refused before=broken kept=1)
+CASE rollback-fault PASS (rc=refused kept=1 after=0)
+CERT_CLEAR_SUMMARY failed=0

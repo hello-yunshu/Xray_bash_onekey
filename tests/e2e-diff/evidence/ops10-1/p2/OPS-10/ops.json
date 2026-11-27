@@ -1,0 +1,16 @@
+{
+  "blockedFile": "{\"status\":\"BLOCKED\",\"reason\":\"nested-file-manager-menu-not-driven\"}\n",
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-10",
+  "opsRc": {
+    "bash": 3,
+    "go": 0
+  },
+  "reasons": [
+    "nested file_manager menu was not driven (documented out of scope)"
+  ],
+  "verdict": "NOT-RUN"
+}

@@ -1,0 +1,16 @@
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go xray[<PID>]: 2026/11/27 08:44:23.519908 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go xray[<PID>]: 2026/11/27 08:44:23.520088 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go xray[<PID>]: 2026/11/27 08:44:28.082330 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-matrix-current-7d3e19d9-20261127-M4-go xray[<PID>]: 2026/11/27 08:44:28.082750 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/27 08:44:23.521274 [Warning] core: Xray 26.11.9 started
+2026/11/27 08:44:26.516276 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:46528 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/27 08:44:28.087276 [Warning] core: Xray 26.11.9 started

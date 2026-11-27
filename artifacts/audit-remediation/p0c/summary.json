@@ -1,0 +1,83 @@
+{
+  "phase": "P0-C",
+  "binarySha256": "8221745cb4c6109c0db4c41c4a65b86005fe5b76e0a9594d496691535ffe3b8e",
+  "image": "idleleo-e2e:24.04",
+  "allPass": true,
+  "results": [
+    {
+      "check": "audit_zero_write",
+      "fixture": "reality-direct",
+      "rc": 0,
+      "verdict": "needs-fix",
+      "tree_unchanged": true
+    },
+    {
+      "check": "audit_zero_write",
+      "fixture": "reality-nginx",
+      "rc": 0,
+      "verdict": "needs-fix",
+      "tree_unchanged": true
+    },
+    {
+      "check": "audit_zero_write",
+      "fixture": "tls-multi",
+      "rc": 0,
+      "verdict": "needs-fix",
+      "tree_unchanged": true
+    },
+    {
+      "check": "audit_zero_write",
+      "fixture": "custom-dns-routing",
+      "rc": 0,
+      "verdict": "needs-fix",
+      "tree_unchanged": true
+    },
+    {
+      "check": "audit_zero_write",
+      "fixture": "relay",
+      "rc": 0,
+      "verdict": "needs-fix",
+      "tree_unchanged": true
+    },
+    {
+      "check": "audit_zero_write",
+      "fixture": "xtls-only",
+      "rc": 0,
+      "verdict": "blocked",
+      "tree_unchanged": true
+    },
+    {
+      "check": "prepare_keeps_runtime",
+      "fixture": "tls-multi",
+      "rc": 0,
+      "state": "PREPARED",
+      "runtime_unchanged": true
+    },
+    {
+      "check": "recover_discards_prepared",
+      "fixture": "tls-multi",
+      "rc": 0,
+      "state": "ROLLED_BACK",
+      "runtime_unchanged": true
+    },
+    {
+      "check": "prepare_keeps_runtime",
+      "fixture": "reality-direct",
+      "rc": 0,
+      "state": "PREPARED",
+      "runtime_unchanged": true
+    },
+    {
+      "check": "recover_discards_prepared",
+      "fixture": "reality-direct",
+      "rc": 0,
+      "state": "ROLLED_BACK",
+      "runtime_unchanged": true
+    },
+    {
+      "check": "go_safety_tests",
+      "rc": 0,
+      "log": "p0c/go-safety-tests.log"
+    }
+  ]
+}

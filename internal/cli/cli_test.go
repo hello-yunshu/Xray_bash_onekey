@@ -155,6 +155,59 @@ func TestVersionHelpAndNoTTY(t *testing.T) {
 	}
 }
 
+func TestPersistentLanguagePreferenceAndOverride(t *testing.T) {
+	root := fixture(t)
+	if err := os.MkdirAll(filepath.Join(root, "etc/idleleo"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".idleleo-phase01-sandbox"), []byte("I_ACCEPT_DISPOSABLE_SANDBOX\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "etc/idleleo/language.conf"), []byte("LANG=en_US.UTF-8\nLC_MESSAGES=en_US.UTF-8\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if code, out, errOut := run(t, "--root", root, "language", "show"); code != 0 || out != "en\n" || errOut != "" {
+		t.Fatalf("stored language: code=%d out=%q err=%q", code, out, errOut)
+	}
+	if code, out, _ := run(t, "--root", root, "--lang", "fr", "--help"); code != 0 || !strings.Contains(out, "Usage") {
+		t.Fatalf("explicit language should override the stored default: code=%d out=%q", code, out)
+	}
+	if code, out, errOut := run(t, "--root", root, "language", "set", "ko"); code != 0 || out != "ko\n" || errOut != "" {
+		t.Fatalf("set language: code=%d out=%q err=%q", code, out, errOut)
+	}
+	data, err := os.ReadFile(filepath.Join(root, "etc/idleleo/language.conf"))
+	if err != nil || string(data) != "LANG=ko_KR.UTF-8\nLC_MESSAGES=ko_KR.UTF-8\n" {
+		t.Fatalf("persisted preference=%q err=%v", data, err)
+	}
+	if code, out, errOut := run(t, "--root", root, "--help"); code != 0 || !strings.Contains(out, "Usage") || !strings.Contains(errOut, "ko") {
+		t.Fatalf("stored fallback should govern later invocations: code=%d out=%q err=%q", code, out, errOut)
+	}
+	if code, out, errOut := run(t, "--root", root, "language", "set", "zh"); code != 0 || out != "zh\n" || !strings.Contains(errOut, "ko") {
+		t.Fatalf("reset language: code=%d out=%q err=%q", code, out, errOut)
+	}
+	if _, err := os.Stat(filepath.Join(root, "etc/idleleo/language.conf")); !os.IsNotExist(err) {
+		t.Fatalf("default Chinese preference should remove language.conf, stat err=%v", err)
+	}
+}
+
+func TestLanguagePreferenceRejectsUnsafeOrMismatchedConfig(t *testing.T) {
+	root := fixture(t)
+	path := filepath.Join(root, "etc/idleleo/language.conf")
+	for _, contents := range []string{
+		"LANG=en_US.UTF-8\nLC_MESSAGES=fr_FR.UTF-8\n",
+		"LANG=$(touch /tmp/should-not-run)\nLC_MESSAGES=en_US.UTF-8\n",
+		"LANG=en_US.UTF-8\nLC_MESSAGES=en_US.UTF-8\nUNKNOWN=x\n",
+	} {
+		if err := os.WriteFile(path, []byte(contents), 0644); err != nil {
+			t.Fatal(err)
+		}
+		code, out, errOut := run(t, "--root", root, "language", "show")
+		if code != 0 || out != "zh\n" || errOut != "" {
+			t.Fatalf("unsafe preference should fall back to zh: %q => %d %q %q", contents, code, out, errOut)
+		}
+	}
+}
+
 func TestHelpListsEveryTopLevelCommand(t *testing.T) {
 	code, out, _ := run(t, "--help")
 	if code != 0 {

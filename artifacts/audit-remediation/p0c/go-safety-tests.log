@@ -1,0 +1,192 @@
+=== RUN   TestAuditRealityDirectConvertible
+--- PASS: TestAuditRealityDirectConvertible (0.00s)
+=== RUN   TestAuditXTLSBlocked
+--- PASS: TestAuditXTLSBlocked (0.00s)
+=== RUN   TestAuditMissingMetadataBlocked
+--- PASS: TestAuditMissingMetadataBlocked (0.00s)
+=== RUN   TestAuditCorruptMetadataBlocked
+--- PASS: TestAuditCorruptMetadataBlocked (0.00s)
+=== RUN   TestAuditPortConflictBlocked
+--- PASS: TestAuditPortConflictBlocked (0.00s)
+=== RUN   TestAuditRealityKeyMissingBlocked
+--- PASS: TestAuditRealityKeyMissingBlocked (0.00s)
+=== RUN   TestAuditAlreadyMigratedBlocked
+--- PASS: TestAuditAlreadyMigratedBlocked (0.00s)
+=== RUN   TestPrepareLeavesRuntimeEntryCronUntouched
+--- PASS: TestPrepareLeavesRuntimeEntryCronUntouched (0.12s)
+=== RUN   TestActivateSwitchesEntryAndCronOnly
+--- PASS: TestActivateSwitchesEntryAndCronOnly (0.17s)
+=== RUN   TestActivateRefusesWithoutRecoveryEntry
+--- PASS: TestActivateRefusesWithoutRecoveryEntry (0.10s)
+=== RUN   TestValidateRejectsDrift
+--- PASS: TestValidateRejectsDrift (0.05s)
+=== RUN   TestPrepareRefusesUnfinishedJournal
+--- PASS: TestPrepareRefusesUnfinishedJournal (0.00s)
+=== RUN   TestPrepareDoesNotOverwriteRecoveryEvidence
+=== RUN   TestPrepareDoesNotOverwriteRecoveryEvidence/ACTIVATING
+=== RUN   TestPrepareDoesNotOverwriteRecoveryEvidence/ROLLBACK_REQUIRED
+=== RUN   TestPrepareDoesNotOverwriteRecoveryEvidence/RECOVERY_REQUIRED
+=== RUN   TestPrepareDoesNotOverwriteRecoveryEvidence/COMMITTED
+--- PASS: TestPrepareDoesNotOverwriteRecoveryEvidence (0.02s)
+    --- PASS: TestPrepareDoesNotOverwriteRecoveryEvidence/ACTIVATING (0.01s)
+    --- PASS: TestPrepareDoesNotOverwriteRecoveryEvidence/ROLLBACK_REQUIRED (0.00s)
+    --- PASS: TestPrepareDoesNotOverwriteRecoveryEvidence/RECOVERY_REQUIRED (0.00s)
+    --- PASS: TestPrepareDoesNotOverwriteRecoveryEvidence/COMMITTED (0.00s)
+=== RUN   TestRequireWriteAccessDelegatesToHostGate
+--- PASS: TestRequireWriteAccessDelegatesToHostGate (0.00s)
+=== RUN   TestActivateRefusesChangedEntry
+--- PASS: TestActivateRefusesChangedEntry (0.03s)
+=== RUN   TestRecoverPreservesThirdPartyEntry
+--- PASS: TestRecoverPreservesThirdPartyEntry (0.09s)
+=== RUN   TestRecoverPreparedDiscards
+--- PASS: TestRecoverPreparedDiscards (0.12s)
+=== RUN   TestRecoverActivatingRestoresEntryAndCron
+--- PASS: TestRecoverActivatingRestoresEntryAndCron (0.17s)
+=== RUN   TestRecoverCommittedRefuses
+--- PASS: TestRecoverCommittedRefuses (0.32s)
+=== RUN   TestRecoverCorruptJournal
+--- PASS: TestRecoverCorruptJournal (0.00s)
+=== RUN   TestRecoverIdempotentRolledBack
+--- PASS: TestRecoverIdempotentRolledBack (0.00s)
+=== RUN   TestStatusReadsJournal
+--- PASS: TestStatusReadsJournal (0.07s)
+=== RUN   TestPrepareRejectsTextCandidateWithExecBit
+--- PASS: TestPrepareRejectsTextCandidateWithExecBit (0.00s)
+=== RUN   TestPrepareRejectsWrongArchitectureCandidate
+--- PASS: TestPrepareRejectsWrongArchitectureCandidate (0.00s)
+=== RUN   TestPrepareAcceptsTrustedManifest
+--- PASS: TestPrepareAcceptsTrustedManifest (0.13s)
+=== RUN   TestPrepareRejectsManifestDigestMismatch
+--- PASS: TestPrepareRejectsManifestDigestMismatch (0.01s)
+=== RUN   TestPrepareRejectsManifestVersionMismatch
+--- PASS: TestPrepareRejectsManifestVersionMismatch (0.01s)
+=== RUN   TestRecoverAfterMetadataCrashLeavesNoHalfMigration
+--- PASS: TestRecoverAfterMetadataCrashLeavesNoHalfMigration (0.17s)
+=== RUN   TestRecoverAfterMetadataCrashRestoresPreviousMetadata
+--- PASS: TestRecoverAfterMetadataCrashRestoresPreviousMetadata (0.09s)
+=== RUN   TestNginxMainConfPrefersInstalledBashLayout
+--- PASS: TestNginxMainConfPrefersInstalledBashLayout (0.00s)
+=== RUN   TestImportMetadataWritesLegacyProvenanceWithoutTouchingSource
+--- PASS: TestImportMetadataWritesLegacyProvenanceWithoutTouchingSource (0.00s)
+=== RUN   TestExportRecordsRuntimeDigestAndRefusesManagedTarget
+--- PASS: TestExportRecordsRuntimeDigestAndRefusesManagedTarget (0.01s)
+=== RUN   TestDeactivateReleasesImportedMetadataWithoutJournal
+--- PASS: TestDeactivateReleasesImportedMetadataWithoutJournal (0.01s)
+=== RUN   TestDeactivateRequiresMatchingExportAndRestoresLegacyEntry
+--- PASS: TestDeactivateRequiresMatchingExportAndRestoresLegacyEntry (0.15s)
+=== RUN   TestRillStatusUsesCapturedAtEpochSeconds
+--- PASS: TestRillStatusUsesCapturedAtEpochSeconds (0.00s)
+=== RUN   TestRillStatusFreshCapturedAtWithOldMtime
+--- PASS: TestRillStatusFreshCapturedAtWithOldMtime (0.00s)
+=== RUN   TestRillStatusAbsentIsReadOnly
+--- PASS: TestRillStatusAbsentIsReadOnly (0.00s)
+=== RUN   TestRillStatusInstalledWithoutObservation
+--- PASS: TestRillStatusInstalledWithoutObservation (0.00s)
+=== RUN   TestRillStatusInvalidConfigDegrades
+--- PASS: TestRillStatusInvalidConfigDegrades (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/legacybridge	1.860s
+=== RUN   TestCreateRecordsSourceAndRestoreLimits
+--- PASS: TestCreateRecordsSourceAndRestoreLimits (0.01s)
+=== RUN   TestRestoreDryRunReportsChangesWithoutWriting
+--- PASS: TestRestoreDryRunReportsChangesWithoutWriting (0.00s)
+=== RUN   TestVerifyRejectsDuplicateEntries
+--- PASS: TestVerifyRejectsDuplicateEntries (0.00s)
+=== RUN   TestCreateAndVerify
+--- PASS: TestCreateAndVerify (0.00s)
+=== RUN   TestVerifyRejectsTampering
+--- PASS: TestVerifyRejectsTampering (0.00s)
+=== RUN   TestVerifyRejectsTrailingGarbage
+--- PASS: TestVerifyRejectsTrailingGarbage (0.00s)
+=== RUN   TestRestorePreBackupNamesAreUniqueWithinASecond
+--- PASS: TestRestorePreBackupNamesAreUniqueWithinASecond (0.03s)
+=== RUN   TestVerifyRejectsPathEscape
+--- PASS: TestVerifyRejectsPathEscape (0.00s)
+=== RUN   TestRestoreRoundTripKeepsPreRestoreBackup
+--- PASS: TestRestoreRoundTripKeepsPreRestoreBackup (0.05s)
+=== RUN   TestRestoreAbortsWhenStagedConfigIsRejected
+--- PASS: TestRestoreAbortsWhenStagedConfigIsRejected (0.00s)
+=== RUN   TestVerifyRejectsUndeclaredEntry
+--- PASS: TestVerifyRejectsUndeclaredEntry (0.00s)
+=== RUN   TestVerifyRejectsModeMismatch
+--- PASS: TestVerifyRejectsModeMismatch (0.00s)
+=== RUN   TestVerifyRejectsDuplicateManifest
+--- PASS: TestVerifyRejectsDuplicateManifest (0.00s)
+=== RUN   TestVerifyRejectsConcatenatedGzipMember
+--- PASS: TestVerifyRejectsConcatenatedGzipMember (0.01s)
+=== RUN   TestVerifyRejectsOversizedManifest
+--- PASS: TestVerifyRejectsOversizedManifest (0.00s)
+=== RUN   TestVerifyRejectsNonCanonicalPath
+--- PASS: TestVerifyRejectsNonCanonicalPath (0.00s)
+=== RUN   TestCreateRefusesArchiveInsideManagedTree
+--- PASS: TestCreateRefusesArchiveInsideManagedTree (0.00s)
+=== RUN   TestCreateLeavesNoPartialArchiveWhenCancelled
+--- PASS: TestCreateLeavesNoPartialArchiveWhenCancelled (0.00s)
+=== RUN   TestCreateRefusesSymlinkedManagedDir
+--- PASS: TestCreateRefusesSymlinkedManagedDir (0.00s)
+=== RUN   TestCreateSkipsAbsentGeodataTree
+--- PASS: TestCreateSkipsAbsentGeodataTree (0.01s)
+=== RUN   TestCreateStillRefusesSymlinkedGeodataParent
+--- PASS: TestCreateStillRefusesSymlinkedGeodataParent (0.00s)
+=== RUN   TestRestoreRefusesSymlinkComponent
+--- PASS: TestRestoreRefusesSymlinkComponent (0.00s)
+=== RUN   TestRestoreRollsBackWhenServiceApplyFails
+--- PASS: TestRestoreRollsBackWhenServiceApplyFails (0.12s)
+=== RUN   TestRestoreRefusesWhileJournalIsInterrupted
+--- PASS: TestRestoreRefusesWhileJournalIsInterrupted (0.02s)
+=== RUN   TestRecoverPreparedDoesNotTouchFiles
+--- PASS: TestRecoverPreparedDoesNotTouchFiles (0.02s)
+=== RUN   TestRestoreHardKillConvergesWithExplicitRecover
+--- PASS: TestRestoreHardKillConvergesWithExplicitRecover (0.13s)
+=== RUN   TestRestoreKillHelper
+--- PASS: TestRestoreKillHelper (0.00s)
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/prepared
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/first-file
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/half
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/before-commit
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/before-service
+=== RUN   TestRestoreHardKillAtEveryDurablePointConverges/after-service
+--- PASS: TestRestoreHardKillAtEveryDurablePointConverges (0.78s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/prepared (0.04s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/first-file (0.03s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/half (0.09s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/before-commit (0.15s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/before-service (0.19s)
+    --- PASS: TestRestoreHardKillAtEveryDurablePointConverges/after-service (0.27s)
+=== RUN   TestRestoreRollsBackOnFilesystemErrors
+=== RUN   TestRestoreRollsBackOnFilesystemErrors/enospc
+=== RUN   TestRestoreRollsBackOnFilesystemErrors/read-only
+=== RUN   TestRestoreRollsBackOnFilesystemErrors/permission
+--- PASS: TestRestoreRollsBackOnFilesystemErrors (0.17s)
+    --- PASS: TestRestoreRollsBackOnFilesystemErrors/enospc (0.03s)
+    --- PASS: TestRestoreRollsBackOnFilesystemErrors/read-only (0.05s)
+    --- PASS: TestRestoreRollsBackOnFilesystemErrors/permission (0.08s)
+=== RUN   TestRestoreLeavesThirdPartyFilesAlone
+--- PASS: TestRestoreLeavesThirdPartyFilesAlone (0.10s)
+=== RUN   TestRestoreRefusesWhileAnotherProcessHoldsLock
+--- PASS: TestRestoreRefusesWhileAnotherProcessHoldsLock (0.01s)
+=== RUN   TestRecoverRefusesCorruptJournalWithoutTouchingFiles
+--- PASS: TestRecoverRefusesCorruptJournalWithoutTouchingFiles (0.01s)
+=== RUN   TestRestoreRejectsTraversalWithoutTouchingCanary
+--- PASS: TestRestoreRejectsTraversalWithoutTouchingCanary (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/backup	1.488s
+=== RUN   TestRepairRefusesSymlinkedPaths
+--- PASS: TestRepairRefusesSymlinkedPaths (0.00s)
+=== RUN   TestRepairRefusesSymlinkedStagingEntry
+--- PASS: TestRepairRefusesSymlinkedStagingEntry (0.00s)
+=== RUN   TestRepairDryRunTakesNoLockAndWritesNothing
+--- PASS: TestRepairDryRunTakesNoLockAndWritesNothing (0.00s)
+=== RUN   TestRepairRefusesWhileAnotherUpdateHoldsTheLock
+--- PASS: TestRepairRefusesWhileAnotherUpdateHoldsTheLock (0.00s)
+=== RUN   TestRepairCreatesDirsAndRestrictsModes
+--- PASS: TestRepairCreatesDirsAndRestrictsModes (0.00s)
+=== RUN   TestRepairDryRunChangesNothing
+--- PASS: TestRepairDryRunChangesNothing (0.00s)
+=== RUN   TestRepairStaleLockNeedsExplicitFlag
+--- PASS: TestRepairStaleLockNeedsExplicitFlag (0.00s)
+=== RUN   TestRepairRemovesOldStagingDir
+--- PASS: TestRepairRemovesOldStagingDir (0.00s)
+PASS
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/repair	0.005s

@@ -1,0 +1,40 @@
+{
+  "artifacts": {
+    "bashScript": "build/install.sh",
+    "binary": "build/idleleo",
+    "driver": "build/run_p2_matrix.sh"
+  },
+  "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+  "binarySha256": "263de583c2024e7eef702955bd3002df675f4888c8a12bf1859111b56bb85240",
+  "dependencies": [
+    {
+      "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+      "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+      "source": "tests/e2e-diff/collect/l4.sh"
+    },
+    {
+      "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+      "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+      "source": "tests/e2e-diff/collect/client_config.py"
+    },
+    {
+      "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+      "sha256": "be43f6cbf24d6a1d0ed58591f120a367255899a41de5d22759ca7b8f53219606",
+      "source": "tests/e2e-diff/collect/build_ledger.py"
+    },
+    {
+      "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+      "sha256": "b3cdb54b8f4ec504c88fb84d2dbff60ab9ffc3cc48c91fe7e91d0b2c29cc907e",
+      "source": "tests/e2e-diff/drivers/bash_ops.exp"
+    },
+    {
+      "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+      "sha256": "dfa72c1df64346719eee07e4e643ce4f951de1084323800c2b9ee4b72a20f340",
+      "source": "tests/go-parity/lib/docker_common.sh"
+    }
+  ],
+  "driverSha": "6c4bf647125ba340b26ddf5ee428b5cf9e5e6ec3db6d5a045774aefbf717d6ec",
+  "image": "sha256:aa1ef0a9d49e429de918aa8007ec95563b685226cae0378e68fcb3a1a5d53e82",
+  "platform": "linux/arm64",
+  "productCodeSha": "9e495b38a5574f53e37bd11e4b3c8f196f76e25b"
+}

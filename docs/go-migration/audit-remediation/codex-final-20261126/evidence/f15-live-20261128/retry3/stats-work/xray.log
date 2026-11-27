@@ -1,0 +1,24 @@
+Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/27 20:25:09.229496 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/stats-work/sandbox/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/27 20:25:09.231413 [Warning] core: Xray 26.11.9 started
+2026/11/27 20:25:09.328770 from 127.0.0.1:33274 accepted http://127.0.0.1:48799/payload [http-in >> direct]
+2026/11/27 20:25:09.336511 from 127.0.0.1:34258 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:09.336609 from 127.0.0.1:34274 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:09.336669 from 127.0.0.1:34284 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:09.345852 from 127.0.0.1:34304 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:09.357243 from 127.0.0.1:34318 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:09.618889 from 127.0.0.1:34324 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:09.619003 from 127.0.0.1:34330 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:09.881684 from 127.0.0.1:34344 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.402380 from 127.0.0.1:34370 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.402415 from 127.0.0.1:34386 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.402422 from 127.0.0.1:34402 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.402456 from 127.0.0.1:34408 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.402481 from 127.0.0.1:34416 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.402541 from 127.0.0.1:34424 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.421387 from 127.0.0.1:34450 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.421494 from 127.0.0.1:34462 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.429849 from 127.0.0.1:34482 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.444672 from 127.0.0.1:34502 accepted tcp:127.0.0.1:36907 [api-in >> direct]
+2026/11/27 20:25:10.456883 from 127.0.0.1:34512 accepted tcp:127.0.0.1:36907 [api-in >> direct]

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "runId": "legacy-v333-current-7d3e19d9-20261127",
+  "productCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "historicalSourceTag": "v3.3.3",
+  "historicalSourceCommit": "4d0f793e297f7a2bc424eb52e93668bba826a7ca",
+  "historicalInstallerSha256": "9ba6dfcb7b511ba2ebce0335e8e9cd57b958b4d430adc644d7a1e84fd295bd13",
+  "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+  "recoverBinarySha256": "275c5dfdbdbb0174643d9afd66fd5a0fa328cda3e41e1b5bda387b63fc9df0d0",
+  "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+  "driverSha256": "7dd4c49419d95130ec141d0b8a740c28bcbd64bbe5e72a08f4dd304a83cddd05",
+  "dependencies": [
+    {
+      "path": "tests/e2e-diff/run_r1_upgrade.sh",
+      "sha256": "7dd4c49419d95130ec141d0b8a740c28bcbd64bbe5e72a08f4dd304a83cddd05"
+    },
+    {
+      "path": "tests/e2e-diff/run_p2_matrix.sh",
+      "sha256": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2"
+    },
+    {
+      "path": "tests/e2e-diff/drivers/bash_install.sh",
+      "sha256": "8449d237e94de047ab5a6b28c4fc68b002b0c79c7942d04e3515f17844660ba9"
+    },
+    {
+      "path": "tests/go-parity/lib/docker_common.sh",
+      "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55"
+    },
+    {
+      "path": "tests/e2e-diff/collect/l4.sh",
+      "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327"
+    },
+    {
+      "path": "tests/e2e-diff/collect/client_config.py",
+      "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef"
+    }
+  ],
+  "platform": "linux/arm64",
+  "image": "sha256:fe00d1c974adefe211024e819ebdd10381c0e51ae17ede4ba35a57d68c66f740",
+  "goImage": "sha256:205c7636d74e0ffbe3d007162df7d74f859f5a8c8322dfb9f907977686c126cf",
+  "xraySha256": "c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a",
+  "scenarios": [
+    "M1/R1",
+    "M1/R2",
+    "M1/INJ",
+    "M4/R1",
+    "M4/R2",
+    "M4/INJ"
+  ],
+  "startedAt": "2026-11-27T11:29:02Z",
+  "finishedAt": "2026-11-27T11:40:02Z",
+  "assertions": {
+    "pass": 106,
+    "fail": 0
+  },
+  "verdict": "PASS",
+  "actualRc": 0,
+  "historicalInstallerObserved": "container confirmed seeded shell_version=3.3.3"
+}

@@ -1,0 +1,14 @@
+======================================================================
+FAIL: test_matrix_summary_lists_blocked_ids_not_only_count (tests.e2e-diff.collect.test_build_ledger.LedgerContractTest.test_matrix_summary_lists_blocked_ids_not_only_count)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<workspace>/Documents/GitHub/Xray_bash_onekey/tests/e2e-diff/collect/test_build_ledger.py", line 211, in test_matrix_summary_lists_blocked_ids_not_only_count
+    self.assertEqual(matrix["acceptance"]["blockedOps"], 33)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 33
+
+----------------------------------------------------------------------
+Ran 35 tests in 1.789s
+
+FAILED (failures=1)
+tests_rc=1

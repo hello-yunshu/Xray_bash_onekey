@@ -1,0 +1,65 @@
+nginx: the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /usr/local/nginx/conf/nginx.conf test is successful
+{
+  "dir": "/etc/idleleo/cert",
+  "removed": [
+    "/etc/idleleo/cert/unused-owned.crt",
+    "/etc/idleleo/cert/unused-owned.key"
+  ],
+  "skipped": [
+    "/etc/idleleo/cert/nested-user",
+    "/etc/idleleo/cert/unregistered-identical-copy.crt"
+  ],
+  "planned": [
+    {
+      "path": "/etc/idleleo/cert/nested-user",
+      "kind": "directory",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "the nested .user-managed marker in /etc/idleleo/cert/nested-user forbids automatic removal of this subtree"
+    },
+    {
+      "path": "/etc/idleleo/cert/unregistered-identical-copy.crt",
+      "kind": "file",
+      "owner": "unknown",
+      "inUse": false,
+      "action": "keep",
+      "reason": "ownership is not proven by the manager's ownership record; not removed"
+    },
+    {
+      "path": "/etc/idleleo/cert/unused-owned.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    },
+    {
+      "path": "/etc/idleleo/cert/unused-owned.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    }
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": [
+    "the nested .user-managed marker in /etc/idleleo/cert/nested-user forbids automatic removal of this subtree: /etc/idleleo/cert/nested-user",
+    "ownership is not proven by the manager's ownership record; not removed: /etc/idleleo/cert/unregistered-identical-copy.crt"
+  ]
+}
+{
+  "declaredOwnedCertRemoved": true,
+  "declaredOwnedKeyRemoved": true,
+  "nestedUserMarkerKept": true,
+  "nestedUserPayloadKept": true,
+  "reportRemovedBothOwnedFiles": true,
+  "sameContentUnregisteredCopyKept": true,
+  "warnings": [
+    "the nested .user-managed marker in /etc/idleleo/cert/nested-user forbids automatic removal of this subtree: /etc/idleleo/cert/nested-user",
+    "ownership is not proven by the manager's ownership record; not removed: /etc/idleleo/cert/unregistered-identical-copy.crt"
+  ]
+}
+
+command_rc=0

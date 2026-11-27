@@ -1,0 +1,22 @@
+12:47:42 run_id=fix-20261120-cache2
+12:47:43 image_id=sha256:1b79f08d2e055023d4d2018adbd567cb8128315738e866a75ea26f3938560014
+12:47:43 building idleleo
+12:47:49 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328 idleleo_sha256=bbbc82bcd9b91005227365f237f43dd15ac8c9a5e7c74d1de57b55422ff43707
+12:47:50 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+12:47:50 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+12:47:50 release_cache=seeded templates=vless_reality.json,vless_tls.json
+12:47:50 release_cache=hit
+12:47:50 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+12:47:50 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+12:47:53 argv-verify written
+12:47:53 [OPS-19] start
+12:49:53 [OPS-19] verdict=PASS
+12:49:53 [OPS-31] start upstream=reality
+12:51:28 [OPS-31] verdict=PASS
+12:51:28 [OPS-32] start upstream=ws
+12:55:13 [OPS-32/ws] verdict=PASS
+12:55:13 [OPS-32] start upstream=reality
+12:59:33 [OPS-32/reality] verdict=PASS
+12:59:33 [OPS-32] verdict=PASS
+12:59:33 scope: installs=[] edits=[] ops=[OPS-19,OPS-31,OPS-32]
+12:59:33 P2 finished: tests/e2e-diff/evidence/fix-20261120-cache2/p2

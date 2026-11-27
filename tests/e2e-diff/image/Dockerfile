@@ -16,7 +16,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         systemd systemd-sysv dbus ca-certificates curl iproute2 procps \
         python3 python3-pip python3-pexpect expect jq \
-        nftables iptables cron openssl gettext \
+        nftables iptables cron openssl gettext locales-all \
         fail2ban \
         bc git lsof qrencode iputils-ping nmap \
     && rm -f /etc/fail2ban/jail.d/defaults-debian.conf \

@@ -1,0 +1,17 @@
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash xray[<PID>]: 2026/11/26 11:02:51.375740 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-codex-final-20261126-f4deaf77-M6-M6-bash xray[<PID>]: 2026/11/26 11:03:17.302238 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/26 11:02:51.383481 [Warning] core: Xray 26.11.9 started
+2026/11/26 11:02:55.574734 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:57084 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/26 11:02:55.575131 [Warning] common/protocol/http: received "X-Forwarded-For" from 127.0.0.1:57080 but "sockopt.trustedXForwardedFor" is not configured; ignoring it and using the real remote address
+2026/11/26 11:02:59.581840 [Error] app/dns: failed to retrieve response for example.com. > Post "https://dns.google/dns-query": context deadline exceeded
+2026/11/26 11:03:03.587355 [Error] app/dns: failed to retrieve response for example.com. > Post "https://cloudflare-dns.com/dns-query": context deadline exceeded
+2026/11/26 11:03:17.306748 [Warning] core: Xray 26.11.9 started

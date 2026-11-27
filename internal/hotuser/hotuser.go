@@ -124,10 +124,43 @@ func EnableAPI(raw []byte, port int) ([]byte, bool, error) {
 			haveInbound = true
 		}
 	}
-	if _, ok := doc["api"]; ok && haveInbound {
-		return raw, false, nil
+	changed := false
+	api, _ := doc["api"].(map[string]any)
+	if api == nil {
+		api = map[string]any{}
+		doc["api"] = api
+		changed = true
 	}
-	doc["api"] = map[string]any{"tag": apiTag, "services": []any{"HandlerService"}}
+	if t, _ := api["tag"].(string); t == "" {
+		api["tag"] = apiTag
+		changed = true
+	}
+	// Xray only registers StatsService when both api.services advertises it and
+	// the top-level "stats" object exists; the legacy installer writes both.
+	// Enabling the API without them yields an API that cannot answer stats.
+	services, _ := api["services"].([]any)
+	var extras []any
+	for _, item := range services {
+		switch s, _ := item.(string); s {
+		case "StatsService", "HandlerService":
+		default:
+			extras = append(extras, item)
+		}
+	}
+	// StatsService and HandlerService are always part of the managed API.
+	normalized := []any{"StatsService", "HandlerService"}
+	normalized = append(normalized, extras...)
+	if !sameStrings(services, normalized) {
+		api["services"] = normalized
+		changed = true
+	}
+	if _, ok := doc["stats"]; !ok {
+		doc["stats"] = map[string]any{}
+		changed = true
+	}
+	if enableInboundTrafficStats(doc) {
+		changed = true
+	}
 	if !haveInbound {
 		doc["inbounds"] = append(inbounds, map[string]any{
 			"listen":   "127.0.0.1",
@@ -144,12 +177,53 @@ func EnableAPI(raw []byte, port int) ([]byte, bool, error) {
 		rules, _ := routing["rules"].([]any)
 		rule := map[string]any{"type": "field", "inboundTag": []any{apiTag}, "outboundTag": apiTag}
 		routing["rules"] = append([]any{rule}, rules...)
+		changed = true
+	}
+	if !changed {
+		return raw, false, nil
 	}
 	out, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		return nil, false, err
 	}
 	return append(out, '\n'), true, nil
+}
+
+// enableInboundTrafficStats makes inbound traffic queries useful. Xray requires
+// these system policy flags in addition to the StatsService and stats object.
+func enableInboundTrafficStats(doc map[string]any) bool {
+	policy, _ := doc["policy"].(map[string]any)
+	if policy == nil {
+		policy = map[string]any{}
+		doc["policy"] = policy
+	}
+	system, _ := policy["system"].(map[string]any)
+	if system == nil {
+		system = map[string]any{}
+		policy["system"] = system
+	}
+	changed := false
+	for _, key := range []string{"statsInboundUplink", "statsInboundDownlink"} {
+		if enabled, _ := system[key].(bool); !enabled {
+			system[key] = true
+			changed = true
+		}
+	}
+	return changed
+}
+
+func sameStrings(a, b []any) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		as, _ := a[i].(string)
+		bs, _ := b[i].(string)
+		if as != bs {
+			return false
+		}
+	}
+	return true
 }
 
 // Reachable asks the API for the inbound list; it proves the listener answers.

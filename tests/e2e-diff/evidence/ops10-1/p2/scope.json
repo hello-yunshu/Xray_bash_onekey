@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-10",
+  "ops": [
+    "OPS-10"
+  ],
+  "runId": "ops10-1",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

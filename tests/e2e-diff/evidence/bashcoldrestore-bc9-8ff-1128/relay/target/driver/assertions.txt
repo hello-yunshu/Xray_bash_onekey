@@ -1,0 +1,2 @@
+PASS	fresh target Bash restore preserved bytes and permissions
+PASS	restored validators, services, and real client connection succeeded

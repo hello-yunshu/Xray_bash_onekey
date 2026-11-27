@@ -1,0 +1,14 @@
+Attempt 1: read-only container kernel probe including optional qdisc path
+Linux 9e2dc9098814 7.2.12-orbstack-00394-gbecdd6130068 #1 SMP PREEMPT Thu Oct 22 22:17:17 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
+available=reno cubic
+current=cubic
+qdisc=cat: /proc/sys/net/core/default_qdisc: No such file or directory
+attempt1_rc=1
+
+Attempt 2: bounded read-only capability check
+Linux b2447086c628 7.2.12-orbstack-00394-gbecdd6130068 #1 SMP PREEMPT Thu Oct 22 22:17:17 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
+available=reno cubic
+current=cubic
+qdisc=unavailable-in-container
+bbr_supported=no
+attempt2_rc=0

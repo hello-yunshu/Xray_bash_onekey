@@ -1,0 +1,29 @@
+{
+  "allowedDiff": "bash writes a crontab entry; go writes a systemd timer",
+  "autoUpdate": {
+    "bashCron": "0 1 * * * bash \"/etc/idleleo/scripts/auto_update.sh\"\n",
+    "goTimers": "Mon 2026-11-23 20:01:51 UTC    59min -         - idleleo-schedule.timer       idleleo-schedule.service\n"
+  },
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "id": "OPS-17c",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "9147144eeb04d81db11bbcb7adf0c5417795c4a13ebc2c54dabbe38bfc109d9b",
+    "driverSha": "41c3f87a3a8162bfb790ef006488182f9d2adc628da8f645aa3ffc7650c3534f",
+    "finishedAt": "2026-11-23T19:12:30Z",
+    "image": "sha256:cfeff9d6182fb380d55ca48b2dcb060ccdefc29551068cea2f185b17f0382961",
+    "layer": "L0-L4 docker matrix",
+    "productCodeSha": "5041511998575851eb5cb16533e9fe999d29d5a8",
+    "runId": "round4-full-50415119",
+    "startedAt": "2026-11-23T18:36:16Z"
+  },
+  "verdict": "PASS"
+}

@@ -1,0 +1,25 @@
+{
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "changed": [
+    "port",
+    "public-port"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "c4195780f08b4cf4980379bb62ac5241dfb5b76fee77e61d2725b1fa12bfef62",
+  "noChanges": true,
+  "noRestart": false,
+  "noProbe": true,
+  "dryRun": true,
+  "nginxUpdated": false,
+  "nginxVerified": false,
+  "shareUri": "vless://a8238253-0a98-47ab-b078-dde48e3766fa@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=XEx-Ud_q7qK3h9uIyUoO4CQnxY3kZjiiJLUVjSUy6GA&sid=e647ffd0&type=raw#idleleo-reality-nginx",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": null,
+  "shortIds": [
+    "e647ffd0"
+  ],
+  "oldShareUri": "vless://a8238253-0a98-47ab-b078-dde48e3766fa@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=XEx-Ud_q7qK3h9uIyUoO4CQnxY3kZjiiJLUVjSUy6GA&sid=e647ffd0&type=raw#idleleo-reality-nginx",
+  "upstreamUnchanged": false
+}

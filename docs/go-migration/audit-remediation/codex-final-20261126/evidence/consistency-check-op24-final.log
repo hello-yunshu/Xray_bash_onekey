@@ -1,0 +1,11 @@
+Attempt 1: consistency checker assumed acceptance.ops.summary, which is not this repository's schema; checker exited 1 with KeyError('summary'). No acceptance artifact was modified.
+Attempt 2: compare repository schema acceptance.ops directly with ledger counts and matrix.acceptance.
+Traceback (most recent call last):
+  File "<stdin>", line 12, in <module>
+KeyError: 'goOnlyIds'
+consistency_rc=1
+Attempt 2: checker assumed goOnlyIds exists in acceptance.ops; this schema omits empty-class IDs. Checker exited 1 with KeyError('goOnly'). No acceptance artifact was modified.
+Attempt 3: compare all class totals; compare ID arrays for classes whose arrays are emitted; require the empty GO_ONLY ledger list.
+PASS: formal ledger, matrix, and acceptance.json agree on candidate SHA, all 34 OPS buckets/IDs, and OPS-24
+strict counts: {'DUAL_SIDE_VERIFIED': 25, 'GO_ONLY': 0, 'FAIL': 5, 'BASH_ONLY': 1, 'BLOCKED': 3, 'NOT_RUN': 0, 'APPROVED_DIFF': 0, 'APPROVED_SINGLE_SIDE': 0}
+consistency_rc=0

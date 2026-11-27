@@ -1,0 +1,8 @@
+{
+  "bodyMatch": true,
+  "bodySha256": "97b4b326a27eb35f921ddaa6d147a09304664db23edba20623c6a4bec6f6ff32",
+  "curlExit": 0,
+  "ok": true,
+  "profile": "reality",
+  "target": "http://example.com/"
+}

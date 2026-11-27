@@ -1,0 +1,28 @@
+{
+  "runId": "codex-ops14-ratecheck-85340b48-20261128",
+  "productCodeSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
+  "containerImage": "sha256:9a307c561b1b732bcfc5060963c39b43a1d0362919f2160ddd09c7bab3576726",
+  "watchCommand": "idleleo stats --watch --interval 1s --samples 20 --pattern inbound>>>VLESS-Reality-in --json",
+  "realClientCommand": "35 sequential curl requests via the live Reality client SOCKS proxy to http://example.com/",
+  "watchRc": 0,
+  "sampleCount": 20,
+  "inboundStatPointCount": 40,
+  "positiveInboundRatePoints": 32,
+  "maxBytesPerSecond": 1201.1328326476307,
+  "counterMin": 174,
+  "counterMax": 19670,
+  "clientRequests": 35,
+  "httpStatusCounts": {
+    "200": 35
+  },
+  "clientLoopRc": 0,
+  "clientErrors": "",
+  "watchErrors": "",
+  "services": {
+    "xray": "active",
+    "nginx": "inactive",
+    "note": "This OPS-14 probe uses a direct Reality inbound; Nginx is not on the request path."
+  },
+  "watchSha256": "06209d032d61a3f6546ea811a19baf65400ba37152674c224fcd9695e2c79a9b",
+  "clientLogSha256": "6385ed255f4385e13837223b7d7a82c17eab469d6eb793d8de604a6cfb1dc3f1"
+}

@@ -1,0 +1,34 @@
+== F15 go=/work/bin/idleleo bash=/repo host=aarch64
+PASS Bash xray_stats.sh baseline is present /repo/scripts/xray_stats.sh
+$ /work/bin/xray version (rc=0 0.06s)
+  stdout: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+          A unified platform for anti-censorship.
+PASS real Xray Stats API is listening 127.0.0.1:53121
+PASS real Xray HTTP inbound is listening 35123
+PASS HTTP proxy request reached the origin HTTP/1.1 200 OK
+Content-Length: 65536
+Connection: keep-alive
+Content-Type: ap
+PASS origin body came back through Xray 
+$ /work/bin/xray api statsquery --server=127.0.0.1:53121 -pattern inbound>>> -reset=false (rc=0 0.02s)
+  stdout: {
+              "stat": [
+                  {
+                      "name": "inbound>>>http-in>>>traffic>>>uplink",
+                      "value": 83
+                  },
+                  {
+                      "name": "inbound>>>http-in>>>traffic>>>downlink",
+                      "value": 65769
+                  },
+                  {
+                      "name": "inbound>>>api-in>>>traffic>>>uplink"
+                  },
+                  {
+                      "name": "inbound>>>api-in>>>traffic>>>downlink"
+                  }
+              ]
+          }
+PASS StatsService recorded inbound uplink 83
+PASS StatsService recorded inbound downlink >= body size 65769
+FAIL uncaught exception 

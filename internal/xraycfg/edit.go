@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 // EditDefaults carries the install facts that the runtime config does not
@@ -33,12 +34,16 @@ type EditDefaults struct {
 // numbers and empty strings keep the current value, which is what makes the
 // command a patch instead of a rewrite.
 type EditRequest struct {
-	Listen           string
-	Port             int
-	PublicPort       int
-	Transport        string
-	WSPath           string
-	XHTTPPath        string
+	Listen     string
+	Port       int
+	PublicPort int
+	Transport  string
+	WSPath     string
+	XHTTPPath  string
+	// XHTTPPathSet distinguishes `--xhttp-path ''` (reject) from an omitted
+	// flag. The Bash menu re-prompts on empty input; silently ignoring the flag
+	// or normalising whitespace to a different path is not equivalent.
+	XHTTPPathSet     bool
 	GRPCServiceName  string
 	Target           string
 	ServerNames      []string
@@ -62,6 +67,10 @@ type EditRequest struct {
 	LinkSpiderX      string
 	LinkSpiderXSet   bool
 	RotatePrivateKey bool
+	// Host is the public address clients dial. It is a rendering input, never a
+	// config field: Reality keeps its SNI in serverNames, so without it the edit
+	// report can only fall back to the SNI, which is not what clients connect to.
+	Host string
 	// ListShortIDs is read-only: it reports the accepted sids with one link per
 	// sid so the operator can hand out the new link before removing the old one.
 	ListShortIDs bool
@@ -151,13 +160,22 @@ func EditRuntime(raw []byte, base EditDefaults, req EditRequest) (Generated, Edi
 			"inbounds use different UUIDs; use: idleleo xray user uuid --email <email> --new-uuid %s (it updates every inbound that carries that user)", req.UUID)
 	}
 	spec.LinkFingerprint, spec.LinkSpiderX = base.LinkFingerprint, base.LinkSpiderX
+	shareHost := strings.TrimSpace(req.Host)
+	if strings.Contains(shareHost, "/") || strings.Contains(shareHost, "://") {
+		return Generated{}, EditResult{}, fmt.Errorf("--host takes the address clients dial (for example 203.0.113.10 or node.example.com), not a URL")
+	}
+	if shareHost == "" {
+		// No dial address was supplied and none is stored, so the report keeps
+		// the legacy fallback (the SNI) and the caller warns about it.
+		shareHost = shareHostFor(spec)
+	}
 	reality := spec.Mode == ModeReality || spec.Mode == ModeRealityNginx || spec.Mode == ModeRealityBalance
 	oldShare := ""
 	if reality {
 		// The pre-edit link must carry the same link preferences the clients
 		// already hold, otherwise the rollback probe uses a link nobody has.
 		if pub, keyErr := DerivePublicKey(spec.PrivateKey); keyErr == nil {
-			oldShare = buildShareURI(spec, TransportRaw, shareHostFor(spec), pub,
+			oldShare = buildShareURI(spec, TransportRaw, shareHost, pub,
 				firstShortID(spec.ShortIDs), firstOf(spec.ServerNames, ""))
 		}
 	}
@@ -169,7 +187,7 @@ func EditRuntime(raw []byte, base EditDefaults, req EditRequest) (Generated, Edi
 		links := make([]ShortIDLink, 0, len(spec.ShortIDs))
 		for _, id := range spec.ShortIDs {
 			links = append(links, ShortIDLink{ShortID: id, ShareURI: buildShareURI(
-				spec, TransportRaw, shareHostFor(spec), pub, id, firstOf(spec.ServerNames, ""))})
+				spec, TransportRaw, shareHost, pub, id, firstOf(spec.ServerNames, ""))})
 		}
 		return Generated{}, EditResult{
 			Mode: spec.Mode, Transport: spec.Transport,
@@ -220,6 +238,12 @@ func EditRuntime(raw []byte, base EditDefaults, req EditRequest) (Generated, Edi
 		}
 	}
 	linkChanged := hasChange(changed, "link-fingerprint", "link-spiderx")
+	// A public-port edit on an Nginx front moves only the generated front and
+	// the share link; the Xray inbound keeps its loopback port, so the runtime
+	// diff is empty by design. Compare against the live front instead of
+	// treating the empty diff as a no-op.
+	frontPortChanged := (spec.Mode == ModeRealityNginx || spec.Mode == ModeTLS) &&
+		spec.PublicPort > 0 && spec.PublicPort != base.PublicPort
 	res := EditResult{
 		Changed:           changed,
 		Mode:              spec.Mode,
@@ -244,7 +268,7 @@ func EditRuntime(raw []byte, base EditDefaults, req EditRequest) (Generated, Edi
 		// A link-preference change produces no runtime diff and must still count
 		// as a change: the share link the operator copies is the product.
 		NoChanges: len(changed) == 0 ||
-			(len(diffs) == 0 && !nginxOnlyChange(changed) && !linkChanged),
+			(len(diffs) == 0 && !nginxOnlyChange(changed) && !linkChanged && !frontPortChanged),
 		Diff:           diffs,
 		BlockPreserved: base.RoutingBlock != nil,
 		BlockRuleCount: blockApplied.BlockRuleCount(),
@@ -255,7 +279,7 @@ func EditRuntime(raw []byte, base EditDefaults, req EditRequest) (Generated, Edi
 			probeSID = lastOf(spec.ShortIDs, probeSID)
 		}
 		if pub, keyErr := DerivePublicKey(spec.PrivateKey); keyErr == nil {
-			res.NewShareURI = buildShareURI(spec, TransportRaw, shareHostFor(spec), pub,
+			res.NewShareURI = buildShareURI(spec, TransportRaw, shareHost, pub,
 				probeSID, firstOf(spec.ServerNames, ""))
 			g.ShareURI = res.NewShareURI
 		}
@@ -279,6 +303,49 @@ func hasChange(changed []string, names ...string) bool {
 		}
 	}
 	return false
+}
+
+// ValidateXHTTPPath refuses any value that would render an unusable Xray path.
+// unicode.IsSpace covers NBSP, ideographic space and the other Unicode spaces a
+// plain ASCII ` \t\r\n` check silently accepts; control characters are refused
+// for the same reason.
+func ValidateXHTTPPath(p string) error {
+	if p == "" {
+		return fmt.Errorf("xhttp path must not be empty")
+	}
+	if i := strings.IndexFunc(p, func(r rune) bool { return unicode.IsSpace(r) || unicode.IsControl(r) }); i >= 0 {
+		return fmt.Errorf("xhttp path must not contain whitespace or control characters (byte %d)", i)
+	}
+	return nil
+}
+
+// normalizeXHTTPPath renders a path with one leading slash and collapses
+// repeated slashes. Nginx normalizes repeated slashes in request URIs by
+// default, so a managed location containing them would not match the path the
+// XHTTP client sends. Keep one trailing slash when present. Whitespace is
+// never trimmed: validation rejects it first.
+func normalizeXHTTPPath(p string) string {
+	if p == "" {
+		return p
+	}
+	if !strings.HasPrefix(p, "/") {
+		p = "/" + p
+	}
+	var out strings.Builder
+	out.Grow(len(p))
+	previousSlash := false
+	for i := 0; i < len(p); i++ {
+		if p[i] == '/' {
+			if previousSlash {
+				continue
+			}
+			previousSlash = true
+		} else {
+			previousSlash = false
+		}
+		out.WriteByte(p[i])
+	}
+	return out.String()
 }
 
 // shareHostFor mirrors the host Generate uses for the share link.
@@ -340,7 +407,7 @@ type editScope struct {
 
 func editScopeFor(req EditRequest, inbounds int, block bool) (editScope, error) {
 	a := editScope{exact: map[string]bool{}, block: block}
-	if req.Transport != "" || req.WSPath != "" || req.XHTTPPath != "" || req.GRPCServiceName != "" {
+	if req.Transport != "" || req.WSPath != "" || req.XHTTPPathSet || req.GRPCServiceName != "" {
 		a.structural = true
 		// The generated routing rules reference inbound tags, so a transport
 		// change legitimately rewrites routing.rules[*].inboundTag.
@@ -451,14 +518,17 @@ func applyEditRequest(spec *Spec, base EditDefaults, req EditRequest) ([]string,
 		spec.Path = req.WSPath
 		changed = append(changed, "ws-path")
 	}
-	if req.XHTTPPath != "" {
+	if req.XHTTPPathSet {
 		if !usesXHTTP {
 			return nil, fmt.Errorf("--xhttp-path requires a transport with xhttp")
 		}
 		if spec.Transport == TransportMulti {
 			return nil, fmt.Errorf("the multi transport fixes the xhttp path; use a single xhttp transport to change it")
 		}
-		spec.Path = req.XHTTPPath
+		if err := ValidateXHTTPPath(req.XHTTPPath); err != nil {
+			return nil, fmt.Errorf("--xhttp-path: %w", err)
+		}
+		spec.Path = normalizeXHTTPPath(req.XHTTPPath)
 		changed = append(changed, "xhttp-path")
 	}
 	if req.GRPCServiceName != "" {

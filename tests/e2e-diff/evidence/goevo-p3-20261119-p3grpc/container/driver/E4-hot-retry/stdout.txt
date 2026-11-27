@@ -1,0 +1,23 @@
+{
+  "entry": {
+    "id": "",
+    "state": "",
+    "target": "",
+    "oldSha256": "",
+    "startedAt": "",
+    "updatedAt": ""
+  },
+  "hot": {
+    "applied": true,
+    "inbound": "VLESS-Reality-in",
+    "persisted": false,
+    "server": "127.0.0.1:10085"
+  },
+  "user": {
+    "index": 1,
+    "uuid": "<uuid>",
+    "email": "hot-b@test.local",
+    "level": 0,
+    "primary": false
+  }
+}

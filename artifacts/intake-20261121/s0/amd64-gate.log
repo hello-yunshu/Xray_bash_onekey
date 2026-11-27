@@ -1,0 +1,8 @@
+83d129a974dd: Pull complete
+e34fd850821b: Pull complete
+Digest: sha256:205c7636d74e0ffbe3d007162df7d74f859f5a8c8322dfb9f907977686c126cf
+Status: Downloaded newer image for golang:1.27.4
+go version go1.27.4 linux/amd64
+idleleo 0.2.0-phase04 (go)
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/xraycfg	0.124s
+ok  	github.com/hello-yunshu/Xray_bash_onekey/internal/deploy	8.109s

@@ -1,0 +1,1 @@
+{"manager":"bash","scenario":"relay","restoreRc":0,"archiveSha256":"2074b147a41a5d8e3dc52598a5ebe7ca992efba05a37b723cd6570df7380714b","targetPlaceholderCertSha256":"","restoredCertSha256":"","xrayActive":"inactive","nginxActive":"active","stateBytesMatch":true,"stateModeOwnerMatch":false,"realClient":true}

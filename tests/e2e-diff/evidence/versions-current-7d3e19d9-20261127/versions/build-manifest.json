@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "runId": "versions-current-7d3e19d9-20261127",
+  "productCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+  "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+  "driverSha256": "922dac88b19192b1e30c58645f5eec32ae05b4926ff0511de1cf69694070c70a",
+  "dependencies": [
+    {
+      "path": "tests/e2e-diff/run_xray_versions.sh",
+      "sha256": "922dac88b19192b1e30c58645f5eec32ae05b4926ff0511de1cf69694070c70a"
+    },
+    {
+      "path": "tests/go-parity/lib/docker_common.sh",
+      "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55"
+    },
+    {
+      "path": "tests/e2e-diff/collect/l4.sh",
+      "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327"
+    },
+    {
+      "path": "tests/e2e-diff/collect/client_config.py",
+      "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef"
+    },
+    {
+      "path": "tests/e2e-diff/image/Dockerfile",
+      "sha256": "2c89b1a5e67c9150d1f9fddc3a47f15a2d81ededb4395ae52b997a8bf131b39c"
+    }
+  ],
+  "platform": "linux/arm64",
+  "images": {
+    "e2e": "sha256:fe00d1c974adefe211024e819ebdd10381c0e51ae17ede4ba35a57d68c66f740",
+    "golang": "sha256:205c7636d74e0ffbe3d007162df7d74f859f5a8c8322dfb9f907977686c126cf"
+  },
+  "xrayVersions": [
+    {
+      "tag": "v26.11.9",
+      "asset": "Xray-linux-arm64-v8a.zip",
+      "assetSha256": "64ed6858982a7f5eb85d88b811089063bd4f17561f4c8f44e0f1dc8e6f6430be",
+      "configTest": "PASS",
+      "deployment": "PASS",
+      "businessRequest": "client-business-request"
+    },
+    {
+      "tag": "v26.10.31",
+      "asset": "Xray-linux-arm64-v8a.zip",
+      "assetSha256": "1811c8f1da0c3b6dc707ebaf1c8390e987ba39859a8f0a7aadd8526157f2ec8d",
+      "configTest": "PASS",
+      "deployment": "PASS",
+      "businessRequest": "client-business-request"
+    },
+    {
+      "tag": "v26.10.21",
+      "asset": "Xray-linux-arm64-v8a.zip",
+      "assetSha256": "d1304946c486d98e6b886e9b931eaaaebb23835b30e217638037b7f2721d4e9c",
+      "configTest": "PASS",
+      "deployment": "PASS",
+      "businessRequest": "client-business-request"
+    }
+  ],
+  "startedAt": "2026-11-27T10:58:19Z",
+  "finishedAt": "2026-11-27T10:59:13Z",
+  "verdict": "PASS",
+  "actualRc": 0,
+  "scope": "Each version parsed the same current generated config, deployed in a real systemd container, and completed a real client business request."
+}

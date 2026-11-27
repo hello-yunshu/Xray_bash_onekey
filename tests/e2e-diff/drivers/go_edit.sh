@@ -29,7 +29,7 @@ sha_of() { sha256sum "$1" 2>/dev/null | awk '{print $1}'; }
 cp "$CFG" "$DIR/before-config.json" 2>/dev/null || log "missing $CFG"
 sha_before=$(sha_of "$CFG")
 idleleo show --json >"$DIR/before-show.json" 2>&1 || true
-idleleo xray share --path "$CFG" --public-port 443 --json \
+idleleo xray share --path "$CFG" --host 127.0.0.1 --public-port 443 --json \
     >"$DIR/before-share.json" 2>&1 || true
 
 if [[ "$SCENARIO" == "E2" ]]; then
@@ -149,7 +149,7 @@ backups=$(find /etc/idleleo/backup -maxdepth 1 -type d -name 'edit-*' 2>/dev/nul
 backups=${backups:-0}
 cp "$CFG" "$DIR/after-config.json" 2>/dev/null || true
 idleleo show --json >"$DIR/after-show.json" 2>&1 || true
-idleleo xray share --path "$CFG" --public-port 443 --json \
+idleleo xray share --path "$CFG" --host 127.0.0.1 --public-port 443 --json \
     >"$DIR/after-share.json" 2>&1 || true
 
 python3 - "$DIR" "$SCENARIO" "$edit_rc" "$sha_before" "$sha_after" "$state" "$backups" "$expected_target" <<'PY'

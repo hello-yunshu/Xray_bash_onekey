@@ -1,0 +1,112 @@
+{
+  "archiveSHA256": "71a5fbf160cb3fc19fb59a1526d354c25594629cc839975dc56e6f6f91e44d30",
+  "commit": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "imageId": "sha256:f6c28602447747db6291384109d07dd376190c56f50bf2aadab3771c0f14ed9a",
+  "runId": "coldrestore-current-7d3e19d9",
+  "scenario": "relay",
+  "schemaVersion": 1,
+  "sides": {
+    "source": {
+      "assertions": [
+        {
+          "label": "source install is healthy before the backup (rc=0)",
+          "result": "PASS"
+        },
+        {
+          "label": "source backup create exits 0 (rc=0)",
+          "result": "PASS"
+        },
+        {
+          "label": "source archive exists",
+          "result": "PASS"
+        },
+        {
+          "label": "source archive is mode 0600 (mode=600)",
+          "result": "PASS"
+        },
+        {
+          "label": "source archive verifies (rc=0)",
+          "result": "PASS"
+        },
+        {
+          "label": "a real client reaches the origin on the source machine (relay)",
+          "result": "PASS"
+        },
+        {
+          "label": "source probe reports REAL_CLIENT_PASS",
+          "result": "PASS"
+        }
+      ],
+      "failed": 0,
+      "passed": 7
+    },
+    "target": {
+      "assertions": [
+        {
+          "label": "target install is healthy before the restore (rc=0)",
+          "result": "PASS"
+        },
+        {
+          "label": "the fresh target starts with different managed state (relay)",
+          "result": "PASS"
+        },
+        {
+          "label": "target verifies the source archive (rc=0)",
+          "result": "PASS"
+        },
+        {
+          "label": "the handoff archive digest matches the source",
+          "result": "PASS"
+        },
+        {
+          "label": "cold restore exits 0 (rc=0)",
+          "result": "PASS"
+        },
+        {
+          "label": "restored state is byte-identical to the source (relay)",
+          "result": "PASS"
+        },
+        {
+          "label": "the restore wrote a pre-restore backup",
+          "result": "PASS"
+        },
+        {
+          "label": "nginx is active after the restore (state=active)",
+          "result": "PASS"
+        },
+        {
+          "label": "doctor is healthy after the cold restore (rc=0)",
+          "result": "PASS"
+        },
+        {
+          "label": "a real client reaches the origin after the cold restore (relay)",
+          "result": "PASS"
+        },
+        {
+          "label": "target probe reports REAL_CLIENT_PASS",
+          "result": "PASS"
+        },
+        {
+          "label": "nginx survives a restart after the restore (state=active)",
+          "result": "PASS"
+        },
+        {
+          "label": "a real client still reaches the origin after the post-restore restart (relay)",
+          "result": "PASS"
+        },
+        {
+          "label": "the third-party certificate canary survived the restore",
+          "result": "PASS"
+        },
+        {
+          "label": "the third-party config note survived the restore unchanged",
+          "result": "PASS"
+        }
+      ],
+      "failed": 0,
+      "passed": 15
+    }
+  },
+  "sourceDriverExit": 0,
+  "targetDriverExit": 0
+}

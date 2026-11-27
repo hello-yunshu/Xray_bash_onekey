@@ -1,0 +1,28 @@
+{
+  "appliedBinaryMatchesManifest": true,
+  "applyAction": "applied",
+  "applyRc": 0,
+  "candidateRepoSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "checkDidNotAlterBinary": true,
+  "checkLatestVersion": "0.3.0-phase04",
+  "checkRc": 0,
+  "checkVerified": true,
+  "configureRc": 0,
+  "newVersion": "idleleo 0.3.0-phase04 (go)",
+  "nginxTestRc": 0,
+  "oldVersion": "idleleo 0.2.0-phase04 (go)",
+  "postUpdateL4": {
+    "bodyBytes": 577,
+    "bodyMatch": true,
+    "bodySha256": "25ddf2c883e0d1958ea971d279a7e4f0fd446724ee3db7db19dadabd4a62e484",
+    "curlExit": 0,
+    "expectedBodyBytes": null,
+    "expectedBodyMatch": true,
+    "expectedBodySha256": null,
+    "ok": true,
+    "profile": "reality",
+    "target": "http://example.com/"
+  },
+  "servicesActive": true,
+  "xrayTestRc": 0
+}

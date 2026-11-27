@@ -99,6 +99,25 @@ func Apply(ctx context.Context, spec Spec) (Report, error) {
 		return report, err
 	}
 	report.Verified = true
+	// The Nginx distribution archive contains a stock nginx.conf. Keep the
+	// installed main config across upgrades: it is the entry point for the
+	// managed site fragments under /etc/idleleo/conf/nginx. Without this,
+	// replacing the installation tree silently disables the public front while
+	// the stock config still passes `nginx -t`.
+	var nginxConfig []byte
+	var nginxConfigMode os.FileMode
+	if spec.Component == KindNginx && previous != "" {
+		configPath := filepath.Join(nginxDir(paths.Root), "conf/nginx.conf")
+		if info, statErr := os.Stat(configPath); statErr == nil && info.Mode().IsRegular() {
+			nginxConfig, err = os.ReadFile(configPath)
+			if err != nil {
+				return report, fmt.Errorf("read installed nginx config: %w", err)
+			}
+			nginxConfigMode = info.Mode().Perm()
+		} else if statErr != nil && !os.IsNotExist(statErr) {
+			return report, fmt.Errorf("inspect installed nginx config: %w", statErr)
+		}
+	}
 
 	backup, err := backup(ctx, paths.Root, spec.Component, previous)
 	if err != nil {
@@ -111,7 +130,7 @@ func Apply(ctx context.Context, spec Spec) (Report, error) {
 	case KindXray:
 		healthErr = installXray(paths.Root, data)
 	case KindNginx:
-		healthErr = installNginx(paths.Root, data)
+		healthErr = installNginx(paths.Root, data, nginxConfig, nginxConfigMode)
 	}
 	if healthErr == nil {
 		healthErr = verifyVersion(ctx, paths.Root, spec.Component, m.Version)
@@ -299,7 +318,7 @@ func installXray(root string, data []byte) error {
 	return os.Rename(tmp, bin)
 }
 
-func installNginx(root string, data []byte) error {
+func installNginx(root string, data, preservedConfig []byte, configMode os.FileMode) error {
 	stageParent := filepath.Join(root, "usr/local/.nginx-stage")
 	_ = os.RemoveAll(stageParent)
 	if err := os.MkdirAll(stageParent, 0o755); err != nil {
@@ -314,6 +333,17 @@ func installNginx(root string, data []byte) error {
 	if !executable(bin) {
 		_ = os.RemoveAll(stageParent)
 		return errors.New("artifact does not contain an executable nginx/sbin/nginx")
+	}
+	if preservedConfig != nil {
+		conf := filepath.Join(staged, "conf/nginx.conf")
+		if err := os.WriteFile(conf, preservedConfig, configMode.Perm()); err != nil {
+			_ = os.RemoveAll(stageParent)
+			return fmt.Errorf("preserve installed nginx config: %w", err)
+		}
+		if err := os.Chmod(conf, configMode.Perm()); err != nil {
+			_ = os.RemoveAll(stageParent)
+			return fmt.Errorf("preserve installed nginx config permissions: %w", err)
+		}
 	}
 	target := nginxDir(root)
 	if err := os.Rename(staged, target); err != nil {

@@ -1,0 +1,12 @@
+23:51:16 building idleleo
+23:51:21 idleleo_sha256=ec04a844df52bf79b70d6fd02e18f22cafc313b2583d27543a3d5d156fd13f41 xray_sha256=5939649960deaf535bcd5f7ce0467a2b1d63b72a2758a6f42eade714ae8d5328
+23:51:21 scenario A: bash install
+23:53:04 [S4] auto_update
+23:53:10 [S6] geo_update
+23:53:32 [S8] tcp
+23:53:38 [S9] speedtest
+23:53:49 [S7] acme.sh legacy download
+23:54:06 scenario B: pebble
+23:54:06 [S5] ssl_update
+23:57:03 run_end=2026-11-22T15:57:03Z
+23:57:03 64 PASS / 0 FAIL

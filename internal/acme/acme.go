@@ -16,8 +16,10 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -169,7 +171,7 @@ func Issue(ctx context.Context, cfg Config) (Result, error) {
 	// Ownership is recorded only after the new pair is live and accepted by the
 	// service. Doing it earlier would clear the user-managed marker even when a
 	// failed reload rolled the operator's certificate back into place.
-	if err := markManaged(cfg.CertFile, cfg.CertGroup); err != nil {
+	if err := markManaged(cfg.CertFile, cfg.KeyFile, cfg.CertGroup); err != nil {
 		return res, err
 	}
 	if err := clearUserManaged(cfg.CertFile); err != nil {
@@ -251,16 +253,20 @@ func Preflight(ctx context.Context, cfg Config) error {
 
 // Inspection is the read-only view printed by `cert renew --dry-run`.
 type Inspection struct {
-	Domain      string `json:"domain,omitempty"`
-	Certificate string `json:"certificateFile"`
-	Key         string `json:"keyFile"`
-	NotAfter    string `json:"notAfter,omitempty"`
-	RenewAt     string `json:"renewAt,omitempty"`
-	RenewBefore string `json:"renewBefore"`
-	Due         bool   `json:"due"`
-	Missing     bool   `json:"missing,omitempty"`
-	UserManaged bool   `json:"userManaged,omitempty"`
-	Reason      string `json:"reason,omitempty"`
+	Domain        string `json:"domain,omitempty"`
+	Certificate   string `json:"certificateFile"`
+	Key           string `json:"keyFile"`
+	NotBefore     string `json:"notBefore,omitempty"`
+	NotAfter      string `json:"notAfter,omitempty"`
+	RenewAt       string `json:"renewAt,omitempty"`
+	RenewBefore   string `json:"renewBefore"`
+	ElapsedDays   int    `json:"elapsedDays"`
+	RemainingDays int    `json:"remainingDays"`
+	Due           bool   `json:"due"`
+	Expired       bool   `json:"expired"`
+	Missing       bool   `json:"missing,omitempty"`
+	UserManaged   bool   `json:"userManaged,omitempty"`
+	Reason        string `json:"reason,omitempty"`
 }
 
 // Inspect reports certificate lifetime and the next renewal point without
@@ -271,7 +277,7 @@ func Inspect(certFile string, renewBefore time.Duration) (Inspection, error) {
 		RenewBefore: renewBefore.String(),
 		UserManaged: IsUserManaged(certFile),
 	}
-	notAfter, err := certNotAfter(certFile)
+	notBefore, notAfter, err := certValidity(certFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			ins.Due = true
@@ -281,10 +287,15 @@ func Inspect(certFile string, renewBefore time.Duration) (Inspection, error) {
 		}
 		return ins, err
 	}
+	now := time.Now()
+	ins.NotBefore = notBefore.UTC().Format(time.RFC3339)
 	ins.NotAfter = notAfter.UTC().Format(time.RFC3339)
 	renewAt := notAfter.Add(-renewBefore)
 	ins.RenewAt = renewAt.UTC().Format(time.RFC3339)
-	ins.Due = !time.Now().Before(renewAt)
+	ins.ElapsedDays = int(now.Sub(notBefore).Hours() / 24)
+	ins.RemainingDays = int(notAfter.Sub(now).Hours() / 24)
+	ins.Expired = !now.Before(notAfter)
+	ins.Due = !now.Before(renewAt)
 	switch {
 	case ins.UserManaged:
 		ins.Reason = "certificate is user-managed; renewal is external"
@@ -380,15 +391,20 @@ func firstCertificate(chain []byte) (*x509.Certificate, error) {
 }
 
 func certNotAfter(path string) (time.Time, error) {
+	_, notAfter, err := certValidity(path)
+	return notAfter, err
+}
+
+func certValidity(path string) (time.Time, time.Time, error) {
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, time.Time{}, err
 	}
 	cert, err := firstCertificate(raw)
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, time.Time{}, err
 	}
-	return cert.NotAfter, nil
+	return cert.NotBefore, cert.NotAfter, nil
 }
 
 // validToken accepts only the RFC 8555 base64url token alphabet. A token is
@@ -659,11 +675,13 @@ func ManagedMarker(certFile string) string {
 	return filepath.Join(filepath.Dir(certFile), managedMarker)
 }
 
-// markManaged records that this manager issued the installed pair. The marker
-// lives in the certificate directory, which the layered model makes group
-// readable, so it must be chowned like the pair itself or the next
-// `verify_nginx_layered_permissions` pass would reject it.
-func markManaged(certFile, group string) error {
+// markManaged records that this manager issued the installed pair. The record
+// carries the content hashes of the certificate and key so a later cleanup can
+// prove ownership by file identity instead of trusting a name, a domain or the
+// directory marker alone. It lives in the certificate directory, which the
+// layered model makes group readable, so it must be chowned like the pair itself
+// or the next `verify_nginx_layered_permissions` pass would reject it.
+func markManaged(certFile, keyFile, group string) error {
 	dir := filepath.Dir(certFile)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
@@ -681,7 +699,24 @@ func markManaged(certFile, group string) error {
 		}
 		mode = 0o640
 	}
-	body := []byte("managed-by=idleleo\n")
+	// Ownership is bound to the relative path, the file type and the content
+	// digest. A bare digest would also claim an unregistered byte-identical copy
+	// somewhere in the same directory, which this manager never created.
+	body := []byte("managed-by=idleleo\nformat=2\n")
+	for _, file := range []string{certFile, keyFile} {
+		if file == "" {
+			continue
+		}
+		rel, err := filepath.Rel(dir, file)
+		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return fmt.Errorf("ownership record for %s must stay inside %s", file, dir)
+		}
+		sum, err := fileSHA256(file)
+		if err != nil {
+			return fmt.Errorf("hash %s for the ownership record: %w", file, err)
+		}
+		body = append(body, []byte("file="+filepath.ToSlash(rel)+"\ttype=regular\tsha256="+sum+"\n")...)
+	}
 	if err := os.WriteFile(ManagedMarker(certFile), body, mode); err != nil {
 		return err
 	}
@@ -698,6 +733,15 @@ func clearUserManaged(certFile string) error {
 		return err
 	}
 	return nil
+}
+
+func fileSHA256(path string) (string, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(raw)
+	return hex.EncodeToString(sum[:]), nil
 }
 
 // migrateLegacyAccount moves account state out of <cert dir>/acme, where the

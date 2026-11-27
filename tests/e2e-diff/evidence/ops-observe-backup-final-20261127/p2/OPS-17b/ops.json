@@ -1,0 +1,83 @@
+{
+  "details": {
+    "bash": {
+      "after": "",
+      "backup": "",
+      "before": "",
+      "buildAfter": "",
+      "health": null,
+      "previousBinary": "",
+      "rc": null
+    },
+    "expected": "",
+    "go": {
+      "after": "",
+      "backup": "",
+      "before": "",
+      "health": null,
+      "previousBinary": "",
+      "rc": null
+    },
+    "goReport": {
+      "backupPath": null,
+      "health": null,
+      "newVersion": null,
+      "previousVersion": null,
+      "restarted": null,
+      "verified": null
+    }
+  },
+  "id": "OPS-17b",
+  "opsRc": {
+    "bash": null,
+    "go": null
+  },
+  "reasons": [
+    "the seeded Nginx package is unavailable, so the update cannot be exercised",
+    "see OPS-17b/harness-blocked.txt"
+  ],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "4a5ba5bdbcebca2b82f6c505de885337872f2ede6f951ba32d700a54a5102c74",
+    "finishedAt": "2026-11-26T18:30:58Z",
+    "fixedBy": null,
+    "image": "sha256:e6d2f11a37f9198ebbfb91f760a30aafe20bad598f3baef4f47aad3a1a472e9b",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "27326cd3c9b6cdf99aab3f24c743562d9a748ea4815d1f94fee9937ce3c2f7fa",
+    "platform": "linux/arm64",
+    "productCodeSha": "5e483b0471ee19bb7bb45a3f2be6a5f9b26fe526",
+    "runId": "ops-observe-backup-final-20261127",
+    "startedAt": "2026-11-26T18:29:45Z",
+    "supersedes": null
+  },
+  "verdict": "BLOCKED"
+}

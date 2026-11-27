@@ -1,0 +1,6 @@
+environment: Linux container, golang:1.27.4, uid=65534
+command: /out/idleleo language set en (root=/)
+stdout: root required
+stderr: <empty>
+exit: 1
+result: rejected before any preference file write

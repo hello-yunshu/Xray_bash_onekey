@@ -1,0 +1,28 @@
+===== F28 =====
+UNSUPPORTED_ENVIRONMENT: xray binary not found; pass --xray-bin or set IDLELEO_XRAY_BIN
+== F28: 0 passed, 0 failed, 0.0s ==
+F28_rc=2
+===== F08 =====
+PASS Bash flags a deny port that collides with a configured port
+PASS Bash consults the collision check before every guard port: 4
+PASS Bash backfills SNI-guard defaults for upgraded installs
+PASS Bash has a runtime SNI-guard reset entry point
+== F08: 129 passed, 0 failed, 0.1s ==
+F08_rc=0
+===== F18 =====
+PASS Bash link generator covers xhttp
+PASS Bash prints QR codes for every share link: 10 qrencode call sites
+PASS Bash prints the primary Reality QR code
+PASS Bash prints the xHTTP QR code
+== F18: 178 passed, 0 failed, 0.11s ==
+F18_rc=0
+PASS share shareUri contains pbk=htLgv4DwGhL1TyyjuR2XKbPtR_OpLbv8f5KCW9wW7H4: expected substring='pbk=htLgv4DwGhL1TyyjuR2XKbPtR_OpLbv8f5KCW9wW7H4' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=htLgv4DwGhL1TyyjuR2XKbPtR_OpLbv8f5KCW9wW7H4&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share shareUri contains sid=6ba85179e30d4fc2: expected substring='sid=6ba85179e30d4fc2' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=htLgv4DwGhL1TyyjuR2XKbPtR_OpLbv8f5KCW9wW7H4&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share shareUri contains type=raw: expected substring='type=raw' actual='vless://11111111-2222-4333-8444-555555555555@cdn.example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.example.com&fp=chrome&pbk=htLgv4DwGhL1TyyjuR2XKbPtR_OpLbv8f5KCW9wW7H4&sid=6ba85179e30d4fc2&type=raw#idleleo-reality'
+PASS share emits a Clash proxy: expected=<non-empty> actual='proxies:\n  - name: "idleleo-reality"\n    type: vless\n    server: cdn.example.com\n    port: 8443\n    uuid: 11111111-2222-'
+PASS share clashYaml contains 11111111-2222-4333-8444-555555555555: expected substring='11111111-2222-4333-8444-555555555555' actual='proxies:\n  - name: "idleleo-reality"\n    type: vless\n    server: cdn.example.com\n    port: 8443\n    uuid: 11111111-2222-4333-8444-555555555555\n    network: tcp\n    udp: true\n    tls: true\n    servername: www.example.com\n    flow: xtls-rprx-vision\n    client-fingerprint: chrome\n    reality-opts:\n      public-key: htLgv4DwGhL1TyyjuR2XKbPtR_OpLbv8f5KCW9wW7H4\n      short-id: 6ba85179e30d4fc2\n'
+PASS share warnings is a list: expected=list actual=list
+PASS show/status/share changed no byte under the root: before=905a223bba88ae54 after=905a223bba88ae54
+PASS no transaction journal was created: var/lib/idleleo/transactions
+== F28: 57 passed, 0 failed, 0.07s ==
+F28_rc=0

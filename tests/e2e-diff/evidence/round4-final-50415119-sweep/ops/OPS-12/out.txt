@@ -1,0 +1,5 @@
+Nov 23 18:35:08 e2e-round4-final-50415119-sweep-server systemd[1]: Stopped xray.service - Xray Service.
+Nov 23 18:35:08 e2e-round4-final-50415119-sweep-server systemd[1]: Started xray.service - Xray Service.
+Nov 23 18:35:08 e2e-round4-final-50415119-sweep-server xray[342]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+Nov 23 18:35:08 e2e-round4-final-50415119-sweep-server xray[342]: A unified platform for anti-censorship.
+Nov 23 18:35:08 e2e-round4-final-50415119-sweep-server xray[342]: 2026/11/23 18:35:08.436109 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

@@ -1,0 +1,863 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-20T16:25:00Z",
+  "branch": "work/go-hardening-parity-20261119",
+  "baselineSha": "c0f382f2bbc805556b0dd72b4a800af51de2312c",
+  "codeSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
+  "followupCodeShas": [
+    "9f66b22ad9b555a3ae7f8a1e5d5d5d248907be99",
+    "f217a2fa8656c86471f18c4d8b0b858d438f5a87",
+    "102f52e1876a6d1957c4869beacf232e4e05f196",
+    "a7d0d4f0229337c72fb965889ae1ea6dccba9653",
+    "1cd248e654aba99b70b2420db30fc32c84c15d43",
+    "ce746d8c2b9c81e8db62a890ca432a76e34212ea",
+    "c1b14832364f733b11e2323c509d33dd78d8c0a8",
+    "9d2420e273e84316c45cf56f3f47a82f04b3cc02",
+    "caed1817efa5285c25e6c142d5e83a664aa9c5ca",
+    "1e73c19b0b51d30ec09613c16b7a5e0f6c8a7291"
+  ],
+  "summaryScope": "items below are the 2026-11-19 baseline; see followup20261120",
+  "ciSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
+  "ciNote": "PR #182 draft: code commit 96f77eae 7/7 success; evidence/docs head 53f412fe 7/7 success (stage/preview/release/real-root/Test Install/Privacy/Rill); release-candidate-gate skipped on a non-release branch",
+  "pr": {
+    "number": 182,
+    "url": "https://github.com/hello-yunshu/Xray_bash_onekey/pull/182",
+    "base": "develop/go-native",
+    "draft": true,
+    "merged": false
+  },
+  "environment": {
+    "go": "1.27.4",
+    "goImage": "golang:1.27.4",
+    "e2eImage": "idleleo-e2e:24.04",
+    "vendored": true,
+    "offline": true
+  },
+  "ci": {
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614465": "Go parity stage gate: success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614456": "Go preview qualification (NOT FOR RELEASE): success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614437": "Go production parity release qualification: success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614461": "Go real-root change acceptance (container): success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614474": "Test Install: success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44684614495": "Privacy Guard: success (c1b14832)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680509165": "Go parity stage gate: success (ce746d8c)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507803": "Go preview qualification (NOT FOR RELEASE): success (ce746d8c)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507886": "Go production parity release qualification: success (ce746d8c)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507913": "Go real-root change acceptance (container): success (ce746d8c)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680507985": "Test Install: success (ce746d8c)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680508152": "Privacy Guard: success (ce746d8c)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935449": "Go parity stage gate: success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935256": "Go preview qualification (NOT FOR RELEASE): success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935222": "Go production parity release qualification: success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935218": "Go real-root change acceptance (container): success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935238": "Test Install: success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44671935247": "Privacy Guard: success (5f382902)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239779": "Go parity stage gate: success (2026-11-19 baseline 4f12543e)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239752": "Go preview qualification (NOT FOR RELEASE): success (4f12543e)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239918": "Go production parity release qualification: success (4f12543e)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527240183": "Go real-root change acceptance (container): success (4f12543e)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527240075": "Test Install: success (4f12543e)",
+    "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239956": "Privacy Guard: success (4f12543e)"
+  },
+  "items": [
+    {
+      "id": "T01",
+      "title": "backup verify/create boundaries",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "4c9705a9",
+      "testCommand": "go test -count=1 ./internal/backup",
+      "evidencePath": "internal/backup/hardening_test.go",
+      "reason": "entry forgery, traversal, compression bounds, mode tamper, absent optional geodata, symlinked geodata parent"
+    },
+    {
+      "id": "T02",
+      "title": "restore success, rollback and pre-restore backup",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "43ceb680",
+      "testCommand": "go test -count=1 ./internal/backup",
+      "evidencePath": "internal/backup/hardening_test.go",
+      "reason": "pre-restore snapshot, failed apply rollback, interrupted journal refusal, third-party files untouched"
+    },
+    {
+      "id": "T03",
+      "title": "mid-apply SIGKILL and recover convergence",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "43ceb680",
+      "testCommand": "go test -count=1 -run TestRestoreHardKillAtEveryDurablePointConverges ./internal/backup",
+      "evidencePath": "internal/backup/hardening_test.go",
+      "reason": "six durable points, real syscall.Kill, ENOSPC/EROFS/EACCES injection"
+    },
+    {
+      "id": "T04",
+      "title": "cold restore on a clean machine",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "4ab08050",
+      "testCommand": "E2E_RUN_ID=20261119-cold4 bash tests/e2e-diff/run_coldrestore.sh",
+      "evidencePath": "tests/e2e-diff/evidence/goevo-coldrestore-20261119-cold4/run.json",
+      "reason": "source container destroyed; fresh target restores; source 8/8, target 19/19; byte-identical config; xray -test; service active; real client before and after restart"
+    },
+    {
+      "id": "T05",
+      "title": "repair symlink boundary, dry-run and shared lock",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "8ac1385f",
+      "testCommand": "go test -count=1 ./internal/repair",
+      "evidencePath": "internal/repair/hardening_test.go",
+      "reason": "symlink escape refused; dry-run writes nothing and takes no lock; concurrent update lock respected"
+    },
+    {
+      "id": "T06",
+      "title": "privilege and secret leakage",
+      "status": "PARTIAL",
+      "codeSha": "43ceb680",
+      "testCommand": "go test -count=1 ./internal/change ./internal/backup",
+      "evidencePath": "internal/change/plan_test.go",
+      "reason": "known argv/plan redaction paths covered; full manual penetration audit not performed"
+    },
+    {
+      "id": "T07",
+      "title": "CI fail-closed negatives",
+      "status": "CI_RUN_PASS",
+      "codeSha": "04d06cf4",
+      "testCommand": "python3 -m unittest discover -s tests -v",
+      "evidencePath": "tests/go-parity/parity/tests/test_fail_closed.py",
+      "ciUrl": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239779",
+      "reason": "pending ledger returns 2 and signed ledger returns 3 without pinned evidence"
+    },
+    {
+      "id": "T08",
+      "title": "pending/signed stage switch and signed smoke",
+      "status": "CI_RUN_PASS",
+      "codeSha": "04d06cf4",
+      "testCommand": "gh pr checks 182",
+      "evidencePath": "docs/go-evolution/hardening/02-ci-and-bash-go-parity.md",
+      "ciUrl": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44527239752",
+      "reason": "six workflows green on SHA 4f12543e; signed stage claims no release authority"
+    },
+    {
+      "id": "T09",
+      "title": "M1-M10 dual-side install/edit matrix",
+      "status": "DUAL_SIDE_PASS",
+      "codeSha": "a56a448d",
+      "testCommand": "E2E_RUN_ID=20261119-p2full E2E_CONCURRENCY=4 bash tests/e2e-diff/run_p2_matrix.sh",
+      "evidencePath": "tests/e2e-diff/evidence/20261119-p2full/p2/install-matrix.md",
+      "reason": "both sides rc=0; reality/ws/grpc/xhttp/relay data plane ok; E1-E8 allPassed"
+    },
+    {
+      "id": "T10",
+      "title": "OPS full table",
+      "status": "PARTIAL",
+      "codeSha": "1b519028",
+      "testCommand": "E2E_RUN_ID=20261119-p2full bash tests/e2e-diff/run_p2_matrix.sh",
+      "evidencePath": "tests/e2e-diff/matrix.json",
+      "reason": "34 rows classified; 11 dual-side PASS (5 existing + OPS-04/05/06/07/10/17c), OPS-30 BASH_ONLY, OPS-16/17b/23/24 NOT_RUN"
+    },
+    {
+      "id": "T11",
+      "title": "pure Bash ACME",
+      "status": "BLOCKED",
+      "codeSha": "4c986c26",
+      "testCommand": "E2E_ACME=1 E2E_ACME_MODE=bash bash tests/e2e-diff/run_p2_matrix.sh",
+      "evidencePath": "tests/e2e-diff/matrix.json",
+      "reason": "image has no acme.sh and no reachable ACME endpoint; driver writes status=BLOCKED and exits 3"
+    },
+    {
+      "id": "T12",
+      "title": "takeover and migration parity",
+      "status": "PARTIAL",
+      "codeSha": "43ceb680",
+      "testCommand": "E2E_RUN_ID=20261119-inj E2E_PATHS=inj E2E_ONLY=M4 bash tests/e2e-diff/run_r1_upgrade.sh",
+      "evidencePath": "tests/e2e-diff/evidence/20261119-inj/r1/assertions.txt",
+      "reason": "container R1/R2/INJ 85+26 assertions; independent VM old-install migration not run"
+    },
+    {
+      "id": "T13",
+      "title": "doctor evidence levels and real client probe",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "911f91d2",
+      "testCommand": "E2E_RUN_ID=20261119-p3raw2 bash tests/e2e-diff/run_p3_hot.sh",
+      "evidencePath": "tests/e2e-diff/evidence/goevo-p3-20261119-p3raw2/container/driver/E13b-doctor-probe/stdout.txt",
+      "reason": "raw/ws/grpc/xhttp each 62/62; relay real HTTP through Nginx Stream; REAL_CLIENT_PASS is not a VLESS user session"
+    },
+    {
+      "id": "T14",
+      "title": "update preflight readiness",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "04d06cf4",
+      "testCommand": "go test -count=1 ./internal/componentupdate",
+      "evidencePath": "internal/componentupdate/preflight_test.go",
+      "reason": "not-run config parse yields compatible=false and readiness=unverified; real multi-version binary matrix NOT_RUN"
+    },
+    {
+      "id": "T15",
+      "title": "hot user persistence, crash and removal",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "de43a36b",
+      "testCommand": "E2E_RUN_ID=20261119-p3raw2 bash tests/e2e-diff/run_p3_hot.sh",
+      "evidencePath": "tests/e2e-diff/evidence/goevo-p3-20261119-p3raw2/run.json",
+      "reason": "62/62 on raw/ws/grpc/xhttp; persistence precedes runtime; removal does not resurrect"
+    },
+    {
+      "id": "T16",
+      "title": "full regression",
+      "status": "LOCAL_RUN_PASS",
+      "codeSha": "4ab08050",
+      "testCommand": "gofmt -l cmd internal tests; go vet ./...; go build ./...; go test -count=1 ./...",
+      "evidencePath": "docs/go-evolution/hardening/01-security-recovery.md",
+      "reason": "25 packages ok, 0 FAIL; rc=0 in golang:1.27.4 with vendored offline modules"
+    }
+  ],
+  "ops": {
+    "total": 34,
+    "dualSideVerified": 30,
+    "dualSideVerifiedIds": [
+      "OPS-01",
+      "OPS-02",
+      "OPS-03",
+      "OPS-04",
+      "OPS-05",
+      "OPS-06",
+      "OPS-07",
+      "OPS-08",
+      "OPS-09",
+      "OPS-10",
+      "OPS-11",
+      "OPS-12",
+      "OPS-13",
+      "OPS-15",
+      "OPS-17a",
+      "OPS-17b",
+      "OPS-17c",
+      "OPS-18",
+      "OPS-19",
+      "OPS-20",
+      "OPS-21",
+      "OPS-22",
+      "OPS-23",
+      "OPS-24",
+      "OPS-25",
+      "OPS-26",
+      "OPS-28",
+      "OPS-29",
+      "OPS-31",
+      "OPS-32"
+    ],
+    "goOnly": 0,
+    "fail": 4,
+    "failIds": [
+      "OPS-14",
+      "OPS-16",
+      "OPS-27",
+      "OPS-30"
+    ],
+    "bashOnly": 0,
+    "bashOnlyIds": [],
+    "blocked": 0,
+    "blockedIds": [],
+    "notRun": 0,
+    "notRunIds": [],
+    "approvedDiff": 0,
+    "approvedDiffIds": [],
+    "approvedSingleSide": 0,
+    "approvedSingleSideIds": [],
+    "unresolvedIds": [
+      "OPS-14",
+      "OPS-16",
+      "OPS-27",
+      "OPS-30"
+    ],
+    "generatedAt": "2026-11-27T22:27:27+00:00",
+    "codeSha": "2ccbeb3ca56bed006d85c7fa4f582f96a145ccfd",
+    "source": "tests/e2e-diff/ledger.json"
+  },
+  "summary": {
+    "pass": 12,
+    "partial": 3,
+    "blocked": 1,
+    "fail": 0,
+    "notRun": 0
+  },
+  "followup20261120": {
+    "items": [
+      {
+        "id": "F01",
+        "title": "F28 Reality share cross-root metadata",
+        "status": "CI_PASS",
+        "evidencePath": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44660940430",
+        "reason": "F28 57/0 in the same-HEAD stage gate; local pre-fix red 35/2 recorded in artifacts/audit-remediation/followup-20261120"
+      },
+      {
+        "id": "F02",
+        "title": "Reality host and SNI separation",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "internal/cli/share_metadata_test.go",
+        "reason": "serverNames never becomes the dial address; explicit --host required"
+      },
+      {
+        "id": "F03",
+        "title": "environment.txt host path",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/go-parity/matrix/test_environment_contract.py",
+        "reason": "generator writes digest plus repo-relative path only"
+      },
+      {
+        "id": "F04",
+        "title": "F28 transient private key leakage",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/go-parity/parity/features/fixture_support.py",
+        "reason": "redact=True and fixture root moved outside evidence"
+      },
+      {
+        "id": "F05",
+        "title": "full Go gate",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "artifacts/audit-remediation/followup-20261120/c3/gate.rc",
+        "reason": "gofmt, vet, build and full tests rc=0 at 1cd248e6"
+      },
+      {
+        "id": "F06",
+        "title": "98-case Bash/Go matrix",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/go-parity/evidence/matrix-fix-20261120-clean2/summary.json",
+        "reason": "104 rows, 0 gap, repo_dirty=0"
+      },
+      {
+        "id": "F07",
+        "title": "P2 edit and OPS scenarios",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-p2j/p2/, fix-20261120-p2h/p2/, fix-20261120-p2i/p2/OPS-32",
+        "reason": "E1-E6 allPassed at 1cd248e6; E7 13/13 and E8 14/14 with --host 127.0.0.1 on both sides; OPS-32 ws and reality PASS; M1-M10/OPS-09/19/21/31 remain PASS from p2b-p2d"
+      },
+      {
+        "id": "F08",
+        "title": "real CI on followup HEAD",
+        "status": "CI_PASS",
+        "evidencePath": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/44680509165",
+        "reason": "six pull_request workflows green at ce746d8c (stage gate 44680509165, privacy 44680508152, release qualification 44680507886, preview 44680507803, real-root 44680507913, test install 44680507985) and again at c1b14832 (stage gate 44684614465, privacy 44684614495, release qualification 44684614437, preview 44684614456, real-root 44684614461, test install 44684614474)"
+      },
+      {
+        "id": "F09",
+        "title": "config edit --host is the dial address",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "internal/xraycfg/reality_edit_test.go",
+        "reason": "three link tests cover old/new/short-id links, URL rejection; E7/E8 green at 1cd248e6"
+      },
+      {
+        "id": "F10",
+        "title": "OPS-32 stable recovery rule",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-p2i/p2/OPS-32",
+        "reason": "trailing 2*fail_timeout rule; ws and reality PASS; p2d probes re-analyzed to PASS under the same rule"
+      },
+      {
+        "id": "F11",
+        "title": "offline cache for OPS-19/31/32 installs",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-cache2/p2/, fix-20261120-cache4/p2/",
+        "reason": "Nginx release artifact and config templates come from a verified local cache; OPS-19/31/32 PASS with zero download errors and OPS-32 still PASSes with github.com/raw.githubusercontent.com pinned to 127.0.0.1"
+      },
+      {
+        "id": "F12",
+        "title": "offline apt cache for OPS-19 installs",
+        "status": "CI_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/fix-20261120-apt1/p2/, fix-20261120-apt2/p2/",
+        "reason": "IDLELEO_APT_CACHE seeds the 75-deb closure from the same ubuntu:24.04 digest; the offline path skips apt update and dpkg-installs the closure, failing closed on a missing package; OPS-19 PASS locally and still PASSes with ports.ubuntu.com and the other archive hosts pinned to 127.0.0.1; the six pull_request workflows are green at c1b14832"
+      }
+    ],
+    "conclusion": "NO-GO for release and merge"
+  },
+  "boundaries": [
+    "independent VM cold restore and power-loss recovery: VPS_DEFERRED (containers cover the equivalent flow)",
+    "public ACME/DNS-01/EAB and S7 acme.sh issuance: BLOCKED (no public domain/CA; Go and S5 issued against local Pebble)",
+    "external public IPv6/NAT: VPS_DEFERRED (isolated containers have no external IPv6 path)",
+    "20 OPS rows are GO_ONLY because the Bash menu has no non-interactive equivalent; each row is registered, no mapping invented",
+    "OPS-01/02 are dual-side verified through the real Bash user menu (2>1>1/2>1>2); OPS-03 client set converges but the Bash removal also prunes the Reality shortId while Go keeps it",
+    "OPS-30 language switch: BASH_ONLY, Bash feature not removed, not claimed equivalent",
+    "M8 Bash side: DOCKER_EQUIVALENT_WITH_LIMITS (ED-C14)",
+    "Test Install historical silent exit: PARTIAL, not reproduced locally",
+    "production VPS: forbidden by the task"
+  ],
+  "thirdRound20261120": {
+    "candidateSha": "df3f38381a8d3c4f8c8bc9681d589c891f5133f6",
+    "auditBaseline": "4566673290453a3b9e840b4f6206dadd0dfd763f",
+    "report": "docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261120.md",
+    "evidence": "artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/",
+    "items": [
+      {
+        "id": "A1",
+        "title": "cert clear ownership/references/transaction",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "artifacts/go-docker-20261120/a1-red-baseline.log; a1-acme-realroot-final.log"
+      },
+      {
+        "id": "A2",
+        "title": "share host/SNI/metadata scope",
+        "status": "PASS_IMPACT_SCOPED",
+        "evidencePath": "internal/cli/share_metadata_test.go",
+        "reason": "candidate did not rerun F28"
+      },
+      {
+        "id": "A3",
+        "title": "guard show from actual nginx",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/a3-guard-redgreen.log"
+      },
+      {
+        "id": "A4",
+        "title": "xhttp leading slash",
+        "status": "NO_DEFECT_SEMANTIC_DIFF",
+        "evidencePath": "artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/a4-prefix-probe.log"
+      },
+      {
+        "id": "A5",
+        "title": "fixed items/cache/OPS-32",
+        "status": "PARTIAL",
+        "evidencePath": "tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/OPS-32",
+        "reason": "Test Install passed at aa4b9da9 (run 44725121834); silent-exit root cause not investigated"
+      },
+      {
+        "id": "M1-M10",
+        "title": "dual-side install/idempotency/L4/L6",
+        "status": "DUAL_SIDE_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/"
+      },
+      {
+        "id": "E1-E8",
+        "title": "Go edit scenarios",
+        "status": "GO_ONLY_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/round3-final-20261120-1821-df3f3838/p2/"
+      },
+      {
+        "id": "C2",
+        "title": "cold restore + R1/R2/INJ",
+        "status": "PASS",
+        "evidencePath": "tests/e2e-diff/evidence/goevo-coldrestore-docker-final-cold-20261120-df3f3838; tests/e2e-diff/evidence/docker-final-r1-20261120-df3f3838"
+      },
+      {
+        "id": "P3",
+        "title": "xhttp hot-user",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/e2e-diff/evidence/goevo-p3-docker-final-p3xhttp-20261120-df3f3838"
+      },
+      {
+        "id": "D1",
+        "title": "98 matrix + race + gate",
+        "status": "LOCAL_RUN_PASS",
+        "evidencePath": "tests/go-parity/evidence/matrix-20261120-final; artifacts/audit-remediation/docker-final-round3-20261120-df3f3838/race-final.log"
+      }
+    ],
+    "ops": {
+      "total": 34,
+      "dualSide": 11,
+      "goSweep": 16,
+      "goCommand": 2,
+      "bashOnly": 1,
+      "notRun": 4,
+      "fail": 0,
+      "evidence": "tests/e2e-diff/evidence/opsfix-3/p2; tests/e2e-diff/evidence/ops10-3/p2"
+    },
+    "subscripts": {
+      "passed": [
+        "S4",
+        "S5",
+        "S7",
+        "S8",
+        "S9"
+      ],
+      "blocked": [
+        "S6"
+      ],
+      "referenced": [
+        "S1",
+        "S2",
+        "S3"
+      ],
+      "evidence": "tests/e2e-diff/evidence/s-6-1/s/assertions.txt",
+      "s6Retry": "s6-2: TLS restored but the 16.5MB asset stalls at 10.8MB within the script's 90s bound; remains BLOCKED"
+    },
+    "soak": {
+      "status": "PASS",
+      "iterations": "30/30",
+      "evidence": "tests/e2e-diff/evidence/soak-30m-1/soak/soak.json"
+    },
+    "multiVersion": {
+      "status": "PASS",
+      "tags": [
+        "v26.11.9",
+        "v26.10.31",
+        "v26.10.21"
+      ],
+      "scope": "xray -test against one generated Reality config",
+      "evidence": "tests/e2e-diff/evidence/versions-3/versions/xray-versions.json"
+    },
+    "secondDistro": {
+      "status": "PASS",
+      "distro": "Debian 12.15",
+      "scope": "M1 install + OPS-19",
+      "evidence": "tests/e2e-diff/evidence/debian12-1/p2/"
+    },
+    "blockers": [
+      "OPS-16/17b/23/24 remain NOT_RUN: dual-side drivers are not wired (17b/24 do have Go commands) and OPS-24 shares S6's geo asset timeout",
+      "S6 geo_update BLOCKED: release-assets.githubusercontent.com TLS recovered but the 16.5MB asset times out within the script's 90s bound",
+      "pure Bash ACME BLOCKED",
+      "external IPv6/public CA/VPS reboot VPS_DEFERRED"
+    ],
+    "dockerDevelopmentCandidate": "NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
+    "formalRelease": "NO_GO_NOT_AUTHORIZED",
+    "ci": {
+      "commit": "1e73c19b0b51d30ec09613c16b7a5e0f6c8a7291",
+      "workflows": 7,
+      "success": 7,
+      "failure": 0,
+      "testInstallRun": 44772637944,
+      "runNote": "fix commit: Go parity stage gate 44772637951, preview 44772637947, production 44772638045, real-root 44772637993, Rill Xray Agent 44772637991, Privacy Guard 44772638262"
+    },
+    "headCi": {
+      "commit": "1e73c19b0b51d30ec09613c16b7a5e0f6c8a7291",
+      "workflows": 7,
+      "success": 7,
+      "failure": 0,
+      "note": "same 7 workflows green after the OPS-04 fix; docs-only follow-up repeats them"
+    }
+  },
+  "round20261121": {
+    "candidateSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
+    "evidenceHead": "a502780cb7484b6d5240657884d12a09370b86bc",
+    "auditBaseline": "c0f382f2bbc805556b0dd72b4a800af51de2312c",
+    "report": "docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261121.md",
+    "evidence": {
+      "installMatrix": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/install-matrix.md",
+      "editMatrix": "tests/e2e-diff/evidence/FINAL-M2-20261121/p2/E*/go/edit/checks.json",
+      "opsGoSweep": "tests/e2e-diff/evidence/FINAL-OPS4-20261121/assertions.txt",
+      "opsRealRoot": "tests/e2e-diff/evidence/FINAL-RR-20261121/realroot/assertions.txt",
+      "userMenu": "tests/e2e-diff/evidence/FINAL-USERS-20261121/p2/",
+      "subscripts": "tests/e2e-diff/evidence/FINAL-S-20261121/s/assertions.txt",
+      "subscriptsRerun": "tests/e2e-diff/evidence/FINAL-S6D-20261121/s/assertions.txt",
+      "takeover": "tests/e2e-diff/evidence/FINAL-R2-20261121/r1/assertions.txt",
+      "historical": "tests/e2e-diff/evidence/FINAL-HIST2-20261121/r1/assertions.txt",
+      "historical2": "tests/e2e-diff/evidence/FINAL-HIST3B-20261121/r1/assertions.txt",
+      "featuresFinal": "artifacts/intake-20261121/s1/features-final/run.log",
+      "amd64": "artifacts/intake-20261121/s0/amd64-gate.log",
+      "environmentFinal": "artifacts/intake-20261121/s0/environment-final.json",
+      "coldRestore": "tests/e2e-diff/evidence/goevo-coldrestore-FINAL-COLD-20261121/run.json",
+      "p3": "tests/e2e-diff/evidence/goevo-p3-FINAL-P3-raw-20261121/run.json",
+      "multiVersion": "tests/e2e-diff/evidence/FINAL-VERSIONS2-20261121/versions/xray-versions.json",
+      "secondDistro": "tests/e2e-diff/evidence/FINAL-DEBIAN12-20261121/p2/scope.json",
+      "soak": "tests/e2e-diff/evidence/FINAL-SOAK-20261121/soak/soak.json",
+      "matrix": "tests/go-parity/evidence/matrix-20261121/summary.json",
+      "redGreen": "artifacts/intake-20261121/s1/",
+      "gates": "artifacts/intake-20261121/s0/"
+    },
+    "items": {
+      "P0_cert_clear": "FIXED_VERIFIED",
+      "P1_guard": "FIXED_VERIFIED",
+      "P2_xhttp_blank": "FIXED_VERIFIED",
+      "P1_ledger": "FIXED_VERIFIED",
+      "M1_M10": "DUAL_SIDE_PASS",
+      "E1_E8": "GO_ONLY_PASS_100_CHECKS",
+      "OPS": "0_FAIL_0_BLOCKED_0_NOT_RUN",
+      "userMenu": "OPS-01_02_DUAL_PASS_OPS-03_SHORTID_DIFF",
+      "S4_S9": "PASS_EXCEPT_S7_ISSUANCE_BLOCKED",
+      "takeover_history": "PASS_106_0_and_13_0_and_52_0",
+      "cold_P3": "PASS_27_27_and_4x62",
+      "versions_distro": "PASS_3_VERSIONS_AND_DEBIAN12",
+      "soak_schedule": "PASS_31_31_1849s_2_CYCLES",
+      "matrix": "104_ROWS_0_GAP",
+      "features_final": "F28_57_0_F08_129_0_F18_178_0",
+      "amd64": "BUILD_AND_TESTS_PASS",
+      "environment": "CAPTURED",
+      "ci": "7_7_SUCCESS"
+    },
+    "subscripts": {
+      "S4": "9/9 PASS",
+      "S5": "12/12 PASS (Pebble)",
+      "S6": "17/17 PASS (FINAL-S6D local checksum origin; normal/repeat/download-fail/corrupt/truncated)",
+      "S7": "6/6 PASS install/help/fail; issuance BLOCKED",
+      "S8": "13/13 PASS",
+      "S9": "6/6 PASS"
+    },
+    "soak": {
+      "samples": 31,
+      "elapsedSeconds": 1849,
+      "clientOk": 31,
+      "clientFail": 0,
+      "timer": "active",
+      "scheduleRuns": 2,
+      "geodata": "present+sha256-match",
+      "verdict": "PASS"
+    },
+    "multiVersion": {
+      "tags": [
+        "v26.11.9",
+        "v26.10.31",
+        "v26.10.21"
+      ],
+      "config": "PASS",
+      "deploy": "PASS",
+      "client": "PASS"
+    },
+    "secondDistro": {
+      "image": "idleleo-e2e:debian12",
+      "scenarios": [
+        "M1",
+        "M4",
+        "OPS-09"
+      ],
+      "verdict": "PASS"
+    },
+    "ci": {
+      "codeSha": "96f77eae8849e1f1a73f0d8e6dfaaac922255f03",
+      "codeShaWorkflows": 7,
+      "codeShaSuccess": 7,
+      "evidenceHead": "a502780cb7484b6d5240657884d12a09370b86bc",
+      "finalHead": "53f412fe",
+      "finalHeadWorkflows": 7,
+      "finalHeadSuccess": 7,
+      "finalHeadNote": "7 required workflows success at 53f412fe (stage, preview, release qualification, real-root, Test Install, Privacy, Rill); release-candidate-gate skipped by design"
+    },
+    "verdicts": {
+      "dockerCandidate": "NO_GO_FOR_DOCKER_QUALIFIED_CANDIDATE",
+      "formalRelease": "NO_GO_NOT_AUTHORIZED",
+      "merge": "NO_GO_NOT_AUTHORIZED"
+    },
+    "unresolved": [
+      "cold restore covers Reality only; TLS/relay/multi representative configs and end-to-end SIGKILL/ENOSPC/EROFS/lock/cert-missing/partial-restore injection are NOT_DONE",
+      "E1-E8 are Go-only; Bash user list/add are now dual-side verified (OPS-01/02), but OPS-03 leaves a shortId difference (Bash prunes it, Go keeps it) and the Bash private-key rebuild menu path is NOT_DONE",
+      "XHTTP blank input is fixed; trailing-slash and duplicate-slash real data-plane probes are NOT_DONE at the final SHA",
+      "Test Install historical silent exit remains PARTIAL: not reproduced locally, CI result not replaced"
+    ]
+  },
+  "round20261122": {
+    "candidateSha": "99997da0f8772a814a61c32516d49d75a9de2672",
+    "candidateNote": "产品代码冻结于 99997da0；此后仅新增测试驱动、证据、批准文件与文档",
+    "branch": "work/go-hardening-parity-20261119",
+    "report": "docs/go-migration/audit-remediation/DOCKER_ACCEPTANCE_20261122.md",
+    "verdict": "GO (conditional)",
+    "approvals": {
+      "file": "tests/e2e-diff/approvals/round3-20261122.json",
+      "approvedBy": "user",
+      "approvedAt": "2026-11-22",
+      "approvedDiff": 8,
+      "approvedSingleSide": 6,
+      "conditions": [
+        "批准行不得表述为双端等价",
+        "OPS-18 需在真实 VPS 做一次性验证（宿主 BBR 无法在容器内复现）",
+        "不合并、不打 tag、不正式发布"
+      ]
+    },
+    "productFixes": {
+      "P0-1-cert-ownership": {
+        "files": [
+          "internal/deploy/certclear.go",
+          "internal/acme/acme.go"
+        ],
+        "summary": "动态 ${var} 路径与不完整扫描 fail-closed；所有权只认内容哈希绑定记录；ACME 需叶证书 DER SHA-256 完全一致",
+        "tests": [
+          "internal/deploy/certclear_round3_test.go",
+          "internal/acme/acme_test.go",
+          "tests/e2e-diff/drivers/cert_clear_cases.sh"
+        ]
+      },
+      "P0-2-guard-runtime": {
+        "files": [
+          "internal/deploy/guard.go"
+        ],
+        "summary": "active 需进程身份、存活、启动时间晚于策略文件或内容指纹匹配的 reload 记录；否则降级",
+        "tests": [
+          "internal/deploy/guard_round3_test.go"
+        ]
+      },
+      "D10-xhttp-path": {
+        "files": [
+          "internal/xraycfg/edit.go",
+          "internal/xraycfg/xraycfg.go"
+        ],
+        "summary": "统一拒绝任意 Unicode 空白与控制字符",
+        "tests": [
+          "internal/xraycfg/edit_test.go",
+          "internal/xraycfg/xraycfg_test.go"
+        ]
+      },
+      "OPS-03-shortid": {
+        "files": [
+          "internal/xraycfg/users.go",
+          "internal/cli/xray.go"
+        ],
+        "summary": "删除用户后说明 inbound 级 shortId 不可归属、全部保留",
+        "tests": [
+          "internal/xraycfg/xraycfg_test.go"
+        ]
+      },
+      "ledger-hardening": {
+        "files": [
+          "tests/e2e-diff/collect/build_ledger.py"
+        ],
+        "summary": "FAIL 优先、DIFF 需外部批准、缺 rc 或 ops.json 不接受、已声明差异不丢失",
+        "tests": [
+          "tests/e2e-diff/collect/test_build_ledger.py"
+        ]
+      }
+    },
+    "evidence": {
+      "goToolchain": "golang:1.27.4 go vet ./... + go build ./cmd/idleleo ./cmd/idleleo-recover + go test ./... -count=1 全部通过",
+      "opsGoSweep": "tests/e2e-diff/evidence/round3-final-20261122-99997da0-sweep2/assertions.txt (57 PASS / 0 FAIL)",
+      "opsRealRoot": "tests/e2e-diff/evidence/round3-final-20261122-99997da0-realroot/realroot/assertions.txt (26 PASS / 0 FAIL)",
+      "ledgerContractTests": "python3 tests/e2e-diff/collect/test_build_ledger.py -q (19/19 OK)",
+      "ledger": "tests/e2e-diff/ledger.json"
+    },
+    "ledger": {
+      "total": 34,
+      "dualSideVerified": 20,
+      "goOnly": 0,
+      "fail": 0,
+      "bashOnly": 0,
+      "blocked": 0,
+      "notRun": 0,
+      "approvedDiff": 8,
+      "approvedSingleSide": 6,
+      "strictExitCode": 0
+    },
+    "unresolved": [
+      "OPS-18：Go 侧 tcp status 已验证并经批准；真实 VPS 的宿主 BBR/内核调优仍需一次性验证"
+    ],
+    "notRerunThisRound": [],
+    "auditBaseline": "28463d4fca9f361710183d8e4563d3b8f8c43c76"
+  },
+  "followup20261127NginxUpdate": {
+    "codeSha": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+    "qualification": "NO_GO",
+    "releaseAuthorized": "NO",
+    "scope": "OPS-17b targeted Nginx upgrade/config preservation/rollback/runtime client only",
+    "runId": "obsfix-final-fb55",
+    "evidencePath": "tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b",
+    "summary": "Bash and Go real Docker Nginx updates 1.27.5 to 1.30.6 succeeded; post-update Reality L4 passed on both sides. Go real-artifact version mismatch returned rc=6 and rolled back; prior config SHA, Nginx version, active services, 443 listener and post-rollback Reality L4 were verified.",
+    "limitations": "This is a targeted follow-up and does not refresh the 34-row ledger snapshot at f4deaf77 or satisfy remaining CI/security/OPS criteria.",
+    "coldRestore": {
+      "productCodeSha": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+      "runnerTreeCommit": "d3c10d6935ea59ddc08a56c57caf333834add8a8",
+      "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+      "image": "sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b",
+      "platform": "linux/arm64",
+      "runs": [
+        "cold-fb55-20261127",
+        "cold-fb55-20261127-rest"
+      ],
+      "scenarios": {
+        "reality": "source 8/8; target 21/21",
+        "tls": "source/target PASS",
+        "relay": "source/target PASS",
+        "multi": "source/target PASS"
+      },
+      "limitations": "Go-only. Does not provide Bash backup/restore comparison; formal OPS-25/26 classifications remain unchanged."
+    }
+  },
+  "followup20261127NativeBackupRestore": {
+    "scope": "Supplemental OPS-25/26 native Bash/Go backup and restore only; does not replace the frozen 34-row ledger or qualify the candidate.",
+    "candidateCodeSha": "5e483b0471ee19bb7bb45a3f2be6a5f9b26fe526",
+    "productSourceCommit": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+    "runId": "ops-observe-backup-final3-20261127",
+    "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+    "driverSha256": "096dc596df2be90c239e730945a37380a4248cd18f9c6d06aa68ccdddee0e3fb",
+    "image": "sha256:3a1adabc9f718796d4103cccdad2b14303800f5ae221b04dcb1b0fd5e8625e12",
+    "platform": "linux/arm64",
+    "ops": {
+      "OPS-25": {
+        "verdict": "PASS",
+        "ledgerStatus": "DUAL_SIDE_VERIFIED",
+        "bashCreateRc": 0,
+        "goCreateRc": 0,
+        "bashManifestSha256Verified": true,
+        "goBackupVerifyRc": 0,
+        "archiveMode": "0600"
+      },
+      "OPS-26": {
+        "verdict": "PASS",
+        "ledgerStatus": "DUAL_SIDE_VERIFIED",
+        "bashRestoreRc": 0,
+        "goRestoreRc": 0,
+        "restoredManagedFilesMatch": true,
+        "permissionPoliciesPreserved": true,
+        "xrayAndNginxChecksRc": 0,
+        "servicesActive": true,
+        "realRealityClientRc": 0
+      }
+    },
+    "scopeLimits": [
+      "Bash restore was tested on its installed source node after controlled mutation; Bash fresh-target restore remains unverified.",
+      "Bash archive scope is broader than Go managed-state archive scope; not claimed equivalent."
+    ],
+    "strictLedger": {
+      "total": 34,
+      "dualSideVerified": [
+        "OPS-25",
+        "OPS-26"
+      ],
+      "notRun": 32,
+      "exitCode": 2,
+      "qualification": "NO_GO"
+    },
+    "strictLog": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops-backup-final3-strict-ledger.log",
+    "evidence": "tests/e2e-diff/evidence/ops-observe-backup-final3-20261127/p2/OPS-26/native-backup-restore-comparison.json",
+    "hygiene": "0 findings in 759 files"
+  },
+  "followup20261128ColdRestoreComparison": {
+    "scope": "Supplemental Bash/Go clean-target cold-restore evidence for Reality, TLS, Relay, and Multi. Does not alter formal OPS-25/26 classifications or current candidate qualification.",
+    "candidateCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+    "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+    "image": "sha256:828040e78d98d640e238b799f1f1c4441a719307e1e80d0b57db89cb9556e5bc",
+    "platform": "linux/arm64",
+    "go": {
+      "runId": "go12-8ff-1128",
+      "evidence": "tests/e2e-diff/evidence/goevo-coldrestore-go12-8ff-1128/run.json",
+      "scenarios": {
+        "reality": "PASS",
+        "tls": "PASS",
+        "relay": "PASS",
+        "multi": "PASS"
+      },
+      "thirdPartyCanary": "All four scenarios verify third-party certificate, key, and note content plus mode/owner unchanged across restore."
+    },
+    "bash": {
+      "reality": {
+        "runId": "bc12-8ff-1128",
+        "result": "PASS",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc12-8ff-1128/reality/run.json"
+      },
+      "relay": {
+        "runId": "bc13-8ff-1128",
+        "result": "RESTORE_AND_CLIENT_PASS_MODE_OWNER_DIFF",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc13-8ff-1128/relay/run.json"
+      },
+      "multi": {
+        "runId": "bc13-8ff-1128",
+        "result": "RESTORE_AND_CLIENT_PASS_MODE_OWNER_DIFF",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc13-8ff-1128/multi/run.json"
+      },
+      "observedDifference": "Relay/Multi Bash restore changes third-party cert/key from source 0644/0600 root:root to target 0640 root:xray. Managed bytes, validators, active services, and real client requests pass; exact mode/owner assertions remain FAIL."
+    },
+    "comparison": "Go preserves target third-party canary bytes and permissions without expanding restore ownership. This is recorded as a safer boundary; no formal OPS row or approval status is changed.",
+    "diagnostics": [
+      {
+        "runId": "bc6-8ff-1128",
+        "result": "REJECTED_SOURCE_XRAY_INACTIVE",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc6-8ff-1128/run.json"
+      },
+      {
+        "runId": "bc7-8ff-1128",
+        "result": "REJECTED_INVALID_VERIFICATION_JSON",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc7-8ff-1128/run.json"
+      },
+      {
+        "runId": "bc10-8ff-1128",
+        "result": "REALITY/TLS_CLIENT_FIXTURE_FAILED_EXPLICIT_EC_PARAMETERS",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc10-8ff-1128/run.json"
+      }
+    ],
+    "formalLedgerEffect": {
+      "OPS-25": "DUAL_SIDE_VERIFIED",
+      "OPS-26": "DUAL_SIDE_VERIFIED",
+      "qualification": "NO_GO",
+      "strictExit": 1
+    }
+  }
+}

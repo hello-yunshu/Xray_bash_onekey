@@ -52,6 +52,7 @@ docker run -d --name "$NAME" \
     "${CGROUP_ARGS[@]+"${CGROUP_ARGS[@]}"}" \
     -v "$BIN_DIR:/work/bin:ro" \
     -v "$ROOT/tests/go-parity/phase04/run_phase04.sh:/phase04/run_phase04.sh:ro" \
+    -v "$ROOT/scripts/sign_json_ed25519.sh:/phase04/sign_json_ed25519.sh:ro" \
     -v "$ROOT/tests/go-parity/phase04/origin_server.py:/work/origin_server.py:ro" \
     -v "$XRAY_BIN:/usr/local/bin/xray:ro" \
     -v "$EVID_DIR:/work/evidence" \

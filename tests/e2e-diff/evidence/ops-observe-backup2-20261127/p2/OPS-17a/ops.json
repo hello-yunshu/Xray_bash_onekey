@@ -1,0 +1,55 @@
+{
+  "id": "OPS-17a",
+  "opsRc": {
+    "bash": null,
+    "go": null
+  },
+  "reasons": [
+    "update check requires the public distribution; this job has no pinned manifest",
+    "bash rc=None go rc=None"
+  ],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "71c704d845b12c76934b60b5678b04ddff6865066349b19b256ebb0ec6996d88",
+    "finishedAt": "2026-11-26T18:22:06Z",
+    "fixedBy": null,
+    "image": "sha256:007d49269784515d4859621bc849c5ff492136d7cb8abebfdbda668c0d7a409b",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "0e3c11d09bfde872a24c67ddb33ece74e3fa1f5988d135e2a96c429b83c0c699",
+    "platform": "linux/arm64",
+    "productCodeSha": "5e483b0471ee19bb7bb45a3f2be6a5f9b26fe526",
+    "runId": "ops-observe-backup2-20261127",
+    "startedAt": "2026-11-26T18:20:50Z",
+    "supersedes": null
+  },
+  "verdict": "BLOCKED"
+}
