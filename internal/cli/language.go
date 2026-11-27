@@ -64,7 +64,8 @@ func languageCommand(opts Options, cfg config, paths host.Paths, args []string) 
 		fmt.Fprintf(opts.Out, "%s\n", readLanguagePreference(paths))
 		return 0
 	}
-	if len(args) != 2 || args[0] != "set" {
+	if (len(args) != 2 && len(args) != 3) || args[0] != "set" ||
+		(len(args) == 3 && args[2] != "--container") {
 		return usage(opts, cfg.lang, "help")
 	}
 	lang := args[1]
@@ -72,12 +73,11 @@ func languageCommand(opts Options, cfg config, paths host.Paths, args []string) 
 	if !ok {
 		return usage(opts, cfg.lang, "help")
 	}
-	if paths.IsSandbox() {
-		if err := paths.RequireSandbox(); err != nil {
-			return fail(opts, cfg, err)
-		}
-	} else if os.Geteuid() != 0 {
+	if paths.Root == "/" && os.Geteuid() != 0 {
 		return fail(opts, cfg, fmt.Errorf("root required"))
+	}
+	if err := host.RequireSystemWrite(paths.Root, hasFlag(args, "--container")); err != nil {
+		return fail(opts, cfg, err)
 	}
 	dir, err := paths.Join("etc/idleleo", false)
 	if err != nil {
