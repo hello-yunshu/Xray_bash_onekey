@@ -1,0 +1,25 @@
+Current delivery CI investigation — 2026-11-28
+Commit under test: f52dadba2c91636c2de53ac39133dafec80517f2
+
+GitHub Test Install workflow: https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46079031399
+Attempt 1:
+  security-regression job 140773428272 = failure (exit 1), 22:51:19Z–22:52:28Z
+  release-gate job 140774097612 = failure because security-regression failed
+  The captured failed-job log shows the first command was:
+    sudo -E bash .github/test/test_install_top_level_refusal.sh
+  It logs only the sudo -E warning before exit; no assertion/fail diagnostic was captured.
+  Exact cause is undetermined; this failure is retained and not called a pass.
+
+Isolated reproduction:
+  docker run --rm --entrypoint bash -v "$PWD:/src:ro" idleleo-e2e:24.04 -lc 'bash /src/.github/test/test_install_top_level_refusal.sh'
+  result: rc=0
+  output: PASS: refused at the metadata gate (rc=1); no network, package, log or system write
+  This exercised the actual script inside a disposable real Docker container; the host /etc was not mounted.
+
+Same-commit GitHub retry (attempt 2):
+  security-regression job 140774842720 = success, 22:55:07Z–22:57:46Z
+  release-gate job 140775657900 = success, 22:57:49Z–22:57:53Z
+  Test Install workflow conclusion = success.
+  Other six required PR workflows and push Privacy Guard also completed successfully on this commit.
+
+The attempt-1 failure remains part of the history. Attempt 2 and the isolated reproduction provide successful rerun evidence, but do not establish the exact cause of the first exit.

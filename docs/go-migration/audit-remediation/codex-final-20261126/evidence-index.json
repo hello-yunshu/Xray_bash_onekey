@@ -92,83 +92,98 @@
       }
     ],
     "auditHead": {
-      "sha": "3219d723de8aec393d9ec2e40fcdf84f4dfab773",
-      "status": "PASS",
-      "reason": "All seven PR workflows and push Privacy Guard passed on the pushed delivery head; product source SHA remains the separate candidate recorded above.",
+      "sha": "f52dadba2c91636c2de53ac39133dafec80517f2",
+      "status": "PASS_WITH_RETRY",
+      "reason": "All seven PR workflows and push Privacy Guard ultimately passed on the pushed delivery head. Test Install security-regression first failed without an assertion diagnostic, its real isolated-Docker reproduction passed, and same-commit attempt 2 passed; see the linked retry evidence. Product source SHA remains 2ccbeb3c.",
       "workflows": [
         {
-          "databaseId": 46078650946,
+          "databaseId": 46079031353,
           "event": "pull_request",
           "name": "Privacy Guard",
-          "headSha": "3219d723de8aec393d9ec2e40fcdf84f4dfab773",
+          "headSha": "f52dadba2c91636c2de53ac39133dafec80517f2",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46078650946"
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46079031353"
         },
         {
-          "databaseId": 46078650916,
+          "databaseId": 46079031344,
           "event": "pull_request",
           "name": "Rill Xray Agent",
-          "headSha": "3219d723de8aec393d9ec2e40fcdf84f4dfab773",
+          "headSha": "f52dadba2c91636c2de53ac39133dafec80517f2",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46078650916"
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46079031344"
         },
         {
-          "databaseId": 46078650936,
+          "databaseId": 46079031363,
           "event": "pull_request",
           "name": "Go preview qualification (NOT FOR RELEASE)",
-          "headSha": "3219d723de8aec393d9ec2e40fcdf84f4dfab773",
+          "headSha": "f52dadba2c91636c2de53ac39133dafec80517f2",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46078650936"
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46079031363"
         },
         {
-          "databaseId": 46078650934,
+          "databaseId": 46079031177,
           "event": "pull_request",
           "name": "Go real-root change acceptance (container)",
-          "headSha": "3219d723de8aec393d9ec2e40fcdf84f4dfab773",
+          "headSha": "f52dadba2c91636c2de53ac39133dafec80517f2",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46078650934"
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46079031177"
         },
         {
-          "databaseId": 46078650975,
+          "databaseId": 46079031243,
           "event": "pull_request",
           "name": "Go parity stage gate",
-          "headSha": "3219d723de8aec393d9ec2e40fcdf84f4dfab773",
+          "headSha": "f52dadba2c91636c2de53ac39133dafec80517f2",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46078650975"
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46079031243"
         },
         {
-          "databaseId": 46078650973,
+          "databaseId": 46079031352,
           "event": "pull_request",
           "name": "Go production parity release qualification",
-          "headSha": "3219d723de8aec393d9ec2e40fcdf84f4dfab773",
+          "headSha": "f52dadba2c91636c2de53ac39133dafec80517f2",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46078650973"
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46079031352"
         },
         {
-          "databaseId": 46078650910,
+          "databaseId": 46079031399,
           "event": "pull_request",
           "name": "Test Install",
-          "headSha": "3219d723de8aec393d9ec2e40fcdf84f4dfab773",
+          "headSha": "f52dadba2c91636c2de53ac39133dafec80517f2",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46078650910"
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46079031399"
         },
         {
-          "databaseId": 46078637263,
+          "databaseId": 46079023156,
           "event": "push",
           "name": "Privacy Guard",
-          "headSha": "3219d723de8aec393d9ec2e40fcdf84f4dfab773",
+          "headSha": "f52dadba2c91636c2de53ac39133dafec80517f2",
           "status": "completed",
           "conclusion": "success",
-          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46078637263"
+          "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46079023156"
         }
-      ]
+      ],
+      "testInstallAttempts": {
+        "workflowRunId": 46079031399,
+        "attempt1": {
+          "conclusion": "failure",
+          "securityRegressionJobId": 140773428272,
+          "releaseGateJobId": 140774097612
+        },
+        "attempt2": {
+          "conclusion": "success",
+          "securityRegressionJobId": 140774842720,
+          "releaseGateJobId": 140775657900
+        },
+        "evidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/security-regression-rerun-f52dadba.log",
+        "exactInitialFailureCause": "undetermined"
+      }
     }
   },
   "files": [
@@ -1207,12 +1222,12 @@
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/report.md",
       "type": "candidate-source",
-      "sha256": "8f7095f9e05b3822055947c77bf3c67efe65ef8fc3c4d459f2ad16df8aa73368"
+      "sha256": "24d62bb93d1e361d8f4a584379be61b97c99d6542e9db8ff48ba50e095b1c966"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/tasks.md",
       "type": "candidate-source",
-      "sha256": "17b3ba651f41c72f20edf2faaed96cf930119f8442ab5806c1dedd18e9396fea"
+      "sha256": "e7136704ea34346a9000ead301f5fe4f6d069852ad6538ec44b9eea0889f5c94"
     },
     {
       "path": "internal/cli/cli.go",
@@ -34028,6 +34043,11 @@
       "path": "tests/go-parity/parity/features/F23_test.py",
       "type": "candidate-source",
       "sha256": "e96d3589df9c10510d6743be8df20c7f2580ace16f180023d6c99c611af512f2"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/security-regression-rerun-f52dadba.log",
+      "type": "candidate-evidence",
+      "sha256": "89ee54a87116d1cab286734186430386ccdfbfbb28f2593ae3b8001bfe2a8d2a"
     }
   ],
   "ledgerSummary": {
