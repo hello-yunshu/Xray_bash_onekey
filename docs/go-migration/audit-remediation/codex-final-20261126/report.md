@@ -83,7 +83,7 @@ Docker 平台：`linux/arm64`
 3. **BLOCKED 行需要真实补证或保留阻断**：OPS-17a 现有 Go 侧通过真实签名包成功/失败边界和成功后的客户端 L4；Bash 侧 PTY 实测“已最新”无替换分支与更新后 L4 通过，旧 pipe `rc=124` 归因于 harness EOF 循环。真实 Bash 包替换尚未发生，正式行因此仍 BLOCKED。OPS-18 需真实宿主 BBR 环境。OPS-23 已双端真实通过。Guard 的 PID/startTicks 身份不匹配及假 PID现已用真实 CLI 和 Nginx 验证；该探针受控模拟 stale identity，没有声称内核实际复用 PID。
 4. **冷恢复的 Bash 权限差异仍需正式处理**：Go Reality/TLS/Relay/Multi 四类都通过，且目标第三方 canary 保持原有字节、mode 与 owner。Bash Reality 冷恢复通过；Relay/Multi 的数据、服务和真实客户端通过，但 Bash 将归档中的第三方证书/私钥权限与属主调整为 `0640 root:xray`。这体现 Go 更窄的文件所有权边界，但没有据此改写正式 OPS 分类。先前 M4 restore 的 `harden_config_permissions` 警告也仍待进一步诊断。
 5. **失败现场仍有未解释项**：soak 第二轮 31/31 次、1863 秒与两个调度周期通过；首轮第 26 样本超时未留足现场，根因无法确定。该历史失败保留，不能由第二轮结果覆盖。
-6. **交付记录**：产品修复提交 `8ff26917`；本轮审计账本、报告、验收器修复、PTY 驱动和真实冷恢复证据已在当前开发分支本地提交 `5aba12f9`。本地提交不改变产品候选 SHA。七项远程 CI 仍 `CI_PENDING`；没有推送授权，因此未推送，也未合并、打 tag、正式发布或操作生产 VPS。
+6. **交付记录**：产品修复提交 `8ff26917`；本轮审计早先提交为 `5aba12f9`；最新账本、OPS-14/16/20 证据、报告和验收器更新已在当前开发分支本地提交 `c925b7fc`。本地提交不改变产品候选 SHA。七项远程 CI 仍 `CI_PENDING`；没有推送授权，因此未推送，也未合并、打 tag、正式发布或操作生产 VPS。
 
 平台证据已完成候选范围：Debian 12 M1/M4 双端真实 L4 两轮通过；amd64 M1/M4 在 linux/amd64 Docker 模拟环境通过，但 Docker 宿主为 ARM64，因此不声称原生 amd64 硬件验证。98 项配置对照、P3/版本迁移与 soak 的已完成范围见上文和证据索引，不再列作待跑事项。
 

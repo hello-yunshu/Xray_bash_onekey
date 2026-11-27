@@ -32599,7 +32599,7 @@
       "formalOps17a": "BLOCKED; no Bash package replacement was available to test",
       "evidencePath": "tests/e2e-diff/evidence/ops17a-pty-8ff-20261128-02/p2/OPS-17a/ops.json"
     },
-    "auditCommit": "5aba12f9",
+    "auditCommit": "c925b7fc",
     "strictLedgerEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/strict-ledger-final-9e495b38-20261128.log"
   }
 }
