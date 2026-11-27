@@ -289,6 +289,7 @@ func xrayCertStatus(ctx context.Context, opts Options, cfg config, args []string
 		fmt.Fprintf(opts.Err, "certificate status unavailable: %v\n", err)
 		return 1
 	}
+	inspection.Key = filepath.Join(paths.Root, keyRel)
 	status := certStatusReport{
 		Certificate: inspection,
 		KeyPresent:  keyPresent,
