@@ -1,0 +1,8 @@
+kernel=7.0.0-1018-aws
+available=reno cubic bbr
+baseline_qdisc=fq_codel
+baseline_congestion=cubic
+test_baseline_qdisc=fq_codel
+test_baseline_congestion=cubic
+original_qdisc=fq_codel
+original_congestion=cubic

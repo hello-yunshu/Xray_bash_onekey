@@ -1,0 +1,10 @@
+kernel=7.0.0-1020-azure
+available=reno cubic bbr
+baseline_qdisc=fq_codel
+baseline_congestion=cubic
+test_baseline_qdisc=fq_codel
+test_baseline_congestion=cubic
+original_qdisc=fq_codel
+original_congestion=cubic
+final_qdisc=fq_codel
+final_congestion=cubic

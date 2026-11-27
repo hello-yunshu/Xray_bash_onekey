@@ -1,30 +1,26 @@
-# 当前候选状态（2026-11-28，取代下方较早快照中的候选与分类）
+# 当前候选状态（2026-11-28，取代下方历史快照）
 
-产品候选 SHA：`85340b4871fccfac703566a2ce00469e4a8a9371`；工作分支：`work/go-hardening-parity-20261119`。严格 OPS-34 已绑定此产品 SHA，正式三份摘要一致，严格验收真实退出码为 1：**29 DUAL、3 FAIL、1 BASH_ONLY、1 BLOCKED、0 NOT_RUN**。FAIL 为 OPS-14/16/27；BASH_ONLY 为 OPS-30；BLOCKED 为 OPS-18。OPS-17a、OPS-25/26 的当前候选证据已纳入并变为 DUAL。不得把严格 rc=1 描述为通过，当前 Docker 开发候选结论仍为 **NO_GO**，发布授权为 **NO**。
+产品代码候选 SHA：`85340b4871fccfac703566a2ce00469e4a8a9371`；分支：`work/go-hardening-parity-20261119`。正式 OPS-34 严格账本已重建，三份摘要与账本一致：**30 DUAL、3 FAIL、1 BASH_ONLY、0 BLOCKED、0 NOT_RUN**，严格验收退出码 `1`。FAIL 是 OPS-14/16/27；BASH_ONLY 是 OPS-30。当前结论仍是 **NO_GO**，发布授权 **NO**。
 
-当前候选 CI：提交 `85340b4871fccfac703566a2ce00469e4a8a9371` 的七项远程 workflow 均已通过（Go preview qualification、Privacy Guard、Go real-root acceptance、Go parity stage gate、Go production parity、Test Install、Rill Xray Agent；Privacy Guard push/PR 重复项也通过）。该 CI 与产品代码 SHA 对应；报告账本后续仅为审计文档与证据索引，不含产品源码变更。
+OPS-18 已有真实 BBR 宿主闭环：在一次性 GitHub Ubuntu 24.04 VM 上运行真实 Docker（`--privileged --network host`），内核 `7.0.0-1020-azure` 提供 `reno/cubic/bbr`。实际 Go 二进制分别经 Bash 的真实 TCP 包装入口和原生 Go CLI 执行 `bbr-fq` 应用与回滚；两次都核对运行时值、托管配置与事务状态，最后确认原始 `fq_codel/cubic` 已恢复。Docker 镜像 OCI ID、二进制、构建清单、完整 artifact 和 workflow 日志都已留存。正式 OPS-18 因此从 BLOCKED 变为 DUAL，证据：`tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/ops.json`；远程运行 [46070894568](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070894568)。首次宿主尝试因 harness 的 PATH 被安装脚本重置而失败，完整失败 artifact 保留在 `evidence/ops18-host-bbr-failed-attempt-46070092391/`，修正后真实重跑通过。
 
-## 本轮新增真实证据
-- **OPS-30 语言选择补探针**：当前候选 Go 二进制在隔离 Docker 中实测 `--lang zh`、`--lang en`、`--lang fr`；三者均正常输出，fr 明确提示当前未完成翻译并回退英文，临时 root 下未创建任何状态文件。CLI 的显式逐次语言选择便于脚本、避免持久偏好写入；Bash 菜单则持久保存且有更完整语言翻译。因此 Go 的调用方式更适合自动化，但尚未证明替代 Bash 的持久用户偏好，OPS-30 继续 BASH_ONLY。首次探针的二进制执行权限与空 root 夹具失败均保留，成功证据为 `evidence/ops30-go-lang-85340b48-retry2-20261128.log`。
+七项原有远程 CI 和 OPS-18 专用 workflow 均在提交 `9d32f5fda76f1534486d34ae15acbf2e54a04d94` 上成功；该提交在候选产品代码之外只增加 OPS-18 测试驱动、容器配方和 workflow。正式产品 SHA 仍为 `85340b48…`。Docker Go 工具链再次运行 `go test ./...`，rc=0，完整输出见 `evidence/go-test-all-85340b48-20261128.log`。索引更新后本地隐私扫描最终 0 finding；首轮发现的 68 处 hosted-runner 工作路径只在仓库副本脱敏，原始远程 artifact 保留并逐文件记录 SHA 映射。映射与扫描记录分别见 `evidence/privacy-redaction-map-ops18-host-20261128.json` 和 `evidence/privacy-scan-final-ops18-host-20261128.log`。源码/正式摘要的 scoped `git diff --check` 通过；完整 staged check rc=2，仅由未经改写的远程输出尾随空格和用于 provenance 的原始 `install.sh` 快照引起，诊断见 `evidence/staged-evidence-whitespace-ops18-host-20261128.log`。本轮正式 strict ledger 真实返回 rc=1，唯一未决行是 OPS-14/16/27/30，不把未批准差异包装成通过。
 
-本机复验：Go 1.27.4 Docker 工具链 `go test ./...` rc=0；71 个受影响 Bash 文件 `bash -n` rc=0，Expect/Tcl `info complete` 通过；采集器契约测试 43/43 通过；正式工件隔离门禁 rc=0，测试前后 ledger/matrix/acceptance 字节一致；最终证据隐私扫描覆盖 77,470 个文件、0 finding。记录见 `evidence/ledger-contract-tests-85340b48-20261128.log`、`evidence/artifact-guard-85340b48-20261128.log`、`evidence/privacy-scan-85340b48-20261128.log`。
+## 已核实的其他边界
 
-- **OPS-17a**：在一次性 Docker 中用本地签名发布夹具分别触发 Bash 菜单和 Go updater 实际替换更新资产。双方安装前后版本变化，安装二进制 SHA 与候选资产 SHA 精确匹配，Xray/Nginx 健康，更新后真实 Reality 客户端 L4 成功，且保持手动触发。正式状态 DUAL。证据：`tests/e2e-diff/evidence/codex-ops17a-85340b48-20261128/p2/OPS-17a/ops.json`。此前失败的 r0/r1/r2 诊断仍保留，不覆盖为成功。
-- **OPS-25/26**：Bash tar 与 Go 备份/恢复在实际容器中均完成归档、完整性校验、破坏 live 数据后恢复；记录业务文件摘要、权限、服务验证、canary 恢复和真实 Reality L4。双方实际命令 rc=0，正式状态 DUAL。Go 将服务恢复置于事务流程；Bash driver 在恢复后重启服务。证据：`tests/e2e-diff/evidence/codex-ops-backup-85340b48-20261128/p2/OPS-25/ops.json` 与 `OPS-26/ops.json`。
-- **OPS-14**：当前正式双端矩阵仍是 FAIL/DIFF，但已补做真实负载探针：在 Go `stats --watch` 20 秒采样期间，经存活的 Reality 客户端发起 35 个真实请求，HTTP 200 为 35/35；40 个 inbound 计数点中 32 个给出正速率，最高 1201.13 bytes/s，Xray active。初次单请求探针曾得到 0 正速率点，失败事实保留。Go 汇总速率有界、机器可读且不采集对端地址；Bash iftop 提供更细的 per-peer 观察。该证据证明 Go 实时汇总速率有效并有隐私优势，但两者能力粒度不同，未由执行者自行改变正式 DIFF/FAIL。证据：`tests/e2e-diff/evidence/codex-ops14-ratecheck-85340b48-20261128/p2/OPS-14/go/12-loaded-watch/summary.json`；初始完整双端证据仍见 `codex-ops14-85340b48-20261128/p2/OPS-14/ops.json`。
-- **OPS-18 当前内核拒绝路径**：一次性 Docker 的共享 OrbStack 内核 available algorithms 只有 `reno/cubic`；Go `tcp status --json` rc=0 报告 BBR 不可用，隔离容器内 apply rc=12 明确拒绝，运行时 `cubic` 未变、managed file/state 均未写。此项证明缺少 BBR 时的安全拒绝，不证明成功应用，继续 BLOCKED。证据：`evidence/ops18-kernel-probe-85340b48-20261128.log`、`evidence/ops18-go-tcp-refusal-85340b48-20261128.log`。
-- **OPS-16**：双方状态路径 rc=0。Go `cert status` 输出机器可读证书与 scheduler 状态，dry-run 预检成功，读取过程未改变证书/私钥摘要；Bash 提供交互菜单。可读性/自动化优势已有证据，但没有独立裁决替代原交互契约，仍 FAIL。证据：`tests/e2e-diff/evidence/codex-ops16-85340b48-20261128/p2/OPS-16/ops.json`。
-- 影响分析链：`7d3e19d9 → 8ff26917 → 9e495b38 → 85340b48`。末段的实际 Git 文件清单、二进制 diff SHA 与 OPS 互斥分区在 `evidence/impact-reuse-9e-to-85340b48.json`；涉及行由当前候选证据重跑，其余只复用不受影响的原始证据并保留原 SHA。
+- OPS-03 正式为 DUAL。独立 Docker 边界运行实际核对了共享 shortId 保留、删除旧凭据后的新连接拒绝、服务重启后旧凭据仍拒绝，以及基线用户持续可连；其来源 SHA 是 `23fa585f`，后续三段影响映射均将 OPS-03 列为未受影响，因而沿用原始证据，不伪称当前重跑。记录：`tests/e2e-diff/evidence/ops03-boundary-23fa585f-20261127/p2/OPS-03/`。
+- Guard 的异步 reload、超时/失败回滚、master 重启、stale startTicks 与存活假 PID 已有当前受影响范围的真实 CLI/Nginx 证据；PID 相同数字与不同 startTicks 是身份复用模拟，不声称内核实际复用 PID。
+- 证书清理故障注入与回滚已验证；Go 保留第三方证书，Bash 整目录递归删除是已量化的安全差异。OPS-27 仍需契约授权，不能自行批准。
+- OPS-17a、OPS-25/26、四类冷恢复、98 项配置对照、P3/迁移/平台及 soak 已按任务账本闭环或按既定范围留存其限制；OPS-17a 与备份恢复的验收证据没有被重复改标。
 
-## 仍未闭环与下一步
+## 尚未闭环
 
-1. OPS-14：持续真实流量下的正速率样本已证明；仅需契约所有者裁决 Go 有界 aggregate rate 与 iftop per-peer 视图的粒度/隐私取舍，执行者不代签。
-2. OPS-16/27：把已展示的机器可读状态/只读完整性优势、以及 Go 防止递归删除第三方证书的安全优势交由契约所有者按既有口径确认是否接受。执行者未生成审批，也未把 FAIL 直接升级为 approved。
-3. OPS-18：当前隔离 Docker 共享内核不支持 BBR；Go 在真实不可用场景中安全拒绝已证实。成功应用/回滚仍需要非生产且真实支持 BBR 的宿主内核与权限，继续 BLOCKED。
-4. OPS-30：Go `--lang` 按命令选择已实测，但不持久保存默认语言且可用翻译少于 Bash；需要契约所有者决定是否接受该 CLI 方案/保留 Bash-only，或明确要求补足持久偏好。
-5. OPS-14/16/27/30/18 状态未解决前严格验收必须非零。OPS-17a 已不在待办内。
+1. OPS-14：正实时速率和真实客户端请求已验证；需要契约所有者决定是否接受 Go 有界 aggregate rate 与 Bash iftop per-peer 粒度差异。
+2. OPS-16：Go 只读机器可读证书状态与 Bash 交互菜单的差异已有证据；需要契约所有者裁定既有契约是否允许该替代。
+3. OPS-27：Go 的所有权校验/第三方保护优于 Bash 递归删除，但正式审批必须绑定当前差异证据，不能由执行者代签。
+4. OPS-30：Go 逐命令 `--lang` 与 Bash 持久默认语言及翻译覆盖并不等价；需要决定是否接受此方案或保留 Bash-only。
 
-详细历史过程保留在下方报告和 `tasks.md`；遇到与本节冲突的旧快照时，以本节与正式 `tests/e2e-diff/ledger.json` 为当前状态。
+因此整体 Xray Go 重构验收仍未完成：严格 OPS-34 还剩三项 FAIL 与一项 BASH_ONLY。当前 CI 通过只证明已配置检查通过，不消除行为差异，也不构成发布授权。
 
 ---
 

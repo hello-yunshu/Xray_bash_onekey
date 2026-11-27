@@ -1,0 +1,4 @@
+apply: changed=true noop=false profile=bbr-fq file=/etc/sysctl.d/90-idleleo-tcp.conf
+key: net.core.default_qdisc: fq_codel -> fq
+key: net.ipv4.tcp_congestion_control: cubic -> bbr
+message: profile applied

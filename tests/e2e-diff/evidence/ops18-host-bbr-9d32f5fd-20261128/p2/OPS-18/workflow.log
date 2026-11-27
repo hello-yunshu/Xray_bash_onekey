@@ -1,0 +1,720 @@
+Apply and rollback on ephemeral Linux VM	Set up job	﻿2026-11-27T21:31:52.5005517Z Current runner version: '2.338.2'
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5025900Z ##[group]Runner Image Provisioner
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5026585Z Hosted Compute Agent
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5026957Z Version: 20261111.635
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5027378Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5027880Z Build Date: 2026-11-11T01:49:01Z
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5028597Z Worker ID: {055b1f05-8788-4add-9680-35df98db1e06}
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5029151Z Region: northcentralus
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5029525Z Cloud: Azure
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5029926Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5030856Z ##[group]Operating System
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5031237Z Ubuntu
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5031613Z 24.04.5
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5031946Z LTS
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5032264Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5032693Z ##[group]Runner Image
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5033077Z Image: ubuntu-24.04
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5033814Z Version: 20261122.23.1
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5034579Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261122.23/images/ubuntu/Ubuntu2404-Readme.md
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5035782Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261122.23
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5036369Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5037160Z ##[group]GITHUB_TOKEN Permissions
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5038893Z Contents: read
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5039393Z Metadata: read
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5039747Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5041533Z Secret source: Actions
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5042198Z Cache mode: write
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5042780Z Prepare workflow directory
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5293209Z Prepare all required actions
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.5329699Z Getting action download info
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.7717971Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:52.9265639Z Download action repository 'actions/setup-go@v5' (SHA:40f1582b2485089dde7abd97c1529aa768e1baff)
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:53.2527747Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+Apply and rollback on ephemeral Linux VM	Set up job	2026-11-27T21:31:53.4539958Z Complete job name: Apply and rollback on ephemeral Linux VM
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	﻿2026-11-27T21:31:53.5141599Z ##[group]Run actions/checkout@v4
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5142074Z with:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5142380Z   persist-credentials: false
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5142689Z   repository: hello-yunshu/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5145322Z   token: ***
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5145568Z   ssh-strict: true
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5145815Z   ssh-user: git
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5146061Z   clean: true
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5146325Z   sparse-checkout-cone-mode: true
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5146626Z   fetch-depth: 1
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5146874Z   fetch-tags: false
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5147129Z   show-progress: true
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5147383Z   lfs: false
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5147622Z   submodules: false
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5147883Z   set-safe-directory: true
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5148335Z   allow-unsafe-pr-checkout: false
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.5148713Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7064576Z Syncing repository: hello-yunshu/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7066808Z ##[group]Getting Git version info
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7067571Z Working directory is '<runner-home>/work/Xray_bash_onekey/Xray_bash_onekey'
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7068787Z [command]/usr/bin/git version
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7136689Z git version 2.56.1
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7150765Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7162390Z Temporarily overriding HOME='<runner-home>/work/_temp/17f00e7d-214e-49be-816d-7a8e04258bbc' before making global git config changes
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7163638Z Adding repository directory to the temporary git global config as a safe directory
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7166270Z [command]/usr/bin/git config --global --add safe.directory <runner-home>/work/Xray_bash_onekey/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7216680Z Deleting the contents of '<runner-home>/work/Xray_bash_onekey/Xray_bash_onekey'
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7223764Z ##[group]Initializing the repository
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7224600Z [command]/usr/bin/git init <runner-home>/work/Xray_bash_onekey/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7353914Z hint: Using 'master' as the name for the initial branch. This default branch name
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7354716Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7355497Z hint: to use in all of your new repositories, which will suppress this warning,
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7356138Z hint: call:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7356488Z hint:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7356939Z hint: 	git config --global init.defaultBranch <name>
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7357472Z hint:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7357974Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7358892Z hint: 'development'. The just-created branch can be renamed via this command:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7359525Z hint:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7359900Z hint: 	git branch -m <name>
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7360272Z hint:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7360627Z hint: Disable this message with "git config set advice.defaultBranchName false"
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7361564Z Initialized empty Git repository in <runner-home>/work/Xray_bash_onekey/Xray_bash_onekey/.git/
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7379587Z [command]/usr/bin/git remote add origin https://github.com/hello-yunshu/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7427823Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7429014Z ##[group]Disabling automatic garbage collection
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7450849Z [command]/usr/bin/git config --local gc.auto 0
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7494640Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7507004Z ##[group]Setting up auth
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7507743Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7548710Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7878047Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.7919913Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.8125672Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.8168694Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.8377771Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.8423943Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.8424709Z ##[group]Fetching the repository
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:53.8434092Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +9d32f5fda76f1534486d34ae15acbf2e54a04d94:refs/remotes/origin/work/go-hardening-parity-20261119
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:57.3954560Z From https://github.com/hello-yunshu/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:57.3961736Z  * [new ref]           9d32f5fda76f1534486d34ae15acbf2e54a04d94 -> origin/work/go-hardening-parity-20261119
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:57.3963650Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:57.3964030Z ##[group]Determining the checkout info
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:57.3964378Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:57.3966351Z [command]/usr/bin/git sparse-checkout disable
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:57.4079528Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:57.4572586Z ##[group]Checking out the ref
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:57.4576001Z [command]/usr/bin/git checkout --progress --force -B work/go-hardening-parity-20261119 refs/remotes/origin/work/go-hardening-parity-20261119
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:58.7086697Z Updating files:  29% (22628/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:58.8426889Z Updating files:  30% (23296/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:58.9734607Z Updating files:  31% (24073/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:58.9966155Z Updating files:  32% (24849/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.0194806Z Updating files:  33% (25626/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.0428651Z Updating files:  34% (26402/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.0664787Z Updating files:  35% (27179/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.0902691Z Updating files:  36% (27955/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.1126589Z Updating files:  37% (28732/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.1336851Z Updating files:  38% (29508/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.1562594Z Updating files:  39% (30285/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.1765761Z Updating files:  40% (31061/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.1977811Z Updating files:  41% (31838/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.2211516Z Updating files:  42% (32614/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.2478517Z Updating files:  43% (33391/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.2721666Z Updating files:  44% (34167/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.2933538Z Updating files:  45% (34944/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.3159601Z Updating files:  46% (35720/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.3378038Z Updating files:  47% (36497/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.4773025Z Updating files:  48% (37273/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.4996179Z Updating files:  49% (38050/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.5121218Z Updating files:  50% (38826/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.5209224Z Updating files:  50% (39252/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.5424886Z Updating files:  51% (39603/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.5626179Z Updating files:  52% (40380/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.7405976Z Updating files:  53% (41156/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.8411852Z Updating files:  54% (41933/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.8628915Z Updating files:  55% (42709/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:31:59.8855312Z Updating files:  56% (43486/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:00.0239333Z Updating files:  57% (44262/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:00.0524777Z Updating files:  58% (45039/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:00.0709091Z Updating files:  59% (45815/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:00.0984719Z Updating files:  60% (46592/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:00.1491764Z Updating files:  61% (47368/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:00.3054309Z Updating files:  62% (48145/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:00.4665797Z Updating files:  63% (48921/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:00.5163728Z Updating files:  64% (49698/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:00.5926572Z Updating files:  64% (49940/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.2134284Z Updating files:  65% (50474/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.2480108Z Updating files:  66% (51251/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.2751483Z Updating files:  67% (52027/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.3372836Z Updating files:  68% (52804/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.4020636Z Updating files:  69% (53580/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.4215616Z Updating files:  70% (54357/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.4421643Z Updating files:  71% (55133/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.4649062Z Updating files:  72% (55910/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.4872986Z Updating files:  73% (56686/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.5089203Z Updating files:  74% (57463/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.5121320Z Updating files:  75% (58239/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.5323884Z Updating files:  75% (58329/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.5550991Z Updating files:  76% (59016/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.6185124Z Updating files:  77% (59793/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.6385519Z Updating files:  78% (60569/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.6615229Z Updating files:  79% (61346/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.6813412Z Updating files:  80% (62122/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.7009812Z Updating files:  81% (62899/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.7214739Z Updating files:  82% (63675/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.7419218Z Updating files:  83% (64452/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.7617058Z Updating files:  84% (65228/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.7813277Z Updating files:  85% (66005/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.8017264Z Updating files:  86% (66781/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.8241678Z Updating files:  87% (67558/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.8445826Z Updating files:  88% (68334/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.8633419Z Updating files:  89% (69111/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.8826192Z Updating files:  90% (69887/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.9289834Z Updating files:  91% (70664/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.9503503Z Updating files:  92% (71440/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.9717099Z Updating files:  93% (72217/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:01.9923503Z Updating files:  94% (72993/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.0946844Z Updating files:  95% (73770/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.1398957Z Updating files:  96% (74546/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.2309422Z Updating files:  97% (75323/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.2717334Z Updating files:  98% (76099/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.3152577Z Updating files:  99% (76876/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.3152963Z Updating files: 100% (77652/77652)
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.3156932Z Updating files: 100% (77652/77652), done.
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.4803585Z Switched to a new branch 'work/go-hardening-parity-20261119'
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.4807598Z branch 'work/go-hardening-parity-20261119' set up to track 'origin/work/go-hardening-parity-20261119'.
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.4913159Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.4961531Z [command]/usr/bin/git log -1 --format=%H
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.4992908Z 9d32f5fda76f1534486d34ae15acbf2e54a04d94
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.5001569Z ##[group]Removing auth
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.5004328Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.5038556Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.5338792Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.5373946Z http.https://github.com/.extraheader
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.5379504Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.5514438Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.5821813Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.5879113Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Apply and rollback on ephemeral Linux VM	Run actions/checkout@v4	2026-11-27T21:32:02.6169556Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	﻿2026-11-27T21:32:02.6538416Z ##[group]Run actions/setup-go@v5
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.6538598Z with:
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.6538734Z   go-version-file: go.mod
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.6538866Z   cache: true
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.6538978Z   check-latest: false
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.6540623Z   token: ***
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.6540743Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.7479133Z Setup go version spec 1.27.4
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.7490877Z Found in cache @ /opt/hostedtoolcache/go/1.27.4/x64
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.7492430Z (node:2209) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.7492836Z (Use `node --trace-deprecation ...` to show where the warning was created)
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.7494700Z Added go to the path
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.7497084Z Successfully set up Go version 1.27.4
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.8472611Z [command]/opt/hostedtoolcache/go/1.27.4/x64/bin/go env GOMODCACHE
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.8516622Z [command]/opt/hostedtoolcache/go/1.27.4/x64/bin/go env GOCACHE
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.8560000Z <runner-home>/go/pkg/mod
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:02.8656375Z <runner-home>/.cache/go-build
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.0046198Z Cache hit for: setup-go-Linux-x64-ubuntu24-go-1.27.4-c0537971ce88b78faadcaf685965a8f12ae2cf9fdd1b6288a9b286a026929e68
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.0111209Z (node:2209) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.5638733Z Received 35337695 of 35337695 (100.0%), 78.7 MBs/sec
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.5639559Z Cache Size: ~34 MB (35337695 B)
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.5657844Z [command]/usr/bin/tar -xf <runner-home>/work/_temp/6477920e-a94a-4043-a6fb-791a70e364b4/cache.tzst -P -C <runner-home>/work/Xray_bash_onekey/Xray_bash_onekey --use-compress-program unzstd
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7600452Z Cache restored successfully
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7621387Z Cache restored from key: setup-go-Linux-x64-ubuntu24-go-1.27.4-c0537971ce88b78faadcaf685965a8f12ae2cf9fdd1b6288a9b286a026929e68
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7641858Z go version go1.27.4 linux/amd64
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7642014Z 
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7642242Z ##[group]go env
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7797458Z AR='ar'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7797832Z CC='gcc'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7798019Z CGO_CFLAGS='-O2 -g'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7798394Z CGO_CPPFLAGS=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7798580Z CGO_CXXFLAGS='-O2 -g'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7798776Z CGO_ENABLED='1'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7798952Z CGO_FFLAGS='-O2 -g'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7799136Z CGO_LDFLAGS='-O2 -g'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7799311Z CXX='g++'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7799474Z GCCGO='gccgo'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7799651Z GO111MODULE=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7799893Z GOAMD64='v1'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7800064Z GOARCH='amd64'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7800235Z GOAUTH='netrc'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7800427Z GOBIN='<runner-home>/go/bin'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7800690Z GOCACHE='<runner-home>/.cache/go-build'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7800934Z GOCACHEPROG=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7801146Z GODEBUG=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7801344Z GOENV='<runner-home>/.config/go/env'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7801558Z GOEXE=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7801717Z GOEXPERIMENT=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7801895Z GOFIPS140='off'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7802065Z GOFLAGS=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7802643Z GOGCCFLAGS='-fPIC -m64 -pthread -Wl,--no-gc-sections -fmessage-length=0 -ffile-prefix-map=/tmp/go-build1174412342=/tmp/go-build -gno-record-gcc-switches'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7803218Z GOHOSTARCH='amd64'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7803399Z GOHOSTOS='linux'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7803577Z GOINSECURE=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7803850Z GOMOD='<runner-home>/work/Xray_bash_onekey/Xray_bash_onekey/go.mod'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7804179Z GOMODCACHE='<runner-home>/go/pkg/mod'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7804425Z GONOPROXY=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7804731Z GONOSUMDB=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7804898Z GOOS='linux'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7805077Z GOPACKAGESDRIVER=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7805275Z GOPATH='<runner-home>/go'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7805472Z GOPRIVATE=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7805754Z GOPROXY='https://proxy.golang.org,direct'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7806371Z GOROOT='/opt/hostedtoolcache/go/1.27.4/x64'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7806628Z GOSUMDB='sum.golang.org'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7806835Z GOTELEMETRY='local'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7807077Z GOTELEMETRYDIR='<runner-home>/.config/go/telemetry'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7807343Z GOTMPDIR=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7807517Z GOTOOLCHAIN='auto'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7807799Z GOTOOLDIR='/opt/hostedtoolcache/go/1.27.4/x64/pkg/tool/linux_amd64'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7808111Z GOVCS=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7808423Z GOVERSION='go1.27.4'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7808606Z GOWORK=''
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7808788Z PKG_CONFIG='pkg-config'
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7808918Z 
+Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7809287Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	﻿2026-11-27T21:32:03.8291627Z ##[group]Run set -euxo pipefail
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.8291929Z ^[[36;1mset -euxo pipefail^[[0m
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.8292077Z ^[[36;1muname -a^[[0m
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.8292207Z ^[[36;1msudo modprobe tcp_bbr^[[0m
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.8292436Z ^[[36;1mcat /proc/sys/net/ipv4/tcp_available_congestion_control^[[0m
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.8292716Z ^[[36;1mgrep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control^[[0m
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.8333919Z shell: /usr/bin/bash -e {0}
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.8334126Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.8644654Z + uname -a
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.8653464Z Linux runnervm0j63q 7.0.0-1020-azure #21~24.04.2-Ubuntu SMP PREEMPT Tue Nov 10 01:36:36 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.8654521Z + sudo modprobe tcp_bbr
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.9196620Z + cat /proc/sys/net/ipv4/tcp_available_congestion_control
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.9208449Z reno cubic bbr
+Apply and rollback on ephemeral Linux VM	Check runner kernel and load BBR module	2026-11-27T21:32:03.9212477Z + grep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	﻿2026-11-27T21:32:03.9726573Z ##[group]Run set -euxo pipefail
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9726823Z ^[[36;1mset -euxo pipefail^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9726969Z ^[[36;1mmkdir -p "$EVIDENCE"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9727133Z ^[[36;1mgo build -trimpath -o "$BIN" ./cmd/idleleo^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9727549Z ^[[36;1mdocker build -f tests/e2e-diff/collect/ops18-host-bbr.Dockerfile \^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9727800Z ^[[36;1m  -t ops18-host-bbr:ci tests/e2e-diff/collect^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9728080Z ^[[36;1mdocker image inspect ops18-host-bbr:ci --format '{{.Id}}' > "$EVIDENCE/image-id.txt"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9728594Z ^[[36;1mdocker image inspect ops18-host-bbr:ci --format '{{.Os}}/{{.Architecture}}' > "$EVIDENCE/platform.txt"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9728869Z ^[[36;1mcp "$BIN" "$EVIDENCE/idleleo"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9729050Z ^[[36;1msha256sum "$BIN" > "$EVIDENCE/binary.sha256"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9729246Z ^[[36;1mgo version > "$EVIDENCE/go-version.txt"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9729444Z ^[[36;1mdocker run --rm --privileged --network host \^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9729730Z ^[[36;1m  --mount "type=bind,source=$GITHUB_WORKSPACE,target=/src,readonly" \^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9730014Z ^[[36;1m  --mount "type=bind,source=$BIN,target=/usr/local/bin/idleleo,readonly" \^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9730276Z ^[[36;1m  --mount "type=bind,source=$EVIDENCE,target=/evidence" \^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9730498Z ^[[36;1m  -e IDLELEO_BIN=/usr/local/bin/idleleo \^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9730683Z ^[[36;1m  -e OPS18_EVIDENCE_DIR=/evidence \^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9730851Z ^[[36;1m  ops18-host-bbr:ci \^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9731048Z ^[[36;1m  bash /src/tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9731261Z ^[[36;1mcat "$EVIDENCE/result.txt"^[[0m
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9767450Z shell: /usr/bin/bash -e {0}
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9767640Z env:
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9767777Z   BIN: <runner-home>/work/_temp/idleleo-ops18
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9767967Z   EVIDENCE: <runner-home>/work/_temp/ops18-host-bbr
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9768262Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9831150Z + mkdir -p <runner-home>/work/_temp/ops18-host-bbr
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:03.9843000Z + go build -trimpath -o <runner-home>/work/_temp/idleleo-ops18 ./cmd/idleleo
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:05.8705636Z + docker build -f tests/e2e-diff/collect/ops18-host-bbr.Dockerfile -t ops18-host-bbr:ci tests/e2e-diff/collect
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.4654790Z #0 building with "default" instance using docker driver
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.4655064Z 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.4655198Z #1 [internal] load build definition from ops18-host-bbr.Dockerfile
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.4655496Z #1 transferring dockerfile: 275B 0.0s done
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.4655741Z #1 DONE 0.0s
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.4655841Z 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.4655989Z #2 [auth] library/ubuntu:pull token for registry-1.docker.io
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.6164650Z #2 DONE 0.0s
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.6164843Z 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.6164976Z #3 [internal] load metadata for docker.io/library/ubuntu:24.04
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.0698508Z #3 DONE 0.7s
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2447160Z 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2447825Z #4 [internal] load .dockerignore
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2448407Z #4 transferring context: 2B done
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2448648Z #4 DONE 0.0s
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2448727Z 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2448961Z #5 [1/3] FROM docker.io/library/ubuntu:24.04@sha256:562111b88caa79c71391c0c4d3c2114a7d5c35915c20561fd893cb1e07929e6b
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2449654Z #5 resolve docker.io/library/ubuntu:24.04@sha256:562111b88caa79c71391c0c4d3c2114a7d5c35915c20561fd893cb1e07929e6b done
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2450290Z #5 sha256:562111b88caa79c71391c0c4d3c2114a7d5c35915c20561fd893cb1e07929e6b 6.69kB / 6.69kB done
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2450684Z #5 sha256:9a04f13b3f80ef056361e30868593b1cfd2279fe19e4081cb93a90bf56819d6a 424B / 424B done
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2451041Z #5 sha256:2b147973fd863c93ced60f325461fe0e262b91317b008e6a2d961f13e81af0e4 2.05kB / 2.05kB done
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2451290Z #5 DONE 0.0s
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2451361Z 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2451730Z #6 [2/3] RUN apt-get update     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends         bash coreutils git grep procps python3     && rm -rf /var/lib/apt/lists/*
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:09.2503187Z #6 2.156 Get:1 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:09.2503626Z #6 2.156 Get:2 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:09.8197992Z #6 2.725 Get:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:09.9652097Z #6 2.757 Get:4 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1563 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:09.9652561Z #6 2.871 Get:5 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:10.0704387Z #6 2.958 Get:6 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1514 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:10.0705718Z #6 2.976 Get:7 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [55.6 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:10.2721604Z #6 2.976 Get:8 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [2277 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:10.2722376Z #6 3.036 Get:9 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:10.2722912Z #6 3.074 Get:10 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:10.2723460Z #6 3.178 Get:11 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:10.8319607Z #6 3.735 Get:12 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:11.0307945Z #6 3.745 Get:13 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1843 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:11.0308958Z #6 3.757 Get:14 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [61.7 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:11.0309575Z #6 3.758 Get:15 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2184 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:11.0310177Z #6 3.772 Get:16 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [2403 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:11.0310788Z #6 3.785 Get:17 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [669 B]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:11.0311491Z #6 3.786 Get:18 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [36.0 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:11.0312100Z #6 3.786 Get:19 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [49.0 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:11.5409676Z #6 4.445 Fetched 34.2 MB in 3s (13.6 MB/s)
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:12.1717048Z #6 4.445 Reading package lists...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:12.7710975Z #6 5.096 Reading package lists...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:12.9608644Z #6 5.689 Building dependency tree...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.1685038Z #6 5.866 Reading state information...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.1728022Z #6 6.078 bash is already the newest version (5.2.21-2ubuntu4).
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.1728795Z #6 6.078 coreutils is already the newest version (9.4-3ubuntu6.3).
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.1729339Z #6 6.078 grep is already the newest version (3.11-4build1).
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.1729868Z #6 6.078 procps is already the newest version (2:4.0.4-4ubuntu3.3).
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.1730445Z #6 6.078 The following additional packages will be installed:
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3359105Z #6 6.078   git-man libbrotli1 libcurl3t64-gnutls liberror-perl libexpat1
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3359521Z #6 6.079   libgdbm-compat4t64 libgdbm6t64 libgssapi-krb5-2 libk5crypto3 libkeyutils1
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3359887Z #6 6.079   libkrb5-3 libkrb5support0 libldap2 libnghttp2-14 libperl5.38t64 libpsl5t64
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3360226Z #6 6.079   libpython3-stdlib libpython3.12-minimal libpython3.12-stdlib libreadline8t64
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3360546Z #6 6.079   librtmp1 libsasl2-2 libsasl2-modules-db libsqlite3-0 libssh-4 media-types
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3360858Z #6 6.079   netbase perl perl-modules-5.38 python3-minimal python3.12 python3.12-minimal
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3361102Z #6 6.079   readline-common tzdata
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3361263Z #6 6.080 Suggested packages:
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3361492Z #6 6.080   gettext-base git-daemon-run | git-daemon-sysvinit git-doc git-email git-gui
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3362241Z #6 6.080   gitk gitweb git-cvs git-mediawiki git-svn gdbm-l10n krb5-doc krb5-user
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3362563Z #6 6.080   perl-doc libterm-readline-gnu-perl | libterm-readline-perl-perl make
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3362858Z #6 6.080   libtap-harness-archive-perl python3-doc python3-tk python3-venv
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3363270Z #6 6.080   python3.12-venv python3.12-doc binutils binfmt-support readline-doc
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3363493Z #6 6.080 Recommended packages:
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3363708Z #6 6.080   ca-certificates patch less ssh-client krb5-locales libldap-common
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3363933Z #6 6.080   publicsuffix libsasl2-modules
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3364123Z #6 6.154 The following NEW packages will be installed:
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3364363Z #6 6.154   git git-man libbrotli1 libcurl3t64-gnutls liberror-perl libexpat1
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3364656Z #6 6.155   libgdbm-compat4t64 libgdbm6t64 libgssapi-krb5-2 libk5crypto3 libkeyutils1
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3364961Z #6 6.155   libkrb5-3 libkrb5support0 libldap2 libnghttp2-14 libperl5.38t64 libpsl5t64
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3365279Z #6 6.155   libpython3-stdlib libpython3.12-minimal libpython3.12-stdlib libreadline8t64
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3365589Z #6 6.155   librtmp1 libsasl2-2 libsasl2-modules-db libsqlite3-0 libssh-4 media-types
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3365881Z #6 6.156   netbase perl perl-modules-5.38 python3 python3-minimal python3.12
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3366119Z #6 6.156   python3.12-minimal readline-common tzdata
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3366341Z #6 6.241 0 upgraded, 36 newly installed, 0 to remove and 4 not upgraded.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3366549Z #6 6.241 Need to get 22.3 MB of archives.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3366766Z #6 6.241 After this operation, 108 MB of additional disk space will be used.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.3367149Z #6 6.241 Get:1 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3.12-minimal amd64 3.12.3-1ubuntu0.17 [839 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.5357221Z #6 6.441 Get:2 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libexpat1 amd64 2.6.1-2ubuntu0.7 [103 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.6697070Z #6 6.455 Get:3 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 python3.12-minimal amd64 3.12.3-1ubuntu0.17 [2335 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.6697911Z #6 6.499 Get:4 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 python3-minimal amd64 3.12.3-0ubuntu2.1 [27.4 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.6698703Z #6 6.575 Get:5 http://archive.ubuntu.com/ubuntu noble/main amd64 media-types all 10.1.0 [27.5 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.7705871Z #6 6.615 Get:6 http://archive.ubuntu.com/ubuntu noble/main amd64 netbase all 6.4 [13.1 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.7706685Z #6 6.616 Get:7 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 tzdata all 2026f-0ubuntu0.24.04.1 [283 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.7707409Z #6 6.635 Get:8 http://archive.ubuntu.com/ubuntu noble/main amd64 readline-common all 8.2-4build1 [56.5 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.7708015Z #6 6.647 Get:9 http://archive.ubuntu.com/ubuntu noble/main amd64 libreadline8t64 amd64 8.2-4build1 [153 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.7709041Z #6 6.647 Get:10 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libsqlite3-0 amd64 3.45.1-1ubuntu2.11 [702 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.7709838Z #6 6.676 Get:11 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3.12-stdlib amd64 3.12.3-1ubuntu0.17 [2071 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.8900148Z #6 6.695 Get:12 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 python3.12 amd64 3.12.3-1ubuntu0.17 [651 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.8901041Z #6 6.725 Get:13 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libpython3-stdlib amd64 3.12.3-0ubuntu2.1 [10.1 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.8901780Z #6 6.726 Get:14 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 python3 amd64 3.12.3-0ubuntu2.1 [23.0 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.8902466Z #6 6.735 Get:15 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 perl-modules-5.38 all 5.38.2-3.2ubuntu0.7 [3110 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.8903202Z #6 6.775 Get:16 http://archive.ubuntu.com/ubuntu noble/main amd64 libgdbm6t64 amd64 1.23-5.1build1 [34.4 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.8904265Z #6 6.776 Get:17 http://archive.ubuntu.com/ubuntu noble/main amd64 libgdbm-compat4t64 amd64 1.23-5.1build1 [6710 B]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.8904953Z #6 6.776 Get:18 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libperl5.38t64 amd64 5.38.2-3.2ubuntu0.7 [4864 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:13.8905509Z #6 6.796 Get:19 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 perl amd64 5.38.2-3.2ubuntu0.7 [231 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.0001384Z #6 6.816 Get:20 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libkrb5support0 amd64 1.20.1-6ubuntu2.12 [36.0 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.0002280Z #6 6.875 Get:21 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libk5crypto3 amd64 1.20.1-6ubuntu2.12 [81.9 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.0002990Z #6 6.886 Get:22 http://archive.ubuntu.com/ubuntu noble/main amd64 libkeyutils1 amd64 1.6.3-3build1 [9490 B]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.0003647Z #6 6.906 Get:23 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libkrb5-3 amd64 1.20.1-6ubuntu2.12 [348 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1095415Z #6 6.915 Get:24 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libgssapi-krb5-2 amd64 1.20.1-6ubuntu2.12 [143 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1096296Z #6 6.916 Get:25 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libnghttp2-14 amd64 1.59.0-1ubuntu0.4 [74.6 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1097688Z #6 6.916 Get:26 http://archive.ubuntu.com/ubuntu noble/main amd64 libpsl5t64 amd64 0.21.2-1.1build1 [57.1 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1098588Z #6 6.946 Get:27 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libbrotli1 amd64 1.1.0-2ubuntu0.1 [331 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1099345Z #6 6.966 Get:28 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libsasl2-modules-db amd64 2.1.28+dfsg1-5ubuntu3.1 [20.4 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1100150Z #6 6.976 Get:29 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libsasl2-2 amd64 2.1.28+dfsg1-5ubuntu3.1 [53.2 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1100983Z #6 6.995 Get:30 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libldap2 amd64 2.6.10+dfsg-0ubuntu0.24.04.1 [198 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1101763Z #6 6.996 Get:31 http://archive.ubuntu.com/ubuntu noble/main amd64 librtmp1 amd64 2.4+20151223.gitfa8646d.1-2build7 [56.3 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1102476Z #6 6.997 Get:32 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libssh-4 amd64 0.10.6-2ubuntu0.6 [191 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1103222Z #6 7.005 Get:33 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 libcurl3t64-gnutls amd64 8.5.0-2ubuntu10.16 [337 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.1103930Z #6 7.015 Get:34 http://archive.ubuntu.com/ubuntu noble/main amd64 liberror-perl all 0.17029-2 [25.6 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.2702782Z #6 7.017 Get:35 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 git-man all 1:2.43.0-1ubuntu7.4 [1101 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:14.2703316Z #6 7.025 Get:36 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 git amd64 1:2.43.0-1ubuntu7.4 [3681 kB]
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:15.6431479Z #6 8.549 debconf: delaying package configuration, since apt-utils is not installed
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:15.8294883Z #6 8.584 Fetched 22.3 MB in 1s (24.7 MB/s)
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:15.9648507Z #6 8.870 Selecting previously unselected package libpython3.12-minimal:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0686352Z #6 8.870 (Reading database ... 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0686688Z (Reading database ... 5%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0686843Z (Reading database ... 10%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0686985Z (Reading database ... 15%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0687128Z (Reading database ... 20%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0687270Z (Reading database ... 25%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0687406Z (Reading database ... 30%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0687541Z (Reading database ... 35%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0687675Z (Reading database ... 40%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0687811Z (Reading database ... 45%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0687944Z (Reading database ... 50%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0688079Z (Reading database ... 55%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0688398Z (Reading database ... 60%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0688537Z (Reading database ... 65%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0688674Z (Reading database ... 70%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0689108Z (Reading database ... 75%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0689242Z (Reading database ... 80%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.1797459Z (Reading database ... 85%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.1797935Z (Reading database ... 90%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.1798454Z (Reading database ... 95%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.1800058Z (Reading database ... 100%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.1800372Z (Reading database ... 4381 files and directories currently installed.)
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.2906998Z #6 9.086 Preparing to unpack .../libpython3.12-minimal_3.12.3-1ubuntu0.17_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.2907580Z #6 9.087 Unpacking libpython3.12-minimal:amd64 (3.12.3-1ubuntu0.17) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.2907980Z #6 9.140 Selecting previously unselected package libexpat1:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.2908792Z #6 9.141 Preparing to unpack .../libexpat1_2.6.1-2ubuntu0.7_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.2909158Z #6 9.142 Unpacking libexpat1:amd64 (2.6.1-2ubuntu0.7) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.2909518Z #6 9.196 Selecting previously unselected package python3.12-minimal.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.4857175Z #6 9.197 Preparing to unpack .../python3.12-minimal_3.12.3-1ubuntu0.17_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.4857731Z #6 9.241 Unpacking python3.12-minimal (3.12.3-1ubuntu0.17) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.4909938Z #6 9.397 Setting up libpython3.12-minimal:amd64 (3.12.3-1ubuntu0.17) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.6461104Z #6 9.400 Setting up libexpat1:amd64 (2.6.1-2ubuntu0.7) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.6461639Z #6 9.401 Setting up python3.12-minimal (3.12.3-1ubuntu0.17) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.0260726Z #6 9.932 Selecting previously unselected package python3-minimal.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1484813Z #6 9.932 (Reading database ... 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1485193Z (Reading database ... 5%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1485429Z (Reading database ... 10%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1485653Z (Reading database ... 15%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1485866Z (Reading database ... 20%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1486079Z (Reading database ... 25%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1486288Z (Reading database ... 30%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1486503Z (Reading database ... 35%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1486746Z (Reading database ... 40%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1486955Z (Reading database ... 45%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1487165Z (Reading database ... 50%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1487374Z (Reading database ... 55%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1487564Z (Reading database ... 60%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1487698Z (Reading database ... 65%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1487833Z (Reading database ... 70%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1487968Z (Reading database ... 75%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1488102Z (Reading database ... 80%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1488436Z (Reading database ... 85%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1488574Z (Reading database ... 90%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1488708Z (Reading database ... 95%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1488847Z (Reading database ... 100%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1489116Z (Reading database ... 4700 files and directories currently installed.)
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1489580Z #6 9.936 Preparing to unpack .../0-python3-minimal_3.12.3-0ubuntu2.1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1490001Z #6 9.936 Unpacking python3-minimal (3.12.3-0ubuntu2.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1490380Z #6 9.948 Selecting previously unselected package media-types.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1490785Z #6 9.949 Preparing to unpack .../1-media-types_10.1.0_all.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1491104Z #6 9.949 Unpacking media-types (10.1.0) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1491426Z #6 9.960 Selecting previously unselected package netbase.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1491798Z #6 9.961 Preparing to unpack .../2-netbase_6.4_all.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1492033Z #6 9.962 Unpacking netbase (6.4) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1492223Z #6 9.973 Selecting previously unselected package tzdata.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1492518Z #6 9.974 Preparing to unpack .../3-tzdata_2026f-0ubuntu0.24.04.1_all.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1492764Z #6 9.974 Unpacking tzdata (2026f-0ubuntu0.24.04.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1492994Z #6 10.05 Selecting previously unselected package readline-common.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2960153Z #6 10.05 Preparing to unpack .../4-readline-common_8.2-4build1_all.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2960568Z #6 10.06 Unpacking readline-common (8.2-4build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2961090Z #6 10.07 Selecting previously unselected package libreadline8t64:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2961366Z #6 10.07 Preparing to unpack .../5-libreadline8t64_8.2-4build1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2961913Z #6 10.09 Adding 'diversion of /lib/x86_64-linux-gnu/libhistory.so.8 to /lib/x86_64-linux-gnu/libhistory.so.8.usr-is-merged by libreadline8t64'
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2962445Z #6 10.10 Adding 'diversion of /lib/x86_64-linux-gnu/libhistory.so.8.2 to /lib/x86_64-linux-gnu/libhistory.so.8.2.usr-is-merged by libreadline8t64'
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2962963Z #6 10.10 Adding 'diversion of /lib/x86_64-linux-gnu/libreadline.so.8 to /lib/x86_64-linux-gnu/libreadline.so.8.usr-is-merged by libreadline8t64'
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2963485Z #6 10.10 Adding 'diversion of /lib/x86_64-linux-gnu/libreadline.so.8.2 to /lib/x86_64-linux-gnu/libreadline.so.8.2.usr-is-merged by libreadline8t64'
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2963857Z #6 10.10 Unpacking libreadline8t64:amd64 (8.2-4build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2964103Z #6 10.12 Selecting previously unselected package libsqlite3-0:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2964469Z #6 10.12 Preparing to unpack .../6-libsqlite3-0_3.45.1-1ubuntu2.11_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2964850Z #6 10.12 Unpacking libsqlite3-0:amd64 (3.45.1-1ubuntu2.11) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2965261Z #6 10.13 Selecting previously unselected package libpython3.12-stdlib:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2965746Z #6 10.13 Preparing to unpack .../7-libpython3.12-stdlib_3.12.3-1ubuntu0.17_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2966195Z #6 10.13 Unpacking libpython3.12-stdlib:amd64 (3.12.3-1ubuntu0.17) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.2966599Z #6 10.20 Selecting previously unselected package python3.12.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.4715656Z #6 10.20 Preparing to unpack .../8-python3.12_3.12.3-1ubuntu0.17_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.4716221Z #6 10.20 Unpacking python3.12 (3.12.3-1ubuntu0.17) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.4741751Z #6 10.22 Selecting previously unselected package libpython3-stdlib:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.4742402Z #6 10.22 Preparing to unpack .../9-libpython3-stdlib_3.12.3-0ubuntu2.1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.4742773Z #6 10.22 Unpacking libpython3-stdlib:amd64 (3.12.3-0ubuntu2.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.4743060Z #6 10.23 Setting up python3-minimal (3.12.3-0ubuntu2.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.4743323Z #6 10.38 Selecting previously unselected package python3.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6976328Z #6 10.38 (Reading database ... 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6976626Z (Reading database ... 5%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6976844Z (Reading database ... 10%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6976991Z (Reading database ... 15%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6977128Z (Reading database ... 20%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6977268Z (Reading database ... 25%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6977402Z (Reading database ... 30%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6977537Z (Reading database ... 35%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6977671Z (Reading database ... 40%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6977810Z (Reading database ... 45%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6977945Z (Reading database ... 50%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6978081Z (Reading database ... 55%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6978422Z (Reading database ... 60%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6978563Z (Reading database ... 65%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6978698Z (Reading database ... 70%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6978834Z (Reading database ... 75%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6979048Z (Reading database ... 80%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6979196Z (Reading database ... 85%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6979333Z (Reading database ... 90%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6979467Z (Reading database ... 95%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6979603Z (Reading database ... 100%
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6979808Z (Reading database ... 5706 files and directories currently installed.)
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6980103Z #6 10.38 Preparing to unpack .../00-python3_3.12.3-0ubuntu2.1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6980341Z #6 10.44 Unpacking python3 (3.12.3-0ubuntu2.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6980784Z #6 10.45 Selecting previously unselected package perl-modules-5.38.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6981068Z #6 10.45 Preparing to unpack .../01-perl-modules-5.38_5.38.2-3.2ubuntu0.7_all.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6981608Z #6 10.45 Unpacking perl-modules-5.38 (5.38.2-3.2ubuntu0.7) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.7383568Z #6 10.64 Selecting previously unselected package libgdbm6t64:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.9159240Z #6 10.65 Preparing to unpack .../02-libgdbm6t64_1.23-5.1build1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.9159926Z #6 10.65 Unpacking libgdbm6t64:amd64 (1.23-5.1build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.9160187Z #6 10.66 Selecting previously unselected package libgdbm-compat4t64:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.9160489Z #6 10.66 Preparing to unpack .../03-libgdbm-compat4t64_1.23-5.1build1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.9160763Z #6 10.66 Unpacking libgdbm-compat4t64:amd64 (1.23-5.1build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.9161012Z #6 10.67 Selecting previously unselected package libperl5.38t64:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.9161287Z #6 10.67 Preparing to unpack .../04-libperl5.38t64_5.38.2-3.2ubuntu0.7_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.9161557Z #6 10.67 Unpacking libperl5.38t64:amd64 (5.38.2-3.2ubuntu0.7) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.0526128Z #6 10.96 Selecting previously unselected package perl.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1641312Z #6 10.96 Preparing to unpack .../05-perl_5.38.2-3.2ubuntu0.7_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1641726Z #6 10.96 Unpacking perl (5.38.2-3.2ubuntu0.7) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1642022Z #6 10.99 Selecting previously unselected package libkrb5support0:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1642331Z #6 10.99 Preparing to unpack .../06-libkrb5support0_1.20.1-6ubuntu2.12_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1642620Z #6 10.99 Unpacking libkrb5support0:amd64 (1.20.1-6ubuntu2.12) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1642880Z #6 11.00 Selecting previously unselected package libk5crypto3:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1643180Z #6 11.00 Preparing to unpack .../07-libk5crypto3_1.20.1-6ubuntu2.12_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1643484Z #6 11.00 Unpacking libk5crypto3:amd64 (1.20.1-6ubuntu2.12) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1643747Z #6 11.01 Selecting previously unselected package libkeyutils1:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1644009Z #6 11.02 Preparing to unpack .../08-libkeyutils1_1.6.3-3build1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1644270Z #6 11.02 Unpacking libkeyutils1:amd64 (1.6.3-3build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1644514Z #6 11.03 Selecting previously unselected package libkrb5-3:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1644772Z #6 11.03 Preparing to unpack .../09-libkrb5-3_1.20.1-6ubuntu2.12_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1645028Z #6 11.03 Unpacking libkrb5-3:amd64 (1.20.1-6ubuntu2.12) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1645273Z #6 11.04 Selecting previously unselected package libgssapi-krb5-2:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1645585Z #6 11.04 Preparing to unpack .../10-libgssapi-krb5-2_1.20.1-6ubuntu2.12_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1645862Z #6 11.04 Unpacking libgssapi-krb5-2:amd64 (1.20.1-6ubuntu2.12) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1646110Z #6 11.06 Selecting previously unselected package libnghttp2-14:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1646382Z #6 11.06 Preparing to unpack .../11-libnghttp2-14_1.59.0-1ubuntu0.4_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1646668Z #6 11.06 Unpacking libnghttp2-14:amd64 (1.59.0-1ubuntu0.4) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.1646911Z #6 11.07 Selecting previously unselected package libpsl5t64:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2743761Z #6 11.07 Preparing to unpack .../12-libpsl5t64_0.21.2-1.1build1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2744230Z #6 11.07 Unpacking libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2744522Z #6 11.08 Selecting previously unselected package libbrotli1:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2744790Z #6 11.08 Preparing to unpack .../13-libbrotli1_1.1.0-2ubuntu0.1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2745039Z #6 11.08 Unpacking libbrotli1:amd64 (1.1.0-2ubuntu0.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2745290Z #6 11.10 Selecting previously unselected package libsasl2-modules-db:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2745609Z #6 11.10 Preparing to unpack .../14-libsasl2-modules-db_2.1.28+dfsg1-5ubuntu3.1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2745918Z #6 11.10 Unpacking libsasl2-modules-db:amd64 (2.1.28+dfsg1-5ubuntu3.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2746179Z #6 11.11 Selecting previously unselected package libsasl2-2:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2746728Z #6 11.11 Preparing to unpack .../15-libsasl2-2_2.1.28+dfsg1-5ubuntu3.1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2747000Z #6 11.11 Unpacking libsasl2-2:amd64 (2.1.28+dfsg1-5ubuntu3.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2747240Z #6 11.12 Selecting previously unselected package libldap2:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2747639Z #6 11.12 Preparing to unpack .../16-libldap2_2.6.10+dfsg-0ubuntu0.24.04.1_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2747923Z #6 11.12 Unpacking libldap2:amd64 (2.6.10+dfsg-0ubuntu0.24.04.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2748326Z #6 11.14 Selecting previously unselected package librtmp1:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2748685Z #6 11.14 Preparing to unpack .../17-librtmp1_2.4+20151223.gitfa8646d.1-2build7_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2748979Z #6 11.14 Unpacking librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2build7) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2749231Z #6 11.15 Selecting previously unselected package libssh-4:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2749538Z #6 11.15 Preparing to unpack .../18-libssh-4_0.10.6-2ubuntu0.6_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2749846Z #6 11.15 Unpacking libssh-4:amd64 (0.10.6-2ubuntu0.6) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.2750221Z #6 11.18 Selecting previously unselected package libcurl3t64-gnutls:amd64.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4373425Z #6 11.18 Preparing to unpack .../19-libcurl3t64-gnutls_8.5.0-2ubuntu10.16_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4374039Z #6 11.18 Unpacking libcurl3t64-gnutls:amd64 (8.5.0-2ubuntu10.16) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4374470Z #6 11.19 Selecting previously unselected package liberror-perl.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4374886Z #6 11.20 Preparing to unpack .../20-liberror-perl_0.17029-2_all.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4375308Z #6 11.20 Unpacking liberror-perl (0.17029-2) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4375654Z #6 11.21 Selecting previously unselected package git-man.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4376055Z #6 11.21 Preparing to unpack .../21-git-man_1%3a2.43.0-1ubuntu7.4_all.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4376428Z #6 11.21 Unpacking git-man (1:2.43.0-1ubuntu7.4) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4376740Z #6 11.23 Selecting previously unselected package git.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4377052Z #6 11.23 Preparing to unpack .../22-git_1%3a2.43.0-1ubuntu7.4_amd64.deb ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4377279Z #6 11.23 Unpacking git (1:2.43.0-1ubuntu7.4) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.4377469Z #6 11.34 Setting up media-types (10.1.0) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.6040092Z #6 11.35 Setting up libkeyutils1:amd64 (1.6.3-3build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.6040571Z #6 11.35 Setting up libgdbm6t64:amd64 (1.23-5.1build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.6041899Z #6 11.35 Setting up libgdbm-compat4t64:amd64 (1.23-5.1build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.6042276Z #6 11.35 Setting up libbrotli1:amd64 (1.1.0-2ubuntu0.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.6042659Z #6 11.35 Setting up libsqlite3-0:amd64 (3.45.1-1ubuntu2.11) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.6043026Z #6 11.35 Setting up libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.6043400Z #6 11.35 Setting up libnghttp2-14:amd64 (1.59.0-1ubuntu0.4) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.6043813Z #6 11.36 Setting up libkrb5support0:amd64 (1.20.1-6ubuntu2.12) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.6045237Z #6 11.36 Setting up libsasl2-modules-db:amd64 (2.1.28+dfsg1-5ubuntu3.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.6045605Z #6 11.36 Setting up tzdata (2026f-0ubuntu0.24.04.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.7796383Z #6 11.69 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.7796666Z #6 11.69 Current default time zone: 'Etc/UTC'
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9899010Z #6 11.69 Local time is now:      Fri Nov 27 21:32:18 UTC 2026.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9899372Z #6 11.69 Universal Time is now:  Fri Nov 27 21:32:18 UTC 2026.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9899622Z #6 11.69 Run 'dpkg-reconfigure tzdata' if you wish to change it.
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9899815Z #6 11.69 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9899996Z #6 11.69 Setting up librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2build7) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9900252Z #6 11.70 Setting up perl-modules-5.38 (5.38.2-3.2ubuntu0.7) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9900487Z #6 11.70 Setting up libk5crypto3:amd64 (1.20.1-6ubuntu2.12) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9900724Z #6 11.70 Setting up libsasl2-2:amd64 (2.1.28+dfsg1-5ubuntu3.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9900943Z #6 11.70 Setting up git-man (1:2.43.0-1ubuntu7.4) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9901391Z #6 11.70 Setting up netbase (6.4) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9901584Z #6 11.71 Setting up libkrb5-3:amd64 (1.20.1-6ubuntu2.12) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9901814Z #6 11.71 Setting up libperl5.38t64:amd64 (5.38.2-3.2ubuntu0.7) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9902162Z #6 11.71 Setting up readline-common (8.2-4build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9902386Z #6 11.73 Setting up libldap2:amd64 (2.6.10+dfsg-0ubuntu0.24.04.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9902606Z #6 11.73 Setting up perl (5.38.2-3.2ubuntu0.7) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9902823Z #6 11.74 Setting up libgssapi-krb5-2:amd64 (1.20.1-6ubuntu2.12) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9903047Z #6 11.74 Setting up libssh-4:amd64 (0.10.6-2ubuntu0.6) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9903263Z #6 11.74 Setting up libreadline8t64:amd64 (8.2-4build1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9903498Z #6 11.74 Setting up libpython3.12-stdlib:amd64 (3.12.3-1ubuntu0.17) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9903726Z #6 11.75 Setting up python3.12 (3.12.3-1ubuntu0.17) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:19.3697834Z #6 12.28 Setting up libcurl3t64-gnutls:amd64 (8.5.0-2ubuntu10.16) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:19.5966116Z #6 12.28 Setting up liberror-perl (0.17029-2) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:19.5966527Z #6 12.28 Setting up git (1:2.43.0-1ubuntu7.4) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:19.5966817Z #6 12.28 Setting up libpython3-stdlib:amd64 (3.12.3-0ubuntu2.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:19.5967048Z #6 12.29 Setting up python3 (3.12.3-0ubuntu2.1) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:19.5967271Z #6 12.35 Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:24.8310187Z #6 DONE 17.7s
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:24.9958430Z 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:24.9959015Z #7 [3/3] WORKDIR /src
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:24.9959309Z #7 DONE 0.0s
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:24.9959421Z 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:24.9959528Z #8 exporting to image
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:24.9959743Z #8 exporting layers
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:25.8783615Z #8 exporting layers 1.0s done
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:25.8873437Z #8 writing image sha256:635b1cfffdfde441378c776712aa8e1f87a3fc87f62c2dbf6c6123018fa40893 done
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:25.8874089Z #8 naming to docker.io/library/ops18-host-bbr:ci done
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:25.8874290Z #8 DONE 1.0s
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:25.8932354Z + docker image inspect ops18-host-bbr:ci --format '{{.Id}}'
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:25.9085148Z + docker image inspect ops18-host-bbr:ci --format '{{.Os}}/{{.Architecture}}'
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:25.9218833Z + cp <runner-home>/work/_temp/idleleo-ops18 <runner-home>/work/_temp/ops18-host-bbr/idleleo
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:25.9280251Z + sha256sum <runner-home>/work/_temp/idleleo-ops18
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:25.9395794Z + go version
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:25.9433592Z + docker run --rm --privileged --network host --mount type=bind,source=<runner-home>/work/Xray_bash_onekey/Xray_bash_onekey,target=/src,readonly --mount type=bind,source=<runner-home>/work/_temp/idleleo-ops18,target=/usr/local/bin/idleleo,readonly --mount type=bind,source=<runner-home>/work/_temp/ops18-host-bbr,target=/evidence -e IDLELEO_BIN=/usr/local/bin/idleleo -e OPS18_EVIDENCE_DIR=/evidence ops18-host-bbr:ci bash /src/tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:26.2412437Z fatal: detected dubious ownership in repository at '/src'
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:26.2412811Z To add an exception for this directory, call:
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:26.2412938Z 
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:26.2413052Z 	git config --global --add safe.directory /src
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:26.7774343Z + cat <runner-home>/work/_temp/ops18-host-bbr/result.txt
+Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:26.7784853Z PASS: real BBR Bash-wrapper and Go apply/rollback on 7.0.0-1020-azure
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	﻿2026-11-27T21:32:26.7840754Z ##[group]Run actions/upload-artifact@v4
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.7840933Z with:
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.7841107Z   name: ops18-host-bbr-9d32f5fda76f1534486d34ae15acbf2e54a04d94
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.7841336Z   path: <runner-home>/work/_temp/ops18-host-bbr/
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.7841513Z   if-no-files-found: warn
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.7841650Z   retention-days: 30
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.7841781Z   compression-level: 6
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.7841910Z   overwrite: false
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.7842037Z   include-hidden-files: false
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.7842202Z ##[endgroup]
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.9081695Z (node:3239) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.9082182Z (Use `node --trace-deprecation ...` to show where the warning was created)
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.9164603Z With the provided path, there will be 32 files uploaded
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.9168030Z Artifact name is valid!
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:26.9168696Z Root directory input is valid!
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:27.1853990Z Beginning upload of artifact content to blob storage
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:27.5680420Z (node:3239) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:27.9315575Z Uploaded bytes 8388608
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:27.9774594Z Uploaded bytes 9196421
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:28.0074282Z Finished uploading artifact content to blob storage!
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:28.0075080Z SHA256 digest of uploaded artifact zip is f6a21208235f8036837fde9b8076f9969b011ff38ec681b2b3cf036c166cea54
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:28.0075801Z Finalizing artifact upload
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:28.3295293Z Artifact ops18-host-bbr-9d32f5fda76f1534486d34ae15acbf2e54a04d94.zip successfully finalized. Artifact ID 15232523006
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:28.3296432Z Artifact ops18-host-bbr-9d32f5fda76f1534486d34ae15acbf2e54a04d94 has been successfully uploaded! Final size is 9196421 bytes. Artifact ID is 15232523006
+Apply and rollback on ephemeral Linux VM	Upload host-kernel evidence	2026-11-27T21:32:28.3301572Z Artifact download URL: https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070894568/artifacts/15232523006
+Apply and rollback on ephemeral Linux VM	Post Run actions/setup-go@v5	﻿2026-11-27T21:32:28.3492665Z Post job cleanup.
+Apply and rollback on ephemeral Linux VM	Post Run actions/setup-go@v5	2026-11-27T21:32:28.4314367Z (node:3251) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+Apply and rollback on ephemeral Linux VM	Post Run actions/setup-go@v5	2026-11-27T21:32:28.4314888Z (Use `node --trace-deprecation ...` to show where the warning was created)
+Apply and rollback on ephemeral Linux VM	Post Run actions/setup-go@v5	2026-11-27T21:32:28.4361209Z [command]/opt/hostedtoolcache/go/1.27.4/x64/bin/go env GOCACHE
+Apply and rollback on ephemeral Linux VM	Post Run actions/setup-go@v5	2026-11-27T21:32:28.4406716Z [command]/opt/hostedtoolcache/go/1.27.4/x64/bin/go env GOMODCACHE
+Apply and rollback on ephemeral Linux VM	Post Run actions/setup-go@v5	2026-11-27T21:32:28.4437223Z <runner-home>/.cache/go-build
+Apply and rollback on ephemeral Linux VM	Post Run actions/setup-go@v5	2026-11-27T21:32:28.4457529Z <runner-home>/go/pkg/mod
+Apply and rollback on ephemeral Linux VM	Post Run actions/setup-go@v5	2026-11-27T21:32:28.4466361Z Cache hit occurred on the primary key setup-go-Linux-x64-ubuntu24-go-1.27.4-c0537971ce88b78faadcaf685965a8f12ae2cf9fdd1b6288a9b286a026929e68, not saving cache.
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	﻿2026-11-27T21:32:28.4646473Z Post job cleanup.
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.5319254Z [command]/usr/bin/git version
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.5356679Z git version 2.56.1
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.5387264Z Temporarily overriding HOME='<runner-home>/work/_temp/ffacdcd2-72dc-4913-9342-c1a00365eeb7' before making global git config changes
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.5388112Z Adding repository directory to the temporary git global config as a safe directory
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.5390646Z [command]/usr/bin/git config --global --add safe.directory <runner-home>/work/Xray_bash_onekey/Xray_bash_onekey
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.5432353Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.5492920Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.5991706Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.6109701Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.6458594Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+Apply and rollback on ephemeral Linux VM	Post Run actions/checkout@v4	2026-11-27T21:32:28.6504224Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Apply and rollback on ephemeral Linux VM	Complete job	﻿2026-11-27T21:32:28.6971778Z Cleaning up orphan processes
+Apply and rollback on ephemeral Linux VM	Complete job	2026-11-27T21:32:28.7244025Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-go@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

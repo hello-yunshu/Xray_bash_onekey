@@ -1,0 +1,3 @@
+command: python3 tests/go-parity/parity/scripts/check_evidence_hygiene.py --mask .
+exit: 1
+result: 68 findings in 77,535 files; all findings were the hosted-runner home/workspace prefix in 4 captured text artifacts. The remote GitHub artifacts were left unchanged; repository copies were sanitized and mapped by original/sanitized SHA-256 in privacy-redaction-map-ops18-host-20261128.json.

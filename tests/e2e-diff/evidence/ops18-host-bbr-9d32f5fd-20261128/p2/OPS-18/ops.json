@@ -1,0 +1,43 @@
+{
+  "id": "OPS-18",
+  "verdict": "PASS",
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [
+    "Real Linux host kernel exposes BBR; current Bash TCP wrapper applies through the Go manager and rolls back; native Go apply and rollback independently verified."
+  ],
+  "details": {
+    "bash": {
+      "wrapperApplyRc": 0,
+      "managedProfileVerified": true,
+      "rollbackRc": 0,
+      "baselineRestored": true
+    },
+    "go": {
+      "applyRc": 0,
+      "managedProfileVerified": true,
+      "rollbackRc": 0,
+      "baselineRestored": true,
+      "originalKernelSettingsRestored": true
+    }
+  },
+  "evidence": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/ops.json",
+  "run": {
+    "productCodeSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
+    "binarySha256": "0170079bdead2cd54dbd598dddb7bfb12a82893f559ff625565ba9611893dfab",
+    "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+    "driverSha": "690e5b569494b5beb4c1e532b1414596a9ef090c2d9d65776350665f37a855a8",
+    "runId": "ops18-host-bbr-9d32f5fd-20261128",
+    "layer": "L0-L4 driver evidence",
+    "image": "sha256:635b1cfffdfde441378c776712aa8e1f87a3fc87f62c2dbf6c6123018fa40893",
+    "platform": "linux/amd64",
+    "startedAt": "2026-11-27T21:32:03Z",
+    "finishedAt": "2026-11-27T21:32:26Z",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "91270ac9c14a5c21dffad65c79506cdb2caaf532012fa7784becb17151df1c90",
+    "workflowRunId": 46070894568,
+    "workflowUrl": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070894568"
+  }
+}

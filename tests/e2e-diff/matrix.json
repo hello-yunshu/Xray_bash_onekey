@@ -42,11 +42,11 @@
   },
   "acceptance": {
     "opsTotal": 34,
-    "dualSideVerifiedOps": 29,
+    "dualSideVerifiedOps": 30,
     "goOnlyOps": 0,
     "failOps": 3,
     "bashOnlyOps": 1,
-    "blockedOps": 1,
+    "blockedOps": 0,
     "notRunOps": 0,
     "approvedDiffOps": 0,
     "approvedSingleSideOps": 0,
@@ -68,6 +68,7 @@
       "OPS-17a",
       "OPS-17b",
       "OPS-17c",
+      "OPS-18",
       "OPS-19",
       "OPS-20",
       "OPS-21",
@@ -90,14 +91,12 @@
     "bashOnlyIds": [
       "OPS-30"
     ],
-    "blockedIds": [
-      "OPS-18"
-    ],
+    "blockedIds": [],
     "approvedDiffIds": [],
     "approvedSingleSideIds": [],
     "notRunIds": [],
     "generatedFrom": "tests/e2e-diff/ledger.json",
-    "generatedAt": "2026-11-27T20:43:46+00:00",
+    "generatedAt": "2026-11-27T21:36:41+00:00",
     "codeSha": "85340b4871fccfac703566a2ce00469e4a8a9371"
   },
   "install": [

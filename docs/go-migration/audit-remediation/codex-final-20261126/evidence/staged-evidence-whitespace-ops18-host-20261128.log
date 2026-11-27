@@ -1,0 +1,54 @@
+command: git diff --cached --check
+exit: 2
+docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/bash-apply.log:1: trailing whitespace.
++[错误]  未找到 idleleo 入口, 请先安装 Go 版本 
+docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/bash-apply.log:2: trailing whitespace.
++[信息]  TCP 加速现在由 idleleo tcp 管理, 不再自动下载第三方脚本 
+docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/workflow.log:211: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:49.2614606Z 
+docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/workflow.log:260: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:24:50.2413270Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:219: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7642014Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:268: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Run actions/setup-go@v5	2026-11-27T21:32:03.7808918Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:313: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.4655064Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:317: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.4655841Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:320: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:06.6164843Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:323: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2447160Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:327: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2448727Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:334: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:07.2451361Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:431: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:16.0686352Z #6 8.870 (Reading database ... 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:465: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.1484813Z #6 9.932 (Reading database ... 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:522: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:17.6976328Z #6 10.38 (Reading database ... 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:623: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.7796383Z #6 11.69 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:628: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:18.9899815Z #6 11.69 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:652: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:24.9958430Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:655: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:24.9959421Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log:670: trailing whitespace.
++Apply and rollback on ephemeral Linux VM	Build Go manager and run real Bash-to-Go apply/rollback	2026-11-27T21:32:26.2412938Z 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build/install.sh:10340: trailing whitespace.
++    
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build/install.sh:10392: trailing whitespace.
++        
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build/install.sh:10402: trailing whitespace.
++    
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build/install.sh:11686: trailing whitespace.
++uninstall_nginx() { 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build/install.sh:11692: trailing whitespace.
++        [nN][oO] | [nN]) 
+tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build/install.sh:11693: trailing whitespace.
++            log_echo "${OK} ${GreenBG} $(gettext "已取消卸载") Nginx ${Font}"        

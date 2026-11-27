@@ -18,6 +18,20 @@ OPS-18 使用一次性 Docker 对共享 OrbStack Linux 内核进行只读能力�
 
 仍未闭环：OPS-14/16/27 需要在既有验收口径下取得可核验的正式差异裁决或达到契约一致；OPS-17a 需要 Bash 实际替换更新包的双端证据；OPS-18 需要真实宿主 BBR 验证；OPS-30 仍无 Go 等价实现/正式单侧裁决；当前 SHA 七项远程 CI 仍 CI_PENDING。Go 方案仅在有证据证明优于 Bash 时才能作为差异提案，不能由执行者自行批准。
 
+# 最新候选更新（2026-11-28）
+
+当前产品候选 SHA `85340b4871fccfac703566a2ce00469e4a8a9371`。严格 ledger 在增加 OPS-18 真实宿主/Docker证据后为 30 DUAL、3 FAIL（14/16/27）、1 BASH_ONLY（30）、0 BLOCKED、0 NOT_RUN，退出码 1。
+
+OPS-18 的真实 run `ops18-host-bbr-9d32f5fd-20261128` 在一次性 Ubuntu 24.04 runner 的真实 OCI 容器中执行，容器以 host network 和 privileged 方式共享 runner 内核，核实 `bbr` 可用；OCI image ID、二进制、Bash 脚本、测试驱动与 manifest SHA 均可复核。Bash TCP wrapper 和原生 Go CLI 各自实际 apply/rollback，运行态、状态文件、事务 journal 与宿主原始 qdisc/congestion 均有前后核验。正式行升级为 DUAL。首轮 PATH 诊断失败被单独保留，未计为通过，第二次修复 harness 后的成功 run 是正式证据。
+
+OPS-03 边界探针 `ops03-boundary-23fa585f-20261127` 验证共享 shortId、旧凭据撤销后新连接拒绝、重启后仍拒绝、存活基线用户可连接。其源码变更范围在三段 `impact-reuse` 映射中均不涉及 `internal/xraycfg`，正式 OPS-03 可复用原始证据并保留原 product SHA；不将其写作 85340 上重新执行。
+
+审计/测试提交 `85340b48..9d32f5fd` 对产品候选不改变运行代码；差异是 OPS-18 专用 Docker 主机驱动/workflow。该提交上的 7 个既有 CI workflow 和 OPS-18 专用 workflow 均成功，产品候选仍绑定 `85340b48`。本轮更新后的报告与账本把受影响证据与复用证据分别标明，未把测试 harness SHA 当作产品代码 SHA。
+
+仍未闭环：OPS-14/16/27 的正式行为差异裁决，以及 OPS-30 Bash 持久语言偏好差异；它们没有足够授权可自动更改严格分类。Go 方案可不同，但“更好”的证据不会自动变成契约批准。
+
+---
+
 # 历史证据影响分析（本轮候选 9e495b38；8ff26917 为上游候选）
 
 ## 当前候选与本轮代码差异

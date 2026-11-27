@@ -1,0 +1,20 @@
+{
+  "changed": true,
+  "noop": false,
+  "profile": "bbr-fq",
+  "filePath": "/etc/sysctl.d/90-idleleo-tcp.conf",
+  "statePath": "/var/lib/idleleo/tcp/state.json",
+  "applied": [
+    {
+      "key": "net.core.default_qdisc",
+      "old": "fq_codel",
+      "new": "fq"
+    },
+    {
+      "key": "net.ipv4.tcp_congestion_control",
+      "old": "cubic",
+      "new": "bbr"
+    }
+  ],
+  "message": "profile applied"
+}

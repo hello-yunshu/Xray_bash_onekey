@@ -8,91 +8,106 @@
   "ci": {
     "status": "PASS",
     "codeSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
-    "reason": "Seven unique required workflows all succeeded on the pushed product candidate; Privacy Guard has both push and pull_request success runs. CI run records are indexed below.",
+    "reason": "All seven existing required workflows and the dedicated OPS-18 real host BBR workflow succeeded on the audit/test commit; product runtime source remains bound to 85340b48. Privacy Guard push runs also succeeded.",
     "workflows": [
       {
         "conclusion": "success",
-        "createdAt": "2026-11-27T20:33:48Z",
-        "databaseId": 46064475105,
-        "event": "pull_request",
-        "headSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
-        "name": "Privacy Guard",
-        "status": "completed",
-        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46064475105"
-      },
-      {
-        "conclusion": "success",
-        "createdAt": "2026-11-27T20:33:48Z",
-        "databaseId": 46064475112,
-        "event": "pull_request",
-        "headSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
-        "name": "Go real-root change acceptance (container)",
-        "status": "completed",
-        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46064475112"
-      },
-      {
-        "conclusion": "success",
-        "createdAt": "2026-11-27T20:33:48Z",
-        "databaseId": 46064475230,
-        "event": "pull_request",
-        "headSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
+        "createdAt": "2026-11-27T21:31:58Z",
+        "databaseId": 46070908556,
+        "event": "push",
+        "headSha": "9d32f5fda76f1534486d34ae15acbf2e54a04d94",
         "name": "Go preview qualification (NOT FOR RELEASE)",
         "status": "completed",
-        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46064475230"
+        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070908556"
       },
       {
         "conclusion": "success",
-        "createdAt": "2026-11-27T20:33:48Z",
-        "databaseId": 46064475288,
-        "event": "pull_request",
-        "headSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
-        "name": "Rill Xray Agent",
-        "status": "completed",
-        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46064475288"
-      },
-      {
-        "conclusion": "success",
-        "createdAt": "2026-11-27T20:33:48Z",
-        "databaseId": 46064475157,
-        "event": "pull_request",
-        "headSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
-        "name": "Go production parity release qualification",
-        "status": "completed",
-        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46064475157"
-      },
-      {
-        "conclusion": "success",
-        "createdAt": "2026-11-27T20:33:48Z",
-        "databaseId": 46064475122,
-        "event": "pull_request",
-        "headSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
-        "name": "Go parity stage gate",
-        "status": "completed",
-        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46064475122"
-      },
-      {
-        "conclusion": "success",
-        "createdAt": "2026-11-27T20:33:48Z",
-        "databaseId": 46064475277,
-        "event": "pull_request",
-        "headSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
-        "name": "Test Install",
-        "status": "completed",
-        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46064475277"
-      },
-      {
-        "conclusion": "success",
-        "createdAt": "2026-11-27T20:33:39Z",
-        "databaseId": 46064458900,
+        "createdAt": "2026-11-27T21:31:57Z",
+        "databaseId": 46070908340,
         "event": "push",
-        "headSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
+        "headSha": "9d32f5fda76f1534486d34ae15acbf2e54a04d94",
         "name": "Privacy Guard",
         "status": "completed",
-        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46064458900"
+        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070908340"
+      },
+      {
+        "conclusion": "success",
+        "createdAt": "2026-11-27T21:31:57Z",
+        "databaseId": 46070908500,
+        "event": "push",
+        "headSha": "9d32f5fda76f1534486d34ae15acbf2e54a04d94",
+        "name": "Rill Xray Agent",
+        "status": "completed",
+        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070908500"
+      },
+      {
+        "conclusion": "success",
+        "createdAt": "2026-11-27T21:31:57Z",
+        "databaseId": 46070908455,
+        "event": "push",
+        "headSha": "9d32f5fda76f1534486d34ae15acbf2e54a04d94",
+        "name": "Go parity stage gate",
+        "status": "completed",
+        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070908455"
+      },
+      {
+        "conclusion": "success",
+        "createdAt": "2026-11-27T21:31:57Z",
+        "databaseId": 46070908295,
+        "event": "push",
+        "headSha": "9d32f5fda76f1534486d34ae15acbf2e54a04d94",
+        "name": "Go real-root change acceptance (container)",
+        "status": "completed",
+        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070908295"
+      },
+      {
+        "conclusion": "success",
+        "createdAt": "2026-11-27T21:31:57Z",
+        "databaseId": 46070908297,
+        "event": "push",
+        "headSha": "9d32f5fda76f1534486d34ae15acbf2e54a04d94",
+        "name": "Go production parity release qualification",
+        "status": "completed",
+        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070908297"
+      },
+      {
+        "conclusion": "success",
+        "createdAt": "2026-11-27T21:31:57Z",
+        "databaseId": 46070908310,
+        "event": "push",
+        "headSha": "9d32f5fda76f1534486d34ae15acbf2e54a04d94",
+        "name": "Test Install",
+        "status": "completed",
+        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070908310"
+      },
+      {
+        "conclusion": "success",
+        "createdAt": "2026-11-27T21:31:49Z",
+        "databaseId": 46070894568,
+        "event": "push",
+        "headSha": "9d32f5fda76f1534486d34ae15acbf2e54a04d94",
+        "name": "OPS-18 real host BBR acceptance",
+        "status": "completed",
+        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070894568"
+      },
+      {
+        "conclusion": "success",
+        "createdAt": "2026-11-27T21:31:49Z",
+        "databaseId": 46070894550,
+        "event": "push",
+        "headSha": "9d32f5fda76f1534486d34ae15acbf2e54a04d94",
+        "name": "Privacy Guard",
+        "status": "completed",
+        "url": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070894550"
       }
     ]
   },
   "files": [
+    {
+      "path": ".github/workflows/ops18-host-bbr.yml",
+      "sha256": "9d767b2a5d6bd4183ad74fdd04a4f5489e2c0e0dd276d83eaea594ff516f758b",
+      "type": "candidate-evidence"
+    },
     {
       "path": "ci-run:46064458900",
       "sha256": "2d3f616102082e2992d5765a1eeb0c1c874db765b40259e1897004f431da77b4",
@@ -167,8 +182,8 @@
     },
     {
       "path": "docs/go-evolution/hardening/acceptance.json",
-      "sha256": "01ff61fa720c0e782aaba325a1d841e7e69d6c0695bb1d6a023df742ff2b68b5",
-      "type": "candidate-evidence"
+      "sha256": "776b3d01dbc019560a896f49770556eb25db08c3178db5b515fa634b8fa45eb2",
+      "type": "formal-acceptance-artifact"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/E8-privatekey-rotation-f4deaf77.log",
@@ -401,6 +416,11 @@
       "type": "local-gates-log"
     },
     {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/final-local-gates-ops18-host-20261128.log",
+      "sha256": "1afaae1a36a08de9b1731b462458603ea6b7ecdba84edf992e37e7bde94ba132",
+      "type": "candidate-evidence"
+    },
+    {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/final-local-gates-opslogs-20261128.log",
       "type": "test-result-or-command-log",
       "sha256": "0c8c30bca47b5b9b2cbb991078878c453279a5008ec526f2c3043576610ddef1"
@@ -424,6 +444,11 @@
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/go-test-85340b48-20261128.log",
       "sha256": "025bf64c7bdce1024f03c785adf40427cc39ed808c775e3361bc8dcb3eb77b59",
       "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/go-test-all-85340b48-20261128.log",
+      "sha256": "45f6f013a1703c3c6969d89c6d0e7e2934d03a1102f2d3f64f6c97a2cd68b260",
+      "type": "candidate-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/go-test-all.log",
@@ -606,6 +631,71 @@
       "type": "sanitized-log-or-result"
     },
     {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/bash-apply.err",
+      "sha256": "f28a6c51776040a9d91297b55f6ee4749b1d2f628e2a12b737416bd75c25c598",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/bash-apply.log",
+      "sha256": "c305d691a9dd24a94d8267d093181f51a8e64e6358b90cd7940025c5c92ae914",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/bash-apply.rc",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/checkout-sha.txt",
+      "sha256": "30948cdbc259d309c7b2b618aec88462aaddb8d5790e47a67e2a69690afa1f27",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/host.txt",
+      "sha256": "aedad4ab07283ad140666d3d53143a1265bcb9177ad5c5c7396cc90fd219b33b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/plan.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/plan.json",
+      "sha256": "ecfb1ca87042e8952bcbba7e123cc9d9f6cd423929cfe4895415d192b1f296ca",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/product-code-sha.txt",
+      "sha256": "5e3691cff20e511dc7da833cdf683359c12a23c5c30f1ad035c89036917810da",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/restore-original-congestion.log",
+      "sha256": "425501d8fe14b070b7a05b3f145a957a81dd5ffb1cc30f3e965e6bf3c5659f16",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/restore-original-qdisc.log",
+      "sha256": "bffe780b8c92aea914a5aff7ff889f522109c3cedc4cfe71d4255c224a0d6a28",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/status-before.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/status-before.json",
+      "sha256": "3b65085e58d3f5b56acc44fecdc165a676f93b9fc16cfe1f872c7c01e0ba3c34",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/workflow.log",
+      "sha256": "900199359863501e2fdab06907c1a32448fed0d789a6489bfbea0cf835157eb5",
+      "type": "candidate-evidence"
+    },
+    {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-kernel-probe-85340b48-20261128.log",
       "sha256": "510476472c8894dd8787aaf358c88e1d5e10fd18fcefa4ed9db5fbef6dd48659",
       "type": "sanitized-log-or-result"
@@ -651,6 +741,11 @@
       "sha256": "9751d200f6d55a5ff4ba0d33fd697413f148ad8de35a1804e32134fe1665a03a"
     },
     {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-redaction-map-ops18-host-20261128.json",
+      "sha256": "25d150bd12ed5b2bffc99e9a38d82f22c6cf074313fb2c3bda355f0786887181",
+      "type": "candidate-evidence"
+    },
+    {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-redaction-map.json",
       "sha256": "aabd1b939ff8d805d439f96aa018bff6db4b9deb0df7bc1037892093e5630f4c",
       "type": "sanitized-log-or-result"
@@ -691,6 +786,11 @@
       "type": "privacy-hygiene-scan"
     },
     {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-final-ops18-host-20261128.log",
+      "sha256": "dc20ca823b701095798dfa34c4c8b18a9c44fd73a36553483f59d46a75683d77",
+      "type": "candidate-evidence"
+    },
+    {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-final.log",
       "sha256": "658d3dfc2a631fb9d534e119accb999f0502fa60144569c05cf467e67520d691",
       "type": "sanitized-log-or-result"
@@ -709,6 +809,11 @@
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-ops18-85340b48-20261128.log",
       "sha256": "7458bc947de36b2c3c17e1fe9345e56581b6db7c5c75f43cfa7e5411c3c2a7d5",
       "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-ops18-host-initial-20261128.log",
+      "sha256": "76c90da74dcf3b8ed02342bb62b86d5f5f30e34c798a28579d4c2f57879df0df",
+      "type": "candidate-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-ops30-85340b48-20261128.log",
@@ -749,6 +854,11 @@
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/staged-evidence-whitespace-20261127.log",
       "type": "test-result-or-script",
       "sha256": "1fd8de0e1b0ba471e41dba156ab585f9a3026db40d646322f0ae3a9c3848dcfd"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/staged-evidence-whitespace-ops18-host-20261128.log",
+      "sha256": "42913fa877bc9a036484e86856a7fc336b1fe1859c74677897c3cbf046fe9638",
+      "type": "candidate-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/strict-ledger-85340b48-20261128.log",
@@ -794,6 +904,11 @@
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/strict-ledger-ops17a-followup-20261128.log",
       "sha256": "49776194de393f6c41ec93f9647113b2e51d965e96dd6d70f7f6d3e4b1d35f09",
       "type": "strict-ledger-log"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/strict-ledger-ops18-host-20261128.log",
+      "sha256": "950b2cb89408ce4ab3e9802373b315f24e12fcf817eaf6c067f6d601ab763c56",
+      "type": "candidate-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/update-health-rollback-runtime.log",
@@ -997,8 +1112,8 @@
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/impact-analysis.md",
-      "sha256": "3ff8d63f17da35e8ed4cc3ea1bd5013ca97441ad0c8cb5a1acce003a1727ba5d",
-      "type": "sanitized-log-or-result"
+      "sha256": "0dc7044f81eb22488cc5e98e44e5517fbc93890187318dc70fb684093c3ee973",
+      "type": "candidate-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/probe-development-log.md",
@@ -1007,18 +1122,28 @@
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/report.md",
-      "sha256": "7ff6315ff0a2a03fbd0f40b58fba92a2505c81f0a39f85bd54d48c700e531339",
-      "type": "sanitized-log-or-result"
+      "sha256": "5835ac871a3a72b959b56ded02458866f74c211836ad2e0e68928fc3bea61675",
+      "type": "candidate-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/tasks.md",
-      "sha256": "df006d0987b906b5aff49df4ae21ec8dc2b0d98a239ba10ddd811bb0fdadf487",
-      "type": "sanitized-log-or-result"
+      "sha256": "190ad7a0a6c8bf72cdd11f17d5f8cef38bc406b22f1412d83432f4ac7a1cbe77",
+      "type": "candidate-evidence"
     },
     {
       "path": "tests/e2e-diff/collect/build_ledger.py",
       "sha256": "be43f6cbf24d6a1d0ed58591f120a367255899a41de5d22759ca7b8f53219606",
       "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "tests/e2e-diff/collect/ops18-host-bbr.Dockerfile",
+      "sha256": "c5341a0407ab2053fff34bc328bd7e6ebd97585684e7f916c5f00b4ae72ae86b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/collect/ops18_host_bbr_acceptance.sh",
+      "sha256": "690e5b569494b5beb4c1e532b1414596a9ef090c2d9d65776350665f37a855a8",
+      "type": "candidate-evidence"
     },
     {
       "path": "tests/e2e-diff/collect/test_build_ledger.py",
@@ -32156,6 +32281,206 @@
       "type": "test-result-or-script"
     },
     {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/ops.json",
+      "sha256": "a288a3aa559ce14d6c9615a1efbd6d2afb1c4f140061b4431627313cc94d95de",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/bash-apply.err",
+      "sha256": "a07986142717d244b7584cfff2a0ee361502adc7ccf7ea54a2dbfe2edb9a8b9e",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/bash-apply.log",
+      "sha256": "c1e989bc7c171075d05a2c27761044806d94e83f5a0f62e92321f037e34f0a0e",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/bash-apply.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/bash-path-rollback.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/bash-path-rollback.json",
+      "sha256": "f31184ba2abfdaadaa0b2bb5b6779b0355094f24bc60caf425569227712cfd20",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/binary.sha256",
+      "sha256": "8fdcfed091654c4e632de99bd068bbf0f73a755cc8c2e61e5ef736f98199992b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/checkout-sha.txt",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/go-apply.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/go-apply.json",
+      "sha256": "00f0b62ae96e1853c43c33b40138dc3718d11f3a299a41430d38190afff3884f",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/go-rollback.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/go-rollback.json",
+      "sha256": "f31184ba2abfdaadaa0b2bb5b6779b0355094f24bc60caf425569227712cfd20",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/go-version.txt",
+      "sha256": "a29205bd83967c2f70e6768fae009600038d6056499fa289de9d5f9b79beaef4",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/host.txt",
+      "sha256": "1e4afcf8c75fff7ea6da1e35e8309a2259e5ffd0b1a94352166cdda294a5036e",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/idleleo",
+      "sha256": "0170079bdead2cd54dbd598dddb7bfb12a82893f559ff625565ba9611893dfab",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/image-id.txt",
+      "sha256": "e3cdcaa99688b2afdcd1167d3b995efb67f482ce838feb43f7c3aae870c0942f",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/plan.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/plan.json",
+      "sha256": "ecfb1ca87042e8952bcbba7e123cc9d9f6cd423929cfe4895415d192b1f296ca",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/platform.txt",
+      "sha256": "30a2860611f42f808b7012f033e39aaedf708c7ea934b69e9dd0b3fdcd756996",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/product-code-sha.txt",
+      "sha256": "5e3691cff20e511dc7da833cdf683359c12a23c5c30f1ad035c89036917810da",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/restore-original-congestion.log",
+      "sha256": "425501d8fe14b070b7a05b3f145a957a81dd5ffb1cc30f3e965e6bf3c5659f16",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/restore-original-qdisc.log",
+      "sha256": "bffe780b8c92aea914a5aff7ff889f522109c3cedc4cfe71d4255c224a0d6a28",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/result.txt",
+      "sha256": "ee09017c88e9fa09eafc680f8c577d9b964a3a4ca5917646b22f5d4d35647dce",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/status-after.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/status-after.json",
+      "sha256": "bc8ab7c44821c422e6ea5941984dec42fcbe4a553a28ee46e2a203cb5fd352b0",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/status-applied.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/status-applied.json",
+      "sha256": "8d734a669144cb215095c2979465c6d625dcb17389feaa909cc3365511c19336",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/status-bash-rolled-back.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/status-bash-rolled-back.json",
+      "sha256": "bc8ab7c44821c422e6ea5941984dec42fcbe4a553a28ee46e2a203cb5fd352b0",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/status-before.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/status-before.json",
+      "sha256": "bc8ab7c44821c422e6ea5941984dec42fcbe4a553a28ee46e2a203cb5fd352b0",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/status-go-applied.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/raw/status-go-applied.json",
+      "sha256": "8d734a669144cb215095c2979465c6d625dcb17389feaa909cc3365511c19336",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/workflow.log",
+      "sha256": "c829952efb2ae0c3ee2338e677f8639feb83f7ddca3df336bdacf11748684c8a",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build-manifest.json",
+      "sha256": "91270ac9c14a5c21dffad65c79506cdb2caaf532012fa7784becb17151df1c90",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build/idleleo",
+      "sha256": "0170079bdead2cd54dbd598dddb7bfb12a82893f559ff625565ba9611893dfab",
+      "type": "build-artifact"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build/install.sh",
+      "sha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build/ops18-host-bbr.Dockerfile",
+      "sha256": "c5341a0407ab2053fff34bc328bd7e6ebd97585684e7f916c5f00b4ae72ae86b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/build/ops18_host_bbr_acceptance.sh",
+      "sha256": "690e5b569494b5beb4c1e532b1414596a9ef090c2d9d65776350665f37a855a8",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/run.json",
+      "sha256": "b6c4b7af3775bc685df36746555171d8a2aa8a7d0a9dc62ddd2af211f940e822",
+      "type": "candidate-evidence"
+    },
+    {
       "path": "tests/e2e-diff/evidence/ops23-dual-speedtest-8ff26917-20261127/p2/OPS-23/bash/manager-binary.txt",
       "sha256": "c36c90d1b33803d722d710875e21148dda9cfe7e9e2c0a51c05604b3e4dcc680",
       "type": "e2e-evidence-artifact"
@@ -32942,13 +33267,13 @@
     },
     {
       "path": "tests/e2e-diff/ledger.json",
-      "sha256": "3b881eff57845e11bc661b5a95a182564cc3a0d71df61097dff1d06cac723715",
-      "type": "candidate-evidence"
+      "sha256": "2c588797a86e3c7aa227a6a31b7c356c701debc839892295467df4999cc52463",
+      "type": "formal-acceptance-artifact"
     },
     {
       "path": "tests/e2e-diff/matrix.json",
-      "sha256": "2b4fdbf48219c2ce6e3b653b061a9859ad739e751c10ff0eb4af84483ae02be4",
-      "type": "candidate-evidence"
+      "sha256": "8f3b8948fb5047dac904ec3d617c1ac73950b68e9c9bce3dcd671c7e6c1e310a",
+      "type": "formal-acceptance-artifact"
     },
     {
       "path": "tests/e2e-diff/run_coldrestore.sh",
@@ -32963,20 +33288,20 @@
   ],
   "ledgerSummary": {
     "codeSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
-    "generatedAt": "2026-11-27T20:43:46+00:00",
+    "generatedAt": "2026-11-27T21:36:41+00:00",
     "opsTotal": 34,
     "counts": {
-      "DUAL_SIDE_VERIFIED": 29,
+      "DUAL_SIDE_VERIFIED": 30,
       "GO_ONLY": 0,
       "FAIL": 3,
       "BASH_ONLY": 1,
-      "BLOCKED": 1,
+      "BLOCKED": 0,
       "NOT_RUN": 0,
       "APPROVED_DIFF": 0,
       "APPROVED_SINGLE_SIDE": 0
     },
     "strictExit": 1,
-    "strictLedgerEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/strict-ledger-85340b48-20261128.log"
+    "strictLedgerEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/strict-ledger-ops18-host-20261128.log"
   },
   "runs": [
     {
@@ -35262,22 +35587,40 @@
       "evidencePath": "tests/e2e-diff/evidence/codex-ops14-ratecheck-85340b48-20261128/p2/OPS-14/go/12-loaded-watch/summary.json",
       "result": "PASS_TARGETED_REAL_LOAD",
       "scope": "20-second bounded stats watch during 35 live Reality client HTTP requests; 35 HTTP 200, 32 positive inbound rate points; Xray active, Nginx not on direct Reality request path"
+    },
+    {
+      "runId": "ops18-host-bbr-9d32f5fd-20261128",
+      "productCodeSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
+      "evidencePath": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/ops.json",
+      "result": "PASS_DUAL_SIDE_VERIFIED_REAL_BBR_DOCKER",
+      "scope": "Bash TCP wrapper and native Go apply/rollback on an Ubuntu 24.04 GitHub-hosted Linux kernel with BBR; Docker privileged host-network execution; OCI image, executable, runtime state, rollback journal and host sysctl restoration verified.",
+      "workflowRunId": 46070894568,
+      "workflowUrl": "https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070894568"
+    },
+    {
+      "runId": "ops18-host-bbr-failed-attempt-46070092391",
+      "productCodeSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
+      "evidencePath": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-host-bbr-failed-attempt-46070092391/workflow.log",
+      "result": "HARNESS_FAILURE_RETAINED_AND_SUPERSEDED",
+      "scope": "Real BBR kernel was available; the Bash wrapper could not find idleleo because install.sh resets PATH. No apply occurred; trap restored the original host settings. Corrected CI harness and repeat run passed.",
+      "workflowRunId": 46070092391,
+      "supersededBy": 46070894568
     }
   ],
   "localGates": {
-    "evidencePath": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/final-local-gates-9e495b38-20261128.log",
+    "evidencePath": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/final-local-gates-ops18-host-20261128.log",
     "bashSyntaxRc": 0,
     "expectTclCompletenessRc": 0,
     "diffCheckRc": 0,
     "ledgerContractTests": 43,
     "artifactGuardRc": 0,
     "privacyFindings": 0,
-    "privacyScannedFiles": 77477,
-    "postIndexPrivacyEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-ops18-85340b48-20261128.log",
+    "privacyScannedFiles": 77538,
+    "postIndexPrivacyEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-final-ops18-host-20261128.log",
     "strictLedgerRc": 1,
     "fullStagedDiffCheckRc": 2,
     "sourceAndDocsScopedDiffCheckRc": 0,
-    "whitespaceEvidencePath": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/final-local-gates-9e495b38-20261128.log",
+    "whitespaceEvidencePath": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/staged-evidence-whitespace-ops18-host-20261128.log",
     "ops17aPtyFollowup": {
       "command": "E2E_ONLY=OPS-OBSERVE E2E_OBSERVE_ONLY_OPS=OPS-17a E2E_CONCURRENCY=1 bash tests/e2e-diff/run_p2_matrix.sh",
       "runId": "ops17a-pty-8ff-20261128-02",
@@ -35286,11 +35629,11 @@
       "evidencePath": "tests/e2e-diff/evidence/ops17a-pty-8ff-20261128-02/p2/OPS-17a/ops.json"
     },
     "auditCommit": "c925b7fc",
-    "strictLedgerEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/strict-ledger-85340b48-20261128.log",
+    "strictLedgerEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/strict-ledger-ops18-host-20261128.log",
     "artifactGuardEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/artifact-guard-85340b48-20261128.log",
-    "goTestCommand": "docker run --rm -v \"$PWD:/src\" -w /src golang:1.27.4-bookworm go test ./...",
+    "goTestCommand": "docker run --rm -v <repo>:/src -w /src golang:1.27.4-bookworm go test ./...",
     "goTestRc": 0,
-    "goTestEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/go-test-docker-85340b48-20261128.log",
+    "goTestEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/go-test-all-85340b48-20261128.log",
     "bashSyntaxFiles": 71,
     "ops18KernelProbe": {
       "kernel": "7.2.12-orbstack-00394-gbecdd6130068",
@@ -35302,7 +35645,25 @@
       "applyRc": 12,
       "changed": false,
       "evidencePath": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops18-go-tcp-refusal-85340b48-20261128.log",
-      "qualification": "BLOCKED: no successful BBR path"
-    }
+      "qualification": "LOCAL_REFUSAL_PASS; OPS-18 host apply/rollback subsequently verified in dedicated workflow"
+    },
+    "ops18HostAcceptance": {
+      "runId": "ops18-host-bbr-9d32f5fd-20261128",
+      "productCodeSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
+      "workflowRunId": 46070894568,
+      "result": "PASS_REAL_BBR_APPLY_ROLLBACK",
+      "hostKernel": "7.0.0-1020-azure",
+      "availableCongestion": [
+        "reno",
+        "cubic",
+        "bbr"
+      ],
+      "image": "sha256:635b1cfffdfde441378c776712aa8e1f87a3fc87f62c2dbf6c6123018fa40893",
+      "evidencePath": "tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/ops.json",
+      "initialFailedHarnessRun": 46070092391,
+      "initialFailureSupersededBy": "46070894568",
+      "qualification": "DUAL_SIDE_VERIFIED; strict ledger rebuilt at product SHA; current overall qualification remains NO_GO"
+    },
+    "privacyRedactionMap": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-redaction-map-ops18-host-20261128.json"
   }
 }
