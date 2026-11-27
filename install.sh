@@ -15147,6 +15147,16 @@ function restore_directories() {
     # A failure rolls the layout and config back; never leave a half-healed tree.
     local _legacy_geo_arg=""
     [[ -n "${_legacy_geo_source}" ]] && _legacy_geo_arg="${_legacy_geo_source}/xray"
+    # A clean restore target has no Xray runtime log directory. The restored
+    # config points its access/error logs at /var/log/xray, and the subsequent
+    # GeoData validation runs the real binary before systemd can create that
+    # path. Reapply the unit-aware ownership/mode policy before validation so
+    # a valid archive is restorable on a fresh host.
+    if [[ "${restore_root}" == "/" ]] && ! xray_privilege_escalation; then
+        rm -rf "${_legacy_geo_source}"
+        log_echo "${Error} ${RedBG} $(gettext "恢复失败: Xray 日志目录权限初始化失败") ${Font}"
+        return 1
+    fi
     if ! restore_geodata_layout_selfheal "${restore_root}" "${_legacy_geo_arg}"; then
         rm -rf "${_legacy_geo_source}"
         log_echo "${Error} ${RedBG} $(gettext "恢复失败: GeoData 资源目录自愈未通过") ${Font}"
