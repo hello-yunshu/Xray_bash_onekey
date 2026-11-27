@@ -616,6 +616,21 @@
       "type": "sanitized-log-or-result"
     },
     {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops30-go-lang-85340b48-20261128.log",
+      "sha256": "16e9c3bb3c1f4cfbce75118aa5b2fcf6f0d1e5ff5c22de0246bd884f35243234",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops30-go-lang-85340b48-retry1-20261128.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops30-go-lang-85340b48-retry2-20261128.log",
+      "sha256": "1208d3a6efe87df7c510ce650c3d23d397d42f4f262d8152dad937d037bd5c35",
+      "type": "sanitized-log-or-result"
+    },
+    {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-redaction-map-20261127.json",
       "sha256": "7e4fc209748669d9da1755b7894fafd72f5f84a87f249d83c0c0bb6f83361b76",
       "type": "test-result-or-script"
@@ -679,6 +694,11 @@
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-ops17a-final-20261128.log",
       "sha256": "09a3e379a4a03a5e2f906846acf8a5ec12066fb1f58f364833d35bf1567267d6",
       "type": "privacy-scan-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-ops30-85340b48-20261128.log",
+      "sha256": "cd08b52cc0a4680d5dccfda1544f6afba2123fc54578e19fbf8acb2899c63b03",
+      "type": "sanitized-log-or-result"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-post-index-20261127.log",
@@ -972,12 +992,12 @@
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/report.md",
-      "sha256": "7ba3716c7d6a7f56dc414e744c312a3a7aeec7be52b3817bb8528d7e9216c85d",
+      "sha256": "84f1c26c79f47c42b1a08fb2a3225086b3d156a37341e31bad420c1cfa9f3386",
       "type": "sanitized-log-or-result"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/tasks.md",
-      "sha256": "669d22c23aaf4b821547396f136e86506b476e07d8f70970c13665ae41d92d46",
+      "sha256": "465b6558caa13a473dc17f6cd1a7af5e9eecc80dab4b41b56a874bb61967bc7c",
       "type": "sanitized-log-or-result"
     },
     {
@@ -35237,8 +35257,8 @@
     "ledgerContractTests": 43,
     "artifactGuardRc": 0,
     "privacyFindings": 0,
-    "privacyScannedFiles": 77470,
-    "postIndexPrivacyEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-final-85340b48-20261128.log",
+    "privacyScannedFiles": 77474,
+    "postIndexPrivacyEvidence": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-ops30-85340b48-20261128.log",
     "strictLedgerRc": 1,
     "fullStagedDiffCheckRc": 2,
     "sourceAndDocsScopedDiffCheckRc": 0,

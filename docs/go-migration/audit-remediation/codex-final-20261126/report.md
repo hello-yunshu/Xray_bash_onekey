@@ -5,6 +5,7 @@
 当前候选 CI：提交 `85340b4871fccfac703566a2ce00469e4a8a9371` 的七项远程 workflow 均已通过（Go preview qualification、Privacy Guard、Go real-root acceptance、Go parity stage gate、Go production parity、Test Install、Rill Xray Agent；Privacy Guard push/PR 重复项也通过）。该 CI 与产品代码 SHA 对应；报告账本后续仅为审计文档与证据索引，不含产品源码变更。
 
 ## 本轮新增真实证据
+- **OPS-30 语言选择补探针**：当前候选 Go 二进制在隔离 Docker 中实测 `--lang zh`、`--lang en`、`--lang fr`；三者均正常输出，fr 明确提示当前未完成翻译并回退英文，临时 root 下未创建任何状态文件。CLI 的显式逐次语言选择便于脚本、避免持久偏好写入；Bash 菜单则持久保存且有更完整语言翻译。因此 Go 的调用方式更适合自动化，但尚未证明替代 Bash 的持久用户偏好，OPS-30 继续 BASH_ONLY。首次探针的二进制执行权限与空 root 夹具失败均保留，成功证据为 `evidence/ops30-go-lang-85340b48-retry2-20261128.log`。
 
 本机复验：Go 1.27.4 Docker 工具链 `go test ./...` rc=0；71 个受影响 Bash 文件 `bash -n` rc=0，Expect/Tcl `info complete` 通过；采集器契约测试 43/43 通过；正式工件隔离门禁 rc=0，测试前后 ledger/matrix/acceptance 字节一致；最终证据隐私扫描覆盖 77,470 个文件、0 finding。记录见 `evidence/ledger-contract-tests-85340b48-20261128.log`、`evidence/artifact-guard-85340b48-20261128.log`、`evidence/privacy-scan-85340b48-20261128.log`。
 

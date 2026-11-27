@@ -45,7 +45,7 @@
 | OPS-16 | FAIL，待契约裁决 | Go 只读 JSON 状态与 dry-run 实际成功且证书/私钥 hash 不变；Bash 交互菜单。证据 `tests/e2e-diff/evidence/codex-ops16-85340b48-20261128/p2/OPS-16/ops.json`。差异未获批准。 |
 | OPS-27 | FAIL，待契约裁决 | Go 保留第三方证书文件、Bash 递归删除的安全差异已有 canary 和故障边界证据；执行者不自行批准。 |
 | OPS-18 | BLOCKED | 需非生产真实 BBR 宿主内核/权限，本轮不可用；不触碰生产 VPS。 |
-| OPS-30 | BASH_ONLY | Go 对应行缺失；需要按任务书补齐 Go 行为并真实双端验证，或由契约所有者做有据单侧裁决。 |
+| OPS-30 | BASH_ONLY；Go 的不同方式已实测 | `evidence/ops30-go-lang-85340b48-retry2-20261128.log`：当前候选 Go 二进制在 Docker 实测逐命令 `--lang zh/en/fr`，zh/en 输出正常，fr 显示清晰的英文回退提示；命令不写任何语言配置。该方式更适合自动化，但不提供 Bash 菜单的持久默认值且翻译覆盖较少，仍未证明替代持久偏好，正式 BASH_ONLY 不变。 |
 | CI | PASS（产品候选 SHA） | 远程 7 项 workflow 已对 `85340b4871fccfac703566a2ce00469e4a8a9371` 通过，证据和 run URL/ID 在 evidence-index。 |
 | 总结 | NO_GO | 仍有未裁决 FAIL、单侧项与环境 BLOCKED。Go 方案可以不同，但 OPS-14 尚未展示正实时速率，OPS-16/27 的优势不能由执行者代替所有者批准。 |
 
