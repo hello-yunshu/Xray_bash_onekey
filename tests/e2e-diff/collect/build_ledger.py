@@ -142,7 +142,8 @@ def _git_fixture_fix_info(commit):
     return set(paths), when, ancestor, hashlib.sha256(driver).hexdigest()
 
 
-def _verified_fixture_fix(candidate, prior, code_sha, fixed_by, fixed_by_kind):
+def _verified_fixture_fix(candidate, prior, code_sha, fixed_by, fixed_by_kind,
+                          op_id=None, reuse_impact=None):
     """Allow a same-product retest only for a committed, isolated driver fix.
 
     Product artifacts must remain byte-identical and the driver's digest must
@@ -161,7 +162,11 @@ def _verified_fixture_fix(candidate, prior, code_sha, fixed_by, fixed_by_kind):
         return False
     if candidate.get("driverSha") != committed_driver_sha:
         return False
-    if candidate_sha != code_sha or candidate_sha != str(prior.get("productCodeSha") or ""):
+    candidate_is_current_or_reusable = candidate_sha == code_sha
+    if not candidate_is_current_or_reusable and op_id:
+        _, reuse = expected_evidence_sha(candidate, code_sha, op_id, reuse_impact)
+        candidate_is_current_or_reusable = reuse is not None
+    if not candidate_is_current_or_reusable or candidate_sha != str(prior.get("productCodeSha") or ""):
         return False
     if candidate.get("binarySha256") != prior.get("binarySha256"):
         return False
@@ -264,7 +269,7 @@ def provenance_problems(data, code_sha, dirname, evidence_root=None):
     return provenance_problems_run(data.get("run"), code_sha, dirname, evidence_root)
 
 
-def load_reuse_impact(path, code_sha):
+def load_reuse_impact(path, code_sha, require_target=True):
     """Load a narrowly scoped, git-verifiable evidence reuse decision."""
     if not path:
         return None
@@ -274,7 +279,7 @@ def load_reuse_impact(path, code_sha):
     base, target = str(data.get("baseCodeSha") or ""), str(data.get("targetCodeSha") or "")
     if not GIT_SHA_RE.fullmatch(base) or not GIT_SHA_RE.fullmatch(target):
         raise EvidenceError("reuse impact requires full base/target Git SHAs")
-    if target != code_sha:
+    if require_target and target != code_sha:
         raise EvidenceError("reuse impact targetCodeSha does not match the candidate")
     repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
     for sha in (base, target):
@@ -292,10 +297,15 @@ def load_reuse_impact(path, code_sha):
     ).splitlines()
     if sorted(set(paths)) != actual_paths:
         raise EvidenceError("reuse impact changedFiles do not match the committed diff")
-    actual_diff = subprocess.check_output(
-        ["git", "-C", repo, "diff", "--binary", base + ".." + target, "--", *actual_paths]
-    )
-    if hashlib.sha256(actual_diff).hexdigest() != data.get("diffSha256"):
+    diff = subprocess.Popen(["git", "-C", repo, "diff", "--binary", base + ".." + target],
+                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    actual_diff_hash = hashlib.sha256()
+    assert diff.stdout is not None
+    for chunk in iter(lambda: diff.stdout.read(1024 * 1024), b""):
+        actual_diff_hash.update(chunk)
+    if diff.wait() != 0:
+        raise EvidenceError("reuse impact diff could not be read")
+    if actual_diff_hash.hexdigest() != data.get("diffSha256"):
         raise EvidenceError("reuse impact diffSha256 does not match the committed diff")
     reusable, affected = data.get("reusableOps"), data.get("affectedOps")
     if not isinstance(reusable, list) or not isinstance(affected, list):
@@ -315,6 +325,28 @@ def load_reuse_impact(path, code_sha):
 def expected_evidence_sha(run, code_sha, op_id, reuse_impact):
     product = str((run or {}).get("productCodeSha") or "")
     if product == code_sha:
+        return code_sha, None
+    if isinstance(reuse_impact, list):
+        current = product
+        chain = []
+        for impact in reuse_impact:
+            if impact["baseCodeSha"] != current:
+                continue
+            if op_id not in impact["reusableOps"]:
+                return code_sha, None
+            chain.append({"impactEvidence": impact["evidence"],
+                          "changedFiles": impact["changedFiles"],
+                          "diffSha256": impact["diffSha256"],
+                          "sourceCodeSha": current,
+                          "targetCodeSha": impact["targetCodeSha"]})
+            current = impact["targetCodeSha"]
+            if current == code_sha:
+                reuse = {"sourceCodeSha": product, "targetCodeSha": code_sha}
+                if len(chain) == 1:
+                    reuse.update(chain[0])
+                else:
+                    reuse["impactChain"] = chain
+                return product, reuse
         return code_sha, None
     if (reuse_impact and product == reuse_impact["baseCodeSha"]
             and op_id in reuse_impact["reusableOps"]):
@@ -867,9 +899,9 @@ def main():
     ap.add_argument("--approved-diffs", default="",
                     help="explicit approval JSON for declared differences and single-side rows; "
                          "without it both remain FAIL/single-side")
-    ap.add_argument("--reuse-impact", default="",
-                    help="git-verified impact map allowing only explicitly unaffected OPS evidence "
-                         "from one ancestor candidate SHA")
+    ap.add_argument("--reuse-impact", action="append", default=[],
+                    help="git-verified impact map; repeat in ancestor-to-candidate order to "
+                         "prove an uninterrupted evidence reuse chain")
     ap.add_argument("--allow-incomplete", action="store_true",
                     help="exit 0 even when rows are not dual-side verified (never for final acceptance)")
     ap.add_argument("--out", default="tests/e2e-diff/ledger.json")
@@ -883,7 +915,13 @@ def main():
 
     try:
         approvals = load_approvals(args.approved_diffs)
-        reuse_impact = load_reuse_impact(args.reuse_impact, sha)
+        reuse_impact = None
+        if args.reuse_impact:
+            reuse_impact = [load_reuse_impact(path, sha, require_target=(i == len(args.reuse_impact) - 1))
+                            for i, path in enumerate(args.reuse_impact)]
+            if any(reuse_impact[i]["targetCodeSha"] != reuse_impact[i + 1]["baseCodeSha"]
+                   for i in range(len(reuse_impact) - 1)):
+                raise EvidenceError("reuse impact maps must form a contiguous ancestor-to-candidate chain")
         matrix_runs = [matrix_results(root, approvals, sha, reuse_impact) for root in args.matrix_evidence]
         sweep_runs = [sweep_results(root, approvals, sha) for root in args.ops_evidence]
     except EvidenceError as exc:
@@ -916,10 +954,9 @@ def main():
                 chosen[op_id] = entry
 
     if reuse_impact:
-        for op_id in reuse_impact["affectedOps"]:
+        for op_id in reuse_impact[-1]["affectedOps"]:
             fresh = [entry for entry in history.get(op_id, [])
-                     if entry.get("productCodeSha") == sha
-                     and entry.get("status") in RESOLVED_STATUSES]
+                     if entry.get("productCodeSha") == sha]
             if not fresh:
                 chosen[op_id] = {
                     "status": "BLOCKED", "verdict": None,
@@ -953,7 +990,11 @@ def main():
                 continue
             candidate_sha = str(candidate.get("productCodeSha") or "")
             candidate_started = _timestamp(candidate.get("startedAt"))
-            if candidate_sha != sha or candidate_started is None:
+            candidate_current_or_reusable = candidate_sha == sha
+            if not candidate_current_or_reusable:
+                _, reuse = expected_evidence_sha(candidate, sha, op_id, reuse_impact)
+                candidate_current_or_reusable = reuse is not None
+            if not candidate_current_or_reusable or candidate_started is None:
                 continue
             for superseded in superseded_runs:
                 prior = next((f for f in failed if f.get("runId") == superseded), None)
@@ -965,7 +1006,8 @@ def main():
                     continue
                 product_fix = fixed_by == candidate_sha and candidate_sha != prior_sha
                 fixture_fix = _verified_fixture_fix(
-                    candidate, prior, sha, fixed_by, candidate.get("fixedByKind"))
+                    candidate, prior, sha, fixed_by, candidate.get("fixedByKind"),
+                    op_id, reuse_impact)
                 if product_fix or fixture_fix:
                     replacements[superseded] = candidate
         failed_ids = {str(f.get("runId") or "") for f in failed}

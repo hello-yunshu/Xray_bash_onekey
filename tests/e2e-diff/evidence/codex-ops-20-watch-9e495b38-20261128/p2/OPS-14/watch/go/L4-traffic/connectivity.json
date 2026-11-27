@@ -1,0 +1,12 @@
+{
+  "bodyBytes": 1048576,
+  "bodyMatch": true,
+  "bodySha256": "0be737c61b3af7e6f28386f2eea86dde147c084e05a635e5e133b7705481d41a",
+  "curlExit": 0,
+  "expectedBodyBytes": 1048576,
+  "expectedBodyMatch": true,
+  "expectedBodySha256": "0be737c61b3af7e6f28386f2eea86dde147c084e05a635e5e133b7705481d41a",
+  "ok": true,
+  "profile": "reality",
+  "target": "http://198.51.100.10/payload.bin"
+}

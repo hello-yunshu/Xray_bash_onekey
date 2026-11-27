@@ -1,0 +1,71 @@
+OPS_ID=OPS-14
+spawn bash /src/install.sh
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+
+╭─ Xray 管理脚... ─╮
+│                  │
+│ 当前模式: Rea... │
+│ 当前语言: zh_CN  │
+│                  │
+├─ 版本检测 ───────┤
+│ 脚本: [最新版]   │
+│ Xray: [有新版!]  │
+│ Nginx: [未安装]  │
+├─ 运行状态 ───────┤
+│ Xray: 运行中..   │
+│ Nginx: 无需测试  │
+│ 连通性: 本地正常 │
+├─ Rill Xray A... ─┤
+│                  │
+│ 检测：Rill       │
+│ 组件版本较旧...  │
+│                  │
+│ AI 判断: 未安装  │
+│ 服务: 未运行     │
+│ 路由辅助: 关闭   │
+╰──────────────────╯
+
+╭─ Xray 管理菜单 ──╮
+│                  │
+│  1. 安装向导     │
+│  2. 配置变更     │
+│  3. 查看信息     │
+│  4. Xray / TLS   │
+│  5. 更新向导     │
+│  6. 其他选项     │
+│  7. 备份恢复     │
+│  8. 修改语言 ... │
+│  9. Rill Xray... │
+│                  │
+│  0. 退出         │
+╰──────────────────╯
+请输入选项: STEP[menu]=3
+3
+
+╭─ 查看信息 ───────╮
+│                  │
+│  1. Xray 配置... │
+│  2. Xray 实时... │
+│  3. Xray 实时... │
+│  4. port 实时... │
+│                  │
+│  0. 返回         │
+╰──────────────────╯
+请输入选项: STEP[menu]=4
+4
+TERM environment variable not set.
+[OK]  已安装 iftop 
+[OK]  监控网卡: eth0 
+[OK]  监控端口: 443 
+
+[信息]  按 q 键退出 iftop 
+STEP[iftopPrompt]=observed
+STEP[iftopQuit]=q
+interface: eth0
+IP address is: 192.168.155.2
+MAC address is: 3a:bb:61:9f:e4:23
+Error opening terminal: unknown.
+
+回到菜单 [Enter] qSTEP[iftopReturned]=yes
+HARNESS-ERROR: menu did not exit (level 0)

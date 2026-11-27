@@ -1,0 +1,9 @@
+Candidate: 9e495b38a5574f53e37bd11e4b3c8f196f76e25b
+bash -n tests/e2e-diff/run_p2_matrix.sh tests/e2e-diff/collect/guard_acceptance_artifacts.sh: PASS (rc=0)
+Expect/Tcl info complete tests/e2e-diff/drivers/bash_ops.exp: PASS (rc=0)
+python3 -m py_compile build_ledger.py test_build_ledger.py summarize_ops14_live.py: PASS (rc=0)
+Source/docs scoped diff check: PASS (rc=0)
+guard_acceptance_artifacts.sh: PASS; 41 collector contract tests passed; tracked acceptance artifacts byte-identical before/after.
+Evidence hygiene initial final-scope scan: PASS; 0 findings in 76429 files. One diagnostic OPS-16 output-directory collision contained a host path; it was replaced with a relative evidence path and recorded in privacy-redaction-map-coldrestore-20261128.json before this scan.
+Strict OPS-34: rc=1 (expected NO_GO); 28 DUAL, 3 FAIL, 1 BASH_ONLY, 2 BLOCKED, 0 NOT_RUN.
+Full staged diff --check: rc=2 because raw Expect terminal captures and argv logs preserve trailing spaces; raw runtime evidence was not rewritten.

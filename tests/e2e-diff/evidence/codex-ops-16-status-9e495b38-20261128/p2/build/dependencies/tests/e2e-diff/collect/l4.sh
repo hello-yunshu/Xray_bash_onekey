@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+# L4 connectivity probe: real client handshake through the installed server.
+#
+# Runs on the HOST. Derives a client config from the server runtime (inside the
+# server container, so secrets never touch the evidence tree), starts a client
+# container, and performs one HTTP business request through the proxy.
+#
+# The request targets http://example.com/ rather than a loopback origin: the
+# installed runtime uses a freedom outbound that deliberately blackholes
+# private/loopback destinations, so a local origin would always fail.
+#
+# Usage:
+#   l4.sh <server-container> <client-container> <image> <network> \
+#         <reality|tls|none> <domain> <xray-binary> <secret-dir> <evidence-out> \
+#         [transport]
+#
+# transport selects the inbound to probe (auto|ws|grpc|xhttp). For profile
+# `none` the client connects to the inbound listen port instead of 443.
+#
+# E2E_EXTRA_CA names a PEM CA on the HOST that must be trusted by the client
+# container (used by E4, whose local origin is signed by a throwaway CA).
+# Empty means no injection, so every other scenario keeps the stock trust store.
+set -uo pipefail
+
+SERVER="$1"
+CLIENT="$2"
+IMAGE="$3"
+NETWORK="$4"
+PROFILE="$5"
+DOMAIN="$6"
+XRAY_BIN="$7"
+SECRET_DIR="$8"
+OUT="$9"
+TRANSPORT="${10:-auto}"
+EXTRA_CA="${E2E_EXTRA_CA:-}"
+# E2E_L4_CERT overrides the certificate pinned in tls mode (path inside the
+# server container). Edit scenarios point it at whatever Nginx currently
+# serves, so a certificate swap stays probe-able without rewriting the file.
+CERT_PIN="${E2E_L4_CERT:-/etc/idleleo/cert/xray.crt}"
+# A port change moves the public listener; the probe must dial the new port
+# instead of the install default.
+SERVER_PORT="${E2E_L4_PORT:-443}"
+# E2E_L4_EMAIL/E2E_L4_UUID bind the probe to one user entry. The new-user OPS
+# rows set them so a successful request proves the added client, not any
+# pre-existing one.
+L4_EMAIL="${E2E_L4_EMAIL:-}"
+L4_UUID="${E2E_L4_UUID:-}"
+SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGET_URL="${E2E_L4_URL:-http://example.com/}"
+MARKER="${E2E_L4_MARKER:-Example Domain}"
+EXPECTED_BODY_SHA256="${E2E_L4_EXPECTED_SHA256:-}"
+EXPECTED_BODY_BYTES="${E2E_L4_EXPECTED_BYTES:-}"
+
+cleanup_client() {
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$CLIENT" >/dev/null 2>&1 || true
+}
+trap cleanup_client EXIT
+
+mkdir -p "$OUT" "$SECRET_DIR"
+# A previous failed attempt leaves a "L4 skipped" marker behind; remove it so
+# the evidence tree only reflects the run that actually reached L4.
+rm -f "$OUT/connectivity.txt"
+
+fail() {
+    printf '%s\n' "$*" | tee -a "$OUT/connectivity.log"
+    python3 - "$OUT/connectivity.json" "$PROFILE" "$TARGET_URL" "$*" <<'PY'
+import json
+import sys
+json.dump({'profile': sys.argv[2], 'target': sys.argv[3], 'ok': False, 'reason': sys.argv[4]},
+          open(sys.argv[1], 'w'), indent=2, sort_keys=True)
+PY
+    exit 1
+}
+
+server_ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$SERVER")
+[[ -n "$server_ip" ]] || fail "server container has no address"
+
+# Derive the client config inside the server container.
+EXTRA=()
+# Reality keeps its raw inbound on the public port; transports appended by
+# reality_add_more (ws/gRPC/xHTTP) listen on their own extra port, so the
+# probe has to address the inbound port. Same for the transport-only profile.
+if [[ "$PROFILE" == "none" ]] || { [[ "$PROFILE" == "reality" ]] && [[ "$TRANSPORT" != "reality" && "$TRANSPORT" != "auto" ]]; }; then
+    EXTRA+=(--use-inbound-port)
+fi
+SELECT=()
+[[ -n "$L4_EMAIL" ]] && SELECT+=(--email "$L4_EMAIL")
+[[ -n "$L4_UUID" ]] && SELECT+=(--uuid "$L4_UUID")
+docker exec "$SERVER" python3 /src/tests/e2e-diff/collect/client_config.py \
+    --config /etc/idleleo/conf/xray/config.json \
+    --mode "$PROFILE" \
+    --transport "$TRANSPORT" \
+    --server-address "$server_ip" \
+    --server-port "$SERVER_PORT" \
+    --domain "$DOMAIN" \
+    ${EXTRA[@]+"${EXTRA[@]}"} \
+    ${SELECT[@]+"${SELECT[@]}"} \
+    --cert "$CERT_PIN" \
+    --output /tmp/e2e-client.json >"$OUT/client-config.log" 2>&1 || fail "client config generation failed"
+docker cp "$SERVER:/tmp/e2e-client.json" "$SECRET_DIR/client.json" >/dev/null 2>&1 || fail "cannot extract client config"
+docker exec "$SERVER" rm -f /tmp/e2e-client.json
+
+docker rm -f "$CLIENT" >/dev/null 2>&1 || true
+docker run -d --name "$CLIENT" --network "$NETWORK" --label e2e.side=client \
+    -v "$SECRET_DIR:/client" -v "$XRAY_BIN:/opt/xray/xray:ro" \
+    --entrypoint sleep "$IMAGE" infinity >/dev/null || fail "cannot start client container"
+
+docker cp "$SECRET_DIR/client.json" "$CLIENT:/client/client.json" >/dev/null 2>&1 || fail "cannot place client config"
+if [[ -n "$EXTRA_CA" ]]; then
+    [[ -f "$EXTRA_CA" ]] || fail "extra CA not found: $EXTRA_CA"
+    docker cp "$EXTRA_CA" "$CLIENT:/tmp/e2e-extra-ca.crt" >/dev/null 2>&1 || fail "cannot place extra CA"
+    docker exec "$CLIENT" sh -c 'cat /tmp/e2e-extra-ca.crt >> /etc/ssl/certs/ca-certificates.crt' \
+        || fail "cannot trust extra CA in client"
+fi
+docker exec -d "$CLIENT" sh -c '/opt/xray/xray run -c /client/client.json >/client/client.log 2>&1' || fail "cannot start client xray"
+sleep 2
+docker exec "$CLIENT" sh -c 'ss -lnt | grep -q 127.0.0.1:1080' || fail "client socks did not listen"
+
+rc=1
+for _ in $(seq 1 20); do
+    set +e
+    docker exec "$CLIENT" curl -sS --max-time 10 --socks5-hostname 127.0.0.1:1080 \
+        -o /client/response.body "$TARGET_URL" 2>"$OUT/curl.err"
+    rc=$?
+    set -e
+    [[ $rc -eq 0 ]] && break
+    sleep 1
+done
+
+docker cp "$CLIENT:/client/client.log" "$OUT/client.log" >/dev/null 2>&1 || true
+docker cp "$CLIENT:/client/curl.err" "$OUT/curl.err" >/dev/null 2>&1 || true
+docker cp "$CLIENT:/client/response.body" "$OUT/response.body" >/dev/null 2>&1 || true
+
+python3 - "$OUT/connectivity.json" "$OUT/response.body" "$PROFILE" "$TARGET_URL" "$rc" "$MARKER" \
+    "$EXPECTED_BODY_SHA256" "$EXPECTED_BODY_BYTES" <<'PY'
+import hashlib
+import json
+import sys
+
+out, body_path, profile, target, rc, marker, expected_sha, expected_bytes = sys.argv[1:9]
+try:
+    with open(body_path, "rb") as fh:
+        body = fh.read()
+except OSError:
+    body = b""
+body_sha = hashlib.sha256(body).hexdigest()
+body_bytes = len(body)
+body_text = body.decode("utf-8", errors="replace")
+body_match = marker in body_text
+expected_match = (not expected_sha or body_sha == expected_sha) and (
+    not expected_bytes or body_bytes == int(expected_bytes))
+ok = int(rc) == 0 and body_match and expected_match
+json.dump({
+    'profile': profile,
+    'target': target,
+    'ok': ok,
+    'curlExit': int(rc),
+    'bodySha256': body_sha,
+    'bodyBytes': body_bytes,
+    'expectedBodySha256': expected_sha or None,
+    'expectedBodyBytes': int(expected_bytes) if expected_bytes else None,
+    'expectedBodyMatch': expected_match,
+    'bodyMatch': body_match,
+}, open(out, 'w'), indent=2, sort_keys=True)
+PY
+
+python_ok=$(python3 -c 'import json,sys; print("true" if json.load(open(sys.argv[1])).get("ok") else "false")' "$OUT/connectivity.json")
+if [[ "$python_ok" != true ]]; then
+    echo "business request failed (curl exit $rc)" | tee -a "$OUT/connectivity.log"
+    exit 1
+fi
+# The client is single-use; leaving it behind pins its network and eventually
+# exhausts Docker's address pools on repeat runs.
+[[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$CLIENT" >/dev/null 2>&1 || true
+echo "L4 ok ($PROFILE)"

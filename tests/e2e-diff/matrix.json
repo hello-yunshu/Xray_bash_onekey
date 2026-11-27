@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "frozenAt": "2026-11-13T17:21:00+08:00",
-  "repoCommit": "8ff26917",
+  "repoCommit": "9e495b38",
   "branch": "develop/go-native",
   "sourcePlan": "docs/plans/bash-vs-go-docker-differential-impl.md",
   "decisions": {
@@ -97,8 +97,8 @@
     "approvedSingleSideIds": [],
     "notRunIds": [],
     "generatedFrom": "tests/e2e-diff/ledger.json",
-    "generatedAt": "2026-11-27T16:16:19+00:00",
-    "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289"
+    "generatedAt": "2026-11-27T19:40:24+00:00",
+    "codeSha": "9e495b38a5574f53e37bd11e4b3c8f196f76e25b"
   },
   "install": [
     {
@@ -938,8 +938,8 @@
         "idleleo",
         "xray",
         "cert",
-        "renew",
-        "--dry-run"
+        "status",
+        "--json"
       ],
       "verdict": "must-match",
       "layers": [

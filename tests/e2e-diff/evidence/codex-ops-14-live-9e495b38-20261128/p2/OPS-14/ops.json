@@ -1,0 +1,220 @@
+{
+  "bash": {
+    "driverRc": 124,
+    "iftopInstallRc": 0,
+    "l4": [],
+    "ready": false,
+    "uiObserved": false
+  },
+  "go": {
+    "apiEnableRc": 0,
+    "l4": [
+      {
+        "id": "L4-1",
+        "ok": false,
+        "rc": 0
+      },
+      {
+        "id": "L4-2",
+        "ok": false,
+        "rc": 0
+      },
+      {
+        "id": "L4-3",
+        "ok": false,
+        "rc": 0
+      }
+    ],
+    "positiveRatePoints": 18,
+    "sampleCount": 10,
+    "stats": [
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 447
+      },
+      {
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 682
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 271.1948374902413,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 718
+      },
+      {
+        "bytesPerSecond": 321.2307853666696,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 1003
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 266.28490333546523,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 989
+      },
+      {
+        "bytesPerSecond": 289.86733019912265,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 1298
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 272.5304492438185,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 1260
+      },
+      {
+        "bytesPerSecond": 305.71681391188497,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 1602
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 272.95510755893713,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 1531
+      },
+      {
+        "bytesPerSecond": 332.3807582821006,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 1932
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 268.7916006826267,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 1802
+      },
+      {
+        "bytesPerSecond": 301.5226812085554,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 2236
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 271.41556763258905,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 2073
+      },
+      {
+        "bytesPerSecond": 321.4922406275317,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 2557
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 270.77573703596914,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 2344
+      },
+      {
+        "bytesPerSecond": 320.7343601053361,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 2878
+      },
+      {
+        "bytesPerSecond": 286.18680909548186,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 2632
+      },
+      {
+        "bytesPerSecond": 348.7901735851185,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 3229
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink",
+        "value": null
+      },
+      {
+        "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink",
+        "value": null
+      },
+      {
+        "bytesPerSecond": 253.57889648775767,
+        "name": "inbound>>>api>>>traffic>>>uplink",
+        "value": 2886
+      },
+      {
+        "bytesPerSecond": 290.51755463754915,
+        "name": "inbound>>>api>>>traffic>>>downlink",
+        "value": 3520
+      }
+    ],
+    "watchRc": 0
+  },
+  "id": "OPS-14",
+  "scope": "Bash 3>4 iftop versus Go bounded Xray API rate sampling",
+  "tradeoff": {
+    "bashProvidesPerPeerPacketView": true,
+    "goAvoidsPacketAndPeerAddressCapture": true,
+    "goBoundedSamples": true
+  },
+  "verdict": "DIFF"
+}

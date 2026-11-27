@@ -1,0 +1,22 @@
+{
+  "certificate": {
+    "certificateFile": "/etc/idleleo/cert/xray.crt",
+    "keyFile": "/etc/idleleo/cert/xray.key",
+    "notBefore": "2026-11-27T18:46:58Z",
+    "notAfter": "2036-11-24T18:46:58Z",
+    "renewAt": "2036-10-25T18:46:58Z",
+    "renewBefore": "720h0m0s",
+    "elapsedDays": 0,
+    "remainingDays": 3649,
+    "due": false,
+    "expired": false,
+    "reason": "next renewal at 2036-10-25T18:46:58Z (expires in 87600h0m0s)"
+  },
+  "keyPresent": true,
+  "renewal": {
+    "configured": false,
+    "jobEnabled": false,
+    "timer": "not-installed",
+    "alert": false
+  }
+}

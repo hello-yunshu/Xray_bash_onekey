@@ -1,8 +1,16 @@
+# 最新候选更新（2026-11-28）
+
+当前产品候选 `9e495b38a5574f53e37bd11e4b3c8f196f76e25b`。已将 OPS-14、OPS-16、OPS-20 的真实 Docker/Xray/Nginx/client 运行纳入严格 OPS-34；保留 OPS-14/16 的 FAIL，严格结果为 28 DUAL、3 FAIL（14/16/27）、1 BASH_ONLY（30）、2 BLOCKED（17a/18）、0 NOT_RUN，退出码 1。严格原始结果：`evidence/strict-ledger-final-9e495b38-20261128.log`。OPS-14 的 Go 30 样本 stats 与 Reality L4 成功；OPS-16 的只读证书状态 JSON、dry-run 预检与证书/私钥 SHA 不变均成功；OPS-20 当前候选双端 1 MiB HTTP/body SHA 与真实 inbound counter 增量通过。
+
+历史复用链为 `7d3e19d9 → 8ff26917 → 9e495b38`，逐段通过验收器校验。末段仅 OPS-14/16 受影响，故当前候选对其补跑；OPS-03/17b 与四类冷恢复等原候选证据按链式映射保留原始 SHA，不改标为当前运行。
+
+仍未闭环：OPS-14/16/27 需要在既有验收口径下取得可核验的正式差异裁决或达到契约一致；OPS-17a 需要 Bash 实际替换更新包的双端证据；OPS-18 需要真实宿主 BBR 验证；OPS-30 仍无 Go 等价实现/正式单侧裁决；当前 SHA 七项远程 CI 仍 CI_PENDING。Go 方案仅在有证据证明优于 Bash 时才能作为差异提案，不能由执行者自行批准。
+
 # Xray Go 重构定向收尾与最终验收报告
 
 日期：2026-11-28（Asia/Shanghai）
 工作分支：`work/go-hardening-parity-20261119`
-当前产品候选：`8ff26917e3e381d4023b7319d5405f7ba871f289`
+当前产品候选：`9e495b38a5574f53e37bd11e4b3c8f196f76e25b`
 Go CLI SHA-256：`c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d`
 Docker 平台：`linux/arm64`
 
@@ -23,7 +31,7 @@ Docker 平台：`linux/arm64`
 | BLOCKED | 2 | 17a、18 |
 | GO_ONLY / NOT_RUN / APPROVED_DIFF / APPROVED_SINGLE_SIDE | 0 | — |
 
-当前 OPS-34 摘要在 `tests/e2e-diff/ledger.json`、`tests/e2e-diff/matrix.json` 的 `acceptance` 节点和 `docs/go-evolution/hardening/acceptance.json` 的 `ops` 节点中绑定候选 SHA `8ff26917…`；`acceptance.json` 顶层的历史基线字段仍保留原 SHA，未将历史验收改写成当前候选。`8ff26917` 相对上一产品候选仅修改 Bash restore 初始化 Xray 日志目录，OPS-25/26 已在此 SHA 双端重跑；其余复用行逐项保留旧 provenance，并附经 Git commit/diff 摘要核验的影响映射，不把旧 run 改标成新 SHA。OPS-23 与 OPS-12/13 均在当前候选以真实 Docker 双端运行。OPS-12/13 旧失败、一次错误断言诊断和修正后的通过均有记录；最终通过 run 逐条列出两条 OPS-13 失败历史和 OPS-12 旧失败，验收器核验修复提交仅修改 runner、运行驱动摘要、产品候选和二进制/Bash 摘要一致且时间顺序成立。正式账本为 28 DUAL、3 FAIL、1 BASH_ONLY、2 BLOCKED、0 NOT_RUN。三份当前 OPS 分类与严格模式一致，含 BLOCKED ID 列表；严格模式本轮 rc=1，保留 OPS-14/16/27 FAIL。OPS-14/16 的历史差异批准未通过当前审批校验（缺少可核验授权来源/当前证据指纹），因此作为 FAIL；OPS-27 安全差异也尚无绑定当前证据的正式批准。最新本地门禁的 Bash/Tcl 驱动解析、diff 检查、40 个采集器契约测试及正式摘要隔离均通过；严格账本按真实未决项 rc=1。更新后的隐私扫描结果见 `privacy-scan-coldrestore-final-20261128.log`；报告和逐行证据以 ledger 原文为准，索引见本目录 `evidence-index.json`。
+当前 OPS-34 摘要在 `tests/e2e-diff/ledger.json`、`tests/e2e-diff/matrix.json` 的 `acceptance` 节点和 `docs/go-evolution/hardening/acceptance.json` 的 `ops` 节点中绑定候选 SHA `9e495b38…`；`acceptance.json` 顶层的历史基线字段仍保留原 SHA，未将历史验收改写成当前候选。`8ff26917` 相对上一产品候选仅修改 Bash restore 初始化 Xray 日志目录，OPS-25/26 已在此 SHA 双端重跑；其余复用行逐项保留旧 provenance，并附经 Git commit/diff 摘要核验的影响映射，不把旧 run 改标成新 SHA。OPS-23 与 OPS-12/13 均在当前候选以真实 Docker 双端运行。OPS-12/13 旧失败、一次错误断言诊断和修正后的通过均有记录；最终通过 run 逐条列出两条 OPS-13 失败历史和 OPS-12 旧失败，验收器核验修复提交仅修改 runner、运行驱动摘要、产品候选和二进制/Bash 摘要一致且时间顺序成立。正式账本为 28 DUAL、3 FAIL、1 BASH_ONLY、2 BLOCKED、0 NOT_RUN。三份当前 OPS 分类与严格模式一致，含 BLOCKED ID 列表；严格模式本轮 rc=1，保留 OPS-14/16/27 FAIL。OPS-14/16 的历史差异批准未通过当前审批校验（缺少可核验授权来源/当前证据指纹），因此作为 FAIL；OPS-27 安全差异也尚无绑定当前证据的正式批准。最新本地门禁的 Bash/Tcl 驱动解析、diff 检查、40 个采集器契约测试及正式摘要隔离均通过；严格账本按真实未决项 rc=1。更新后的隐私扫描结果见 `privacy-scan-coldrestore-final-20261128.log`；报告和逐行证据以 ledger 原文为准，索引见本目录 `evidence-index.json`。
 
 - **OPS-12/13 DUAL_SIDE_VERIFIED**：Bash 实时菜单与 Go 有界 snapshot/`--follow` 均在真实 Xray 日志中观测到追加标记；Go snapshot 还观测到预置标记。Bash 菜单/跟随与双方 follow 按预期由 20 秒观察超时结束（rc=124），Go snapshot rc=0。真实 Docker 证据：`ops-log-follow-final2-8ff26917-20261128/p2/OPS-12, OPS-13`；旧失败与修正历程均纳入账本和证据索引。
 - **OPS-14 FAIL**：Bash 提供交互式实时 iftop 观察；Go 是有界统计查询。功能/操作模型不同，尚无经证明且符合既有契约的优越性结论。

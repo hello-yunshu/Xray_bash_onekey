@@ -1,6 +1,14 @@
+# 最新候选更新（2026-11-28）
+
+当前产品候选 `9e495b38a5574f53e37bd11e4b3c8f196f76e25b`。已将 OPS-14、OPS-16、OPS-20 的真实 Docker/Xray/Nginx/client 运行纳入严格 OPS-34；保留 OPS-14/16 的 FAIL，严格结果为 28 DUAL、3 FAIL（14/16/27）、1 BASH_ONLY（30）、2 BLOCKED（17a/18）、0 NOT_RUN，退出码 1。严格原始结果：`evidence/strict-ledger-final-9e495b38-20261128.log`。OPS-14 的 Go 30 样本 stats 与 Reality L4 成功；OPS-16 的只读证书状态 JSON、dry-run 预检与证书/私钥 SHA 不变均成功；OPS-20 当前候选双端 1 MiB HTTP/body SHA 与真实 inbound counter 增量通过。
+
+历史复用链为 `7d3e19d9 → 8ff26917 → 9e495b38`，逐段通过验收器校验。末段仅 OPS-14/16 受影响，故当前候选对其补跑；OPS-03/17b 与四类冷恢复等原候选证据按链式映射保留原始 SHA，不改标为当前运行。
+
+仍未闭环：OPS-14/16/27 需要在既有验收口径下取得可核验的正式差异裁决或达到契约一致；OPS-17a 需要 Bash 实际替换更新包的双端证据；OPS-18 需要真实宿主 BBR 验证；OPS-30 仍无 Go 等价实现/正式单侧裁决；当前 SHA 七项远程 CI 仍 CI_PENDING。Go 方案仅在有证据证明优于 Bash 时才能作为差异提案，不能由执行者自行批准。
+
 # 本轮任务账本（2026-11-28 更新）
 
-唯一主任务书：`Codex_Xray_Goal_定向收尾与最终验收_20261126.md`。工作分支 `work/go-hardening-parity-20261119`。当前产品源码候选 `8ff26917e3e381d4023b7319d5405f7ba871f289`；Go CLI 测试矩阵二进制 SHA-256 `c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d`；最终 Go 全量测试构建 SHA-256 `f0e96beaa71b3dae9e9a691b75abeb6dd09da0556e36eaa7f240040ecf424eac`；Docker `linux/arm64`。所有旧 run SHA 均保留原值，不混写。
+唯一主任务书：`Codex_Xray_Goal_定向收尾与最终验收_20261126.md`。工作分支 `work/go-hardening-parity-20261119`。当前产品源码候选 `9e495b38a5574f53e37bd11e4b3c8f196f76e25b`；Go CLI 测试矩阵二进制 SHA-256 `c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d`；最终 Go 全量测试构建 SHA-256 `f0e96beaa71b3dae9e9a691b75abeb6dd09da0556e36eaa7f240040ecf424eac`；Docker `linux/arm64`。所有旧 run SHA 均保留原值，不混写。
 
 | ID | 状态 | 当前证据 | 阻断 / 后续 |
 |---|---|---|---|

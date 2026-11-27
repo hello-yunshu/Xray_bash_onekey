@@ -272,6 +272,73 @@ proc ops15 {} {
     finish
 }
 
+proc ops16 {} {
+    # Read status, validity and scheduler state from the real TLS menu. The
+    # seeded fixture is user-managed, so this probe never renews or edits it.
+    navigate "4>2"
+    ask {请输入选项} 1 certStatus
+    expect {
+        -re {证书状态|证书存在|证书有效|证书无效|证书剩余天数} { puts "STEP\[certStatus\]=observed" }
+        eof { harness_error "ops16: eof before certificate status" }
+        timeout { harness_error "ops16: timeout waiting for certificate status" }
+    }
+    expect {
+        -re {回到菜单|按回车} { send "\r"; puts "STEP\[pause\]=enter" }
+        eof { harness_error "ops16: eof after certificate status" }
+        timeout { harness_error "ops16: timeout after certificate status" }
+    }
+    ask {请输入选项} 2 certValidity
+    expect {
+        -re {证书剩余天数|证书生成日期|证书有效期|检测到用户自备证书, 已跳过自动续签} { puts "STEP\[certValidity\]=observed" }
+        eof { harness_error "ops16: eof before certificate validity" }
+        timeout { harness_error "ops16: timeout waiting for certificate validity" }
+    }
+    expect {
+        -re {回到菜单|按回车} { send "\r"; puts "STEP\[pause\]=enter" }
+        eof { harness_error "ops16: eof after certificate validity" }
+        timeout { harness_error "ops16: timeout after certificate validity" }
+    }
+    ask {请输入选项} 3 certScheduler
+    expect {
+        -re {未检测到任何证书续期调度|acme\.sh 续期调度已存在|已保留原有调度|是否需要删除改版证书自动更新} {
+            if {[string match "*是否需要删除改版证书自动更新*" $expect_out(0,string)]} {
+                send "n\r"
+                puts "STEP\[preserveScheduler\]=n"
+            }
+            puts "STEP\[certScheduler\]=observed"
+        }
+        eof { harness_error "ops16: eof before scheduler status" }
+        timeout { harness_error "ops16: timeout waiting for scheduler status" }
+    }
+    finish
+}
+
+proc ops14 {} {
+    # Observe the exact Bash 3>4 port monitor in a PTY. The runner starts a
+    # real client request after this marker is written while iftop is live.
+    navigate "3>4"
+    expect {
+        -re {按 q 键退出 iftop} { puts "STEP\[iftopPrompt\]=observed" }
+        -re {iftop 安装失败|流量监控功能不可用} { harness_error "ops14: iftop unavailable" }
+        eof { harness_error "ops14: eof before iftop" }
+        timeout { harness_error "ops14: timeout waiting for iftop" }
+    }
+    expect {
+        -re {TX:} { puts "STEP\[iftopCounters\]=visible" }
+        eof { harness_error "ops14: iftop exited before drawing counters" }
+        timeout { harness_error "ops14: iftop did not draw counters" }
+    }
+    after 9000
+    send "q"
+    puts "STEP\[iftopQuit\]=q"
+    expect {
+        -re {回到菜单|按回车} { send "\r"; puts "STEP\[iftopReturned\]=yes" }
+        eof { harness_error "ops14: iftop exited unexpectedly" }
+        timeout { harness_error "ops14: iftop did not return" }
+    }
+    finish
+}
+
 proc ops20 {} {
     navigate "6>3"
     # 1 enables statistics (it asks for confirmation), 2 prints them.
@@ -393,6 +460,8 @@ switch -- $opsid {
     OPS-08 { ops08 }
     OPS-11 { ops11 }
     OPS-15 { ops15 }
+    OPS-14 { ops14 }
+    OPS-16 { ops16 }
     OPS-20 { ops20 }
     OPS-22 { ops22 }
     OPS-23 { ops23 }

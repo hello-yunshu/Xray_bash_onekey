@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-20",
+  "ops": [
+    "OPS-20"
+  ],
+  "runId": "codex-ops-20-watch-9e495b38-20261128",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

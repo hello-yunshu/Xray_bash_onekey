@@ -1,0 +1,141 @@
+{
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "details": {
+    "bash": {
+      "apiPreExpectedRc": 2,
+      "apiPreRc": 2,
+      "counterDimension": "per-inbound uplink/downlink bytes",
+      "expectedBodySha256": "0be737c61b3af7e6f28386f2eea86dde147c084e05a635e5e133b7705481d41a",
+      "httpBodyBytes": 1048576,
+      "httpBodySha256": "0be737c61b3af7e6f28386f2eea86dde147c084e05a635e5e133b7705481d41a",
+      "httpOk": true,
+      "httpRc": 0,
+      "inboundCounters": {
+        "VLESS-Reality-in": {
+          "after": {
+            "downlinkBytes": 1050004,
+            "uplinkBytes": 165
+          },
+          "before": {
+            "downlinkBytes": 0,
+            "uplinkBytes": 0
+          },
+          "downlinkDeltaBytes": 1050004,
+          "totalDeltaBytes": 1050169,
+          "uplinkDeltaBytes": 165
+        }
+      },
+      "statsAfterRc": 0,
+      "statsBeforeRc": 0,
+      "trafficBytes": 1050169
+    },
+    "go": {
+      "apiPreExpectedRc": 3,
+      "apiPreRc": 3,
+      "counterDimension": "per-inbound uplink/downlink bytes",
+      "expectedBodySha256": "0be737c61b3af7e6f28386f2eea86dde147c084e05a635e5e133b7705481d41a",
+      "httpBodyBytes": 1048576,
+      "httpBodySha256": "0be737c61b3af7e6f28386f2eea86dde147c084e05a635e5e133b7705481d41a",
+      "httpOk": true,
+      "httpRc": 0,
+      "inboundCounters": {
+        "VLESS-Reality-in": {
+          "after": {
+            "downlinkBytes": 1049888,
+            "uplinkBytes": 326
+          },
+          "before": {
+            "downlinkBytes": 0,
+            "uplinkBytes": 0
+          },
+          "downlinkDeltaBytes": 1049888,
+          "totalDeltaBytes": 1050214,
+          "uplinkDeltaBytes": 326
+        },
+        "api": {
+          "after": {
+            "downlinkBytes": 1307,
+            "uplinkBytes": 989
+          },
+          "before": {
+            "downlinkBytes": 977,
+            "uplinkBytes": 718
+          },
+          "downlinkDeltaBytes": 330,
+          "totalDeltaBytes": 601,
+          "uplinkDeltaBytes": 271
+        }
+      },
+      "statsAfterRc": 0,
+      "statsBeforeRc": 0,
+      "trafficBytes": 1050815
+    }
+  },
+  "id": "OPS-20",
+  "observed": {
+    "bash": {
+      "active": "active",
+      "config": "present",
+      "e2eLogSize": "missing",
+      "sniPolicy": "\"unknown_sni_policy\": \"isolate\""
+    },
+    "go": {
+      "active": "active",
+      "config": "present",
+      "e2eLogSize": "missing"
+    }
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "run": {
+    "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+    "binarySha256": "263de583c2024e7eef702955bd3002df675f4888c8a12bf1859111b56bb85240",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "be43f6cbf24d6a1d0ed58591f120a367255899a41de5d22759ca7b8f53219606",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "ccc502f0b420c4ed998cf32800633c43ade8f0765fd8620259fdbed61fa0c5e5",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "dfa72c1df64346719eee07e4e643ce4f951de1084323800c2b9ee4b72a20f340",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "e7840931714f30a84e8bf594b9702396ac0b08e171f530a5460127a5cdc088a9",
+    "finishedAt": "2026-11-27T18:55:26Z",
+    "fixedBy": null,
+    "fixedByKind": null,
+    "image": "sha256:d1ad847455e5732eac04a42cb8e8af83912039833693da1bbbdcc61ae7059b77",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "6680651d28457e70a88dfa562cdadbba3f4fb77f554ca18af5cf45e507ba07f1",
+    "platform": "linux/arm64",
+    "productCodeSha": "9e495b38a5574f53e37bd11e4b3c8f196f76e25b",
+    "runId": "codex-ops-20-watch-9e495b38-20261128",
+    "startedAt": "2026-11-27T18:53:52Z",
+    "supersedes": null
+  },
+  "verdict": "PASS"
+}

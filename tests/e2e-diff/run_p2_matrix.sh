@@ -1683,6 +1683,62 @@ with open(os.path.join(base, "traffic-summary.json"), "w", encoding="utf-8") as 
 PY
 }
 
+ops14_job() {
+    local bdir="$EVID/OPS-14/bash" gdir="$EVID/OPS-14/go"
+    local bserver="e2e-$RUN_ID-OPS-14-bash" gserver="e2e-$RUN_ID-OPS-14-go"
+    local driver_pid traffic_pid watch_pid ready n rc
+    OPS_NET="e2e-$RUN_ID-OPS-14"
+    mkdir -p "$bdir" "$gdir"
+    docker network create "$OPS_NET" >/dev/null 2>&1 || true
+    log "[OPS-14] start exact iftop versus stats-watch probe"
+    if start_server "$bserver" OPS-14 bash "$bdir" "$OPS_NET"; then
+        ops_bash_base "$bserver" "$bdir" M1
+        docker exec "$bserver" bash -c \
+            'export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq iftop' \
+            >"$bdir/iftop-install.log" 2>&1
+        echo $? >"$bdir/iftop-install.rc"
+        docker exec "$bserver" iftop -h >"$bdir/iftop-version.txt" 2>&1
+        # Run the client during the menu's countdown + three-second startup,
+        # then keep the real iftop UI open long enough to capture the flow.
+        (sleep 7; mkdir -p "$bdir/L4-1"; run_l4 M1 bash "$bserver" "$bdir/L4-1" "$OPS_NET" reality 1; echo $? >"$bdir/L4-1.rc") \
+            >"$bdir/client-schedule.log" 2>&1 &
+        traffic_pid=$!
+        ops_bash_expect "$bserver" "$bdir" run OPS-14 60; rc=$?
+        echo "$rc" >"$bdir/driver-wait.rc"
+        wait "$traffic_pid" || true
+        ready=1
+        echo "$ready" >"$bdir/iftop-ready.txt"
+    else
+        echo 1 >"$bdir/iftop-install.rc"
+        echo 1 >"$bdir/run.rc"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" >/dev/null 2>&1 || true
+    if start_server "$gserver" OPS-14 go "$gdir" "$OPS_NET"; then
+        ops_go_base "$gserver" "$gdir" reality
+        docker exec "$gserver" sh -c \
+            'printf "#!/bin/sh\\nexec systemctl restart xray\\n" > /usr/local/bin/e2e-service-apply && chmod 0755 /usr/local/bin/e2e-service-apply' \
+            >/dev/null 2>&1 || true
+        ops_go_cli "$gserver" "$gdir" 10-enable xray api enable --sandbox / \
+            --validator /usr/local/bin/xray --service /usr/local/bin/e2e-service-apply \
+            --container --json
+        docker exec "$gserver" /usr/local/bin/idleleo stats --watch --interval 1s \
+            --samples 30 --pattern 'inbound>>>VLESS-Reality-in' --json \
+            >"$gdir/11-watch.out" 2>"$gdir/11-watch.err" &
+        watch_pid=$!
+        sleep 1
+        mkdir -p "$gdir/L4-1"
+        run_l4 M1 go "$gserver" "$gdir/L4-1" "$OPS_NET" reality 1
+        echo $? >"$gdir/L4-1.rc"
+        wait "$watch_pid"; rc=$?; echo "$rc" >"$gdir/11-watch.rc"
+    else
+        echo 1 >"$gdir/11-watch.rc"
+    fi
+    [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$gserver" >/dev/null 2>&1 || true
+    docker network rm "$OPS_NET" >/dev/null 2>&1 || true
+    python3 "$SUITE/collect/summarize_ops14_live.py" "$bdir" "$gdir" "$EVID/OPS-14/ops.json"
+    log "[OPS-14] verdict=DIFF"
+}
+
 ops_state_job() { # <ops-id>
     local oid=$1 sid=M1 gmode=reality
     local ops20_subnet="" ops20_gateway=""
@@ -2258,8 +2314,9 @@ ops_bash_pipe() { # <server> <dir> <label> <timeout> <input> [install.sh args...
 ops_bash_expect() { # <server> <dir> <label> <ops-id> <timeout>
     local server=$1 dir=$2 label=$3 oid=$4 limit=$5
     mkdir -p "$dir"
-    docker exec -e E2E_OPS_ID="$oid" -e E2E_TIMEOUT="$limit" \
-        -e E2E_LOG=/tmp/e2e-"$oid".expect.log "$server" \
+    local -a expect_env=(-e TERM=xterm -e E2E_OPS_ID="$oid" -e E2E_TIMEOUT="$limit"
+        -e E2E_LOG=/tmp/e2e-"$oid".expect.log)
+    docker exec "${expect_env[@]}" "$server" \
         expect -f /src/tests/e2e-diff/drivers/bash_ops.exp \
         >"$dir/$label.out" 2>"$dir/$label.err"
     local rc=$?
@@ -3141,8 +3198,9 @@ ops_cert_job() {
     if start_server "$bserver" "$oid" bash "$bdir" "$OPS_NET"; then
         run_bash_round M4 "$OPS_NET" "$bserver" "$bdir" 1 "" tls "-1" "" 1
         ops_cert_facts "$bserver" "$bdir/cert-facts.txt"
-        # 4>2>1 status, 4>2>2 validity, then unwind the three menus.
-        ops_bash_pipe "$bserver" "$bdir" run 60 '4\n2\n1\n0\n2\n2\n0\n0\n0\n'
+        # Exercise status, validity and read-only renewal-scheduler inspection
+        # through the real /dev/tty menu; the TLS fixture is user-managed.
+        ops_bash_expect "$bserver" "$bdir" run OPS-16 60
     else
         echo '{"status":"harness-error","reason":"container start failed"}' >"$bdir/harness.json"
     fi
@@ -3155,9 +3213,11 @@ ops_cert_job() {
         while IFS= read -r line; do GO_ARGV+=("$line"); done < <(json_list "$go_argv_json")
         run_go_round M4 "$gserver" "$gdir" 1 "" tls "${GO_ARGV[@]}"
         ops_cert_facts "$gserver" "$gdir/cert-facts.txt"
-        ops_go_cli "$gserver" "$gdir" 10-op xray cert renew --dry-run --json \
+        ops_go_cli "$gserver" "$gdir" 10-op xray cert status --json
+        ops_go_cli "$gserver" "$gdir" 11-preflight xray cert renew --dry-run --json \
             --domain "$DOMAIN" --webroot /var/lib/idleleo/acme \
             --cert-out /etc/idleleo/cert/xray.crt --key-out /etc/idleleo/cert/xray.key
+        ops_cert_facts "$gserver" "$gdir/cert-facts-after.txt"
     else
         echo '{"status":"harness-error","reason":"container or M4 argv unavailable"}' >"$gdir/harness.json"
     fi
@@ -3179,6 +3239,9 @@ ops_cert_facts() { # <server> <out-file>
             echo "notExpired=false"
         fi
         sha256sum "$f" | awk "{print \"sha256=\" \$1}"
+        if [ -f /etc/idleleo/cert/xray.key ]; then
+            sha256sum /etc/idleleo/cert/xray.key | awk "{print \"keySha256=\" \$1}"
+        fi
     ' >"$2" 2>&1 || true
 }
 
@@ -3208,11 +3271,21 @@ def rc(path):
 
 bash_facts = read(os.path.join(base, "bash", "cert-facts.txt"))
 go_facts = read(os.path.join(base, "go", "cert-facts.txt"))
+go_facts_after = read(os.path.join(base, "go", "cert-facts-after.txt"))
 go_out = read(os.path.join(base, "go", "10-op.out"))
 state = ""
 if '"certificateFile"' in go_out:
     try:
         data = json.loads(go_out)
+        certificate = data.get("certificate") or {}
+        if certificate.get("expired"):
+            state = "expired"
+        elif certificate.get("due"):
+            state = "due"
+        elif not certificate:
+            state = "missing"
+        else:
+            state = "not-due"
         if data.get("missing"):
             state = "missing"
         elif data.get("userManaged"):
@@ -3225,12 +3298,20 @@ if '"certificateFile"' in go_out:
         state = ""
 
 reasons = [
-    "Bash menu 4>2>1/4>2>2 shows certificate status/validity; Go 'cert renew --dry-run' is a renewal preflight",
+    "Bash menu reports status/validity/scheduler interactively; Go cert status returns the same certificate facts and scheduler state as read-only JSON; renew --dry-run is separately recorded",
     "bash rc=%s" % rc(os.path.join(base, "bash", "run.rc")),
-    "go rc=%s" % rc(os.path.join(base, "go", "10-op.rc")),
+    "go cert status rc=%s" % rc(os.path.join(base, "go", "10-op.rc")),
+    "go renewal preflight rc=%s" % rc(os.path.join(base, "go", "11-preflight.rc")),
     "bash certificate present=%s" % ("present=true" in bash_facts),
     "go certificate present=%s notExpired=%s state=%s"
     % ("present=true" in go_facts, "notExpired=true" in go_facts, state or "unknown"),
+    "Go status preserved certificate/key hashes=%s"
+    % ("sha256=" in go_facts and "sha256=" in go_facts_after and
+       "keySha256=" in go_facts and "keySha256=" in go_facts_after and
+       next((x for x in go_facts.splitlines() if x.startswith("sha256=")), "") ==
+       next((x for x in go_facts_after.splitlines() if x.startswith("sha256=")), "") and
+       next((x for x in go_facts.splitlines() if x.startswith("keySha256=")), "") ==
+       next((x for x in go_facts_after.splitlines() if x.startswith("keySha256=")), "")),
 ]
 entry = {
     "id": "OPS-16",
@@ -3245,6 +3326,11 @@ entry = {
         "goPresent": "present=true" in go_facts,
         "goNotExpired": "notExpired=true" in go_facts,
         "goState": state,
+    },
+    "goStatus": {
+        "rc": rc(os.path.join(base, "go", "10-op.rc")),
+        "report": json.loads(go_out) if rc(os.path.join(base, "go", "10-op.rc")) == 0 else None,
+        "preflightRc": rc(os.path.join(base, "go", "11-preflight.rc")),
     },
 }
 with open(os.path.join(base, "ops.json"), "w", encoding="utf-8") as fh:
@@ -4863,6 +4949,7 @@ ops_job() {
         OPS-17c) ops_simple_job OPS-17c M1 reality ;;
         OPS-30) ops_simple_job OPS-30 M1 reality ;;
         OPS-08|OPS-11|OPS-15|OPS-20|OPS-22|OPS-28) ops_state_job "$1" ;;
+        OPS-14) ops14_job ;;
         OPS-16) ops_cert_job ;;
         OPS-27) ops_certclear_job ;;
         OPS-OBSERVE) ops_observe_job ;;
@@ -4912,7 +4999,7 @@ fi
 # have real execution paths; every other OPS row is reported NOT-RUN rather than
 # silently inheriting its declared verdict.
 OIDS=()
-for oid in OPS-19 OPS-21 OPS-09 OPS-31 OPS-32 \
+for oid in OPS-19 OPS-21 OPS-09 OPS-31 OPS-32 OPS-14 \
            OPS-01 OPS-02 OPS-03 \
            OPS-04 OPS-05 OPS-06 OPS-07 OPS-10 OPS-17c OPS-30 \
            OPS-08 OPS-11 OPS-15 OPS-16 OPS-20 OPS-22 OPS-27 OPS-28 OPS-OBSERVE; do

@@ -178,6 +178,28 @@ class LedgerContractTest(unittest.TestCase):
         self.assertEqual(sha, target)
         self.assertIsNone(reuse)
 
+    def test_impact_reuse_chain_preserves_source_and_checks_each_transition(self):
+        first = {"baseCodeSha": "b" * 40, "targetCodeSha": "c" * 40,
+                 "reusableOps": {"OPS-08"}, "affectedOps": {"OPS-25"},
+                 "evidence": "first.json", "changedFiles": ["install.sh"],
+                 "diffSha256": "d" * 64}
+        second = {"baseCodeSha": "c" * 40, "targetCodeSha": "e" * 40,
+                  "reusableOps": {"OPS-08", "OPS-25"}, "affectedOps": {"OPS-14"},
+                  "evidence": "second.json", "changedFiles": ["internal/cli/stats.go"],
+                  "diffSha256": "f" * 64}
+        sha, reuse = _BUILDER.expected_evidence_sha(
+            {"productCodeSha": "b" * 40}, "e" * 40, "OPS-08", [first, second])
+        self.assertEqual(sha, "b" * 40)
+        self.assertEqual(len(reuse["impactChain"]), 2)
+        sha, reuse = _BUILDER.expected_evidence_sha(
+            {"productCodeSha": "b" * 40}, "e" * 40, "OPS-25", [first, second])
+        self.assertEqual(sha, "e" * 40)
+        self.assertIsNone(reuse)
+        sha, reuse = _BUILDER.expected_evidence_sha(
+            {"productCodeSha": "c" * 40}, "e" * 40, "OPS-25", [first, second])
+        self.assertEqual(sha, "c" * 40)
+        self.assertEqual(reuse["targetCodeSha"], "e" * 40)
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = self.tmp.name

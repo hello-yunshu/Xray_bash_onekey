@@ -1,0 +1,72 @@
+Command: python3 tests/e2e-diff/collect/build_ledger.py with 16 matrix evidence roots, code SHA 9e495b38a5574f53e37bd11e4b3c8f196f76e25b, both verified impact-reuse maps, and --allow-repo-write.
+Strict mode; --allow-incomplete was not used.
+ledger: FAIL rows present: OPS-14, OPS-16, OPS-27
+{
+  "total": 34,
+  "dualSideVerified": 28,
+  "dualSideVerifiedIds": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-03",
+    "OPS-04",
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-08",
+    "OPS-09",
+    "OPS-10",
+    "OPS-11",
+    "OPS-12",
+    "OPS-13",
+    "OPS-15",
+    "OPS-17b",
+    "OPS-17c",
+    "OPS-19",
+    "OPS-20",
+    "OPS-21",
+    "OPS-22",
+    "OPS-23",
+    "OPS-24",
+    "OPS-25",
+    "OPS-26",
+    "OPS-28",
+    "OPS-29",
+    "OPS-31",
+    "OPS-32"
+  ],
+  "goOnly": 0,
+  "fail": 3,
+  "failIds": [
+    "OPS-14",
+    "OPS-16",
+    "OPS-27"
+  ],
+  "bashOnly": 1,
+  "bashOnlyIds": [
+    "OPS-30"
+  ],
+  "blocked": 2,
+  "blockedIds": [
+    "OPS-17a",
+    "OPS-18"
+  ],
+  "notRun": 0,
+  "notRunIds": [],
+  "approvedDiff": 0,
+  "approvedDiffIds": [],
+  "approvedSingleSide": 0,
+  "approvedSingleSideIds": [],
+  "unresolvedIds": [
+    "OPS-14",
+    "OPS-16",
+    "OPS-17a",
+    "OPS-18",
+    "OPS-27",
+    "OPS-30"
+  ],
+  "generatedAt": "2026-11-27T19:40:24+00:00",
+  "codeSha": "9e495b38a5574f53e37bd11e4b3c8f196f76e25b",
+  "source": "tests/e2e-diff/ledger.json"
+}
+
+STRICT_RC=1

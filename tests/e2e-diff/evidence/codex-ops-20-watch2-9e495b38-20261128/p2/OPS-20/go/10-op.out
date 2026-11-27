@@ -1,0 +1,18 @@
+{
+  "stat": [
+    {
+      "name": "inbound>>>VLESS-Reality-in>>>traffic>>>downlink"
+    },
+    {
+      "name": "inbound>>>api>>>traffic>>>uplink",
+      "value": 447
+    },
+    {
+      "name": "inbound>>>api>>>traffic>>>downlink",
+      "value": 665
+    },
+    {
+      "name": "inbound>>>VLESS-Reality-in>>>traffic>>>uplink"
+    }
+  ]
+}
