@@ -1,0 +1,18 @@
+{
+  "runId": "soak-diag-current-7d3e19d9-20261127",
+  "productCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+  "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+  "driverSha": "5adc71207f7948d3387c6f27a40a3fc695d8844979a92139fdd06fd22c2e2cef",
+  "image": "sha256:7803c2c26d730bad30ec7eda008e7e17cd5f63d64314fa797360b827ef552902",
+  "platform": "linux/arm64",
+  "startedAt": "2026-11-27T10:07:41Z",
+  "finishedAt": "2026-11-27T10:39:29Z",
+  "layer": "30-minute soak + schedule cycles",
+  "verdict": "PASS",
+  "actualRc": 0,
+  "manifestPath": "build-manifest.json",
+  "manifestSha256": "97e9fae37dee680cec8db7c19e6ead0e4a84e815f5fcb4df6a530efa96b07bc7",
+  "result": "tests/e2e-diff/evidence/soak-diag-current-7d3e19d9-20261127/soak/soak.json",
+  "log": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/soak-diag-current-7d3e19d9.log"
+}

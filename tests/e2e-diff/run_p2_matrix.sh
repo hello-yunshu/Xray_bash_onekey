@@ -154,7 +154,8 @@ docker run --rm -v "$ROOT:/src:ro" -v "$WORK/seed:/out" -w /src \
 }
 
 ARCH=$(docker_arch) || exit 2
-if [[ -x "$ROOT/tests/go-parity/.cache/a2/xray" ]]; then
+if [[ -x "$ROOT/tests/go-parity/.cache/a2/xray" && \
+      "$(elf_machine "$ROOT/tests/go-parity/.cache/a2/xray")" == "$ARCH" ]]; then
     XRAY_BIN="$ROOT/tests/go-parity/.cache/a2/xray"
 else
     XRAY_BIN=$(ensure_xray_bin "$ARCH") || exit 2
@@ -2474,7 +2475,31 @@ for oid, marker, logfile in (
         if rc(os.path.join(evid, oid, side, "follow.rc")) != 124:
             reasons.append("%s follow probe did not end at its 30s timeout" % side)
     status = "PASS" if not reasons else "FAIL"
-    entry = write(oid, status, reasons)
+    rc_proof = {
+        "expectedRc": {"bash": 124, "go": 0},
+        "expectedRcEvidence": {
+            "bash": {
+                "rcFiles": [
+                    {"path": "bash/run.rc", "expected": 124},
+                    {"path": "bash/follow.rc", "expected": 124},
+                ],
+                "markerFiles": [
+                    {"path": "bash/follow.out", "contains": [live_marker]},
+                ],
+            },
+            "go": {
+                "rcFiles": [
+                    {"path": "go/snapshot.rc", "expected": 0},
+                    {"path": "go/follow.rc", "expected": 124},
+                ],
+                "markerFiles": [
+                    {"path": "go/snapshot.out", "contains": [marker]},
+                    {"path": "go/follow.out", "contains": [marker, live_marker]},
+                ],
+            },
+        },
+    }
+    entry = write(oid, status, reasons, extra=rc_proof)
     write_doc(oid, "log-source-difference.json", {
         "id": oid,
         "result": status,
@@ -4554,7 +4579,7 @@ artifact_paths = {
 for source, target in ((binary, artifact_paths["binary"]),
                        (os.path.join(root, "install.sh"), artifact_paths["bashScript"]),
                        (os.path.join(root, "tests/e2e-diff/run_p2_matrix.sh"), artifact_paths["driver"])):
-    shutil.copyfile(source, target)
+    shutil.copy2(source, target)
 artifact_rels = {name: os.path.relpath(path, evid) for name, path in artifact_paths.items()}
 dependency_sources = (
     "tests/e2e-diff/collect/l4.sh",
@@ -4568,7 +4593,7 @@ for rel in dependency_sources:
     source = os.path.join(root, rel)
     target = os.path.join(artifact_dir, "dependencies", rel)
     os.makedirs(os.path.dirname(target), exist_ok=True)
-    shutil.copyfile(source, target)
+    shutil.copy2(source, target)
     dependencies.append({"source": rel, "path": os.path.relpath(target, evid), "sha256": digest(target)})
 manifest = {
     "productCodeSha": subprocess.check_output(

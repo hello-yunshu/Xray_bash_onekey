@@ -1,0 +1,13 @@
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=--binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target 127.0.0.1:8443 --port 443 --container --transport ws
+install_exit=0
+manifest entries=11
+runtime collected
+logs collected
+identity fingerprints written to /out/install/config/identity.json
+done=reality-ws install_exit=0
+sanitized /out/install/install.log
+sanitized /out/install/expect.log
+sanitized /out/install/capture.log

@@ -207,6 +207,67 @@ def provenance_problems(data, code_sha, dirname, evidence_root=None):
     return provenance_problems_run(data.get("run"), code_sha, dirname, evidence_root)
 
 
+def load_reuse_impact(path, code_sha):
+    """Load a narrowly scoped, git-verifiable evidence reuse decision."""
+    if not path:
+        return None
+    data = read_json(path)
+    if not isinstance(data, dict) or data.get("schemaVersion") != 1:
+        raise EvidenceError("reuse impact must be a schemaVersion 1 JSON object")
+    base, target = str(data.get("baseCodeSha") or ""), str(data.get("targetCodeSha") or "")
+    if not GIT_SHA_RE.fullmatch(base) or not GIT_SHA_RE.fullmatch(target):
+        raise EvidenceError("reuse impact requires full base/target Git SHAs")
+    if target != code_sha:
+        raise EvidenceError("reuse impact targetCodeSha does not match the candidate")
+    repo = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+    for sha in (base, target):
+        if subprocess.run(["git", "-C", repo, "cat-file", "-e", sha + "^{commit}"],
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
+            raise EvidenceError("reuse impact references a missing Git commit")
+    if subprocess.run(["git", "-C", repo, "merge-base", "--is-ancestor", base, target],
+                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
+        raise EvidenceError("reuse impact baseCodeSha is not an ancestor of targetCodeSha")
+    paths = data.get("changedFiles")
+    if not isinstance(paths, list) or not paths or any(not isinstance(p, str) for p in paths):
+        raise EvidenceError("reuse impact must list exact changedFiles")
+    actual_paths = subprocess.check_output(
+        ["git", "-C", repo, "diff", "--name-only", base + ".." + target], text=True
+    ).splitlines()
+    if sorted(set(paths)) != actual_paths:
+        raise EvidenceError("reuse impact changedFiles do not match the committed diff")
+    actual_diff = subprocess.check_output(
+        ["git", "-C", repo, "diff", "--binary", base + ".." + target, "--", *actual_paths]
+    )
+    if hashlib.sha256(actual_diff).hexdigest() != data.get("diffSha256"):
+        raise EvidenceError("reuse impact diffSha256 does not match the committed diff")
+    reusable, affected = data.get("reusableOps"), data.get("affectedOps")
+    if not isinstance(reusable, list) or not isinstance(affected, list):
+        raise EvidenceError("reuse impact must list reusableOps and affectedOps")
+    reusable_set, affected_set = set(reusable), set(affected)
+    if (reusable_set & affected_set or reusable_set | affected_set != set(OPS_IDS)
+            or any(op not in OPS_IDS for op in reusable_set | affected_set)):
+        raise EvidenceError("reuse impact must partition all 34 OPS IDs without overlap")
+    if not str(data.get("rationale") or "").strip():
+        raise EvidenceError("reuse impact requires a concrete rationale")
+    return {"baseCodeSha": base, "targetCodeSha": target,
+            "reusableOps": reusable_set, "affectedOps": affected_set,
+            "diffSha256": data["diffSha256"], "changedFiles": actual_paths,
+            "evidence": repo_path(path)}
+
+
+def expected_evidence_sha(run, code_sha, op_id, reuse_impact):
+    product = str((run or {}).get("productCodeSha") or "")
+    if product == code_sha:
+        return code_sha, None
+    if (reuse_impact and product == reuse_impact["baseCodeSha"]
+            and op_id in reuse_impact["reusableOps"]):
+        return product, {"sourceCodeSha": product, "targetCodeSha": code_sha,
+                         "impactEvidence": reuse_impact["evidence"],
+                         "changedFiles": reuse_impact["changedFiles"],
+                         "diffSha256": reuse_impact["diffSha256"]}
+    return code_sha, None
+
+
 def _positive(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0
 
@@ -261,6 +322,73 @@ def business_problems(op_id, details):
         for key, predicate in facts:
             if not predicate(block.get(key)):
                 problems.append("%s side lacks the required business fact %s" % (side, key))
+    return problems
+
+
+def expected_exit_problems(data, evidence_path):
+    """Validate a declared non-zero command result against captured outputs.
+
+    Interactive commands such as Bash's live log tail can be intentionally
+    stopped by `timeout` (124). The exception is narrow: the producer must
+    declare the exact summary rc and provide per-command rc files plus output
+    markers stored under that OPS evidence directory.
+    """
+    ops_rc = data.get("opsRc") if isinstance(data.get("opsRc"), dict) else {}
+    expected = data.get("expectedRc") if isinstance(data.get("expectedRc"), dict) else {}
+    proofs = data.get("expectedRcEvidence") if isinstance(data.get("expectedRcEvidence"), dict) else {}
+    problems = []
+    for side in ("bash", "go"):
+        actual = ops_rc.get(side)
+        if actual is None and side not in expected and side not in proofs:
+            continue
+        if side not in expected or expected.get(side) != actual:
+            problems.append("non-zero %s rc %r has no matching expectedRc declaration" % (side, actual))
+            continue
+        proof = proofs.get(side)
+        if not isinstance(proof, dict):
+            problems.append("non-zero %s rc has no captured-output proof" % side)
+            continue
+        rc_files = proof.get("rcFiles")
+        marker_files = proof.get("markerFiles")
+        if not isinstance(rc_files, list) or not rc_files:
+            problems.append("non-zero %s rc proof has no command rc files" % side)
+        else:
+            for item in rc_files:
+                if not isinstance(item, dict) or not isinstance(item.get("path"), str):
+                    problems.append("non-zero %s rc proof has a malformed rc file entry" % side)
+                    continue
+                path = os.path.realpath(os.path.join(os.path.dirname(evidence_path), item["path"]))
+                base = os.path.realpath(os.path.dirname(evidence_path))
+                if not inside_repo(path, base) or not os.path.isfile(path):
+                    problems.append("non-zero %s rc proof file is missing or escapes OPS evidence" % side)
+                    continue
+                try:
+                    with open(path, encoding="utf-8") as fh:
+                        observed = int(fh.read().strip())
+                except (OSError, ValueError):
+                    observed = None
+                if observed != item.get("expected"):
+                    problems.append("non-zero %s rc proof %s does not match its declared value" % (side, item["path"]))
+        if not isinstance(marker_files, list) or not marker_files:
+            problems.append("non-zero %s rc proof has no output marker checks" % side)
+        else:
+            for item in marker_files:
+                if not isinstance(item, dict) or not isinstance(item.get("path"), str):
+                    problems.append("non-zero %s rc proof has a malformed marker file entry" % side)
+                    continue
+                path = os.path.realpath(os.path.join(os.path.dirname(evidence_path), item["path"]))
+                base = os.path.realpath(os.path.dirname(evidence_path))
+                if not inside_repo(path, base) or not os.path.isfile(path):
+                    problems.append("non-zero %s marker file is missing or escapes OPS evidence" % side)
+                    continue
+                try:
+                    with open(path, encoding="utf-8", errors="replace") as fh:
+                        output = fh.read()
+                except OSError:
+                    output = ""
+                markers = item.get("contains")
+                if not isinstance(markers, list) or not markers or any(str(marker) not in output for marker in markers):
+                    problems.append("non-zero %s output %s lacks its declared behavior markers" % (side, item["path"]))
     return problems
 
 
@@ -412,7 +540,7 @@ def read_difference_declaration(dirpath):
     return None
 
 
-def matrix_results(root, approvals, code_sha=""):
+def matrix_results(root, approvals, code_sha="", reuse_impact=None):
     """Read p2/OPS-*/ops.json verdicts from a matrix run.
 
     Every declared OPS directory produces a row. A missing/unreadable ops.json,
@@ -442,7 +570,9 @@ def matrix_results(root, approvals, code_sha=""):
                 path, data = declaration
                 verdict = str(data.get("result") or data.get("verdict") or "").upper().replace("-", "_")
                 reasons = [str(r) for r in (data.get("reasons") or [])]
-                prov = provenance_problems(data, code_sha, run_id, p2)
+                run_block = data.get("run") if isinstance(data.get("run"), dict) else {}
+                expected_sha, reuse = expected_evidence_sha(run_block, code_sha, name, reuse_impact)
+                prov = provenance_problems(data, expected_sha, run_id, p2)
                 base = {
                     "verdict": verdict, "reasons": reasons,
                     "evidence": repo_path(path), "runId": run_id,
@@ -459,6 +589,8 @@ def matrix_results(root, approvals, code_sha=""):
                 else:
                     base.update(status="FAIL", reasons=reasons + [
                         "%s declares a difference but no external approval names %s" % (os.path.basename(path), name)])
+                if reuse and not prov:
+                    base["evidenceReuse"] = reuse
                 out[name] = base
                 continue
             out[name] = {
@@ -480,6 +612,8 @@ def matrix_results(root, approvals, code_sha=""):
             "verdict": verdict or None,
             "bashExit": bash_rc,
             "goExit": go_rc,
+            "expectedRc": data.get("expectedRc"),
+            "expectedRcEvidence": data.get("expectedRcEvidence"),
             "reasons": reasons,
             "evidence": repo_path(evidence_path),
             "runId": run_id,
@@ -496,7 +630,8 @@ def matrix_results(root, approvals, code_sha=""):
                         reasons=reasons + ["ops.json id %r does not match its directory %r" % (op_id, name)])
             out[name] = base
             continue
-        prov = provenance_problems(data, code_sha, run_id, p2)
+        expected_sha, reuse = expected_evidence_sha(run_block, code_sha, op_id, reuse_impact)
+        prov = provenance_problems(data, expected_sha, run_id, p2)
         if prov:
             status = "BLOCKED"
             base["reasons"] = reasons + prov
@@ -515,12 +650,13 @@ def matrix_results(root, approvals, code_sha=""):
                 status = "FAIL"
                 base["reasons"] = reasons + ["an expected/allowed difference was declared but no external approval names %s" % op_id]
         elif verdict in PASS_VERDICTS:
-            # A PASS that carries a non-zero exit code is contradictory evidence,
-            # not a pass. Both sides must have recorded a zero exit code.
+            # A non-zero result is accepted only when the producer declares the
+            # exact expected rc and provides captured command/output proof.
             bad_rc = [label for label, rc in (("bash", bash_rc), ("go", go_rc)) if rc is not None and rc != 0]
-            if bad_rc:
+            rc_problems = expected_exit_problems(data, evidence_path) if bad_rc else []
+            if bad_rc and rc_problems:
                 status = "FAIL"
-                base["reasons"] = reasons + ["verdict %s contradicts non-zero %s exit code" % (verdict, ",".join(bad_rc))]
+                base["reasons"] = reasons + rc_problems
             elif bash_rc is None or go_rc is None:
                 status = "BLOCKED"
                 base["reasons"] = reasons + ["dual-side PASS is missing an exit code; evidence is incomplete"]
@@ -547,6 +683,8 @@ def matrix_results(root, approvals, code_sha=""):
         else:
             status = "BLOCKED"
             base["reasons"] = reasons + ["unrecognised or missing verdict %r; evidence is not acceptable" % verdict]
+        if reuse and not prov:
+            base["evidenceReuse"] = reuse
         base["status"] = status
         out[op_id] = base
     return out
@@ -669,6 +807,9 @@ def main():
     ap.add_argument("--approved-diffs", default="",
                     help="explicit approval JSON for declared differences and single-side rows; "
                          "without it both remain FAIL/single-side")
+    ap.add_argument("--reuse-impact", default="",
+                    help="git-verified impact map allowing only explicitly unaffected OPS evidence "
+                         "from one ancestor candidate SHA")
     ap.add_argument("--allow-incomplete", action="store_true",
                     help="exit 0 even when rows are not dual-side verified (never for final acceptance)")
     ap.add_argument("--out", default="tests/e2e-diff/ledger.json")
@@ -678,11 +819,13 @@ def main():
                     help="allow writing the tracked ledger/matrix/acceptance artifacts; "
                          "tests and ad-hoc runs must keep every output in a temp directory")
     args = ap.parse_args()
+    sha = args.code_sha or os.popen("git rev-parse HEAD").read().strip()
 
     try:
         approvals = load_approvals(args.approved_diffs)
-        matrix_runs = [matrix_results(root, approvals, args.code_sha) for root in args.matrix_evidence]
-        sweep_runs = [sweep_results(root, approvals, args.code_sha) for root in args.ops_evidence]
+        reuse_impact = load_reuse_impact(args.reuse_impact, sha)
+        matrix_runs = [matrix_results(root, approvals, sha, reuse_impact) for root in args.matrix_evidence]
+        sweep_runs = [sweep_results(root, approvals, sha) for root in args.ops_evidence]
     except EvidenceError as exc:
         print("ledger error: %s" % exc, file=sys.stderr)
         return 2
@@ -705,8 +848,24 @@ def main():
     for record in matrix_runs + sweep_runs:
         for op_id, entry in record.items():
             history.setdefault(op_id, []).append(entry)
-            if op_id not in chosen or rank[entry["status"]] > rank[chosen[op_id]["status"]]:
+            incoming_current = entry.get("productCodeSha") == sha
+            selected_current = (chosen.get(op_id) or {}).get("productCodeSha") == sha
+            if (op_id not in chosen or rank[entry["status"]] > rank[chosen[op_id]["status"]]
+                    or (rank[entry["status"]] == rank[chosen[op_id]["status"]]
+                        and incoming_current and not selected_current)):
                 chosen[op_id] = entry
+
+    if reuse_impact:
+        for op_id in reuse_impact["affectedOps"]:
+            fresh = [entry for entry in history.get(op_id, [])
+                     if entry.get("productCodeSha") == sha
+                     and entry.get("status") in RESOLVED_STATUSES]
+            if not fresh:
+                chosen[op_id] = {
+                    "status": "BLOCKED", "verdict": None,
+                    "reasons": ["impact marks this row affected; no resolved evidence exists at the target candidate SHA"],
+                    "evidence": None, "layer": None,
+                }
 
     # A failure stays a failure unless a later run of the same frozen candidate
     # explicitly names the failed run it supersedes, states the fix commit and
@@ -731,7 +890,7 @@ def main():
             candidate_started = _timestamp(candidate.get("startedAt"))
             prior_started = _timestamp(prior.get("startedAt"))
             if (fixed_by != candidate_sha or candidate_sha == prior_sha
-                    or (args.code_sha and candidate_sha != args.code_sha)
+                    or candidate_sha != sha
                     or candidate_started is None or prior_started is None
                     or candidate_started <= prior_started):
                 continue
@@ -790,7 +949,6 @@ def main():
     approved_single_side_ids = [e["id"] for e in results if e["status"] == "APPROVED_SINGLE_SIDE"]
     unresolved = [e["id"] for e in results if e["status"] not in RESOLVED_STATUSES]
 
-    sha = args.code_sha or os.popen("git rev-parse HEAD").read().strip()
     generated = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
     ledger = {
         "schemaVersion": 1,
@@ -882,6 +1040,7 @@ def main():
             "goOnlyIds": go_ids,
             "failIds": fail_ids,
             "bashOnlyIds": bash_ids,
+            "blockedIds": blocked_ids,
             "approvedDiffIds": approved_diff_ids,
             "approvedSingleSideIds": approved_single_side_ids,
             "notRunIds": not_run_ids,

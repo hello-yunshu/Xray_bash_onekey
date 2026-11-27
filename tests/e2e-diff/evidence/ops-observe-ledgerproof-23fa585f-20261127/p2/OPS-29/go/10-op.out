@@ -1,0 +1,9 @@
+{
+  "rill": {
+    "installed": false,
+    "observationAgeSeconds": 0,
+    "status": "absent",
+    "enabled": false
+  },
+  "schemaVersion": 1
+}

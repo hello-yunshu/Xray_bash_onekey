@@ -1,0 +1,64 @@
+{
+  "approved": false,
+  "bash": {
+    "entry": "install.sh menu live tail",
+    "liveMarkerVisible": true,
+    "rc": 124,
+    "seededMarkerVisible": true
+  },
+  "go": {
+    "entry": "idleleo xray logs show (bounded file tail; optional follow)",
+    "liveMarkerVisible": true,
+    "rc": 0,
+    "seededMarkerVisible": true,
+    "snapshotBytes": 18
+  },
+  "id": "OPS-12",
+  "note": "Go defaults to a bounded tail of the same real Xray file and provides explicit follow; equality requires both snapshot and live marker probes to pass.",
+  "reasons": [],
+  "result": "PASS",
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "1e75bb585ea7f7aa41007c684eba8677ed4a0d269f20a98487478368c16ddb9f",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "64e6d291834702e93030d9fd170a13b71716e508d9c48961b7062e50529bce83",
+    "finishedAt": "2026-11-27T05:45:32Z",
+    "fixedBy": null,
+    "image": "sha256:6b8f24346cd7e992e77e9c9e9e520b7de1818381fc192453b44b8290424535ff",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "8a4b77f5cf0e80ee892d9c71f21c6d056d94c689350a9cd65bceeb819b960b65",
+    "platform": "linux/arm64",
+    "productCodeSha": "bc409b5d3ede629eb2a71e13e3d1fe27eec9b760",
+    "runId": "ops-observe-logfix2-20261127",
+    "startedAt": "2026-11-27T05:41:03Z",
+    "supersedes": null
+  },
+  "source": "/var/log/xray/access.log"
+}

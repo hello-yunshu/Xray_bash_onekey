@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "state": "VALIDATED",
+  "xrayExit": 0,
+  "xrayOutput": "Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)\nA unified platform for anti-censorship.\n2026/11/27 11:32:14.939051 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}\nConfiguration OK.",
+  "nginxExit": 0,
+  "candidateExit": 0,
+  "candidateStatusExit": 0,
+  "candidateInstalled": true,
+  "candidateMatchesMetadata": true,
+  "runtimeSha256": "46c43641665137baf192b6742596f25e025ef6018a32dc62bb2a7a1768cd941e",
+  "rillStatus": "absent",
+  "rillUnchanged": true
+}

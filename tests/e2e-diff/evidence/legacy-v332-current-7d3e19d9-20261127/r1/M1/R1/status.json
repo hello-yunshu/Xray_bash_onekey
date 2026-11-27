@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "installed": true,
+  "engine": "xray",
+  "role": "node",
+  "tls": "Reality",
+  "transport": "raw",
+  "config": {
+    "path": "/etc/idleleo/conf/xray/config.json",
+    "sha256": "cb24d9e683110a2940ab094a0c43946223430a974d623e850c8195f2e964e977",
+    "matchesMetadata": true
+  },
+  "service": {
+    "xray": "active",
+    "nginx": "inactive",
+    "enabled": "enabled",
+    "source": "systemctl",
+    "sandbox": false
+  },
+  "drift": [],
+  "warnings": [
+    "custom-dns-present",
+    "custom-routing-present"
+  ]
+}

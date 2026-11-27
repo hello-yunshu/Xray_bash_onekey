@@ -83,7 +83,8 @@ def main(argv):
             if fixed != text:
                 path.write_text(fixed, encoding="utf-8", errors="surrogateescape")
                 changed += 1
-                print(f"sanitize: {path}")
+                relative = path.relative_to(root) if root.is_dir() else Path(path.name)
+                print(f"sanitize: {relative.as_posix()}")
     print(f"sanitize: {changed} file(s) updated")
     return 0
 

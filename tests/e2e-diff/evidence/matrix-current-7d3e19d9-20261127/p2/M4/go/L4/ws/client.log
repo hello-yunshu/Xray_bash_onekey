@@ -1,0 +1,7 @@
+Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/27 08:44:24.442550 [Info] infra/conf/serial: Reading config: &{Name:/client/client.json Format:json}
+2026/11/27 08:44:24.445919 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/27 08:44:24.445981 [Warning] core: Xray 26.11.9 started
+2026/11/27 08:44:24.446125 [Warning] common/errors: This feature "host" in "headers" is deprecated, will be removed soon and being migrated to independent "host". Please update your config(s) according to release note and documentation before removal.
+2026/11/27 08:44:26.514083 from tcp:127.0.0.1:44680 accepted tcp:example.com:80

@@ -1,0 +1,5 @@
+[OK]  当前用户是 root 用户, 开始安装 
+2026/11/27 12:17:39.745019 [Warning] core: Xray 26.11.9 started
+2026/11/27 12:17:42.013441 [Warning] core: Xray 26.11.9 started
+e2e-error-marker
+e2e-error-live-marker

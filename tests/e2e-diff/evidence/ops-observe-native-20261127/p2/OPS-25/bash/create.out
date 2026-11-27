@@ -1,0 +1,3 @@
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  备份包含证书私钥与 ACME 账户私钥(account.conf, ca/), 请按密钥文件保管 
+[OK]  备份 成功: /etc/idleleo/xray_bash_e2e-ops25_20261126181654.tar.gz 

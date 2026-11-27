@@ -1,0 +1,35 @@
+16:43:08 run_id=matrix-current-7d3e19d9-20261127
+16:43:09 image_id=sha256:f6c28602447747db6291384109d07dd376190c56f50bf2aadab3771c0f14ed9a
+16:43:09 building idleleo
+16:43:14 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+16:43:14 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+16:43:14 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+16:43:14 release_cache=seeded templates=vless_reality.json,vless_tls.json
+16:43:14 release_cache=hit
+16:43:14 apt_cache=skipped (no OPS scenario selected)
+16:43:14 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+16:43:14 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+16:43:15 argv-verify written
+16:43:15 [M5] start
+16:43:15 [M1] start
+16:43:15 [M3] start
+16:43:15 [M4] start
+16:43:15 [M2] start
+16:44:18 [M5] done
+16:44:33 [M4] done
+16:45:09 [M1] done
+16:45:14 [M3] done
+16:45:42 [M2] done
+16:45:42 [M6] start
+16:45:42 [M8] start
+16:45:42 [M7] start
+16:45:42 [M9] start
+16:45:42 [M10] start
+16:45:43 [M8] pebble ready
+16:46:38 [M10] done
+16:46:54 [M9] done
+16:47:10 [M8] done
+16:47:12 [M6] done
+16:47:37 [M7] done
+16:47:37 scope: installs=[M1,M2,M3,M4,M5,M6,M7,M8,M9,M10] edits=[] ops=[]
+16:47:37 P2 finished: tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2

@@ -1,0 +1,5 @@
+staged-cert-sha256=a2c9b6356e1ea1c242e38317d8e086d774b154b74acb5f2b85a5a1bd025be26c
+key-sha256=5624f79c144a1d6a843ba8aff22ebeb8cd56fd1c638c31d304fdefc078bd75db
+cert-mode=0644
+key-mode=0600
+marker-mode=0600

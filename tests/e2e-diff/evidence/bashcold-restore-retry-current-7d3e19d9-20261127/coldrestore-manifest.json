@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "runId": "bashcold-restore-retry-current-7d3e19d9-20261127",
+  "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+  "productFile": "install.sh",
+  "productFileSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+  "driverFile": "tests/e2e-diff/collect/l4.sh",
+  "driverSha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+  "imageId": "sha256:fb6d2f1196168beec681e4a13db110a6b635b1a1715666d08b4e11107952538e",
+  "platform": "linux/arm64",
+  "sourceInstallRunId": "bashcold-src-current-7d3e19d9-20261127",
+  "sourceRunManifest": "tests/e2e-diff/evidence/bashcold-src-current-7d3e19d9-20261127/p2/run.json",
+  "archiveSha256": "6b89e281d1361aa6ea6e2c5a73ea28b38835d29121f2c05b2afcc5ad7850df9c",
+  "archiveMode": "0600",
+  "restoreRc": 0,
+  "serviceValidationRc": 0,
+  "hashAndPermissionMatch": true,
+  "realClientL4": {
+    "profile": "tls",
+    "transport": "ws",
+    "curlExit": 0,
+    "bodyBytes": 577,
+    "bodySha256": "25ddf2c883e0d1958ea971d279a7e4f0fd446724ee3db7db19dadabd4a62e484"
+  },
+  "restoreWarnings": [
+    "harden_config_permissions reported incomplete; checked config/cert/key modes and source/target hashes match, nginx/xray started and real TLS/WebSocket L4 succeeded; exact warning cause was not captured"
+  ],
+  "failedAttemptEvidence": "tests/e2e-diff/evidence/bashcold-restore-current-7d3e19d9-20261127/restore/restore.log",
+  "resultEvidence": "tests/e2e-diff/evidence/bashcold-restore-retry-current-7d3e19d9-20261127/run.log",
+  "credentialsPolicy": "archive carried private material; archive and extracted client credentials were kept outside the repository and removed after verification"
+}

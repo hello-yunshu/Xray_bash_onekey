@@ -209,78 +209,71 @@
   ],
   "ops": {
     "total": 34,
-    "dualSideVerified": 5,
+    "dualSideVerified": 26,
     "dualSideVerifiedIds": [
       "OPS-01",
       "OPS-02",
       "OPS-03",
+      "OPS-04",
+      "OPS-05",
+      "OPS-06",
+      "OPS-07",
       "OPS-08",
-      "OPS-20"
-    ],
-    "goOnly": 14,
-    "fail": 1,
-    "failIds": [
-      "OPS-27"
-    ],
-    "bashOnly": 0,
-    "bashOnlyIds": [],
-    "blocked": 2,
-    "blockedIds": [
-      "OPS-04",
-      "OPS-26"
-    ],
-    "notRun": 12,
-    "notRunIds": [
-      "OPS-05",
-      "OPS-06",
-      "OPS-07",
-      "OPS-09",
-      "OPS-10",
-      "OPS-17b",
-      "OPS-17c",
-      "OPS-19",
-      "OPS-21",
-      "OPS-30",
-      "OPS-31",
-      "OPS-32"
-    ],
-    "approvedDiff": 0,
-    "approvedDiffIds": [],
-    "approvedSingleSide": 0,
-    "approvedSingleSideIds": [],
-    "unresolvedIds": [
-      "OPS-04",
-      "OPS-05",
-      "OPS-06",
-      "OPS-07",
       "OPS-09",
       "OPS-10",
       "OPS-11",
       "OPS-12",
       "OPS-13",
-      "OPS-14",
       "OPS-15",
-      "OPS-16",
-      "OPS-17a",
       "OPS-17b",
       "OPS-17c",
-      "OPS-18",
       "OPS-19",
+      "OPS-20",
       "OPS-21",
       "OPS-22",
-      "OPS-23",
-      "OPS-24",
       "OPS-25",
       "OPS-26",
-      "OPS-27",
       "OPS-28",
       "OPS-29",
-      "OPS-30",
       "OPS-31",
       "OPS-32"
     ],
-    "generatedAt": "2026-11-26T11:08:42+00:00",
-    "codeSha": "f4deaf77c08457bf2ed1a07e165b2ff5bf5b53f5",
+    "goOnly": 0,
+    "fail": 3,
+    "failIds": [
+      "OPS-14",
+      "OPS-16",
+      "OPS-27"
+    ],
+    "bashOnly": 1,
+    "bashOnlyIds": [
+      "OPS-30"
+    ],
+    "blocked": 4,
+    "blockedIds": [
+      "OPS-17a",
+      "OPS-18",
+      "OPS-23",
+      "OPS-24"
+    ],
+    "notRun": 0,
+    "notRunIds": [],
+    "approvedDiff": 0,
+    "approvedDiffIds": [],
+    "approvedSingleSide": 0,
+    "approvedSingleSideIds": [],
+    "unresolvedIds": [
+      "OPS-14",
+      "OPS-16",
+      "OPS-17a",
+      "OPS-18",
+      "OPS-23",
+      "OPS-24",
+      "OPS-27",
+      "OPS-30"
+    ],
+    "generatedAt": "2026-11-27T12:41:51+00:00",
+    "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
     "source": "tests/e2e-diff/ledger.json"
   },
   "summary": {
@@ -763,5 +756,54 @@
       },
       "limitations": "Go-only. Does not provide Bash backup/restore comparison; formal OPS-25/26 classifications remain unchanged."
     }
+  },
+  "followup20261127NativeBackupRestore": {
+    "scope": "Supplemental OPS-25/26 native Bash/Go backup and restore only; does not replace the frozen 34-row ledger or qualify the candidate.",
+    "candidateCodeSha": "5e483b0471ee19bb7bb45a3f2be6a5f9b26fe526",
+    "productSourceCommit": "fb55adf78ee960eda695e6e5742f4c16ff328639",
+    "runId": "ops-observe-backup-final3-20261127",
+    "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+    "driverSha256": "096dc596df2be90c239e730945a37380a4248cd18f9c6d06aa68ccdddee0e3fb",
+    "image": "sha256:3a1adabc9f718796d4103cccdad2b14303800f5ae221b04dcb1b0fd5e8625e12",
+    "platform": "linux/arm64",
+    "ops": {
+      "OPS-25": {
+        "verdict": "PASS",
+        "ledgerStatus": "DUAL_SIDE_VERIFIED",
+        "bashCreateRc": 0,
+        "goCreateRc": 0,
+        "bashManifestSha256Verified": true,
+        "goBackupVerifyRc": 0,
+        "archiveMode": "0600"
+      },
+      "OPS-26": {
+        "verdict": "PASS",
+        "ledgerStatus": "DUAL_SIDE_VERIFIED",
+        "bashRestoreRc": 0,
+        "goRestoreRc": 0,
+        "restoredManagedFilesMatch": true,
+        "permissionPoliciesPreserved": true,
+        "xrayAndNginxChecksRc": 0,
+        "servicesActive": true,
+        "realRealityClientRc": 0
+      }
+    },
+    "scopeLimits": [
+      "Bash restore was tested on its installed source node after controlled mutation; Bash fresh-target restore remains unverified.",
+      "Bash archive scope is broader than Go managed-state archive scope; not claimed equivalent."
+    ],
+    "strictLedger": {
+      "total": 34,
+      "dualSideVerified": [
+        "OPS-25",
+        "OPS-26"
+      ],
+      "notRun": 32,
+      "exitCode": 2,
+      "qualification": "NO_GO"
+    },
+    "strictLog": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops-backup-final3-strict-ledger.log",
+    "evidence": "tests/e2e-diff/evidence/ops-observe-backup-final3-20261127/p2/OPS-26/native-backup-restore-comparison.json",
+    "hygiene": "0 findings in 759 files"
   }
 }

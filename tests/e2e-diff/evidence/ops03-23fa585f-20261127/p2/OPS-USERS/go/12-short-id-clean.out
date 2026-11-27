@@ -1,0 +1,52 @@
+{
+  "mode": "reality-nginx",
+  "transport": "raw",
+  "changed": [
+    "short-id-remove"
+  ],
+  "diff": [
+    "inbounds[0].streamSettings.realitySettings.shortIds"
+  ],
+  "configPath": "/etc/idleleo/conf/xray/config.json",
+  "oldSha256": "5fa3a92b44aab3207a26d10dfdd791cd19fb8285e173d430634b10558eded069",
+  "newSha256": "56addaa35fd5b64a91a14baf5a99e46c2f04778a6f6aa97001fbd448ff0c9082",
+  "backupDir": "/etc/idleleo/backup/edit-20261127T062528",
+  "noChanges": false,
+  "noRestart": false,
+  "dryRun": false,
+  "nginxUpdated": true,
+  "nginxVerified": true,
+  "shareUri": "vless://4cd6dc03-59d2-4900-9beb-57eaf1caecc6@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=o8MZ5gosbpscoPdrLSgauuyNKr2h-z9E2HISgO0YK0A&sid=895f6af9&type=raw#idleleo-reality-nginx",
+  "tlsSystemTrusted": false,
+  "disconnect": true,
+  "warnings": null,
+  "shortIds": [
+    "895f6af9"
+  ],
+  "oldShareUri": "vless://4cd6dc03-59d2-4900-9beb-57eaf1caecc6@example.com:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=o8MZ5gosbpscoPdrLSgauuyNKr2h-z9E2HISgO0YK0A&sid=895f6af9&type=raw#idleleo-reality-nginx",
+  "realityProbe": "ok: vless+reality handshake+request through 127.0.0.1:443",
+  "upstreamSha256": "29b6208b18d3713bbd23e4b3ce6f7e9200abb2748ff821d9219c7b3b6e76b75f",
+  "upstreamUnchanged": true,
+  "plan": {
+    "operation": "edit-runtime-config",
+    "resource": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "5fa3a92b44aab3207a26d10dfdd791cd19fb8285e173d430634b10558eded069",
+    "newSha256": "56addaa35fd5b64a91a14baf5a99e46c2f04778a6f6aa97001fbd448ff0c9082",
+    "changed": [
+      "short-id-remove"
+    ],
+    "affectedServices": [
+      "nginx",
+      "xray"
+    ],
+    "disconnectRisk": "drops live client sessions until clients reconnect",
+    "validationSteps": [
+      "xray -test",
+      "nginx -t",
+      "vless+reality handshake with the new link"
+    ],
+    "rollbackScope": "runtime config + nginx front",
+    "ownership": "idleleo-managed",
+    "fingerprint": "c127713a92b0e84a"
+  }
+}

@@ -1,0 +1,316 @@
+{
+  "count": 31,
+  "entries": [
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/cert",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/conf",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o600",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/install_config.json",
+      "sha256": "892d8b196b9db5e70788dae432c93f8a43868e96b9a5ea2f20841e7bd025edac",
+      "size": 1142,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/nginx",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o750",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/xray",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o600",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/xray/config.json",
+      "sha256": "84512e0501e323df86d3995d590dc19e0d03669bcd85515bee42b93083d79070",
+      "size": 1715,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/info",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o600",
+      "owner": "root",
+      "path": "/etc/idleleo/info/xray_info.inf",
+      "sha256": "b0b4d379386f15b1d3edc0339910dad577ee5b0e61185fa337af4a04ddffb401",
+      "size": 9175,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o600",
+      "owner": "root",
+      "path": "/etc/idleleo/info/xray_info_clash.yaml",
+      "sha256": "355900b718b6ec8e1c40e280ae731355d27c9a049e48a271ca89912c6a6f5683",
+      "size": 506,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/install.sh",
+      "sha256": "9ba6dfcb7b511ba2ebce0335e8e9cd57b958b4d430adc644d7a1e84fd295bd13",
+      "size": 679155,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/languages",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o700",
+      "owner": "root",
+      "path": "/etc/idleleo/logs",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o600",
+      "owner": "root",
+      "path": "/etc/idleleo/logs/install.log",
+      "sha256": "eb2cf2de6e1541bb670c0c3881452717ccd0ae6e63c2bc7f2839e2f50137057d",
+      "size": 4673,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o666",
+      "owner": "root",
+      "path": "/etc/idleleo/release-managed.version",
+      "sha256": "efd9bb328eb69f29de9dbb870073fe8f416e3ebca0d10025dd23b3ce2855e6a6",
+      "size": 6,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/scripts",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/scripts/auto_update.sh",
+      "sha256": "df9eecb34e1717246321fcc14bf9b602ebe999205e99b966adfd5a6f8a5dc32d",
+      "size": 23047,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/scripts/fail2ban_manager.sh",
+      "sha256": "8400787a9585ef591a7480e843e7e166a7d861256693df9950d4e1c2402f4b39",
+      "size": 44880,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/scripts/file_manager.sh",
+      "sha256": "34b67fec6f1f22079c2ee83851c572e5dcbdefb37ddba75c08b595eab1e3e92e",
+      "size": 13148,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/scripts/geo_update.sh",
+      "sha256": "1316d036d666de3f013cac4d38e0bf767fc0669887c62d331d173ca02931f863",
+      "size": 10758,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/scripts/ssl_update.sh",
+      "sha256": "b895792112589e5403d72c4015f5bb25aa57e7c3391662e806323d58ec16703c",
+      "size": 11197,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/scripts/traffic_blocker.sh",
+      "sha256": "f7195174a09ac313ea9f78fe64fc91a681a670a45d8a91faded4b8d892a2f5c9",
+      "size": 50813,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/scripts/xray_stats.sh",
+      "sha256": "c38baf649ae8291eedc9471ca1b19e5a3f1cba0ed5a9bfe991678891afd3fba5",
+      "size": 28199,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/share",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/share/xray",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o777",
+      "owner": "root",
+      "path": "/etc/idleleo/tmp",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o666",
+      "owner": "root",
+      "path": "/etc/idleleo/tmp/shell_version.tmp",
+      "sha256": "ac0252ddb6b2fbb21c538755c05aef552134fb4f56133019dfeb75a752b82849",
+      "size": 12,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o666",
+      "owner": "root",
+      "path": "/etc/idleleo/versions.json",
+      "sha256": "489ddf76c1e088eba53102a52d3bb5bc1e204d2453dd98dca205d8610428750a",
+      "size": 357,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o666",
+      "owner": "root",
+      "path": "/etc/systemd/system/xray.service",
+      "sha256": "cfc75dd93d5b1f043732d86f26e71f81378eb14d0a53f0b2f91d4001d5f6e189",
+      "size": 323,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/usr/local/bin/xray",
+      "sha256": "c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a",
+      "size": 32964732,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o600",
+      "owner": "root",
+      "path": "/var/spool/cron/crontabs/root",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "target": null,
+      "type": "file"
+    }
+  ],
+  "schemaVersion": 1
+}

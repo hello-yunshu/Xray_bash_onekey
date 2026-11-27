@@ -1,0 +1,10 @@
+{
+  "build": "2026.10.15.7679",
+  "arch": "x86",
+  "asset": "xray-nginx-custom-x86.tar.gz",
+  "source": "download",
+  "tarballSha256": "819d265b9e9bd370106b3af1f7d6056e38fdf9dc791f548066f530f479ba2959",
+  "tarballSizeBytes": 9285803,
+  "manifestSha256": "d9f6e1628268661541e118fc3d3e1d91371541e2b697617c33eb7331b1572033",
+  "versionsSha256": "332dff7984de8ab153b73200742827d5212c02c2b2e973048b1d4e607f490381"
+}

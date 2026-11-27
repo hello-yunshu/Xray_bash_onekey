@@ -1,0 +1,8 @@
+---
+        default    0;
+        default deny;
+        default          deny;
+        default 0;
+        default          "other_error";
+        default          0;
+        default          0;

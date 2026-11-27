@@ -1,0 +1,86 @@
+{
+  "count": 8,
+  "entries": [
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/conf",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "xray",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/xray",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "xray",
+      "mode": "0o640",
+      "owner": "root",
+      "path": "/etc/idleleo/conf/xray/config.json",
+      "sha256": "8a936bb18217c8eaf15a44ed2428ee13101506c9e9fc7fbe6465e11f9990cce5",
+      "size": 2221,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/etc/idleleo/v1",
+      "sha256": null,
+      "size": 0,
+      "target": null,
+      "type": "dir"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/idleleo/v1/metadata.json",
+      "sha256": "f76bc102d8cc2233a98aa8394c1ebfdb71067aa4ef7af98f379403f9ce35657b",
+      "size": 617,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o644",
+      "owner": "root",
+      "path": "/etc/systemd/system/xray.service",
+      "sha256": "f548961693b4e17d4386ed4efad0d2f6c10647cddeadb3d796ec933cf6456ee3",
+      "size": 435,
+      "target": null,
+      "type": "file"
+    },
+    {
+      "group": "root",
+      "mode": "0o755",
+      "owner": "root",
+      "path": "/usr/local/bin/xray",
+      "sha256": "c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a",
+      "size": 32964732,
+      "target": null,
+      "type": "file"
+    }
+  ],
+  "schemaVersion": 1
+}

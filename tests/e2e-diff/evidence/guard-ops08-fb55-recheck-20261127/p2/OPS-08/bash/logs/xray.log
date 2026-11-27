@@ -1,0 +1,15 @@
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash xray[<PID>]: 2026/11/26 19:05:09.344336 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash xray[<PID>]: 2026/11/26 19:05:09.346373 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash xray[<PID>]: 2026/11/26 19:05:11.573743 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-guard-ops08-fb55-recheck-20261127-OPS-08-bash xray[<PID>]: 2026/11/26 19:05:11.573762 [Warning] infra/conf: REALITY: Listening on non-443 ports will increase the likelihood of your server's IP being blocked by the GFW
+2026/11/26 19:05:09.351696 [Warning] core: Xray 26.11.9 started
+2026/11/26 19:05:11.579013 [Warning] core: Xray 26.11.9 started

@@ -1,0 +1,3 @@
+0644 etc/idleleo/cert/xray.crt
+0600 etc/idleleo/cert/xray.key
+0600 etc/idleleo/cert/.managed-by-idleleo

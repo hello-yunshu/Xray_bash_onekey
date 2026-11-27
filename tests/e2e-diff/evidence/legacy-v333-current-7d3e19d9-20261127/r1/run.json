@@ -1,0 +1,27 @@
+{
+  "branch": "work/go-hardening-parity-20261119",
+  "commit": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "imageTag": "idleleo-e2e:24.04",
+  "runId": "legacy-v333-current-7d3e19d9-20261127",
+  "scenarios": "M1,M4",
+  "productCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "historicalSourceTag": "v3.3.3",
+  "historicalSourceCommit": "4d0f793e297f7a2bc424eb52e93668bba826a7ca",
+  "historicalInstallerSha256": "9ba6dfcb7b511ba2ebce0335e8e9cd57b958b4d430adc644d7a1e84fd295bd13",
+  "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+  "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+  "driverSha": "7dd4c49419d95130ec141d0b8a740c28bcbd64bbe5e72a08f4dd304a83cddd05",
+  "image": "sha256:fe00d1c974adefe211024e819ebdd10381c0e51ae17ede4ba35a57d68c66f740",
+  "platform": "linux/arm64",
+  "startedAt": "2026-11-27T11:29:02Z",
+  "finishedAt": "2026-11-27T11:40:02Z",
+  "assertions": {
+    "pass": 106,
+    "fail": 0
+  },
+  "verdict": "PASS",
+  "actualRc": 0,
+  "manifestPath": "build-manifest.json",
+  "manifestSha256": "71db7fa3acd7cb18843e3116a2cd34d02236c4081024b6ec3aa6d9aaa388878c",
+  "log": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/legacy-v333-current-7d3e19d9.log"
+}

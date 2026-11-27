@@ -1,0 +1,25 @@
+{
+  "entry": {
+    "id": "1795770402233368808-706",
+    "state": "COMMITTED",
+    "target": "/etc/idleleo/conf/xray/config.json",
+    "oldSha256": "8d251825557868c6de350809215299b98321ee78491d681ce713d639280ea189",
+    "newSha256": "c9f9658002f3a9a682393503527950f4dd459c2727364c00b30cfca66ba53c9f",
+    "startedAt": "2026-11-27T09:06:42Z",
+    "updatedAt": "2026-11-27T09:06:42Z"
+  },
+  "hot": {
+    "applied": true,
+    "inbound": "VLESS-Reality-in",
+    "persisted": true,
+    "server": "127.0.0.1:10085"
+  },
+  "notice": "note: Reality shortIds are inbound-level and not attributable to one user; all shortIds were kept. Run `xray edit --short-id-remove <sid>` only if you have verified the sid is unused.",
+  "user": {
+    "index": 2,
+    "uuid": "<uuid>",
+    "email": "hot-a@test.local",
+    "level": 0,
+    "primary": false
+  }
+}

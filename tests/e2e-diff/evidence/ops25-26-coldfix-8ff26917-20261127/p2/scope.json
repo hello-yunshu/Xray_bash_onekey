@@ -1,0 +1,11 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-25,OPS-26",
+  "ops": [],
+  "runId": "ops25-26-coldfix-8ff26917-20261127",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

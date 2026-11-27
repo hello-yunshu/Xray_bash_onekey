@@ -1,0 +1,57 @@
+{
+  "id": "OPS-14",
+  "opsRc": {
+    "bash": 124,
+    "go": 0
+  },
+  "reasons": [
+    "Bash entry is the interactive iftop UI; Go is a bounded stats query",
+    "bash output bytes=3800",
+    "go api enable rc=0",
+    "go stats rc=0"
+  ],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "feb0180784a0d187084637ae506b6fa8cc4bdaf3b42c466aed68d85ebda22289",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "0f4748f27e427268bc09efd462bc086422526ed6d6128700497938fb7092c848",
+    "finishedAt": "2026-11-27T07:52:06Z",
+    "fixedBy": null,
+    "image": "sha256:5977b9ef6cb3b5d8c9ce9bbdf1e43a61218e472874ae8c099a3574cf17ea2851",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "2a12c99b8799e3e001b93c8986bb0a9335c080d8d9c36c071f06a0bf2a31b8e5",
+    "platform": "linux/arm64",
+    "productCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+    "runId": "ops17a-live-l4-7d3e19d9-20261127",
+    "startedAt": "2026-11-27T07:45:56Z",
+    "supersedes": null
+  },
+  "verdict": "DIFF"
+}

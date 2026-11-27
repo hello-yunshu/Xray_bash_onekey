@@ -1,0 +1,4 @@
+candidate_sha=8ff26917e3e381d4023b7319d5405f7ba871f289
+ops34=26 DUAL / 3 FAIL / 1 BASH_ONLY / 4 BLOCKED / 0 NOT_RUN
+current_sha_rows=OPS-25,OPS-26; reused_rows_keep_source_sha=true
+official_artifact_sha_and_id_consistency=PASS

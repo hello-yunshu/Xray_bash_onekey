@@ -1,0 +1,4 @@
+644:root:root /etc/idleleo/cert/owned.crt
+600:root:root /etc/idleleo/cert/owned.key
+644:root:root /etc/idleleo/cert/xray.crt
+600:root:root /etc/idleleo/cert/xray.key

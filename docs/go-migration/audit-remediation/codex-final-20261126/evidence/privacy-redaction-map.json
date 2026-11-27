@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "path": "ledger-sanitize-tests-blockedids-retry.log",
+      "sourceSha256": "52f861f7fc387ca16ac7e2255603276b722827bee9ac00b9ca18130257ac8af6",
+      "sanitizedSha256": "38f7f757a46016a8a47e9dfd647c9be7a043b8fb4b88ae8ac4172361e619b19f",
+      "transform": "redacted capture-host home path to <workspace>; original test outcome and finding count preserved"
+    },
+    {
+      "path": "ledger-sanitize-tests-current.log",
+      "sourceSha256": "ddb8f492e2350f36d86bd868560028f5e0160fcc81e9012e8c5dc112f786b8b3",
+      "sanitizedSha256": "ee91195bd0a4d9c9cf35ced0ab1d6497f526a9dc258531eea73c4a1d81b2e172",
+      "transform": "redacted capture-host home path to <workspace>; original test outcome and finding count preserved"
+    },
+    {
+      "path": "matrix-current-7d3e19d9.log",
+      "sourceSha256": "fd7c5d87b1e73b1ccf61317f95b7c32fda5a521ea8e1d3c57e629ed021d3ec8b",
+      "sanitizedSha256": "7f5917d77ecd365f40bdb7a7d3e58bfcd302ad81fe3472375b483e4118453684",
+      "transform": "redacted capture-host home/worktree paths and ephemeral test directory; protocol/rc/test facts preserved"
+    },
+    {
+      "path": "ops-feasible-7d3e19d9.log",
+      "sourceSha256": "893d4fe997837e0dc25b4739d87709df5e27fcd0001140990e8567fa4e216230",
+      "sanitizedSha256": "02e191f62c764604edd099e66c89ee6ae2d0876925c65d39c049d4351f4421b5",
+      "transform": "redacted capture-host home/worktree paths and ephemeral test directory; protocol/rc/test facts preserved"
+    },
+    {
+      "path": "ops04-current-7d3e19d9.log",
+      "sourceSha256": "1ab5e782e563422c0afd729be95857a34cedc1abe45271fa63e406dd1473ea0c",
+      "sanitizedSha256": "599795d3445297aed54df87bfe357531d4e6adcc00787c26cf01dea93c9e5412",
+      "transform": "redacted capture-host home/worktree paths and ephemeral test directory; protocol/rc/test facts preserved"
+    },
+    {
+      "path": "ops17a-live-l4-7d3e19d9.log",
+      "sourceSha256": "fd43048bd04ab6afffa4b18cd9b6e56c3448c99770b3e6fc9a68f776f21b3cd2",
+      "sanitizedSha256": "f359409621a7b92ec1dd1b1018c19f49c3f2309d0670d8660b34d0b34ae1372a",
+      "transform": "redacted capture-host home/worktree paths and ephemeral test directory; protocol/rc/test facts preserved"
+    },
+    {
+      "path": "ops17a-local-upgrade-l4-7d3e19d9-retry-assets-404.log",
+      "sourceSha256": "08e3a4a76728419f2f0dc5e3637af356596933487217b86e24f50a9e06d2f8fa",
+      "sanitizedSha256": "cee4e9ab444d4f9dd7476aa805b7bed5d710c540857ab1a840811863c3bbed9d",
+      "transform": "redacted capture-host home/worktree paths and ephemeral test directory; protocol/rc/test facts preserved"
+    },
+    {
+      "path": "ops17a-local-upgrade-l4-7d3e19d9-retry-assets.log",
+      "sourceSha256": "08e3a4a76728419f2f0dc5e3637af356596933487217b86e24f50a9e06d2f8fa",
+      "sanitizedSha256": "cee4e9ab444d4f9dd7476aa805b7bed5d710c540857ab1a840811863c3bbed9d",
+      "transform": "redacted capture-host home/worktree paths and ephemeral test directory; protocol/rc/test facts preserved"
+    },
+    {
+      "path": "ops17a-local-upgrade-l4-7d3e19d9-retry-manifest.log",
+      "sourceSha256": "7acde5f8149d21f9dbf3ef7e1cbaa5e7ec4c495d52d5829493e480d3c4a1fb1c",
+      "sanitizedSha256": "b75f482a413d6920de605a9a8c3f746c265940f245c8924befa73553d659a842",
+      "transform": "redacted capture-host home/worktree paths and ephemeral test directory; protocol/rc/test facts preserved"
+    },
+    {
+      "path": "ops17a-phase04-23fa585f-final.log",
+      "sourceSha256": "a75e297b14b7a5aa7bd204b02a49953a9a0997c61b3c2867dbe9785770dc90da",
+      "sanitizedSha256": "5bf10ea71fce79ae1557ff409c69875b5a0e0bc8e82b70b9a6a33124f6aea967",
+      "transform": "redacted capture-host home/worktree paths and ephemeral test directory; protocol/rc/test facts preserved"
+    },
+    {
+      "path": "ops17a-phase04-23fa585f-signed.log",
+      "sourceSha256": "f796eb17f10a9335b5448c4815425f6c26942644c441340fd609508298cf34a5",
+      "sanitizedSha256": "b11d953230d82ea9adadcf29839b5486f693ad86ad3778d3007ffebcd9727bb8",
+      "transform": "redacted capture-host home/worktree paths and ephemeral test directory; protocol/rc/test facts preserved"
+    },
+    {
+      "path": "ops17a-phase04-23fa585f.log",
+      "sourceSha256": "c3ffa250108081193be332f5f82cf9e5dfeeb5959b4ea5065aeb691d7d7d75ac",
+      "sanitizedSha256": "c8894d5236cc206003ee37c2c1eea438731dd7624ed562ac3a60f7ab3de0ab79",
+      "transform": "redacted capture-host home/worktree paths and ephemeral test directory; protocol/rc/test facts preserved"
+    },
+    {
+      "path": "privacy-scan-final-8ff26917-initial.log",
+      "sourceSha256": "16b9bc20f023be2faba4235bba9b24089d071e86988bf2f2ccf795f2533d236c",
+      "sanitizedSha256": "fdee18041e19ad2659ea11a4fe3866fc60e8bd15a2f95a8d278066de66448700",
+      "transform": "redacted capture-host home path to <workspace>; original test outcome and finding count preserved"
+    }
+  ]
+}

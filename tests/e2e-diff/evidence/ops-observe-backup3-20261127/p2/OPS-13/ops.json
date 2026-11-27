@@ -1,0 +1,56 @@
+{
+  "id": "OPS-13",
+  "opsRc": {
+    "bash": null,
+    "go": null
+  },
+  "reasons": [
+    "Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot",
+    "Bash live stream did not surface the seeded e2e-error-marker line",
+    "Go journal snapshot is empty"
+  ],
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "8cd1d546c3f08c2bc9ce5c29c7bf3388e7db1497ee0040aa58fc206e6f533076",
+    "finishedAt": "2026-11-26T18:29:14Z",
+    "fixedBy": null,
+    "image": "sha256:ea7c67927bb30d0ef54ee68deb68b5b73ed0e07e5c6e2d9bbd1a7fe8448b2969",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "d2b628402307ceb7ac573c4fa07731424ff9b357fce9da320f4839c36afc947d",
+    "platform": "linux/arm64",
+    "productCodeSha": "5e483b0471ee19bb7bb45a3f2be6a5f9b26fe526",
+    "runId": "ops-observe-backup3-20261127",
+    "startedAt": "2026-11-26T18:28:01Z",
+    "supersedes": null
+  },
+  "verdict": "DIFF"
+}

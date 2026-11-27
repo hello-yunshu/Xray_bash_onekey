@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-OBSERVE",
+  "ops": [
+    "OPS-OBSERVE"
+  ],
+  "runId": "ops17a-live-l4-7d3e19d9-20261127",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

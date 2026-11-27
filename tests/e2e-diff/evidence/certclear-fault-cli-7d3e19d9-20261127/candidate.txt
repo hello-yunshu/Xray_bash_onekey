@@ -1,0 +1,3 @@
+candidate_repo_sha=7d3e19d92ce0dc4f70ab90dedc81c13a41403f91
+docker_image=debian:bookworm-slim
+image_id=sha256:e67eeead736ff7bbe258ef088bff683635c561b1fcfefad0806c1df4ab49ce0e os=linux arch=arm64

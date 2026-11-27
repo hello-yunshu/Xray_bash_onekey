@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "frozenAt": "2026-11-13T17:21:00+08:00",
-  "repoCommit": "f4deaf77",
+  "repoCommit": "8ff26917",
   "branch": "develop/go-native",
   "sourcePlan": "docs/plans/bash-vs-go-docker-differential-impl.md",
   "decisions": {
@@ -42,60 +42,63 @@
   },
   "acceptance": {
     "opsTotal": 34,
-    "dualSideVerifiedOps": 5,
-    "goOnlyOps": 14,
-    "failOps": 1,
-    "bashOnlyOps": 0,
-    "blockedOps": 2,
-    "notRunOps": 12,
+    "dualSideVerifiedOps": 26,
+    "goOnlyOps": 0,
+    "failOps": 3,
+    "bashOnlyOps": 1,
+    "blockedOps": 4,
+    "notRunOps": 0,
     "approvedDiffOps": 0,
     "approvedSingleSideOps": 0,
     "dualSideVerifiedIds": [
       "OPS-01",
       "OPS-02",
       "OPS-03",
-      "OPS-08",
-      "OPS-20"
-    ],
-    "goOnlyIds": [
-      "OPS-11",
-      "OPS-12",
-      "OPS-13",
-      "OPS-14",
-      "OPS-15",
-      "OPS-16",
-      "OPS-17a",
-      "OPS-18",
-      "OPS-22",
-      "OPS-23",
-      "OPS-24",
-      "OPS-25",
-      "OPS-28",
-      "OPS-29"
-    ],
-    "failIds": [
-      "OPS-27"
-    ],
-    "bashOnlyIds": [],
-    "approvedDiffIds": [],
-    "approvedSingleSideIds": [],
-    "notRunIds": [
+      "OPS-04",
       "OPS-05",
       "OPS-06",
       "OPS-07",
+      "OPS-08",
       "OPS-09",
       "OPS-10",
+      "OPS-11",
+      "OPS-12",
+      "OPS-13",
+      "OPS-15",
       "OPS-17b",
       "OPS-17c",
       "OPS-19",
+      "OPS-20",
       "OPS-21",
-      "OPS-30",
+      "OPS-22",
+      "OPS-25",
+      "OPS-26",
+      "OPS-28",
+      "OPS-29",
       "OPS-31",
       "OPS-32"
     ],
+    "goOnlyIds": [],
+    "failIds": [
+      "OPS-14",
+      "OPS-16",
+      "OPS-27"
+    ],
+    "bashOnlyIds": [
+      "OPS-30"
+    ],
+    "blockedIds": [
+      "OPS-17a",
+      "OPS-18",
+      "OPS-23",
+      "OPS-24"
+    ],
+    "approvedDiffIds": [],
+    "approvedSingleSideIds": [],
+    "notRunIds": [],
     "generatedFrom": "tests/e2e-diff/ledger.json",
-    "generatedAt": "2026-11-26T11:08:42+00:00",
-    "codeSha": "f4deaf77c08457bf2ed1a07e165b2ff5bf5b53f5"
+    "generatedAt": "2026-11-27T12:41:51+00:00",
+    "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289"
   },
   "install": [
     {

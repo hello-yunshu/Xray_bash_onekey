@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+Server: nginx/1.27.5
+Date: Fri, 27 Nov 2026 05:00:12 GMT
+Content-Type: text/plain
+Content-Length: 16
+Connection: close
+
+dynamic-cert-ok

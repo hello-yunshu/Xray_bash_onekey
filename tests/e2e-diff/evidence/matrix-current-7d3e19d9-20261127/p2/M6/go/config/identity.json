@@ -1,0 +1,13 @@
+{
+  "inbounds": [
+    {
+      "realityPublicKeyPresent": false,
+      "realityPublicKeySha256": null,
+      "shortIdsSha256": [],
+      "tag": "VLESS-xhttp-in",
+      "uuidSha256": [
+        "4112563bf82fec91e6d6512bcec74c3e25679bba24e0afa1a4c14e9e35e46868"
+      ]
+    }
+  ]
+}

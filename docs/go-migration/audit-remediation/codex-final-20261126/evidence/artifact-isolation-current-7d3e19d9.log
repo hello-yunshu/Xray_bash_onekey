@@ -1,0 +1,7 @@
+..................................
+----------------------------------------------------------------------
+Ran 34 tests in 1.732s
+
+OK
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests
+guard_acceptance_artifacts_rc=0

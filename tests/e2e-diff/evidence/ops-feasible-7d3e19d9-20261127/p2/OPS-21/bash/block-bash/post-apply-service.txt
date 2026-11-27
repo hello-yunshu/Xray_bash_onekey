@@ -1,0 +1,14 @@
+active
+-rw------- 1 root root 2552 Nov 27 08:14 /etc/idleleo/conf/xray/config.json
+61d02927635a3d35ad58a9e2c1fb10a2ad4924e520cf7c4475d4f93e538dbb6b  /etc/idleleo/conf/xray/config.json
+Nov 27 08:13:48 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash systemd[1]: Started xray.service - Xray Service.
+Nov 27 08:13:48 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash xray[2002]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+Nov 27 08:13:48 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash xray[2002]: A unified platform for anti-censorship.
+Nov 27 08:13:48 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash xray[2002]: 2026/11/27 08:13:48.820689 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+Nov 27 08:14:01 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash systemd[1]: Stopping xray.service - Xray Service...
+Nov 27 08:14:01 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash systemd[1]: xray.service: Deactivated successfully.
+Nov 27 08:14:01 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash systemd[1]: Stopped xray.service - Xray Service.
+Nov 27 08:14:01 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash systemd[1]: Started xray.service - Xray Service.
+Nov 27 08:14:01 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash xray[2757]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+Nov 27 08:14:01 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash xray[2757]: A unified platform for anti-censorship.
+Nov 27 08:14:01 e2e-ops-feasible-7d3e19d9-20261127-OPS-21-bash xray[2757]: 2026/11/27 08:14:01.889107 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}

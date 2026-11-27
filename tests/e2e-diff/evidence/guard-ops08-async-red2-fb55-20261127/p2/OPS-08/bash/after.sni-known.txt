@@ -1,0 +1,9 @@
+CONNECTION ESTABLISHED
+Protocol version: TLSv1.3
+Ciphersuite: TLS_AES_256_GCM_SHA384
+Peer certificate: CN = www.cloudflare.com
+Hash used: SHA256
+Signature type: ECDSA
+Verification: OK
+Server Temp Key: X25519, 253 bits
+DONE

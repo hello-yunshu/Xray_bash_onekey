@@ -1,0 +1,4 @@
+started_at=2026-11-27T12:11:03Z
+go_image=golang:1.27.4
+product_base=7d3e19d92ce0dc4f70ab90dedc81c13a41403f91
+sh: 1: go: not found

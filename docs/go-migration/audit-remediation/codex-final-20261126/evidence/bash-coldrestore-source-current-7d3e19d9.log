@@ -1,0 +1,56 @@
+20:00:33 run_id=bashcold-src-current-7d3e19d9-20261127
+20:00:33 image_id=sha256:fb6d2f1196168beec681e4a13db110a6b635b1a1715666d08b4e11107952538e
+20:00:33 building idleleo
+20:00:38 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+20:00:38 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+20:00:38 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+20:00:38 release_cache=seeded templates=vless_reality.json,vless_tls.json
+20:00:38 release_cache=hit
+20:00:38 apt_cache=skipped (no OPS scenario selected)
+20:00:38 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+20:00:38 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+20:00:39 argv-verify written
+20:00:39 [M4] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=e59084b726a813dffb778ff7ad75ae17e6e11cbb67c5c69f7197c916d06c7479
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=e59084b726a813dffb778ff7ad75ae17e6e11cbb67c5c69f7197c916d06c7479
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=e59084b726a813dffb778ff7ad75ae17e6e11cbb67c5c69f7197c916d06c7479
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=e59084b726a813dffb778ff7ad75ae17e6e11cbb67c5c69f7197c916d06c7479
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+20:03:48 [M4] done
+sanitize: M4/bash/config/config.sanitized.json
+sanitize: M4/bash/round2/config/config.sanitized.json
+sanitize: M4/go/config/config.sanitized.json
+sanitize: M4/go/round2/config/config.sanitized.json
+sanitize: 4 file(s) updated
+stamped 0 verdict file(s) with run provenance
+20:03:48 scope: installs=[M4] edits=[] ops=[]
+20:03:48 P2 finished: tests/e2e-diff/evidence/bashcold-src-current-7d3e19d9-20261127/p2
+run_bash_coldrestore_source_M4_rc=0
+containers_stopped_and_removed=true
+private_archive_host_copies_removed=true

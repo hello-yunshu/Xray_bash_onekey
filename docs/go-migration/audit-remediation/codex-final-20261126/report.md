@@ -1,75 +1,81 @@
 # Xray Go 重构定向收尾与最终验收报告
 
-日期：2026-11-26（Asia/Shanghai）  
-工作分支：`work/go-hardening-parity-20261119`  
-最终代码：`f4deaf77c08457bf2ed1a07e165b2ff5bf5b53f5`
+日期：2026-11-27（Asia/Shanghai）
+工作分支：`work/go-hardening-parity-20261119`
+当前产品候选：`8ff26917e3e381d4023b7319d5405f7ba871f289`
+Go CLI SHA-256：`c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d`
+Docker 平台：`linux/arm64`
 
-## 结论
+## 验收结论
 
 **DOCKER_DEVELOPMENT_QUALIFICATION = NO_GO**  
 **RELEASE_AUTHORIZED = NO**
 
-Docker、Bash、Go、Xray、Nginx 和客户端均实际运行，OPS-01/02/03/08/20 双端真实行为通过；这不足以形成开发候选签收。最终 34 项账本为 5 DUAL、14 GO_ONLY、1 FAIL、2 BLOCKED、12 NOT_RUN。OPS-27 仍有未批准行为差异，OPS-04/26 被阻断；严格验收器返回 rc=1 并保留失败。最终 SHA 的 7 项 CI 未运行：该分支未推送，不能用本地扫描代替远程工作流。
+当前候选已获得较广的真实 Bash/Go、Docker、Xray、Nginx、配置对照、热更新、冷恢复和客户端 L4 证据，但严格 OPS-34 验收器仍返回非零：26 DUAL、3 FAIL、1 BASH_ONLY、4 BLOCKED、0 NOT_RUN。候选尚不具备 Docker 开发候选签收资格。七项当前 SHA 远程 CI 未触发，状态为 `CI_PENDING`。本报告不把未运行、单侧证据或未经批准的产品差异转换成 PASS。
 
-## 2026-11-27 后续复验：Nginx 更新丢配置
+## 当前正式 OPS-34 分类
 
-补跑 OPS-17b 后，在 f4deaf77 的真实 Docker Go 容器发现产品缺陷：Go 更新器备份并替换整个 `/usr/local/nginx`，没有保留已托管的 `conf/nginx.conf`；发行包默认文件通过 `nginx -t`，却不再 include `/etc/idleleo/conf/nginx/00-xray.conf`，导致 443 listener 消失、真实 Reality 客户端 curl exit 56。原始失败与 `nginx -T` 见 `tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b/pre-fix-f4`。
-
-最小修复提交为 `fb55adf78ee960eda695e6e5742f4c16ff328639`：升级前读取现有主配置及权限，安装新 Nginx 工件时写回暂存树并显式恢复权限；其他 Nginx 工件继续从已校验发行包安装。Go 回归测试验证主配置和 `0640` 权限保留。Go 1.27.4 容器内，受影响包测试、race 测试、`go vet ./...` 均通过，记录见 `evidence/nginx-update-preserve-config-go.log`。
-
-精确提交 `fb55adf7` 的真实 OPS-OBSERVE 使用 ARM64 Docker 镜像 `sha256:c79dc885b786be832d0f050ee9cea9b4dfa3df4749f3e7cff9d27e16747a5c7b`；Go 二进制 SHA-256 为 `5cce2164229f1219f84fd2f089e0db404530f76dbb224b5a8ae53392e3fd38c6`，Nginx 1.27.5→1.30.6 两侧更新 rc=0。更新后双方服务 active、`nginx -t` 成功、托管 include 存在、443 listener 存在；双方真实 Reality 客户端均取得 577-byte HTTP 响应且 SHA-256 匹配。Go 侧用实际 Nginx 1.30.6 包声明错误目标版本，更新器 rc=6、`rolledBack=true`；配置 SHA 与真实版本恢复，Xray/Nginx 仍 active，443 仍监听，回滚后真实客户端再次成功。运行清单和日志见 `tests/e2e-diff/evidence/obsfix-final-fb55/p2/`。
-
-后续卫生扫描均为 0 finding；最终扫描为 61,478 个文件，输出见 `evidence/nginx-update-privacy-final.log`。所有未计通过的诊断均保留：手动 L4 首次误挂空目录导致 Permission denied；一次候选 runner 因空 Xray 缓存记录空 SHA 后被停止；一次误用只读证据挂载作为 CLI 输出目录、尚未执行产品命令；以及容器写入保护在未设置授权变量时返回 rc=2、未改动状态。正确缓存、路径和容器变量下的正式验证见 `obsfix-final-fb55`，上述记录均不计入通过证据。
-
-验收器本身未修改；在 fb55adf7 上重新运行 `python3 tests/e2e-diff/collect/test_build_ledger.py -q`（32 tests）和 `bash tests/e2e-diff/collect/guard_acceptance_artifacts.sh`，均通过且正式三份摘要字节未变，分别见 `evidence/ledger-contract-tests-followup.log` 与 `evidence/acceptance-artifact-isolation-followup.log`。全仓 hygiene 的最终复跑日志为 0 finding（61,478 个文件），见 `evidence/nginx-update-privacy-final.log`。
-
-同一产品源码（`fb55adf7..d3c10d69` 的 `internal/` 无差异）另通过 Go 原生冷恢复四类真实容器场景：Reality、TLS、Relay、Multi。四类均在源节点创建 0600 备份、校验归档，在全新目标节点恢复、核对状态摘要、配置权限/组、Xray/Nginx 服务，并在恢复后与重启后运行真实客户端请求；全部源/目标驱动 rc=0。Reality 为 8/8 + 21/21 断言，TLS、Relay、Multi 全部 PASS。证据目录：`tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127` 与 `...-rest`。该结果补齐 Go 冷恢复实证，但不是 Bash 对照，因此 OPS-25/26 的正式双端状态不变。
-
-两组冷恢复证据 hygiene 扫描为 0 finding（304 个文件），见 `evidence/coldrestore-followup-hygiene.log`。运行器在记录中显示工作树 HEAD 为审计文档提交 `d3c10d69`；该提交相对产品提交 `fb55adf7` 的 `internal/` 无源码差异，且构建二进制 SHA 与精确候选一致。未将这组单侧 Go 证据记成 Bash/Go 双端通过。
-
-本次结果证明该 Nginx 更新缺陷已修复，也证明 Go 版本会在健康验证失败时恢复完整旧安装并维持可用 listener。它只覆盖 OPS-17b 的当前代码提交，不覆盖其他 33 项；此前正式 ledger/matrix/acceptance 仍是 f4deaf77 的冻结摘要，故本报告对 fb55adf7 不作全量签收，Docker 资格继续为 **NO_GO**。
-
-## 关键修复与真实业务结果
-
-- **Guard（`internal/deploy/guard.go`）**：移除“进程启动时间早于文件 mtime 即 active”的推断。状态只有在 reload 记录绑定当前 Nginx PID、start ticks 和策略内容时才报告 active；磁盘策略变化但未 reload 时回落为 `runtime-unverified`。最终 SHA 双端 Docker/Nginx 实跑：保留旧 mtime 的磁盘编辑、`nginx -t` rc=0、reload 前 Guard 为 `runtime-unverified`，旧 worker 拒绝未知 SNI；管理 reload rc=0 后状态 `active`。已知 SNI、未知 SNI结果在 OPS-08 留档。另在 Go 容器运行 decoy/reject 策略：未知 SNI 经 decoy 返回诱饵页，reject 下 curl TLS 失败 rc=35。标准 curl 不能作为 Reality 已知 SNI 客户端；已知 Reality 业务由 OPS-20 的真实 Xray 客户端验证。
-- **证书清理（`internal/deploy/certclear.go`）**：外部 `~/.acme.sh` 全目录始终保留，不因同域证书/密钥或类似 ownership marker 而移动。Go 完整 CLI 的动态 `${cert_name}` 配置在清理前后都完成 HTTPS 请求，证书、私钥和 ACME 树 SHA-256 前后相同。另验证项目 marker 精确登记的闲置证书与 key 被删，同内容但未登记副本、第三方 canary、嵌套 `.user-managed` 目录及数据保留。首次运行因一次性容器缺 `mime.types` 被安全逻辑拒绝；补齐容器测试夹具后相同 CLI 回归通过，两个结果均留档。
-- **OPS-20 统计**：Bash 和 Go 各自启动真实 Xray Reality 客户端，经服务端访问本地 Nginx origin 的 1 MiB payload。两端 HTTP rc=0，body 长度均为 1,048,576，SHA-256 均为 `0be737c61b3af7e6f28386f2eea86dde147c084e05a635e5e133b7705481d41a`。最终候选 Bash inbound uplink/downlink 合计增量 1,050,068 bytes；Go inbound 为 1,050,211 bytes（API 自身另增 584 bytes）。无 API 时 Bash rc=2、Go rc=3；启用后两端统计查询 rc=0 且入站计数为正。开销不同，未要求计数等于 payload。
-- **OPS-03 用户与 shortId**：最终 SHA 的 Bash、Go 都真实添加两名客户端、连接成功并移除一名用户；Go 的移除步骤后仍有一个 inbound shortId，随后显式运行 `xray config edit --short-id-remove` 清理并 rc=0，Bash 则在用户移除时一并清理。探针按最终可观察状态将该项计为双端通过，但实现步骤不同，不能据此声称共享 shortId、撤销旧凭据或重启边界已覆盖。
-- **XHTTP 路径**：最终 SHA 的 Bash 与 Go M6 各完成两轮 TLS/XHTTP 安装，真实 Xray 客户端均取得相同 577-byte 网页；手动输入 `//ray//custom//` 后 Go 分享 URI、Xray 路径和 Nginx location 均为 `/ray/custom/`，`nginx -t`、`xray -test` 与实际客户端请求通过。旧候选真实红测中 `/ray//` 生成精确 location，但请求 URI 被 Nginx 合并斜杠后未匹配、curl rc=52；当前修复在编辑和生成入口规范化重复斜杠，同时保留结尾 `/`。
-- **备份、恢复与更新**：在前一候选 `5528ca7f` 容器中运行 Go CLI 创建并验证真实备份，改变有效配置后执行容器恢复；恢复后的配置摘要与原始摘要完全一致，Xray 配置校验成功，文件权限为 `640`、属主 `0:995`。同一候选的临时 Ed25519 签名更新 probe 验证检查、显式应用、损坏签名拒绝及健康失败后的真实二进制回滚。此次最终 XHTTP 改动只触及 `internal/xraycfg`，备份/更新实现文件与这些证据不受影响；E8 私钥轮换及健康失败回滚另在最终 SHA 真实客户端重跑，14/14 检查通过。上述 Go 实测仍不替代 OPS-25/26 的 Bash 对照和完整业务恢复场景。
-- **验收门禁**：真实摘要与镜像 manifest 校验、合法时间/runId/平台、SNI 实际 rc、命令 actualRc/expectedRc、严格分母和逐条失败替代得到加强。32 个门禁契约测试通过。最终严格账本拒绝未解决签收而仍写出真实三份正式摘要；没有使用 `--allow-incomplete` 生成最终验收结论或虚构批准。
-- **证据卫生**：修复 round4 报告中会被误判为 IPv6 的地址写法，并对六个历史 GeoData 测试夹具地址作逐值说明；扫描器规则未放宽、历史失败记录未删除。最终文档变更后的全仓扫描结果见 `evidence/privacy-scan-final.log`。
-
-## 最终 OPS-34 账本
-
-| 状态 | 数量 | OPS ID |
+| 状态 | 数量 | OPS |
 |---|---:|---|
-| DUAL_SIDE_VERIFIED | 5 | OPS-01、02、03、08、20 |
-| GO_ONLY | 14 | OPS-11、12、13、14、15、16、17a、18、22、23、24、25、28、29 |
-| FAIL | 1 | OPS-27 |
-| BLOCKED | 2 | OPS-04、OPS-26 |
-| NOT_RUN | 12 | OPS-05、06、07、09、10、17b、17c、19、21、30、31、32 |
-| BASH_ONLY / APPROVED_DIFF / APPROVED_SINGLE_SIDE | 0 | — |
+| DUAL_SIDE_VERIFIED | 26 | 01、02、03、04、05、06、07、08、09、10、11、12、13、15、17b、17c、19、20、21、22、25、26、28、29、31、32 |
+| FAIL | 3 | 14、16、27 |
+| BASH_ONLY | 1 | 30 |
+| BLOCKED | 4 | 17a、18、23、24 |
+| GO_ONLY / NOT_RUN / APPROVED_DIFF / APPROVED_SINGLE_SIDE | 0 | — |
 
-OPS-27 的差异是明确的真实差异：Bash 菜单清理会在一次确认后删除整个证书目录，包括第三方 canary；Go 仅删除可证明为项目所有且未使用的文件，保留 canary。没有独立可核验的授权原文，本轮不批准、不把失败改为等价。该项是安全边界差异，不意味着 Go 的保守实现应改成 Bash 的递归删除行为。
+当前 OPS-34 摘要在 `tests/e2e-diff/ledger.json`、`tests/e2e-diff/matrix.json` 的 `acceptance` 节点和 `docs/go-evolution/hardening/acceptance.json` 的 `ops` 节点中绑定候选 SHA `8ff26917…`；`acceptance.json` 顶层的历史基线字段仍保留原 SHA，未将历史验收改写成当前候选。`8ff26917` 相对上一产品候选仅修改 Bash restore 初始化 Xray 日志目录，OPS-25/26 已在此 SHA 双端重跑；其余复用行逐项保留旧 provenance，并附经 Git commit/diff 摘要核验的影响映射，不把旧 run 改标成新 SHA。三份当前 OPS 分类与严格模式一致，含 BLOCKED ID 列表；严格模式本轮 rc=1，准确保留 OPS-14/16/27 FAIL。详细失败原因及逐行证据以 ledger 原文为准；证据索引见本目录 `evidence-index.json`。
 
-完整逐行历史和证据路径见 [ledger.json](../../../../tests/e2e-diff/ledger.json)、[matrix.json](../../../../tests/e2e-diff/matrix.json) 与 [acceptance.json](../../../go-evolution/hardening/acceptance.json)。
+- **OPS-14 FAIL**：Bash 提供交互式实时 iftop 观察；Go 是有界统计查询。功能/操作模型不同，尚无经证明且符合既有契约的优越性结论。
+- **OPS-16 FAIL**：Bash 证书状态/有效期交互菜单与 Go `cert renew --dry-run` 前置检查并非同一行为，不能由 dry-run 代替状态查看。
+- **OPS-27 FAIL**：Go 只删除可证明属于项目且未使用的证书，保留第三方文件；Bash 在确认后递归删除整个目录。该 Go 安全边界更窄，但产品契约差异仍须明确记录；本报告不代替授权方批准既有行为差异。
+- **OPS-30 BASH_ONLY**：按账本保留，不扩张语言功能以追求分类全绿。
+- **OPS-17a/18/23/24 BLOCKED**：OPS-17a 虽已有 Go 手动签名更新和升级后真实 L4 补充证据，正式行仍没有满足双端契约；其余分别按正式账本中的环境/范围限制记载。
 
-## 构建、测试与 CI
+## 真实候选验证
 
-- Go 1.27.4 容器：`go test -count=1 ./...`、`go vet ./...`、`go build ./cmd/idleleo ./cmd/idleleo-recover`、`go build -race -o /tmp/idleleo-race ./cmd/idleleo`、`go test -race -count=1 ./...` 均 rc=0。
-- Bash：对 `install.sh`、P2 matrix、OPS sweep、L4 collector 执行 `bash -n`，rc=0；完整 Bash 安装由真实双端 Docker 用例执行。
-- Docker：最终候选二进制 SHA-256 `160e248223fcf3988239defb4ea1b95ed85883d883b5a072838a8590dad75c1e`，平台 linux/arm64。最终 SHA 的 OPS-01/02/03/08/20、OPS-27、OPS sweep、E8 私钥轮换回滚和 M6 XHTTP 安装均有候选/run/镜像/构建清单 provenance；索引见 [evidence-index.json](evidence-index.json)。
-- Go OPS sweep：57 PASS / 0 FAIL，包含用户、服务、统计、调度、证书 dry-run、元数据、卸载等 CLI 命令。`OPSS-01` 是非正式旁路项，运行通过但附加断言记录器打印 `unknown OPS id for command evidence`；未把它计入正式 34 项。
-- 门禁：`test_build_ledger.py` 32 项通过，`guard_acceptance_artifacts.sh` 确认三份 tracked 正式摘要在测试前后字节一致。严格最终构建仍以 rc=1 失败，这是预期且诚实的签收结果。
-- 远程 CI：旧审计报告记录旧 SHA 为 5/7，Privacy Guard 和 Go parity stage gate 曾因 hygiene 失败。本轮没有推送最终候选，因此七条工作流状态为 **CI_PENDING**，不是通过。
+### 当前候选运行
 
-## 影响分析与未闭环
+- **OPS 矩阵**：当前严格账本候选为 8ff26917。OPS-20 中 Bash 与 Go Xray Reality 客户端分别经服务访问本地 Nginx origin 的 1 MiB 对象，HTTP 返回码、body 长度及 SHA-256 均核对；统计读取真实业务前后增量。OPS-25/26 在 8ff26917 上双端真实备份、校验、破坏后恢复，并核对数据/配置/canary 摘要、文件权限、服务和 Reality 客户端连接；证据 `ops-observe-restorefix-8ff26917-20261127`。
+- **安装矩阵 M1–M10**：Bash/Go 各两轮，适用传输均有真实客户端 L4；安装 rc 均为 0，含 Pebble ACME 与 Relay。记录：`evidence/matrix-current-7d3e19d9.log`。
+- **98 项配置对照**：干净 clone 的当前代码 SHA 和 `repo_dirty=0` 已核对；54 MATCH、40 MATCH_CORE_FIELDS、4 REFUSED、6 A1_PASS、0 GAP。固定 Debian apt 包索引下载发生真实网络 reset，随后按矩阵文档使用缓存依赖镜像成功完成；两次运行和环境诊断均保留。
+- **P3 四传输**：raw、ws、gRPC、xHTTP 各自真实 Docker Go 运行；每个 driver 为 62 assertions / 0 failures。它们是 Go 单侧证据，不扩写成 Bash parity。
+- **四类 Go 冷恢复**：Reality、TLS、Relay、Multi 的源/目标 driver 均成功；验证归档 mode 0600、verify、状态字节、属主/权限、服务及恢复前后/重启后真实客户端。Bash 全新目标 M4 TLS/WebSocket 也已在 8ff26917 真实恢复并通过服务、配置、权限和客户端验证；restore 仍输出一条非致命 `harden_config_permissions` 未完全成功警告，具体子步骤未被旧日志捕获。逐项文件权限/SHA、Xray/Nginx validators、active 服务及真实 L4 均通过，但该警告保留为待诊断限制。Bash Reality、Relay、Multi 全新目标恢复仍未覆盖。
+- **R1/R2 迁移**：当前候选在 M1 Reality 与 M4 TLS 场景中执行两轮 R1 和 R2 takeover/bridge，另执行 install fault injection；共 106 个断言通过。核对了恢复/迁移状态、证书、配置、权限、服务与迁移前后的真实客户端 L4。旧 Bash v3.3.2 与 v3.3.3 标签作为历史源的 M1/M4 R1/R2 与故障注入均各 106 PASS / 0 FAIL；确认容器运行历史安装器并绑定来源 commit/SHA。
+- **平台覆盖**：Debian 12 的 M1/M4 两轮安装、Bash/Go 和每轮 Reality/TLS L4 均通过。另在当前 ARM 宿主上以 Docker `linux/amd64` 镜像实际启动容器，容器 `uname -m=x86_64`，AMD64 Xray ELF 与 Go 二进制运行，M1/M4 双端两轮 L4 通过；这是 Docker 架构模拟，不是原生 AMD64 硬件证据。首次尝试因 GitHub 最新 Release 资产下载中断失败，固定官方 v26.11.9 URL 下载并核对 ELF 后重跑通过，失败/成功均留档。
+- **Xray 多版本**：当前生成的 Reality 配置在 ARM64 Docker 中由 Xray 26.11.9、26.10.31、26.10.21 三个真实发行版逐一校验；每个版本实际安装并经独立 Xray 客户端完成业务请求，均 PASS。ZIP SHA、镜像和驱动摘要在版本运行清单中。
+- **S4–S9 脚本**：当前候选上真实执行 64 项断言全部通过，覆盖 Shell/Xray 更新检查、GeoData 更新和坏包/截断包拒绝、Pebble ACME 成功续期/重复续期/不可达 CA 回滚，以及 S7/S8/S9 legacy/download fail-closed 与替代 CLI。首次运行 63/1 的唯一失败是断言期望过时；修正为核对已安装 Xray 新于 pin 时拒绝降级后，完整重跑 64/0。原始两轮均留档。
+- **OPS-17a 补证**：当前 Go 二进制在一次性容器对本地签名包执行 check/apply；检查不改变二进制，应用后摘要符合目标，Xray/Nginx 健康且 Reality L4 成功。该 Go 单侧补证不能解除正式 OPS-17a BLOCKED。
+- **OPS-03 边界**：基础双端用户添加/删除在正式矩阵通过；独立探针另覆盖共享 shortId、旧凭据撤销及重启边界，但来自 `23fa585f` 运行，需按 `internal/xraycfg` 未变化的影响分析引用，不能篡改为 7d3 当前运行。Go 显式 shortId 清理与 Bash 自动清理的流程差异另行披露。
+- **Guard**：真实 Nginx 下覆盖保留旧 mtime 的配置编辑、reload 前 `runtime-unverified`、成功 reload 后 active、异步 reload 超时和回滚、master 重启后重新验证及 SNI 行为。证据来自 `23fa585f` 后续 Guard 代码与当前 Guard 源码无差异的运行，按文件影响分析复用。没有实际强制数字 PID 复用的证据，不声称该边界已覆盖。
+- **证书清理**：真实 CLI 覆盖动态 `${cert_name}` HTTPS/ACME、项目所有权和第三方/嵌套用户数据保留，并对事务失败/中断进行回滚验证；摘要、mode、journal、staging 均核对。Go 更保守地保护第三方文件，但 OPS-27 仍按 FAIL。
 
-历史的 OPS-03 / OPS-17b、98 项配置对照、R1/R2/历史版本迁移、S4–S9、P3 热更新、冷恢复、广泛故障注入、Xray 多版本、Debian 12、amd64 和 ≥1800 秒 soak 未在本轮最终 SHA 全量复测。M6 是例外：因本轮发现并修复 XHTTP 重复斜杠缺陷，已在最终 SHA 定向重跑。其余旧 SHA 证据仅作历史事实，不作当前 PASS；完整逐项影响表和复用理由见 [impact-analysis.md](impact-analysis.md)。
+### 稳定性 soak 状态
 
-仍未完成的强制项：七项当前 SHA CI；OPS-27 差异的可核验产品契约/授权决策；OPS-04 分享链接端口事实、OPS-26 完整 Bash/Go 恢复对照；OPS-03 共享 shortId 与撤销旧凭据边界；OPS-17b 跨版本更新后的真实业务连接；OPS-17a 的本地签名更新与失败回滚已在前一候选实跑且更新实现未受本轮 XHTTP 改动影响，完整跨版本业务升级仍未覆盖；OPS-25/26 完整 Bash/Go 数据、权限、连接恢复对照；Guard 进程重启/PID 复用与完整失败回滚；证书 clear 的事务中断回滚、更多 ownership 负例；amd64/第二发行版和长时 soak。它们仍是 BLOCKED、NOT_RUN 或 GO_ONLY，不因摘要生成而改变。
+首轮 `soak-current-7d3e19d9-20261127` 在第 26 个一分钟样本真实失败：客户端 Reality curl 超时，rc=28、0 bytes。此前服务状态、Xray 配置校验、443 listener、进程重启数和真实 L4 样本均有记录。该失败未被隐藏。
 
-## 交付状态
+为保留失败现场并采集 curl stderr、客户端 Xray 日志、服务端 journald/socket 诊断，已改进 `tests/e2e-diff/run_soak.sh` 并完成第二轮 `soak-diag-current-7d3e19d9-20261127`：31/31 次真实采样、1863 秒、31 个客户端成功且 0 失败，Xray 校验、监听、RSS 和零重启检查通过；真实 schedule timer active，state 记录 runs=2 且 GeoData 文件完整。结果 `PASS`，证据含逐样本表、schedule state/journal、容器构建清单和 run manifest。首轮失败发生在旧 runner 尚未保留诊断日志时，原因未能追溯；二轮通过不覆盖该失败，也不把猜测写成根因。
 
-XHTTP 路径修复已提交到当前开发分支；本轮最终报告、任务账本、影响分析、证据索引、实际日志及三份机器摘要随审计提交。没有 merge、tag、release、VPS 操作或 push。待完成项不是继续改写通过条件的理由；下一步需要在最终 SHA 上完成 CI 和剩余强制真实场景，并由授权方明确 OPS-27 的比较契约后，重新运行严格账本。
+## 验收器、隐私与本地检查
+
+- ledger 构建器和 sanitizer 共 35 个契约测试通过；新测试确认 `matrix.json` 同时保留 BLOCKED 数量和 `blockedIds`；覆盖错误/缺失 provenance、路径穿越、非零实际 rc/冲突输出及失败替代等负例。验收器修复和新增测试在 `tests/e2e-diff/collect/`。该复验发现 matrix 汇总以前仅写 `blockedOps` 数量而遗漏 `blockedIds`；已修构建器、加入回归测试并重建正式三份 OPS 摘要。
+- sanitizer 改为输出相对证据路径，并有回归测试；原始实测日志仍保留并通过脱敏映射追溯。
+- 正式摘要重新绑定当前候选，并严格运行返回 rc=1，正确保留 FAIL/BLOCKED/BASH_ONLY。不能把严格失败解释成测试通过。
+- 验收器新增机器校验的历史证据影响复用：Git 祖先关系、提交 diff 文件列表及 SHA-256、全部 34 OPS 的受影响/可复用分区；受影响的 OPS-25/26 必须具备当前 SHA 的真实通过证据。当前 strict run 为 26 DUAL、3 FAIL、1 BASH_ONLY、4 BLOCKED、0 NOT_RUN，rc=1。
+- 当前候选的 Bash cold restore 首次真实失败：新目标缺 `/var/log/xray`，使 restore 内的 Xray 配置测试失败并触发回滚。`8ff26917` 在真实配置校验前调用既有 unit-aware 初始化；修复后重新创建全新目标，Bash restore rc=0，Xray/Nginx active 且 validator 通过，源/目标 Xray 配置、证书、私钥、Xray/Nginx 二进制 SHA 一致，权限一致；TLS/WebSocket 实际客户端取得 HTTP 200 对应的 577 字节响应。首次失败及成功证据分别留档。
+- 七项远程 CI：`CI_PENDING`。当前开发分支未推送；本地检查不代替远程 CI。未进行 push、merge、tag、正式发布或生产 VPS 操作。
+- 候选 Go 1.27.4 linux/arm64 容器已运行 `go test ./...`、`go test -race ./...`、`go vet ./...`、`go build -buildvcs=false -trimpath ./cmd/idleleo` 均通过；最终构建 SHA-256 `f0e96beaa71b3dae9e9a691b75abeb6dd09da0556e36eaa7f240040ecf424eac`。`bash -n`、`git diff --check`、36 个 ledger/sanitizer 测试与正式工件隔离门禁通过。最终 privacy/hygiene 扫描 72,768 个文本文件，0 finding。
+
+## 未完成事项与最终阻断
+
+1. **严格 OPS-34 仍 NO_GO**：OPS-14、OPS-16、OPS-27 为 FAIL；OPS-30 为 BASH_ONLY；OPS-17a、OPS-18、OPS-23、OPS-24 为 BLOCKED。Go 可以采用不同设计，但当前证据没有证明 OPS-14/16 的行为差异满足“优于 Bash”的条件。OPS-27 的第三方文件保护有明确安全优势和故障注入证据，仍需契约所有者确认如何将此差异纳入正式验收，执行者不自行改写验收口径。
+2. **当前候选远程 CI 未完成**：七项 CI 状态仍为 `CI_PENDING`，触发需要将当前提交推送到远端；本轮没有推送。
+3. **BLOCKED 行需要真实补证或保留阻断**：OPS-17a 已有 Go 侧签名更新、应用后健康与真实 L4 补证，但正式行仍缺双端契约证据；OPS-18/23/24 按正式账本中的范围/环境限制维持 BLOCKED。Guard 已覆盖异步 reload、失败回滚和 master 重启，但没有真实数值 PID 复用探针，因此不声称该边界通过。
+4. **Bash 全新目标冷恢复范围仍窄于 Go**：Go Reality/TLS/Relay/Multi 四类通过；Bash 当前只完成 TLS/WebSocket M4。该 Bash 恢复的配置、证书、权限、服务与真实客户端 L4 已核验，但恢复输出仍有非致命 `harden_config_permissions` 警告，具体子步骤未捕获。
+5. **失败现场仍有未解释项**：soak 第二轮 31/31 次、1863 秒与两个调度周期通过；首轮第 26 样本超时未留足现场，根因无法确定。该历史失败保留，不能由第二轮结果覆盖。
+6. **交付未闭环**：产品修复已提交 `8ff26917`；当前审计账本、报告和证据仍待提交本地开发分支。审计提交不改变产品候选 SHA；本轮未推送、未合并、未打 tag/正式发布、未操作生产 VPS。
+
+平台证据已完成候选范围：Debian 12 M1/M4 双端真实 L4 两轮通过；amd64 M1/M4 在 linux/amd64 Docker 模拟环境通过，但 Docker 宿主为 ARM64，因此不声称原生 amd64 硬件验证。98 项配置对照、P3/版本迁移与 soak 的已完成范围见上文和证据索引，不再列作待跑事项。
+
+## 最终判断
+
+本候选在多项关键业务路径上有真实运行证据，但仍存在正式 FAIL、BLOCKED、BASH_ONLY 与 CI_PENDING。**当前结论为 NO_GO，而非“基本通过”或“仅剩文档”。**只有按既有契约解决或正式裁决差异、满足强制补证并对最终候选运行远程 CI 和严格验收后，才能重新评估 Docker 开发候选资格。发布授权始终为 **NO**。

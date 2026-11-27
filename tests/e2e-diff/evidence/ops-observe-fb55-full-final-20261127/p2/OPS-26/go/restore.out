@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "archive": "/tmp/ops25-go.tar.gz",
+  "archiveSha256": "6fe53035341c1487467fd246fbb00712510ce1e69b4bae0833625c9f005871d2",
+  "bytes": 0,
+  "files": 9,
+  "createdAt": "",
+  "restored": [
+    "etc/idleleo/conf/nginx/00-xray.conf",
+    "etc/idleleo/conf/nginx/03-isolate.conf",
+    "etc/idleleo/conf/nginx/127.0.0.1.realityServers",
+    "etc/idleleo/conf/nginx/example.com.serverNames",
+    "etc/idleleo/conf/nginx/nginx.default",
+    "etc/idleleo/conf/ops25-canary.txt",
+    "etc/idleleo/conf/xray/config.json",
+    "etc/idleleo/v1/metadata.json",
+    "etc/idleleo/v1/nginx.json"
+  ],
+  "preBackup": "/etc/idleleo/backup/pre-restore-20261126T185828Z.tar.gz",
+  "sensitive": true
+}

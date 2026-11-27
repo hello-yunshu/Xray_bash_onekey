@@ -1,0 +1,1 @@
+open /etc/idleleo/conf/xray/config.json.tmp: read-only file system; rollback failed: open /etc/idleleo/conf/xray/config.json.tmp: read-only file system; recovery journal kept, inspect and run 'idleleo xray recover'

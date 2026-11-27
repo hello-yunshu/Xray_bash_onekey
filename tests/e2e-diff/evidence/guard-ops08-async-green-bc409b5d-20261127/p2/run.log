@@ -1,0 +1,17 @@
+12:44:22 run_id=guard-ops08-async-green-bc409b5d-20261127
+12:44:23 image_id=sha256:677ce1edf3f75b17ade9bf8799ef1394f60e3336c1f1a2ab29cefb96bd08d113
+12:44:23 building idleleo
+12:44:28 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=a79e1c861b98f4ce6ea531cc52650e0ab6076ec9bcc6534a15a3abe01fb16021
+12:44:28 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+12:44:28 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+12:44:28 release_cache=seeded templates=vless_reality.json,vless_tls.json
+12:44:28 release_cache=hit
+12:44:28 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+12:44:28 apt_cache=hit (OPS offline apt)
+12:44:28 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+12:44:28 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+12:44:29 argv-verify written
+12:44:30 [OPS-08] start
+12:45:37 [OPS-08] verdict=FAIL
+12:45:37 scope: installs=[] edits=[] ops=[OPS-08]
+12:45:37 P2 finished: tests/e2e-diff/evidence/guard-ops08-async-green-bc409b5d-20261127/p2

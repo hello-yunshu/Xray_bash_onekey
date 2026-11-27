@@ -1,0 +1,18 @@
+{
+  "runId": "versions-current-7d3e19d9-20261127",
+  "productCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+  "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+  "driverSha": "922dac88b19192b1e30c58645f5eec32ae05b4926ff0511de1cf69694070c70a",
+  "image": "sha256:fe00d1c974adefe211024e819ebdd10381c0e51ae17ede4ba35a57d68c66f740",
+  "platform": "linux/arm64",
+  "startedAt": "2026-11-27T10:58:19Z",
+  "finishedAt": "2026-11-27T10:59:13Z",
+  "layer": "Xray multi-version config + deployment + L4",
+  "verdict": "PASS",
+  "actualRc": 0,
+  "manifestPath": "build-manifest.json",
+  "manifestSha256": "b90a90371584704343f41c9ea5663b30fb85b69cbaac31e6975feba1ce9b6aa2",
+  "evidencePath": "tests/e2e-diff/evidence/versions-current-7d3e19d9-20261127/versions",
+  "log": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/xray-versions-current-7d3e19d9.log"
+}

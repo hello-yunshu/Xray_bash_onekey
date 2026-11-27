@@ -1,0 +1,12 @@
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  请确保备份文件在目录: /etc/idleleo 
+ 找到最新备份文件: /etc/idleleo/xray_bash_codexcoldrestore20261127_20261127120444.tar.gz 
+[警告]  恢复后权限收紧未完全成功, 请手动检查 
+[信息]  未找到可用的 GeoData 资源, 跳过软链自愈 
+[错误]  GeoData 自愈后 Xray 配置自检失败 
+  Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+  A unified platform for anti-censorship.
+  2026/11/27 12:07:11.447847 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+  Failed to start: main: failed to create server > app/log: failed to initialize access logger > open /var/log/xray/access.log: no such file or directory
+[警告]  GeoData 自愈失败, 已回滚到恢复前状态: xray -test 
+[错误]  恢复失败: GeoData 资源目录自愈未通过 

@@ -1,0 +1,4 @@
+FROM idleleo-e2e:24.04
+COPY --from=golang:1.27.4-bookworm@sha256:205c7636d74e0ffbe3d007162df7d74f859f5a8c8322dfb9f907977686c126cf /usr/local/go /usr/local/go
+ENV PATH="/usr/local/go/bin:${PATH}"
+RUN go version && python3 --version && jq --version && git --version

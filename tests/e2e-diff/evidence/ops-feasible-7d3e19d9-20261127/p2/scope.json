@@ -1,0 +1,28 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-05,OPS-06,OPS-07,OPS-09,OPS-10,OPS-11,OPS-15,OPS-16,OPS-17c,OPS-19,OPS-21,OPS-22,OPS-28,OPS-30,OPS-31,OPS-32",
+  "ops": [
+    "OPS-19",
+    "OPS-21",
+    "OPS-09",
+    "OPS-31",
+    "OPS-32",
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-10",
+    "OPS-17c",
+    "OPS-30",
+    "OPS-11",
+    "OPS-15",
+    "OPS-16",
+    "OPS-22",
+    "OPS-28"
+  ],
+  "runId": "ops-feasible-7d3e19d9-20261127",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

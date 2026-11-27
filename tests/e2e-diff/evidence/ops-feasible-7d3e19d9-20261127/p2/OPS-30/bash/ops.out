@@ -1,0 +1,103 @@
+OPS_ID=OPS-30
+spawn bash /src/install.sh
+[OK]  当前用户是 root 用户, 开始安装 
+[警告]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+
+╭─ Xray 管理脚... ─╮
+│                  │
+│ 当前模式: Rea... │
+│ 当前语言: zh_CN  │
+│                  │
+├─ 版本检测 ───────┤
+│ 脚本: [最新版]   │
+│ Xray: [最新版]   │
+│ Nginx: [未安装]  │
+├─ 运行状态 ───────┤
+│ Xray: 运行中..   │
+│ Nginx: 无需测试  │
+│ 连通性: 本地正常 │
+├─ Rill Xray A... ─┤
+│                  │
+│ 检测：Rill       │
+│ 组件版本较旧...  │
+│                  │
+│ AI 判断: 未安装  │
+│ 服务: 未运行     │
+│ 路由辅助: 关闭   │
+╰──────────────────╯
+
+╭─ Xray 管理菜单 ──╮
+│                  │
+│  1. 安装向导     │
+│  2. 配置变更     │
+│  3. 查看信息     │
+│  4. Xray / TLS   │
+│  5. 更新向导     │
+│  6. 其他选项     │
+│  7. 备份恢复     │
+│  8. 修改语言 ... │
+│  9. Rill Xray... │
+│                  │
+│  0. 退出         │
+╰──────────────────╯
+请输入选项: STEP[menu]=8
+8
+
+ 选择语言 / Select Language / انتخاب زبان / Выберите язык 
+1. 中文 (默认)
+2. English
+3. Français
+4. فارسی
+5. Русский
+6. 한국어
+请输入数字: STEP[language]=2
+2
+[OK]  当前系统为 Ubuntu 24.04 noble 
+[OK]  当前用户是 root 用户, 开始安装 
+[信息]  正在更新语言文件... 
+[OK]  语言文件更新 完成 
+[warning]  在线版本元数据未签名(兼容期), 请尽快更新签名元数据 
+
+╭─ Xray manage... ─╮
+│                  │
+│ current mode:... │
+│ current langu... │
+│                  │
+├─ version det... ─┤
+│ script: [late... │
+│ Xray: [latest... │
+│ Nginx: [not i... │
+├─ running status ─┤
+│ Xray: running..  │
+│ Nginx: no tes... │
+│ connectivity:... │
+├─ Rill Xray A... ─┤
+│                  │
+│ Detection: The   │
+│ Rill component   │
+│ version is       │
+│ outdated; please │
+│ update.          │
+│                  │
+│ AI judgment: ... │
+│ service: not ... │
+│ route assista... │
+╰──────────────────╯
+
+╭─ Xray manage... ─╮
+│                  │
+│  1. installat... │
+│  2. configura... │
+│  3. view info... │
+│  4. Xray / TLS   │
+│  5. update wi... │
+│  6. other opt... │
+│  7. backup an... │
+│  8. change la... │
+│  9. Rill Xray... │
+│                  │
+│  0. exit         │
+╰──────────────────╯
+please enter an option: STEP[exit]=0
+0
+EXPECT_WAIT_STATUS=2657 exp4 0 0

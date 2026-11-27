@@ -8,8 +8,10 @@
 # Contract: callers export ROOT as the repository root before sourcing.
 
 docker_arch() {
-    local arch
-    arch=$(docker version --format '{{.Server.Arch}}' 2>/dev/null || true)
+    local arch=${E2E_DOCKER_ARCH:-}
+    if [[ -z "$arch" ]]; then
+        arch=$(docker version --format '{{.Server.Arch}}' 2>/dev/null || true)
+    fi
     case "$arch" in
     x86_64 | amd64) echo amd64 ;;
     aarch64 | arm64) echo arm64 ;;

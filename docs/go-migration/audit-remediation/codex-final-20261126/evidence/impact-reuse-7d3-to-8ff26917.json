@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "baseCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+  "changedFiles": [
+    "install.sh"
+  ],
+  "diffSha256": "eab0eafa39276420fd7a0b252c2ad8cb00efa618b7ed15159293f076f957b1a4",
+  "reusableOps": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-03",
+    "OPS-04",
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-08",
+    "OPS-09",
+    "OPS-10",
+    "OPS-11",
+    "OPS-12",
+    "OPS-13",
+    "OPS-14",
+    "OPS-15",
+    "OPS-16",
+    "OPS-17a",
+    "OPS-17b",
+    "OPS-17c",
+    "OPS-18",
+    "OPS-19",
+    "OPS-20",
+    "OPS-21",
+    "OPS-22",
+    "OPS-23",
+    "OPS-24",
+    "OPS-27",
+    "OPS-28",
+    "OPS-29",
+    "OPS-30",
+    "OPS-31",
+    "OPS-32"
+  ],
+  "affectedOps": [
+    "OPS-25",
+    "OPS-26"
+  ],
+  "rationale": "8ff26917 only changes install.sh restore_directories: before validating restored GeoData/Xray config, invoke the existing unit-aware log ownership/mode initializer. OPS-25/26 exercise backup/restore and therefore must be rerun; every other OPS function and command path is unchanged. Reuse is only for exact evidence bound to the ancestor 7d3e19d candidate and does not approve any behavioral difference."
+}

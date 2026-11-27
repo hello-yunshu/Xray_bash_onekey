@@ -1,0 +1,8 @@
+conf/xray/config.json 
+conf/install_config.json 
+conf/nginx/00-xray.conf 
+config-mode 600:root
+xray-active active
+nginx-active active
+xray-test-rc 0
+nginx-test-rc 0

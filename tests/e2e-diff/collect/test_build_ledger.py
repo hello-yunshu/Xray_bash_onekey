@@ -13,9 +13,13 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import importlib.util
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCRIPT = os.path.join(HERE, "build_ledger.py")
+_SPEC = importlib.util.spec_from_file_location("build_ledger_under_test", SCRIPT)
+_BUILDER = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(_BUILDER)
 
 
 def repo_root():
@@ -157,6 +161,22 @@ def sweep(root, text):
 
 
 class LedgerContractTest(unittest.TestCase):
+    def test_impact_reuse_is_limited_to_declared_unaffected_rows(self):
+        base = "b" * 40
+        target = "c" * 40
+        policy = {"baseCodeSha": base, "targetCodeSha": target,
+                  "reusableOps": {"OPS-08"}, "affectedOps": {"OPS-25", "OPS-26"},
+                  "evidence": "impact.json", "changedFiles": ["install.sh"],
+                  "diffSha256": "d" * 64}
+        sha, reuse = _BUILDER.expected_evidence_sha(
+            {"productCodeSha": base}, target, "OPS-08", policy)
+        self.assertEqual(sha, base)
+        self.assertEqual(reuse["targetCodeSha"], target)
+        sha, reuse = _BUILDER.expected_evidence_sha(
+            {"productCodeSha": base}, target, "OPS-25", policy)
+        self.assertEqual(sha, target)
+        self.assertIsNone(reuse)
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = self.tmp.name
@@ -200,6 +220,19 @@ class LedgerContractTest(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(self.row(ledger, "OPS-01")["status"], "DUAL_SIDE_VERIFIED")
 
+    def test_matrix_summary_lists_blocked_ids_not_only_count(self):
+        matrix_path = os.path.join(self.root, "matrix.json")
+        with open(os.path.join(ROOT, "tests/e2e-diff/matrix.json"), encoding="utf-8") as fh:
+            write(matrix_path, json.load(fh))
+        ops(self.matrix, "OPS-01", "PASS", include_rc=False)
+        proc, ledger = self.run_ledger(matrix=self.matrix, allow_incomplete=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        with open(matrix_path, encoding="utf-8") as fh:
+            matrix = json.load(fh)
+        self.assertEqual(matrix["acceptance"]["blockedOps"], 1)
+        self.assertEqual(matrix["acceptance"]["blockedIds"], ["OPS-01"])
+        self.assertEqual(matrix["acceptance"]["blockedIds"], ledger["blockedIds"])
+
     def test_diff_verdict_is_failure_not_dropped(self):
         ops(self.matrix, "OPS-03", "DIFF", bash_rc=0, go_rc=0)
         proc, ledger = self.run_ledger(matrix=self.matrix)
@@ -225,6 +258,57 @@ class LedgerContractTest(unittest.TestCase):
         proc, ledger = self.run_ledger(matrix=self.matrix)
         self.assertEqual(proc.returncode, 1, proc.stderr)
         self.assertEqual(self.row(ledger, "OPS-02")["status"], "FAIL")
+
+    def test_pass_with_expected_timeout_requires_rc_and_output_proof(self):
+        run_dir = os.path.join(self.matrix, "p2", "OPS-12")
+        os.makedirs(os.path.join(run_dir, "bash"), exist_ok=True)
+        os.makedirs(os.path.join(run_dir, "go"), exist_ok=True)
+        write(os.path.join(run_dir, "bash", "run.rc"), "124\n")
+        write(os.path.join(run_dir, "bash", "follow.rc"), "124\n")
+        write(os.path.join(run_dir, "bash", "follow.out"), "live-marker\n")
+        write(os.path.join(run_dir, "go", "snapshot.rc"), "0\n")
+        write(os.path.join(run_dir, "go", "follow.rc"), "124\n")
+        write(os.path.join(run_dir, "go", "snapshot.out"), "seed-marker\n")
+        write(os.path.join(run_dir, "go", "follow.out"), "seed-marker\nlive-marker\n")
+        ops(self.matrix, "OPS-12", "PASS", bash_rc=124, go_rc=0)
+        path = os.path.join(run_dir, "ops.json")
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        data["expectedRc"] = {"bash": 124, "go": 0}
+        data["expectedRcEvidence"] = {
+            "bash": {
+                "rcFiles": [{"path": "bash/run.rc", "expected": 124},
+                            {"path": "bash/follow.rc", "expected": 124}],
+                "markerFiles": [{"path": "bash/follow.out", "contains": ["live-marker"]}],
+            },
+            "go": {
+                "rcFiles": [{"path": "go/snapshot.rc", "expected": 0},
+                            {"path": "go/follow.rc", "expected": 124}],
+                "markerFiles": [{"path": "go/snapshot.out", "contains": ["seed-marker"]},
+                                {"path": "go/follow.out", "contains": ["seed-marker", "live-marker"]}],
+            },
+        }
+        write(path, data)
+        proc, ledger = self.run_ledger(matrix=self.matrix, allow_incomplete=True)
+        self.assertEqual(proc.returncode, 0,
+                         proc.stderr + ("\n" + str(self.row(ledger, "OPS-12")["reasons"]) if ledger else ""))
+        self.assertEqual(self.row(ledger, "OPS-12")["status"], "DUAL_SIDE_VERIFIED",
+                         self.row(ledger, "OPS-12")["reasons"])
+
+        # A marker missing from the captured stream makes the same expected rc
+        # insufficient; arbitrary timeouts cannot become PASS.
+        write(os.path.join(run_dir, "bash", "follow.out"), "")
+        proc, ledger = self.run_ledger(matrix=self.matrix, allow_incomplete=True)
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assertEqual(self.row(ledger, "OPS-12")["status"], "FAIL")
+
+        write(os.path.join(run_dir, "bash", "follow.out"), "live-marker\n")
+        data["expectedRcEvidence"]["bash"]["rcFiles"][0]["path"] = "../../../../etc/passwd"
+        write(path, data)
+        proc, ledger = self.run_ledger(matrix=self.matrix, allow_incomplete=True)
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assertEqual(self.row(ledger, "OPS-12")["status"], "FAIL")
+        self.assertTrue(any("escapes OPS evidence" in reason for reason in self.row(ledger, "OPS-12")["reasons"]))
 
     def test_pass_without_both_exit_codes_is_incomplete(self):
         ops(self.matrix, "OPS-04", "PASS", include_rc=False)

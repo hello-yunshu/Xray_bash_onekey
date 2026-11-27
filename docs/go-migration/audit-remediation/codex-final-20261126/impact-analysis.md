@@ -1,42 +1,36 @@
-# 历史证据影响分析
+# 历史证据影响分析（当前产品候选 8ff26917）
 
-## 当前候选改动范围
+## 当前候选与本轮代码差异
 
-本轮锚点为审计候选 `5041511998575851eb5cb16533e9fe999d29d5a8`，最终冻结代码为 `f4deaf77c08457bf2ed1a07e165b2ff5bf5b53f5`。本轮新增提交集中在：
+- 当前产品源码提交：`8ff26917e3e381d4023b7319d5405f7ba871f289`。
+- 当前 Go CLI SHA-256：`c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d`。
+- `8ff26917` 相对 `7d3e19d9` 仅新增 `install.sh` 的 restore 修复：恢复真实 Xray 配置校验前，创建并按 systemd 单元用户/组收紧 `/var/log/xray`。该改动会影响 OPS-25/26，故二者在 `8ff26917` 上双端重跑；其余 OPS 通过机器可验证的祖先提交映射复用。映射记录确切改动文件、Git diff SHA、受影响与可复用 OPS ID，路径为 `evidence/impact-reuse-7d3-to-8ff26917.json`。验收器对每个复用行保留原 `productCodeSha` 并写明 `evidenceReuse`，不会改写旧 run 的候选身份，也不批准行为差异。
+- 自先前冻结的产品提交 `f4deaf77` 后，产品代码变更集中在：`internal/cli/flags.go`、`internal/cli/xraylogs.go`、`internal/componentupdate/update.go`、`internal/deploy/guard.go`、`internal/deploy/logs.go`、`internal/i18n/i18n.go`（含相邻测试）。`internal/deploy/certclear.go`、`internal/xraycfg` 与 Bash 安装入口没有从该冻结点变化。
+- 验收器、驱动与其独立工件有额外改动。每个矩阵 run 都保留自己真实的 `driverSha`、依赖摘要、镜像和二进制；未将不同 run 的驱动 SHA 合并或改写。
 
-| 文件 / 路径 | 变化面 | 必须重跑或新证据 |
-|---|---|---|
-| `internal/deploy/guard.go`、相关 Guard 测试 | active 证明、运行记录与策略内容绑定、旧 mtime 不再证明 worker 已加载 | OPS-08、旧 mtime / 未 reload / reload 后 SNI；本轮实际双端重跑 isolate |
-| `internal/deploy/certclear.go`、相关证书测试 | 外部 ACME 树保守保留；项目文件仍要求路径、类型、摘要归属与未使用证明 | OPS-27 双端差异、Go 完整 CLI 动态 TLS、外部 ACME、项目闲置证书清理 |
-| `tests/e2e-diff/collect/build_ledger.py`、`test_build_ledger.py`、验收汇总器 | provenance 校验、SNI 与业务事实、逐条 supersedes / 批准、严格分母 | 独立负例/契约测试、严格正式账本构建、三工件一致性 |
-| `tests/e2e-diff/collect/l4.sh`、`client_config.py`、`run_p2_matrix.sh` | L4 客户端采集、统计 API 与证据清单 | OPS-20 双端真实客户端；OPS-08、OPS-27 受影响驱动也在最终 SHA 重跑 |
-| `tests/e2e-diff/run_ops_sweep.sh` | 命令级实际 rc、期望 rc 与构建来源绑定 | 最终 SHA 全 sweep，57 PASS / 0 FAIL |
-| `internal/xraycfg/edit.go`、`xraycfg.go`、相关测试 | XHTTP 安装/生成/编辑统一折叠重复 slash、保留 trailing slash，避免 Xray 路径与 Nginx URI 合并后的 location 不一致 | 旧候选 M6 容器旧 CLI 输入 `/ray//` 后真实客户端 curl rc=52；最终 SHA M6 双端默认/重复安装请求成功，Go 编辑输入 `//ray//custom//` 后真实 Xray 客户端成功请求，Xray `-test` 与 Nginx `-t` 通过 |
-| 隐私 allowlist / evidence 归档 | 明确六项既有公共 IP 测试夹具；扫描器规则不降级 | 当前完整仓库扫描；远程 CI 仍须在最终 SHA 运行 |
+## 影响范围与本轮处理
 
-## 历史专项复用决策
-
-旧证据没有被改写或重新锚定到本轮 SHA。下表说明其作为“历史事实”可读，但是否纳入当前签收必须由影响范围和新 provenance 决定。
-
-| 历史证据 / 套件 | 原候选 / 产品摘要 | 受本轮改动影响 | 本轮处理 / 结果 |
+| 证据族 / 旧路径 | 原候选与产物 | 影响分析 | 本轮处理与当前结果 |
 |---|---|---|---|
-| `round4-final-50415119` OPS 全矩阵 | 旧候选 `50415119…`；无本轮完整 manifest provenance | 所有旧行均低于当前候选身份；OPS-08、OPS-20、OPS-27 直接受影响 | 仅保留为历史记录，不计本轮通过；当前只用最终 SHA 的 OPS-08/20/27 定向证据 |
-| `round5-cand-ops03c-131954` OPS-03 | 旧候选，双端真实两步清理 | 本轮不改 shortId 管理逻辑，但验收摘要/provenance 改动影响其签收资格 | 旧证据不计入最终结论；最终 SHA 已实跑 Bash/Go 添加、真实连接、移除及 shortId 清理。Go 需显式执行第二条清理命令，结果由当前探针计为 DUAL；共享 shortId、撤销旧凭据和重启边界仍未跑 |
-| `round5-cand-observe-130808` OPS-17b | 旧候选，Nginx 更新成功路径 | 本轮未改更新实现；候选不同且无本轮失败回滚/真实客户端数据 | 只作历史成功路径，当前 ledger 不采纳；失败回滚和升级后连接未跑 |
-| `a4-xhttp-path.log` / 历史 XHTTP 交叉探针 | 旧候选；覆盖 `/xhttp` 与 `/xhttp/` 等 URI 语义 | 历史用例未覆盖重复斜杠经过托管 Nginx 的精确 location；本轮新修改 XHTTP 规范化 | 历史报告仍有效于原场景；针对新发现的重复斜杠故障，以最终候选 M6 双端客户端及 Go `//ray//custom//` 编辑后真实客户端重新运行 |
-| `round4-full-50415119` / `round4-bizfacts*` 安装、配置、SNI 证据 | 产品候选 `50415119…` | Guard 运行状态代码及证据契约直接影响 SNI 结论；其他安装配置未改产品逻辑 | OPS-08 不复用，已用本轮双端实际重跑；其余配置安装只保留历史，不纳入本轮 PASS |
-| M1–M10、两轮各传输 L4、98 项配置对照 | 早期产品/驱动 SHA | Guard、证书和 OPS 驱动变化局部影响；没有证据证明历史输出绑定本轮候选 | 未全量重跑；仅 M6 在最终 SHA 重新运行双端 XHTTP 默认及重复安装实际客户端连接；安装/编辑/传输其余行为仍未闭环签收 |
-| R1/R2 与 v3.3.2 / v3.3.3 迁移 | 历史版本及其各自产物 | Go 管理核心/迁移路径本轮未修改；当前候选身份不同 | 未重跑；不能作当前候选验收证据 |
-| S4–S9、P3 四传输热更新、冷恢复 Reality/TLS/Relay/Multi | 历史运行与各自构建 | Go 运行时统计设置和通用验收驱动变化；并非全路径静态无影响 | 未机械重跑；无最终 SHA 证据，保持未验证 |
-| 故障注入（坏配置/证书、端口、只读、SIGKILL、ENOSPC、锁冲突） | 历史专项 | Guard 与 cert clear 事务边界直接相关 | 本轮 Go 包测试覆盖已有单测；本轮只实跑配置读取安全及证书保留/清理，未完整注入崩溃、ENOSPC、锁冲突及事务恢复 |
-| Xray 三版本、Debian 12、amd64 部署 | 历史平台矩阵 | 本轮二进制目标和新 L4/Guard 驱动有影响 | 本地 Docker 为 linux/arm64；未运行 amd64 或第二发行版，保持未验证 |
-| soak ≥1800 秒与两个调度周期 | 历史 soak | 本轮未改调度服务；当前 sweep 仅短时功能运行 | 未重跑，无当前候选稳定性结论 |
-| OPS-17a / OPS-25 / OPS-26 | 旧 sweep/metadata/export 证据 | metadata 不等同更新或真实备份恢复，且不能替代 Bash 对照 | Go 冷恢复在当前产品源码二进制上已实跑 Reality/TLS/Relay/Multi 四类：验证备份摘要、源/目标状态字节一致、配置权限与属组、服务恢复/重启以及真实客户端前后连通；四类 source/target 驱动均 rc=0。证据位于 `tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127*`。这提高 Go 单侧证据等级，但尚无 Bash 同协议原生备份与恢复对照，OPS-25/26 正式状态保持 GO_ONLY/BLOCKED；OPS-17a 仍缺跨版本真实业务连接 |
-| OPS-17b Go Nginx 升级 | f4deaf77 真实 OPS-OBSERVE 与旧候选成功记录 | 升级器替换 Nginx 安装目录后丢失托管主配置；`nginx -t` 单独无法发现业务入口消失 | 真实旧容器红证据中默认配置不含托管 include、443 消失且 Reality 请求 curl exit 56。fb55adf7 最小修复后在精确提交重跑 Bash/Go 1.27.5→1.30.6 更新，双方升级后真实客户端请求通过；Go 真实错误版本校验触发 rc=6 与 rollback，配置摘要、Nginx 1.30.6、服务及 443 恢复，回滚后真实客户端仍通过。证据：`tests/e2e-diff/evidence/obsfix-final-fb55/p2/OPS-17b`。此补充不改变其余旧 OPS 证据的 SHA，也不构成全量候选资格 |
-| OPS-12/13、OPS-14/16/23/24、M8 | 历史产品契约 | 本轮未修改实时日志取舍、证书续期、速度测量、调度、Pebble 管理核心 | 本轮 sweep 重新确认 Go CLI 部分行为；保持 GO_ONLY。M8 继续标注 Bash wrapper 委托 Go，不宣称纯 Bash |
+| OPS-01…32 历史完整矩阵（round4 / round5 / f4deaf77） | 各自 run 的代码、二进制和 driver SHA | Guard、日志、更新器与验收器范围内的 OPS 不能因历史全绿继承当前通过；其他行也不能只靠旧 run 身份签收 | 当前候选分批执行真实双端 OPS，严格账本最终 26 DUAL、3 FAIL、1 Bash-only、4 BLOCKED、0 NOT_RUN；结果路径和每行来源见 `ledger.json` 与本轮 `evidence-index.json` |
+| OPS-03 shortId、撤销和重启边界 | `ops03-boundary-23fa585f-20261127`，产品 SHA 需按 `run.json` 解读 | `internal/xraycfg` 自 f4deaf77 起未变；共享凭据、撤销旧连接和重启属于用户生命周期行为，不能由一般 add/remove 流程推断 | 边界探针保留共享 shortId、移除后旧凭据拒绝、存活用户与重启后连接证据；当前 OPS-03 又在 `ops-core-7d3e19d9` 双端复跑。流程结果可复用，Go 显式 shortId 清理与 Bash 自动清理的命令语义仍单独披露 |
+| OPS-04 分享 URI、OPS-17b Nginx 更新、OPS-25/26 备份恢复 | 早期 round5 / `obsfix-final-fb55` | 旧候选不能替代新账本；更新器改动直接影响 OPS-17b；restore 修复直接影响 OPS-25/26 | OPS-04 与 OPS-17b 的 7d3e19d9 证据按影响映射复用；OPS-25/26 在 8ff26917 双端重跑，真实备份、完整性校验、修改后恢复、权限、服务校验及 Reality L4 均通过。另以全新目标复现并修复 Bash cold restore：M4 TLS/WebSocket 归档恢复后配置、证书、二进制 SHA 和权限与源端一致，Xray/Nginx active 并通过实际客户端请求。首次冷恢复失败日志保留，证明问题不是单测推断 |
+| Guard 旧 mtime / 未 reload / 异步 reload / rollback / Nginx master restart | `guard-ops08-23fa585f-20261127`，产品 SHA `23fa585f…`；更早红/绿记录在 `guard-ops08-async-*` | 该后续提交相对当前 `7d3e19d9` 的 Guard 产品文件无差异（由 Git diff 复核）；它晚于旧 f4deaf77，覆盖当前 Guard 实现。验收器和报告代码改动不改变被测进程行为 | 保留真实 `nginx -t`、磁盘编辑并保留旧 mtime、reload 前 runtime-unverified、reload 后 active、异步 reload 超时回滚、restart 后 runtime-unverified、未知 SNI 请求 rc。PID 数值被强制复用没有独立真机证据，未声称测试过 |
+| 证书动态路径、所有权与事务回滚 | `cert-dynamic-https-bc409-20261127`；本轮 `certclear-fault-cli-7d3e19d9-20261127` | `certclear.go` 相对 f4deaf77 无变化；旧动态路径/所有权证据不受本轮 CLI/log/Guard 变更影响。故障注入在当前真实 CLI 重跑 | 动态 `${cert_name}` HTTPS 前后成功；项目未用证书可清理、第三方及嵌套用户数据保留；两个事务失败/中断场景回滚后摘要、权限、journal/staging 核对。OPS-27 Bash/Go 差异仍是 FAIL：Go 保留第三方文件、Bash 递归删除 |
+| M1–M10 双端安装、双轮、每轮真实 L4 | 早期 P2 / M6-only evidence | `internal/xraycfg` 和 Bash install 未在旧冻结点后变化，但本轮候选要求覆盖重复 slash 修复和当前二进制身份 | 当前 ARM64 Docker 镜像上重跑 10 场景 × Bash/Go × 两轮；安装 rc=0，所有适用传输两轮真实 L4 `ok`，含真实 Pebble ACME 与 Relay，见 `matrix-current-7d3e19d9-20261127/p2/install-matrix.md` |
+| 98 项配置/生成对照 | `matrix-20261120-final` 及其他历史摘要 | 旧结果含旧 Go 产物；`internal/xraycfg` 在冻结点后无差异，但当前候选需要锁定 Go binary、Bash 文件及实际输出 | 当前干净 clone（repo commit 7d3e19d9、repo_dirty=0）重跑：98 Bash/Go parity + 6 A1，54 MATCH、40 MATCH_CORE_FIELDS、4 REFUSED、6 A1_PASS、0 GAP。原 pinned Debian base 的 apt 索引下载被远端关闭；采用测试脚本文档允许的本地依赖镜像（Ubuntu e2e 工具层 + 本地 Go 1.27.4 工具链），离线矩阵实际运行成功。镜像 ID、工具版本、Dockerfile 均留档 |
+| P3 hot-user：raw/ws/gRPC/xHTTP | 历史 P3 run，多为更早产品 SHA | Guard/log/update 改动不覆盖 P3 pilot，但用户管理端到端当前身份仍应补充 | 当前产品 SHA 的四个独立真实 Go Docker run 均安装 rc=0、driver 62 assertions / 0 failures；保留为 Go 单侧证据，不扩写成 Bash parity |
+| Go 冷恢复 Reality/TLS/Relay/Multi 与 Bash 全新目标恢复 | `goevo-coldrestore-cold-fb55-*` 与本轮 `bashcold-restore-retry-current-7d3e19d9-20261127` | Go 冷恢复四类在 7d3e19d9 有当前候选实测；新 Bash restore 修复需要实际新目标回归 | Go 四类保留 7d3e19d9 原候选绑定；Bash M4 新目标测试在 8ff26917 用真实 CLI 完整备份/恢复，Xray/Nginx 配置及服务、权限/摘要和 TLS/WebSocket 客户端均通过。首次失败显示新系统缺 `/var/log/xray`，修复后真实回归通过；不把单场景 Bash 结果外推为 Reality/Relay/Multi 的 Bash 冷恢复覆盖 |
+| OPS-17a 手动签名更新 | 历史“status”记录不证明更新行为 | 当前更新入口在本轮修改范围；旧 status 不能证明下载、验签、应用或不自动更新 | 当前二进制以一次性本地签名包真实执行 check/apply，验证 check 不改二进制、apply 后摘要匹配、Xray/Nginx 服务健康、Reality L4 成功。该 Go 单侧补证不满足 formal dual-side OPS-17a 行，保持 BLOCKED |
+| R1/R2、v3.3.2/v3.3.3 迁移、Xray 三版本 | round3 / round5 各自旧 commit/产物 | update/CLI 有变更，不能不经影响分析把历史升级成功当本候选通过 | 当前 R1/R2 在 M1 Reality / M4 TLS 双轮及 install fault injection 共 106 assertions 全过；历史 Bash v3.3.2 与 v3.3.3 标签各自作为源再次执行相同 106 assertions，均 0 FAIL，历史安装器 commit/SHA 单独记录；Xray 26.11.9/26.10.31/26.10.21 三版均同配置部署和 L4 通过。Debian 12/amd64 仍需补测，不改写旧 run SHA |
+| S4–S9 helper 脚本、M8 ACME wrapper | `FINAL-S6*`、早期 Go wrapper run | 普通安装入口不变，但 wrapper/调度/日志行为跨越当前 i18n/log 工具改动；不与完整 Bash 主程序等同 | 当前候选完整运行 `scripts-current-retry2-7d3e19d9-20261127/s`，64/64 断言通过，含 Pebble ACME renew/repeat/failure rollback。首轮63/1是过时“up to date”断言；新版本 26.11.9 高于元数据目标 26.10.31 时产品拒绝降级，更新断言后完整重跑通过。日志均保留 |
+| Xray 三版本、Debian 12、amd64 | 历史 `versions-3`、`debian12-1`、旧 amd64 runs | 平台、daemon 与 Xray 兼容性都不能由当前 ARM64 单版本容器外推 | 当前候选已在 ARM64 Docker 上用 Xray 26.11.9/26.10.31/26.10.21 对同一生成配置做 `-test`、systemd 部署及真实客户端 L4，三者通过。Debian 12 M1/M4 两轮 Bash/Go L4 当前候选实测通过。linux/amd64 Docker image 运行 M1/M4 两轮 Bash/Go L4 通过，容器 uname=x86_64；宿主/server arch=arm64，因此是模拟执行，原生 AMD64 主机未验证 |
+| 30 分钟 soak + 两个 schedule 周期 | `soak-30m-1` 历史候选 | 更新、Guard、runtime 状态变化不由短 OPS sweep 覆盖 | 当前候选 `soak-diag-current-7d3e19d9-20261127` 31/31 真实采样、1863 秒、schedule timer active / runs=2，PASS；首轮 current run iter 26 超时原 runner 未记录诊断，根因未知，失败证据保留 |
 
-## CI 与批准边界
+## 可复用与不可复用原则
 
-- 历史审计在旧 HEAD 曾有 5/7 CI 通过；Privacy Guard 与 Go parity stage gate 因 evidence hygiene 失败。本轮本地全仓扫描为 0 finding。
-- 最终 SHA 在本轮没有 push，故不能触发或查询这 7 个工作流针对该 SHA 的结果；最终状态为 `CI_PENDING`。没有将本地扫描称为 CI 通过。
-- 仓库里的 11/22、11/24 Trae 授权摘要无法独立核验原始会话。本轮没有读取到新的外部授权文本，也没有使用任何批准文件，不把 OPS-27 差异标为已批准。
+- 没有把历史二进制、驱动、runId 或代码 SHA 改写成当前候选。复用只用于代码文件未变且测试输出仍对应同一契约的专项，并由上表标明原产物。
+- 当前 M1–M10、98 项、P3、冷恢复及 OPS 主矩阵均有新候选运行。完整真实业务连接、配置/服务状态、退出码来自输出证据，不由单测或 run 摘要代替。
+- OPS-14 与 OPS-16 的当前差异以及 OPS-27 第三方文件保护的差异保持正式 FAIL；OPS-30 保持 Bash-only；OPS-17a/18/23/24 保持 BLOCKED。未取得绑定候选、scope、证据指纹和期限的独立批准记录，不自动将它们转成批准差异。
+- 当前 ARM64 Docker 不证明 amd64、Debian 12、外部公共 CA/IPv6、宿主 BBR、生产服务器或真实掉电行为。
+- 对 `7d3e19d9 → 8ff26917` 的机器可校验复用边界：受影响项仅 OPS-25/26，已有当前 SHA 真实双端证据；其余 32 项保留 `7d3e19d9` 的原始 provenance 并附 `evidenceReuse` 映射。严格结果为 26 DUAL、3 FAIL、1 BASH-only、4 BLOCKED、0 NOT_RUN，严格验收器 rc=1。

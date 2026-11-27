@@ -1,0 +1,5 @@
+<TS> e2e-scripts-current-7d3e19d9-20261127-s-server systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-scripts-current-7d3e19d9-20261127-s-server xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-scripts-current-7d3e19d9-20261127-s-server xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-scripts-current-7d3e19d9-20261127-s-server xray[<PID>]: 2026/11/27 10:47:29.135236 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/27 10:47:29.141655 [Warning] core: Xray 26.11.9 started

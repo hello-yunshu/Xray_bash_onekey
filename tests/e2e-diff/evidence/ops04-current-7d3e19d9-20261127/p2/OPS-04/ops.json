@@ -1,0 +1,102 @@
+{
+  "active": {
+    "bash": "active",
+    "go": "active"
+  },
+  "bothInstallRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "details": {
+    "bash": {
+      "clientConnected": true,
+      "portListening": true,
+      "shareInfo": "vless://0d06dae3-a3c8-5060-b883-776a1903c789@198.51.100.10:8443?security=reality&flow=xtls-rprx-vision&fp=chrome&pbk=NuYW8wQcHxLmHQanY19zw1oaiguUDpEIpJ2caIFUvmY&sni=www.cloudflare.com&target=www.cloudflare.com&sid=470d0557f06051f7&spx=/docs/2poksgsi/index.html#198.51.100.10+Reality%E5%8D%8F%E8%AE%AE"
+    },
+    "go": {
+      "clientConnected": true,
+      "portListening": true,
+      "shareInfo": "vless://1c166162-2149-495c-a365-3674b5bf7af2@example.com:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=example.com&fp=chrome&pbk=SqWMsViT9ZHvRYFxHIe89lxqy2OVSJcCMNoYODccDhM&sid=12bf109b&type=raw#idleleo-reality"
+    }
+  },
+  "id": "OPS-04",
+  "l4": {
+    "bash": 0,
+    "go": 0
+  },
+  "listening443": {
+    "bash": false,
+    "go": false
+  },
+  "nginxListen": {
+    "bash": [
+      "listen       80;",
+      "listen 127.0.0.1:9403 ssl;",
+      "listen 8443 reuseport so_keepalive=on backlog=65535;"
+    ],
+    "go": [
+      "listen       80;",
+      "listen 127.0.0.1:9403 ssl;",
+      "listen 8443 reuseport so_keepalive=on backlog=65535;"
+    ]
+  },
+  "opsRc": {
+    "bash": 0,
+    "go": 0
+  },
+  "reasons": [],
+  "repeat": {
+    "bashFirst": 0,
+    "bashSecond": 0,
+    "goNegative": 2,
+    "goRepeat": 0
+  },
+  "run": {
+    "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+    "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+    "dependencies": [
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/l4.sh",
+        "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+        "source": "tests/e2e-diff/collect/l4.sh"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/client_config.py",
+        "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+        "source": "tests/e2e-diff/collect/client_config.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+        "sha256": "feb0180784a0d187084637ae506b6fa8cc4bdaf3b42c466aed68d85ebda22289",
+        "source": "tests/e2e-diff/collect/build_ledger.py"
+      },
+      {
+        "path": "build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+        "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+        "source": "tests/e2e-diff/drivers/bash_ops.exp"
+      },
+      {
+        "path": "build/dependencies/tests/go-parity/lib/docker_common.sh",
+        "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+        "source": "tests/go-parity/lib/docker_common.sh"
+      }
+    ],
+    "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
+    "finishedAt": "2026-11-27T08:05:00Z",
+    "fixedBy": null,
+    "image": "sha256:45e9f4a1bc291c2593fda287689ef2380a9dff9ed28c26fd1b161a9f0d0f3372",
+    "layer": "L0-L4 docker matrix",
+    "manifestPath": "build-manifest.json",
+    "manifestSha256": "409225130d497824cf670d98fc91e085e91db98ab57ed725a5dd8201ba1c60b2",
+    "platform": "linux/arm64",
+    "productCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+    "runId": "ops04-current-7d3e19d9-20261127",
+    "startedAt": "2026-11-27T08:03:23Z",
+    "supersedes": null
+  },
+  "sharePort": {
+    "bash": null,
+    "go": 8443
+  },
+  "verdict": "PASS"
+}

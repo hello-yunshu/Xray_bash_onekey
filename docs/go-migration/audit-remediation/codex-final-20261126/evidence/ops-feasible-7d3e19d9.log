@@ -1,0 +1,294 @@
+16:11:19 run_id=ops-feasible-7d3e19d9-20261127
+16:11:20 image_id=sha256:716747a33333bd3fed7ef62e220eb6d433bcfb24750211ac6f5f5d9266f2fcbd
+16:11:20 building idleleo
+16:11:24 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+16:11:24 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+16:11:24 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+16:11:24 release_cache=seeded templates=vless_reality.json,vless_tls.json
+16:11:24 release_cache=hit
+16:11:24 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+16:11:24 apt_cache=hit (OPS offline apt)
+16:11:25 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+16:11:25 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+16:11:26 argv-verify written
+16:11:26 [OPS-19] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:13:05 [OPS-19] verdict=PASS
+16:13:05 [OPS-21] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+16:15:01 [OPS-21] verdict=PASS
+16:15:01 [OPS-09] start upstream=ws
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=5a69aefeca35aa45a2c01af1ecd429980a0948429b49110590c16b5369dd3815
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=5a69aefeca35aa45a2c01af1ecd429980a0948429b49110590c16b5369dd3815
+go_argv=xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+16:15:52 [OPS-09] verdict=PASS
+16:15:52 [OPS-31] start upstream=reality
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=xray install --binary /usr/local/bin/xray --mode reality-balance --role primary --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+16:17:05 [OPS-31] verdict=PASS
+16:17:05 [OPS-32] start upstream=ws
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=5a69aefeca35aa45a2c01af1ecd429980a0948429b49110590c16b5369dd3815
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=5a69aefeca35aa45a2c01af1ecd429980a0948429b49110590c16b5369dd3815
+go_argv=xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+16:22:16 [OPS-32/ws] verdict=PASS
+16:22:16 [OPS-32] start upstream=reality
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=xray install --binary /usr/local/bin/xray --mode reality-balance --role primary --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+16:27:44 [OPS-32/reality] verdict=PASS
+16:27:44 [OPS-32] verdict=PASS
+16:27:44 [OPS-05] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:28:41 [OPS-05] verdict=PASS
+16:28:41 [OPS-06] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:30:12 [OPS-06] verdict=PASS
+16:30:12 [OPS-07] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:31:10 [OPS-07] verdict=PASS
+16:31:10 [OPS-10] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:32:31 [OPS-10] verdict=PASS
+16:32:32 [OPS-17c] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:33:24 [OPS-17c] verdict=PASS
+16:33:24 [OPS-30] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:34:22 [OPS-30] verdict=BASH-ONLY
+16:34:22 [OPS-11] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:35:13 [OPS-11] verdict=PASS
+16:35:13 [OPS-15] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:36:10 [OPS-15] verdict=PASS
+16:36:11 [OPS-16] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=5a69aefeca35aa45a2c01af1ecd429980a0948429b49110590c16b5369dd3815
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=5a69aefeca35aa45a2c01af1ecd429980a0948429b49110590c16b5369dd3815
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+16:36:37 [OPS-16] verdict=DIFF
+16:36:37 [OPS-22] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:37:27 [OPS-22] verdict=PASS
+16:37:27 [OPS-28] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+16:38:27 [OPS-28] verdict=PASS
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-05/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-05/bash/after.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-05/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-05/bash/before.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-05/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-05/bash/ops.log
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-05/bash/ops.out
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-05/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-05/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-06/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-06/bash/after.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-06/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-06/bash/before.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-06/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-06/bash/ops.log
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-06/bash/ops.out
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-06/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-06/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-07/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-07/bash/after.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-07/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-07/bash/before.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-07/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-07/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-07/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-09/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-09/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-10/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-10/bash/after.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-10/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-10/bash/before.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-10/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-10/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-10/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-11/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-11/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-11/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-11/bash/ops.log
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-11/bash/ops.out
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-11/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-11/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-15/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-15/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-15/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-15/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-15/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-16/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-16/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-17c/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-17c/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-17c/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-17c/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-17c/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-19/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-21/bash/block-bash/block.log
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-21/bash/block-bash/config-after-apply.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-21/bash/block.out
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-21/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-21/go/block-go/block.log
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-21/go/block-go/config-after-apply.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-21/go/block.out
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-21/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-22/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-22/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-22/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-22/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-22/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-28/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-28/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-28/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-30/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-30/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-30/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-30/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-30/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-31/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-31/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-32/reality/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-32/reality/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-32/ws/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2/OPS-32/ws/go/config/config.sanitized.json
+sanitize: 81 file(s) updated
+stamped 16 verdict file(s) with run provenance
+16:38:27 scope: installs=[] edits=[] ops=[OPS-19,OPS-21,OPS-09,OPS-31,OPS-32,OPS-05,OPS-06,OPS-07,OPS-10,OPS-17c,OPS-30,OPS-11,OPS-15,OPS-16,OPS-22,OPS-28]
+16:38:28 P2 finished: tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127/p2

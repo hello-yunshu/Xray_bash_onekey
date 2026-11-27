@@ -149,8 +149,8 @@ run_s4() {
     assert "$([ "$rc" -eq 0 ] && echo 0 || echo 1)" "S4 normal run exits 0 (rc=$rc)"
     assert "$(docker exec "$A_C" grep -q 'Script is up to date' /etc/idleleo/logs/auto_update.log && echo 0 || echo 1)" \
         "S4 normal run reports the Shell is up to date"
-    assert "$(docker exec "$A_C" grep -q 'Xray is up to date' /etc/idleleo/logs/auto_update.log && echo 0 || echo 1)" \
-        "S4 normal run reports Xray is up to date"
+    assert "$(docker exec "$A_C" grep -Eq 'Installed Xray [0-9.]+ is newer than the metadata target [0-9.]+; refusing to downgrade\.' /etc/idleleo/logs/auto_update.log && echo 0 || echo 1)" \
+        "S4 refuses to downgrade a newer installed Xray to the pinned metadata target"
     local before after
     before=$(docker exec "$A_C" sha256sum /etc/idleleo/conf/install_config.json | awk '{print $1}')
     capture "$d/repeat" docker exec "$A_C" bash /etc/idleleo/scripts/auto_update.sh

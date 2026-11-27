@@ -1,0 +1,28 @@
+{
+  "checks": [
+    "unit active",
+    "xray -test rc=0",
+    "port 443 listening",
+    "NRestarts==0",
+    "RSS under cap",
+    "client Reality handshake + HTTP business request",
+    "two real idleleo-schedule.timer cycles"
+  ],
+  "clientProbes": {
+    "failed": 1,
+    "ok": 25
+  },
+  "elapsedSeconds": 1556,
+  "expectedIterations": 31,
+  "failedIteration": 26,
+  "firstFailureReason": "client business request failed (curl rc=28, bytes=0)",
+  "intervalSeconds": 60,
+  "iterations": 26,
+  "minimumSeconds": 1800,
+  "rssCapMiB": 512,
+  "scheduleCycles": {
+    "runs": 0,
+    "timer": null
+  },
+  "verdict": "BLOCKER"
+}

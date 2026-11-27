@@ -20,6 +20,7 @@
 #   E2E_SOAK_MIN_SECONDS  minimum monotonic duration (default 1800)
 #   E2E_SOAK_RSS_MB       RSS cap in MiB (default 512)
 #   E2E_SCHED_INTERVAL    timer interval for the cycle check (default 15)
+#   E2E_KEEP=1            keep only this run's containers/network for diagnosis
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -56,8 +57,12 @@ SCHED="e2e-$RUN_ID-sched"
 ORIGIN="e2e-$RUN_ID-origin"
 NET="e2e-$RUN_ID-soak"
 cleanup() {
-    docker rm -f "$NAME" "$CLIENT" "$SCHED" "$ORIGIN" >/dev/null 2>&1 || true
-    docker network rm "$NET" >/dev/null 2>&1 || true
+    if [[ "${E2E_KEEP:-0}" == "1" ]]; then
+        log "cleanup=kept containers/network for diagnosis"
+    else
+        docker rm -f "$NAME" "$CLIENT" "$SCHED" "$ORIGIN" >/dev/null 2>&1 || true
+        docker network rm "$NET" >/dev/null 2>&1 || true
+    fi
 }
 trap cleanup EXIT
 
@@ -256,6 +261,20 @@ if [[ -z "$failed_iteration" ]]; then
 fi
 
 if [[ -n "$failed_iteration" ]]; then
+    # Preserve enough runtime evidence to distinguish a transient public-origin
+    # timeout from a failed Xray/client process. This diagnostic retry is never
+    # counted as a soak sample and cannot turn the failed run green.
+    docker exec "$CLIENT" sh -c 'curl -sv --max-time 10 --socks5-hostname 127.0.0.1:1080 "$1" -o /dev/null' \
+        sh "$TARGET_URL" >"$EVID/post-failure-client-curl.out" \
+        2>"$EVID/post-failure-client-curl.err" || true
+    docker exec "$CLIENT" sh -c 'ps -ef; ss -lntp' \
+        >"$EVID/post-failure-client-processes.txt" 2>&1 || true
+    docker exec "$CLIENT" cat /client/client.log \
+        >"$EVID/post-failure-client-xray.log" 2>&1 || true
+    docker exec "$NAME" journalctl -u xray --no-pager -n 300 \
+        >"$EVID/post-failure-server-xray.log" 2>&1 || true
+    docker exec "$NAME" sh -c 'ss -s; ss -tnp; systemctl show xray -p MainPID -p NRestarts -p ActiveState' \
+        >"$EVID/post-failure-server-state.txt" 2>&1 || true
     verdict="BLOCKER"
 elif [[ "$iterations" -ne "$ITERATIONS" ]]; then
     verdict="HARNESS-ERROR"

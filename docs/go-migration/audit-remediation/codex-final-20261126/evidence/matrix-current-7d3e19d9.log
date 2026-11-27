@@ -1,0 +1,368 @@
+16:43:08 run_id=matrix-current-7d3e19d9-20261127
+16:43:09 image_id=sha256:f6c28602447747db6291384109d07dd376190c56f50bf2aadab3771c0f14ed9a
+16:43:09 building idleleo
+16:43:14 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+16:43:14 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+16:43:14 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+16:43:14 release_cache=seeded templates=vless_reality.json,vless_tls.json
+16:43:14 release_cache=hit
+16:43:14 apt_cache=skipped (no OPS scenario selected)
+16:43:14 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+16:43:14 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+16:43:15 argv-verify written
+16:43:15 [M5] start
+16:43:15 [M1] start
+16:43:15 [M3] start
+16:43:15 [M4] start
+16:43:15 [M2] start
+systemd_state=running
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_installer=yes source=/src/install.sh
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport grpc --domain example.com --container
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport grpc --domain example.com --container
+round2_mode=keep-config
+install_exit=0
+done=reality install_exit=0
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+done=tls install_exit=0
+16:44:18 [M5] done
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+16:44:33 [M4] done
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --transport ws --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --transport ws --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+round2_mode=keep-config
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=reality install_exit=0
+install_exit=0
+done=reality install_exit=0
+install_exit=0
+done=reality install_exit=0
+16:45:09 [M1] done
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality-nginx --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+install_exit=0
+done=reality install_exit=0
+16:45:14 [M3] done
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode reality-nginx --domain www.cloudflare.com --target www.cloudflare.com --port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=reality install_exit=0
+16:45:42 [M2] done
+16:45:42 [M6] start
+16:45:42 [M8] start
+16:45:42 [M7] start
+16:45:42 [M9] start
+16:45:42 [M10] start
+16:45:43 [M8] pebble ready
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+acme_mode=pebble idleleo=idleleo 0.2.0-phase04 (go)
+acme_schedule={   "schemaVersion": 1,   "configPath": "/etc/idleleo/schedule/jobs.json",   "servicePath": "/etc/systemd/system/idleleo-schedule.service",   "timerPath": "/etc/systemd/system/idleleo-schedule.timer",
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+install_exit=0
+done=none install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_release_helpers=yes version=3.3.6
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+install_exit=0
+done=tls install_exit=0
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --role relay --target origin.example.com:443 --listen-port 443 --listen 0.0.0.0 --container
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+systemd_state=running
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --role relay --target origin.example.com:443 --listen-port 443 --listen 0.0.0.0 --container
+round2_mode=keep-config
+install_exit=0
+MISSING /etc/idleleo/conf/xray/config.json
+done=relay install_exit=0
+16:46:38 [M10] done
+install_exit=0
+done=none install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+acme_mode=pebble idleleo=idleleo 0.2.0-phase04 (go)
+acme_schedule={   "schemaVersion": 1,   "configPath": "/etc/idleleo/schedule/jobs.json",   "servicePath": "/etc/systemd/system/idleleo-schedule.service",   "timerPath": "/etc/systemd/system/idleleo-schedule.timer",
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode none --transport ws --listen 0.0.0.0 --allow-non-loopback --container
+install_exit=0
+done=none install_exit=0
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+idleleo_version=idleleo 0.2.0-phase04 (go)
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode none --transport ws --listen 0.0.0.0 --allow-non-loopback --container
+round2_mode=keep-config
+install_exit=0
+done=none install_exit=0
+install_exit=0
+done=tls install_exit=0
+16:46:54 [M9] done
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+acme_directory=https://pebble:14000/dir
+acme_issue_exit=0
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+schedule_install_exit=0
+done=tls install_exit=0
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport xhttp --domain example.com --container
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+acme_reuse=round2
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport xhttp --domain example.com --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+16:47:10 [M8] done
+16:47:12 [M6] done
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws+grpc+xhttp --domain example.com --container
+install_exit=0
+done=tls install_exit=0
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=yes sha256=ed261aae302231fb2ef68039fe3a0cbb8299c7a2e0c4935f28386aec9566cc9c
+go_argv=idleleo xray install --binary /usr/local/bin/xray --mode tls --transport ws+grpc+xhttp --domain example.com --container
+round2_mode=keep-config
+install_exit=0
+done=tls install_exit=0
+16:47:37 [M7] done
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M1/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M1/bash/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M1/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M1/go/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M2/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M2/bash/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M2/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M2/go/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M3/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M3/bash/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M3/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M3/go/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M4/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M4/bash/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M4/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M4/go/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M5/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M5/bash/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M5/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M5/go/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M6/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M6/bash/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M6/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M6/go/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M7/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M7/bash/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M7/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M7/go/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M8/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M8/bash/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M8/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M8/go/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M9/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M9/bash/round2/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M9/go/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2/M9/go/round2/config/config.sanitized.json
+sanitize: 36 file(s) updated
+stamped 0 verdict file(s) with run provenance
+16:47:37 scope: installs=[M1,M2,M3,M4,M5,M6,M7,M8,M9,M10] edits=[] ops=[]
+16:47:37 P2 finished: tests/e2e-diff/evidence/matrix-current-7d3e19d9-20261127/p2
+run_p2_matrix_rc=0

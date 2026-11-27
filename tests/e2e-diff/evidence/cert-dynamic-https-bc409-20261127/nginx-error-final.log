@@ -1,0 +1,11 @@
+2026/11/27 05:00:12 [notice] 33#33: using the "epoll" event method
+2026/11/27 05:00:12 [notice] 33#33: nginx/1.27.5
+2026/11/27 05:00:12 [notice] 33#33: built by gcc 12.2.0 (Debian 12.2.0-14) 
+2026/11/27 05:00:12 [notice] 33#33: OS: Linux 7.2.12-orbstack-00394-gbecdd6130068
+2026/11/27 05:00:12 [notice] 33#33: getrlimit(RLIMIT_NOFILE): 20480:1048576
+2026/11/27 05:00:12 [notice] 34#34: start worker processes
+2026/11/27 05:00:12 [notice] 34#34: start worker process 35
+2026/11/27 05:00:12 [notice] 34#34: signal 3 (SIGQUIT) received from 81, shutting down
+2026/11/27 05:00:12 [notice] 35#35: gracefully shutting down
+2026/11/27 05:00:12 [notice] 35#35: exiting
+2026/11/27 05:00:12 [notice] 35#35: exit

@@ -1,0 +1,18 @@
+19:52:20 run_id=amd64-retry-current-7d3e19d9-20261127
+19:52:21 image_id=sha256:25e5281595ea5a39fb71aa5de99bf0086087adf0e29b6e3f8ba7b880cd465bb3
+19:52:21 building idleleo
+19:52:48 xray_sha256=e87bce586acdb9136aa5b1f1d9c8db9f1ea1d145b6d86368c7f6f662f9f6a66d idleleo_sha256=411d4efe74ebf43abc7a4ad5b2188f13ca8600c97d30df71cbe8fd899a1b34b1
+19:54:26 nginx_cache=download build=2026.10.15.7679 arch=x86 tarball_sha256=819d265b9e9bd370106b3af1f7d6056e38fdf9dc791f548066f530f479ba2959
+19:54:26 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+19:54:26 release_cache=seeded templates=vless_reality.json,vless_tls.json
+19:54:26 release_cache=hit
+19:54:26 apt_cache=skipped (no OPS scenario selected)
+19:54:29 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+19:54:29 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+19:54:30 argv-verify written
+19:54:30 [M1] start
+19:54:30 [M4] start
+19:56:49 [M4] done
+19:57:06 [M1] done
+19:57:07 scope: installs=[M1,M4] edits=[] ops=[]
+19:57:07 P2 finished: tests/e2e-diff/evidence/amd64-retry-current-7d3e19d9-20261127/p2

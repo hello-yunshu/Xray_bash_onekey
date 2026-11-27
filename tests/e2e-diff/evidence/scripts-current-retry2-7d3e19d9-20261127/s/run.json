@@ -1,0 +1,18 @@
+{
+  "runId": "scripts-current-retry2-7d3e19d9-20261127",
+  "productCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
+  "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+  "bashScriptSha256": "a39c5918fdbe971f3123b873044c810ab93467e297fba06cc6664383d35a29cf",
+  "driverSha": "82ce1c3518fe955dc9026a0d4f711cd53b4df8e63f045a450ac5b989936ca447",
+  "image": "sha256:7803c2c26d730bad30ec7eda008e7e17cd5f63d64314fa797360b827ef552902",
+  "platform": "linux/arm64",
+  "startedAt": "2026-11-27T10:50:59Z",
+  "finishedAt": "2026-11-27T10:55:43Z",
+  "layer": "S4-S9 live scripts + Pebble ACME",
+  "verdict": "PASS",
+  "actualRc": 0,
+  "manifestPath": "build-manifest.json",
+  "manifestSha256": "11465e1f9d0a265f3704425f95f3091fe9cdd45f9eebba37da5901792f9d4308",
+  "evidencePath": "tests/e2e-diff/evidence/scripts-current-retry2-7d3e19d9-20261127/s",
+  "log": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/s4-s9-current-retry2-7d3e19d9.log"
+}

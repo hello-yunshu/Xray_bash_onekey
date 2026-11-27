@@ -1,0 +1,17 @@
+{
+  "applicable": true,
+  "tls": "Reality",
+  "managedFront": true,
+  "enabled": true,
+  "policy": "reject",
+  "status": "runtime-unverified",
+  "metadataSynced": true,
+  "denyPort": 9404,
+  "evidence": [
+    "/etc/idleleo/conf/nginx/00-xray.conf",
+    "/usr/local/nginx/conf/nginx.conf"
+  ],
+  "warnings": [
+    "no verified reload record matches the current policy content and Nginx process instance; reporting runtime-unverified"
+  ]
+}

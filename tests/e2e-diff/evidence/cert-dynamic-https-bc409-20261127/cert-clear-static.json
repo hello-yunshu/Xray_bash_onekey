@@ -1,0 +1,66 @@
+{
+  "dir": "/etc/idleleo/cert",
+  "removed": [
+    "/etc/idleleo/cert/xray.crt",
+    "/etc/idleleo/cert/xray.key"
+  ],
+  "skipped": [
+    "/etc/idleleo/cert/owned.crt",
+    "/etc/idleleo/cert/owned.key",
+    "/root/.acme.sh/owned.local_ecc"
+  ],
+  "planned": [
+    {
+      "path": "/etc/idleleo/cert/owned.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": true,
+      "referencedBy": [
+        "/usr/local/nginx/conf/nginx.conf"
+      ],
+      "action": "keep",
+      "reason": "referenced by an effective configuration"
+    },
+    {
+      "path": "/etc/idleleo/cert/owned.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": true,
+      "referencedBy": [
+        "/usr/local/nginx/conf/nginx.conf"
+      ],
+      "action": "keep",
+      "reason": "referenced by an effective configuration"
+    },
+    {
+      "path": "/etc/idleleo/cert/xray.crt",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    },
+    {
+      "path": "/etc/idleleo/cert/xray.key",
+      "kind": "file",
+      "owner": "project",
+      "inUse": false,
+      "action": "delete"
+    },
+    {
+      "path": "/root/.acme.sh/owned.local_ecc",
+      "kind": "directory",
+      "owner": "third-party",
+      "inUse": false,
+      "action": "keep",
+      "reason": "external acme.sh accounts, renewal state, CA material, hooks, and files are retained for manual management"
+    }
+  ],
+  "missing": false,
+  "dryRun": false,
+  "warnings": [
+    "referenced by an effective configuration: /etc/idleleo/cert/owned.crt",
+    "referenced by an effective configuration: /etc/idleleo/cert/owned.key",
+    "acme.sh state is preserved: external acme.sh accounts, renewal state, CA material, hooks, and files are retained for manual management",
+    "external acme.sh accounts, renewal state, CA material, hooks, and files are retained for manual management: /root/.acme.sh/owned.local_ecc"
+  ]
+}

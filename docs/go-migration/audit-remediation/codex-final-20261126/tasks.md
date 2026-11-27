@@ -1,20 +1,25 @@
-# 本轮任务账本（2026-11-26）
+# 本轮任务账本（2026-11-27 更新）
 
-候选代码：`f4deaf77c08457bf2ed1a07e165b2ff5bf5b53f5`。依据本轮主任务书，不把审计锚点当作回退目标。
+唯一主任务书：`Codex_Xray_Goal_定向收尾与最终验收_20261126.md`。工作分支 `work/go-hardening-parity-20261119`。当前产品源码候选 `8ff26917e3e381d4023b7319d5405f7ba871f289`；Go CLI 测试矩阵二进制 SHA-256 `c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d`；最终 Go 全量测试构建 SHA-256 `f0e96beaa71b3dae9e9a691b75abeb6dd09da0556e36eaa7f240040ecf424eac`；Docker `linux/arm64`。所有旧 run SHA 均保留原值，不混写。
 
-2026-11-27 后续：在补跑未测 OPS 后发现并修复 Nginx 升级丢失托管主配置的问题，产品修复提交 `fb55adf78ee960eda695e6e5742f4c16ff328639`。另在产品源码未变化的后续审计提交上运行 Go Reality/TLS/Relay/Multi 四种冷恢复。下表中原正式 34 项摘要仍是 f4deaf77 的冻结快照；后续定向结果单独绑定其证据与产品二进制，未将其他历史项伪装成新 SHA 复测。最终当前分支仍为 NO_GO。
-
-| ID | 状态 | 证据 | 阻断 / 后续 |
+| ID | 状态 | 当前证据 | 阻断 / 后续 |
 |---|---|---|---|
-| S0 基线与环境 | DONE | `initial-findings.txt`；分支 `work/go-hardening-parity-20261119`，基线时干净且比 origin 超前 7 提交；无 AGENTS.md；Docker 29.8.2 linux/arm64、Go 1.27.4 容器、Xray、Nginx、Expect 可用 | 当前工作树改动已提交；未推送 |
-| A1 隐私与 CI | LOCAL_PASS / CI_PENDING | 最终文档与证据更新后全仓扫描：`evidence/privacy-scan-final.log`；脱敏修复及历史 finding 见 `probe-development-log.md` | 当前候选未推送，无法在此 SHA 实跑七项 CI；不得以本地扫描代替 CI |
-| A2 Guard 状态 | TARGETED_PASS | 最终 SHA `tests/e2e-diff/evidence/codex-final-20261126-f4deaf77/p2/OPS-08`：双端保留旧 mtime、磁盘变更未 reload 时 `runtime-unverified`，Nginx `-t` 成功，旧 worker 拒绝未知 SNI；管理 reload 后 `active`；已知/未知 SNI 结果留档 | isolate 路径已验证；reject/decoy 的真实探查见证据日志。异步 reload、进程重启/PID 复用和 reload 故障回滚未在本轮完整运行 |
-| A3 证书与 ACME 清理 | PARTIAL_PASS | 当前候选 OPS-27 真双端 canary 差异；动态 `${cert_name}` HTTPS、外部 ACME 哈希与项目闲置 cert/key 清理在前一候选上实测，`certclear.go` 本轮未改，见 `evidence/certclear-*` | 真实事务中断/回滚未测；Bash/Go OPS-27 对第三方 canary 的行为差异仍为 FAIL，不得批准 |
-| B1 provenance 门禁 | PASS | `evidence/ledger-contract-tests-final.log` 32 tests；最终构建清单锁定候选 SHA、binary/script/driver/dependencies、镜像和平台；严格构建核验实际文件摘要 | 旧 run 保持其原候选身份；未把历史证据改绑为当前 SHA |
-| B2 业务事实与返回码 | PARTIAL_PASS | 最终 SHA OPS-01/02/03/08/20 双端真实结果；OPS-20 Reality 业务与入站统计；Go sweep 57 PASS / 0 FAIL 并记录命令 actualRc/expectedRc | OPS-04 与 OPS-26 BLOCKED；其余 GO_ONLY 不能替代双端验证 |
-| B3 替代/批准/失败保留 | PASS_GUARD | `test_build_ledger.py` 32 tests 在最终提交 fb55adf7 重跑通过；`guard_acceptance_artifacts.sh` 确认三份正式摘要测试前后字节一致；严格正式账本仍保留 OPS-27 FAIL | 失败和未闭环项保留为未解决；审批仍需用户/可信授权来源 |
-| C1 OPS-20 真实流量 | PASS_DUAL | Bash、Go 各自真实 Reality 客户端通过 Nginx origin 获取 1 MiB；HTTP rc=0、长度与 SHA-256 匹配；两端入站上/下行统计基线与增量留档 | 计数包含协议开销，按真实入站维度判断，不要求等于 payload 字节 |
-| C2 其余能力影响分析 | PARTIAL | `impact-analysis.md` 对变更路径与历史专项逐类列出候选、受影响面、复用条件与未执行状态；补充提交 fb55adf7 上 OPS-17b 双端真实升级、升级后 L4、Go 更新失败回滚及回滚后 L4；Go 真实冷恢复 Reality/TLS/Relay/Multi 四类均通过，证据见 `tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127*` | OPS-03 仍缺共享凭据与撤销/重启边界；OPS-17a 有签名更新成功、签名拒绝和健康回滚，但无跨版本业务连接；OPS-25/26 仍缺 Bash 与 Go 原生备份格式的对照。原 34 项机器账本仍明确绑定 f4deaf77；未把其余历史项冒充为 fb55adf7 证据 |
-| D1 构建与验证 | PASS_TARGETED | Go update/CLI/deploy/Nginx 测试、componentupdate race、全仓 vet、真实 Bash/Go OPS-17b 更新/回滚/L4、验收器负例与正式文件隔离日志 | 新提交只按影响范围重跑，未将其他 f4deaf77 证据升级为 fb55adf7 全量通过；七项远程 CI 仍 pending |
-| D2 Docker 开发候选资格 | NO_GO | 正式 34 项 f4deaf77 快照：5 DUAL、14 GO_ONLY、1 FAIL、2 BLOCKED、12 NOT_RUN；补充 fb55adf7 的 OPS-17b 通过不解除 OPS-27、OPS-04/26 及七项 CI 阻断 | fb55adf7 只完成定向更新路径验证；正式验收账本尚未在该提交全量重建，不能据此签收 |
-| D3 交付 | LOCAL_COMMITTED | 产品修复提交 `fb55adf7`；补充审计与运行证据随本地提交 | 无 push 授权，保留本地提交；未合并、tag、发布或接触生产 VPS |
+| S0 基线与环境 | DONE | 初始检查日志；产品候选 `8ff26917e3e381d4023b7319d5405f7ba871f289` 已在工作分支；未回退审计基线；Docker 29.8.2、Go 1.27.4、Xray、Nginx、Expect 可用 | 远端分支未包含本地候选；当前分支尚未推送 |
+| A1 隐私与 CI | LOCAL_PASS / CI_PENDING | sanitizer 输出相对证据路径；36 个 ledger/sanitizer 契约测试通过。最终全仓扫描 `privacy-scan-final-8ff26917.log` 0 finding / 72,768 文本文件；此前发现的两份历史测试日志与测试夹具路径已脱敏/改写并记录 SHA | 当前 SHA 七项远程 CI 未触发；分支未推送。Docker Debian apt 包索引问题及其离线矩阵成功补救均留档 |
+| A2 Guard 状态 | TARGETED_PASS_WITH_GAP | `tests/e2e-diff/evidence/guard-ops08-23fa585f-20261127/`、`guard-ops08-final-bc409b5d-20261127/`：旧 mtime、未 reload、真实 Nginx/SNI、异步 reload/失败回滚及 master 重启后的 Guard 状态；影响分析确认当前 Guard 源码无变化 | 未做真实数值 PID 复用探针；若任务书将其列为强制边界，仍需补实际探针，否则保持未覆盖 |
+| A3 证书清理 | TARGETED_PASS / DIFF | 动态 `${cert_name}` HTTPS/ACME 真实 CLI 证据 `cert-dynamic-https-bc409-20261127`；当前 Go CLI 事务中断/恢复与回滚 `certclear-fault-cli-7d3e19d9-20261127/`，前后摘要、mode、journal、staging 已核对；OPS-27 双端 canary 在当前候选复跑 | Go 保留第三方文件、Bash 递归删除是安全优势；不擅自把差异改为批准状态，OPS-27 保持 FAIL，等待可核验契约决策 |
+| B1-B3 验收器与正式账本 | STRICT_NO_GO | 36 个契约测试通过；包含 exact `blockedIds`、错误/缺失 provenance、路径穿越、非零实际 rc/输出标记、失败替代与证据影响复用。`--reuse-impact` 校验祖先提交、改动文件列表/diff SHA、OPS 互斥分区，并禁止受影响 OPS 借用旧 SHA PASS。当前 SHA 严格账本 26 DUAL / 3 FAIL / 1 Bash-only / 4 BLOCKED / 0 NOT_RUN，rc=1 | 有效 FAIL / BLOCKED / Bash-only 保留；最终提交前再做三工件一致性及隔离门禁；matrix 曾遗漏 `blockedIds`，已最小修复并复验 |
+| C1 OPS-20 真实统计 | PASS_DUAL | `ops-core-7d3e19d9-20261127/p2/OPS-20`：Bash/Go Reality 客户端各自访问 1 MiB 本地 origin、校验 HTTP body 与 SHA，读取真实 inbound stats 基线/增量 | 统计含协议/API 开销，按真实业务流量变化判定 |
+| C2 当前 OPS 矩阵 | 26 DUAL / 3 FAIL / 1 BASH_ONLY / 4 BLOCKED | `ops-observe-ledgerproof-23fa585f-20261127`、`ops-core-7d3e19d9-20261127`、`ops04-current-7d3e19d9-20261127`、`ops17a-live-l4-7d3e19d9-20261127`、`ops27-current-7d3e19d9-20261127`、`ops-feasible-7d3e19d9-20261127`；strict ledger rc=1 | FAIL：OPS-14、16、27；Bash-only：OPS-30；BLOCKED：OPS-17a、18、23、24。OPS-17a 补充 Go 签名更新、升级后真实 L4 通过，但正式双端 OPS 行仍未满足契约 |
+| C2 OPS-25/26 原生备份恢复 | PASS_DUAL | 当前 SHA `ops-observe-restorefix-8ff26917-20261127/p2/OPS-25, OPS-26`：Bash tar 与 Go backup/restore 分别真实校验、故意改坏后恢复数据/配置/canary，权限、服务与真实 Reality L4 成功；另有 Bash 新目标 M4 TLS/WebSocket 冷恢复 | Go Reality/TLS/Relay/Multi 四类冷恢复通过；Bash 当前新目标只测 TLS/WebSocket，其余三类保持未覆盖 |
+| C2 M1-M10 安装与 L4 | PASS_TARGETED | `matrix-current-7d3e19d9-20261127/p2/install-matrix.md`：10 场景，Bash/Go 两轮，安装 rc=0、各自传输 L4 两轮均 ok，含 Pebble ACME 和 relay | 本轮只覆盖安装矩阵；ED-C01…ED-C15 仍按原登记呈现，不扩大差异批准范围 |
+| C2 98 项配置对照 | PASS_TARGETED | `tests/go-parity/evidence/matrix-current-clean-7d3e19d9-20261127/summary.json`：54 MATCH、40 MATCH_CORE_FIELDS、4 REFUSED、6 A1_PASS、0 GAP；`repo_dirty=0`，product commit 为 7d3e19d9 | 该矩阵是 Bash install metadata / Go generate/relay 对照，不是完整服务部署；原固定 Debian 镜像 APT 索引故障有独立日志，成功 run 使用离线工具镜像 |
+| C2 P3 四传输热更新 | PASS_TARGETED | 当前候选 Reality raw/ws/gRPC/xHTTP 四个独立 Go Docker 运行，4 个 `p3-current-*-7d3e19d9.log`；均 install rc=0、driver 62 assertions 通过 | 单侧 Go P3，不替代双端 OPS 或功能差异授权 |
+| C2 Xray 多版本部署 | PASS_TARGETED | `evidence/xray-versions-current-7d3e19d9.log` + `tests/e2e-diff/evidence/versions-current-7d3e19d9-20261127/versions/`：26.11.9、26.10.31、26.10.21 共用当前真实生成配置，均 xray -test、systemd 部署、真实客户端 L4 通过 | ARM64 Docker；不替代 Debian 12/amd64 平台验证 |
+| C2 冷恢复 | PASS_TARGETED_WITH_WARNING | Go Reality/TLS/Relay/Multi 当前 Go 管理器四场景通过；Bash 新目标 M4 TLS/WebSocket 真实 CLI 归档恢复，源/目标配置、证书、二进制 SHA/权限一致，Xray/Nginx 检查和服务 active，客户端获得 577 字节响应。首次 Bash 新目标失败暴露缺 `/var/log/xray`，产品修复已提交 `8ff26917` | restore 仍输出非致命 `harden_config_permissions` 警告，具体子步骤未捕获，虽然显式权限/摘要、验证器、服务和真实 L4 通过；Bash Reality、Relay、Multi 新目标未覆盖 |
+| C2 S4–S9 / Pebble ACME | PASS_TARGETED（修正旧断言后） | `evidence/s4-s9-current-retry2-7d3e19d9.log`：64 PASS / 0 FAIL，含 S5 Pebble 连续续期与 CA 不可达回滚 | 首轮 63/1 是“Xray is up to date”断言过时；产品检测到 26.11.9 高于 26.10.31 并拒绝降级，已改为验证该事实并重跑全部脚本；首轮日志保留 |
+| C2 30 分钟稳定性 soak | PASS_TARGETED（另有首轮失败） | `evidence/soak-diag-current-7d3e19d9.log` + `tests/e2e-diff/evidence/soak-diag-current-7d3e19d9-20261127/soak/`：31/31、1863 秒、31 个真实 L4、0 fail、服务零重启、调度 timer active 且 runs=2 | 首轮 run 在 iter 26 出现真实 timeout；旧 runner 没保留失败现场，原因无法追溯。instrumented 二轮完整通过，保留首轮失败，不将原因写成已证实 |
+| C2 迁移、版本与平台 | PASS_TARGETED / IMPACT NOTE | 当前 R1/R2、两历史源迁移、Xray 三版本已实测；Debian 12 M1/M4 两轮双端 L4 通过；amd64 M1/M4 在 linux/amd64 Docker 模拟环境通过 | amd64 镜像/ELF/container uname 均确认 x86_64，但 Docker 宿主为 arm64；只声明模拟环境证据，不声称原生 amd64 硬件结果 |
+| D1 最终代码/测试 | PASS_LOCAL | Docker Go 1.27.4 linux/arm64 上 `go test ./...`、`go test -race ./...`、`go vet ./...`、`go build` 全部 rc=0；36 契约测试、Bash `-n`、`git diff --check`、artifact-isolation 36/36 通过。证据 `evidence/go-final-retry-current-20261127.log` | 文档冻结后需最终复跑 privacy/hygiene、strict ledger、三份工件一致性 |
+| D2 Docker 开发候选资格 | NO_GO | 当前严格分母 34：26 DUAL、3 FAIL、1 BASH_ONLY、4 BLOCKED、0 NOT_RUN；strict rc=1 | OPS-14/16/27 FAIL、OPS-17a/18/23/24 BLOCKED、OPS-30 Bash-only；当前 SHA 七项远程 CI 未完成 |
+| D3 交付 | PRODUCT_COMMITTED / AUDIT_COMMIT_PENDING | 产品修复提交 `8ff26917`；审计报告/账本/证据已完成最终本地验证，仍需提交到当前分支；未推送、未合并、未 tag/release/VPS | 提交审计工件并验证当前工作树与分支状态；不得 push |

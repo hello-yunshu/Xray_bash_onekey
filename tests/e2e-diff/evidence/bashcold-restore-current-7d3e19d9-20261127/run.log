@@ -1,0 +1,11 @@
+run_id=bashcold-restore-current-7d3e19d9-20261127
+source=e2e-bashcold-src-current-7d3e19d9-20261127-M4-bash
+target=e2e-bashcold-restore-current-7d3e19d9-20261127-target
+network=e2e-bashcold-src-current-7d3e19d9-20261127-M4
+source_archive=/etc/idleleo/xray_bash_codexcoldrestore20261127_20261127120444.tar.gz
+3655dadfd06c7b9c0119a949106ec5f5e3f2cd7ba2e902b3d47081f96081cdf3  /etc/idleleo/xray_bash_codexcoldrestore20261127_20261127120444.tar.gz
+mode=600 size=22094952 owner=root:root
+archive_transfer_attempt=initial docker cp src:container to target:container rejected by Docker; retry uses mode-0700 temporary host directory
+3655dadfd06c7b9c0119a949106ec5f5e3f2cd7ba2e902b3d47081f96081cdf3  /tmp/bashcold-restore-current-7d3e19d9-20261127.XQoXLW/archive.tar.gz
+3655dadfd06c7b9c0119a949106ec5f5e3f2cd7ba2e902b3d47081f96081cdf3  /tmp/bashcold-restore-current-7d3e19d9-20261127.RQWBFm/archive.tar.gz
+restore_rc=1

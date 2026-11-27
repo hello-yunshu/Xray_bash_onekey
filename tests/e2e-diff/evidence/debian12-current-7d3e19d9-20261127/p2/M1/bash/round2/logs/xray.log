@@ -1,0 +1,13 @@
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash xray[<PID>]: 2026/11/27 11:43:15.169183 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash systemd[1]: Stopping xray.service - Xray Service...
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash systemd[1]: xray.service: Deactivated successfully.
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash systemd[1]: Stopped xray.service - Xray Service.
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-debian12-current-7d3e19d9-20261127-M1-bash xray[<PID>]: 2026/11/27 11:43:33.564059 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/27 11:43:15.176662 [Warning] core: Xray 26.11.9 started
+2026/11/27 11:43:33.566417 [Warning] core: Xray 26.11.9 started

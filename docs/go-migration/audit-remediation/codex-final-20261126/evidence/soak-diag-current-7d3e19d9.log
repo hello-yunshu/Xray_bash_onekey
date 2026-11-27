@@ -1,0 +1,39 @@
+18:07:41 run_id=soak-diag-current-7d3e19d9-20261127 iterations=31 interval=60s min=1800s
+18:07:58 iter=1 ok active=active test=0 listen=1 rss=35588KiB l4=ok/577B
+18:08:59 iter=2 ok active=active test=0 listen=1 rss=15920KiB l4=ok/577B
+18:10:00 iter=3 ok active=active test=0 listen=1 rss=23504KiB l4=ok/577B
+18:11:04 iter=4 ok active=active test=0 listen=1 rss=24228KiB l4=ok/577B
+18:12:05 iter=5 ok active=active test=0 listen=1 rss=24036KiB l4=ok/577B
+18:13:08 iter=6 ok active=active test=0 listen=1 rss=16992KiB l4=ok/577B
+18:14:09 iter=7 ok active=active test=0 listen=1 rss=21380KiB l4=ok/577B
+18:15:10 iter=8 ok active=active test=0 listen=1 rss=17828KiB l4=ok/577B
+18:16:13 iter=9 ok active=active test=0 listen=1 rss=17804KiB l4=ok/577B
+18:17:14 iter=10 ok active=active test=0 listen=1 rss=18264KiB l4=ok/577B
+18:18:16 iter=11 ok active=active test=0 listen=1 rss=18244KiB l4=ok/577B
+18:19:17 iter=12 ok active=active test=0 listen=1 rss=18628KiB l4=ok/577B
+18:20:19 iter=13 ok active=active test=0 listen=1 rss=18636KiB l4=ok/577B
+18:21:20 iter=14 ok active=active test=0 listen=1 rss=17388KiB l4=ok/577B
+18:22:22 iter=15 ok active=active test=0 listen=1 rss=16148KiB l4=ok/577B
+18:23:23 iter=16 ok active=active test=0 listen=1 rss=17236KiB l4=ok/577B
+18:24:25 iter=17 ok active=active test=0 listen=1 rss=18836KiB l4=ok/577B
+18:25:26 iter=18 ok active=active test=0 listen=1 rss=19120KiB l4=ok/577B
+18:26:28 iter=19 ok active=active test=0 listen=1 rss=18820KiB l4=ok/577B
+18:27:29 iter=20 ok active=active test=0 listen=1 rss=16776KiB l4=ok/577B
+18:28:32 iter=21 ok active=active test=0 listen=1 rss=16832KiB l4=ok/577B
+18:29:33 iter=22 ok active=active test=0 listen=1 rss=17396KiB l4=ok/577B
+18:30:35 iter=23 ok active=active test=0 listen=1 rss=17404KiB l4=ok/577B
+18:31:36 iter=24 ok active=active test=0 listen=1 rss=16932KiB l4=ok/577B
+18:32:37 iter=25 ok active=active test=0 listen=1 rss=16424KiB l4=ok/577B
+18:33:45 iter=26 ok active=active test=0 listen=1 rss=16636KiB l4=ok/577B
+18:34:46 iter=27 ok active=active test=0 listen=1 rss=18388KiB l4=ok/577B
+18:35:47 iter=28 ok active=active test=0 listen=1 rss=18680KiB l4=ok/577B
+18:36:48 iter=29 ok active=active test=0 listen=1 rss=18252KiB l4=ok/577B
+18:37:51 iter=30 ok active=active test=0 listen=1 rss=17148KiB l4=ok/577B
+18:38:54 iter=31 ok active=active test=0 listen=1 rss=17956KiB l4=ok/577B
+18:38:54 elapsed=1863s client_ok=31 client_fail=0
+18:38:54 schedule cycle check (interval=15s)
+18:39:29 schedule timer=active runs=2 geodata=1
+PASS
+18:39:29 verdict=PASS iterations=31/31 elapsed=1863s
+18:39:29 cleanup=kept containers/network for diagnosis
+run_soak_rc=0

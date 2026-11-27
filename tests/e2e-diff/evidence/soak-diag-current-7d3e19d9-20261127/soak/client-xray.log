@@ -1,0 +1,35 @@
+Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/27 10:07:49.529260 [Info] infra/conf/serial: Reading config: &{Name:/client/client.json Format:json}
+2026/11/27 10:07:49.530176 [Warning] core: Xray 26.11.9 started
+2026/11/27 10:07:51.855550 from tcp:127.0.0.1:54654 accepted tcp:example.com:80
+2026/11/27 10:08:58.569269 from tcp:127.0.0.1:36718 accepted tcp:example.com:80
+2026/11/27 10:09:59.719604 from tcp:127.0.0.1:33490 accepted tcp:example.com:80
+2026/11/27 10:11:00.923753 from tcp:127.0.0.1:41738 accepted tcp:example.com:80
+2026/11/27 10:12:04.840573 from tcp:127.0.0.1:34354 accepted tcp:example.com:80
+2026/11/27 10:13:05.971900 from tcp:127.0.0.1:46384 accepted tcp:example.com:80
+2026/11/27 10:14:08.419985 from tcp:127.0.0.1:41568 accepted tcp:example.com:80
+2026/11/27 10:15:09.978144 from tcp:127.0.0.1:35024 accepted tcp:example.com:80
+2026/11/27 10:16:11.154058 from tcp:127.0.0.1:59736 accepted tcp:example.com:80
+2026/11/27 10:17:13.517079 from tcp:127.0.0.1:37572 accepted tcp:example.com:80
+2026/11/27 10:18:14.662496 from tcp:127.0.0.1:49014 accepted tcp:example.com:80
+2026/11/27 10:19:16.433894 from tcp:127.0.0.1:59880 accepted tcp:example.com:80
+2026/11/27 10:20:17.607149 from tcp:127.0.0.1:60646 accepted tcp:example.com:80
+2026/11/27 10:21:20.111708 from tcp:127.0.0.1:48108 accepted tcp:example.com:80
+2026/11/27 10:22:21.240988 from tcp:127.0.0.1:52430 accepted tcp:example.com:80
+2026/11/27 10:23:22.468236 from tcp:127.0.0.1:47278 accepted tcp:example.com:80
+2026/11/27 10:24:24.313505 from tcp:127.0.0.1:58394 accepted tcp:example.com:80
+2026/11/27 10:25:25.738727 from tcp:127.0.0.1:36238 accepted tcp:example.com:80
+2026/11/27 10:26:26.948890 from tcp:127.0.0.1:34060 accepted tcp:example.com:80
+2026/11/27 10:27:29.130266 from tcp:127.0.0.1:39358 accepted tcp:example.com:80
+2026/11/27 10:28:30.404258 from tcp:127.0.0.1:33794 accepted tcp:example.com:80
+2026/11/27 10:29:32.675521 from tcp:127.0.0.1:45842 accepted tcp:example.com:80
+2026/11/27 10:30:33.875893 from tcp:127.0.0.1:60254 accepted tcp:example.com:80
+2026/11/27 10:31:35.783733 from tcp:127.0.0.1:35766 accepted tcp:example.com:80
+2026/11/27 10:32:36.909843 from tcp:127.0.0.1:60170 accepted tcp:example.com:80
+2026/11/27 10:33:38.073910 from tcp:127.0.0.1:58324 accepted tcp:example.com:80
+2026/11/27 10:34:45.653252 from tcp:127.0.0.1:57798 accepted tcp:example.com:80
+2026/11/27 10:35:46.844624 from tcp:127.0.0.1:49752 accepted tcp:example.com:80
+2026/11/27 10:36:47.954324 from tcp:127.0.0.1:49792 accepted tcp:example.com:80
+2026/11/27 10:37:49.075033 from tcp:127.0.0.1:41682 accepted tcp:example.com:80
+2026/11/27 10:38:51.450430 from tcp:127.0.0.1:44168 accepted tcp:example.com:80

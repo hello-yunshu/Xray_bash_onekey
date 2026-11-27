@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "archive": "/tmp/ops25-go.tar.gz",
+  "archiveSha256": "d7db46e3c4936912f85a881addbd4c03eb56588e5214e99466c790f73ef87306",
+  "bytes": 3976,
+  "files": 9,
+  "createdAt": "2026-11-26T18:21:45Z",
+  "sensitive": true
+}

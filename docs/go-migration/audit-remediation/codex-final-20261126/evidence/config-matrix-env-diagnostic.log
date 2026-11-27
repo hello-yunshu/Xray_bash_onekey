@@ -1,0 +1,19 @@
+Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
+Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://deb.debian.org/debian bookworm/main arm64 Packages [8689 kB]
+Ign:4 http://deb.debian.org/debian bookworm/main arm64 Packages
+Get:5 http://deb.debian.org/debian bookworm-updates/main arm64 Packages [6936 B]
+Get:6 http://deb.debian.org/debian-security bookworm-security/main arm64 Packages [381 kB]
+Get:4 http://deb.debian.org/debian bookworm/main arm64 Packages [8689 kB]
+Ign:4 http://deb.debian.org/debian bookworm/main arm64 Packages
+Get:4 http://deb.debian.org/debian bookworm/main arm64 Packages [8689 kB]
+Ign:4 http://deb.debian.org/debian bookworm/main arm64 Packages
+Get:4 http://deb.debian.org/debian bookworm/main arm64 Packages [8689 kB]
+Ign:4 http://deb.debian.org/debian bookworm/main arm64 Packages
+Get:4 http://deb.debian.org/debian bookworm/main arm64 Packages [8689 kB]
+Err:4 http://deb.debian.org/debian bookworm/main arm64 Packages
+  Error reading from server. Remote end closed connection [IP: 198.18.7.217 80]
+Get:4 http://deb.debian.org/debian bookworm/main arm64 Packages [11.9 MB]
+Ign:4 http://deb.debian.org/debian bookworm/main arm64 Packages
+Get:4 http://deb.debian.org/debian bookworm/main arm64 Packages [11.9 MB]

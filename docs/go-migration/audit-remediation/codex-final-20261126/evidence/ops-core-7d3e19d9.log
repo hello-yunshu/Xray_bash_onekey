@@ -1,0 +1,77 @@
+15:33:10 run_id=ops-core-7d3e19d9-20261127
+15:33:10 image_id=sha256:594b7298564fe483bc175b15cda991b9c2b375d5030df9ca2c63ec4828bc455b
+15:33:10 building idleleo
+15:33:15 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+15:33:15 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+15:33:15 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+15:33:15 release_cache=seeded templates=vless_reality.json,vless_tls.json
+15:33:15 release_cache=hit
+15:33:15 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+15:33:15 apt_cache=hit (OPS offline apt)
+15:33:16 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+15:33:16 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+15:33:17 argv-verify written
+15:33:17 [OPS-USERS] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+15:35:07 [OPS-USERS] OPS-01/02 written; shortIdClean=True
+15:35:07 [OPS-08] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+15:36:15 [OPS-08] verdict=PASS
+15:36:16 [OPS-20] start
+systemd_state=running
+seeded_installer=yes source=/src/install.sh
+seeded_versions=yes shell=3.3.6 nginx_build=2026.10.15.7679
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+seeded_release_helpers=yes version=3.3.6
+install_exit=0
+done=reality install_exit=0
+15:37:44 [OPS-20] verdict=PASS
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/bash/after.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/bash/before.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/bash/ops.log
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/bash/ops.out
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-08/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-20/bash/L4-traffic/client.log
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-20/bash/L4-traffic/connectivity.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-20/bash/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-20/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-20/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-20/go/L4-traffic/client.log
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-20/go/L4-traffic/connectivity.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-20/go/after.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-20/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/added.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/added.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/before.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/cleaned.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/cleaned.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/config/config.sanitized.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/removed.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/removed.nginx-dump.txt
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/show.out
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/bash/users-show.log
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/go/added.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/go/before.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/go/cleaned.config.sorted.json
+sanitize: <REPO_ROOT>/tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2/OPS-USERS/go/removed.config.sorted.json
+sanitize: 33 file(s) updated
+stamped 6 verdict file(s) with run provenance
+15:37:44 scope: installs=[] edits=[] ops=[OPS-03,OPS-08,OPS-20]
+15:37:44 P2 finished: tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127/p2

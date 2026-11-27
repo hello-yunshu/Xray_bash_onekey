@@ -1,0 +1,16 @@
+20:00:33 run_id=bashcold-src-current-7d3e19d9-20261127
+20:00:33 image_id=sha256:fb6d2f1196168beec681e4a13db110a6b635b1a1715666d08b4e11107952538e
+20:00:33 building idleleo
+20:00:38 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+20:00:38 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+20:00:38 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+20:00:38 release_cache=seeded templates=vless_reality.json,vless_tls.json
+20:00:38 release_cache=hit
+20:00:38 apt_cache=skipped (no OPS scenario selected)
+20:00:38 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+20:00:38 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+20:00:39 argv-verify written
+20:00:39 [M4] start
+20:03:48 [M4] done
+20:03:48 scope: installs=[M4] edits=[] ops=[]
+20:03:48 P2 finished: tests/e2e-diff/evidence/bashcold-src-current-7d3e19d9-20261127/p2
