@@ -43,7 +43,7 @@
 | OPS-16 | FAIL | 只读 JSON 证书状态、scheduler 状态与 Bash 交互菜单存在行为差异；目前没有绑定当前证据的审批。 |
 | OPS-27 | FAIL | Go 保留未管理的第三方证书，Bash 递归清理整个证书目录；安全优势和回滚边界有证据，但执行者不代替契约所有者审批。 |
 | OPS-30 | FAIL / DIFF | Go `language set/show` 已读写 Bash 兼容的持久 `language.conf`，支持逐命令 `--lang` 覆盖；真实 Docker 对照验证两端 English locale 字节相同。Go 完整翻译仅 zh/en，TTY 菜单未本地化/自适应，未获契约裁定。F23 106 项探针见 `tests/go-parity/evidence/f23-persistent-language-20261128/`；P2 证据 `tests/e2e-diff/evidence/ops30-language-2ccbeb3c-20261128/p2/OPS-30/`。 |
-| 远程 CI | PASS | 产品 SHA `2ccbeb3c` 的七项 PR workflow 均通过；审计交付 HEAD `8b451b1e0e5f450e80b82fb38be54f7877389deb` 上七项 PR workflow 与 push Privacy Guard 也全部通过，见 evidence-index.json `ci.auditHead` |（Test Install `46075930250`、real-root `46075930267`、Go parity stage `46075930310`、生产资格 `46075930317`、预览 `46075930397`、Rill `46075930329`、Privacy Guard `46075930255`）；push Privacy Guard `46075915776` 通过。 |
+| 远程 CI | PASS | 产品 SHA `2ccbeb3c` 的七项 PR workflow 均通过；审计交付 HEAD `3219d723de8aec393d9ec2e40fcdf84f4dfab773` 上七项 PR workflow 与 push Privacy Guard 也全部通过，见 evidence-index.json `ci.auditHead` |（Test Install `46075930250`、real-root `46075930267`、Go parity stage `46075930310`、生产资格 `46075930317`、预览 `46075930397`、Rill `46075930329`、Privacy Guard `46075930255`）；push Privacy Guard `46075915776` 通过。 |
 | Go 回归 | PASS | Docker Go 1.27.4 上 `go test ./...`、`go vet ./...` rc=0；F23 106/0。日志见 `tests/go-parity/evidence/f23-persistent-language-20261128/`。 |
 | Docker 开发候选结论 | **NO_GO** | 正式分类仍有 OPS-14/16/27/30 四项 FAIL；CI 全绿不自动批准行为差异。 |
 
