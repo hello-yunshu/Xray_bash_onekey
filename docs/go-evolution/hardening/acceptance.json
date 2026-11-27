@@ -243,16 +243,15 @@
       "OPS-32"
     ],
     "goOnly": 0,
-    "fail": 3,
+    "fail": 4,
     "failIds": [
       "OPS-14",
       "OPS-16",
-      "OPS-27"
-    ],
-    "bashOnly": 1,
-    "bashOnlyIds": [
+      "OPS-27",
       "OPS-30"
     ],
+    "bashOnly": 0,
+    "bashOnlyIds": [],
     "blocked": 0,
     "blockedIds": [],
     "notRun": 0,
@@ -267,8 +266,8 @@
       "OPS-27",
       "OPS-30"
     ],
-    "generatedAt": "2026-11-27T21:36:41+00:00",
-    "codeSha": "85340b4871fccfac703566a2ce00469e4a8a9371",
+    "generatedAt": "2026-11-27T22:27:27+00:00",
+    "codeSha": "2ccbeb3ca56bed006d85c7fa4f582f96a145ccfd",
     "source": "tests/e2e-diff/ledger.json"
   },
   "summary": {

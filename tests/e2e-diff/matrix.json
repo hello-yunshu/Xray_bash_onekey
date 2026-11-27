@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "frozenAt": "2026-11-13T17:21:00+08:00",
-  "repoCommit": "85340b48",
+  "repoCommit": "2ccbeb3c",
   "branch": "develop/go-native",
   "sourcePlan": "docs/plans/bash-vs-go-docker-differential-impl.md",
   "decisions": {
@@ -44,8 +44,8 @@
     "opsTotal": 34,
     "dualSideVerifiedOps": 30,
     "goOnlyOps": 0,
-    "failOps": 3,
-    "bashOnlyOps": 1,
+    "failOps": 4,
+    "bashOnlyOps": 0,
     "blockedOps": 0,
     "notRunOps": 0,
     "approvedDiffOps": 0,
@@ -86,18 +86,17 @@
     "failIds": [
       "OPS-14",
       "OPS-16",
-      "OPS-27"
-    ],
-    "bashOnlyIds": [
+      "OPS-27",
       "OPS-30"
     ],
+    "bashOnlyIds": [],
     "blockedIds": [],
     "approvedDiffIds": [],
     "approvedSingleSideIds": [],
     "notRunIds": [],
     "generatedFrom": "tests/e2e-diff/ledger.json",
-    "generatedAt": "2026-11-27T21:36:41+00:00",
-    "codeSha": "85340b4871fccfac703566a2ce00469e4a8a9371"
+    "generatedAt": "2026-11-27T22:27:27+00:00",
+    "codeSha": "2ccbeb3ca56bed006d85c7fa4f582f96a145ccfd"
   },
   "install": [
     {
@@ -1229,12 +1228,18 @@
       "name": "修改语言",
       "bash": "8",
       "answersRef": "OPS_LANG",
-      "go": null,
+      "go": [
+        "idleleo",
+        "language",
+        "set",
+        "en",
+        "--container"
+      ],
       "verdict": "allowed-diff",
       "layers": [
         "L0"
       ],
-      "notes": "语言切换是 Bash 交互菜单的本地化偏好，Go CLI 不提供等价命令；Bash 功能未被删除，登记为 BASH_ONLY（非安全差异，未获“取消功能”批准，因此不宣称对等）。"
+      "notes": "Go 现在通过 language set 持久化同一 language.conf，并可用 --lang 临时覆盖；OPS-30 需真实双端比较。Go 完整词条仍仅 zh/en，TTY 菜单未本地化/自适应，剩余差异在 evidence 中明示并等待契约裁定。"
     },
     {
       "id": "OPS-31",

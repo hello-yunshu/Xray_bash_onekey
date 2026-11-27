@@ -1,0 +1,17 @@
+06:23:08 run_id=ops30-language-2ccbeb3c-20261128
+06:23:09 image_id=sha256:5bcd4f8d59204296fca9cdb18d1cfa1a2e2f16f2af9397be129b90d5c1d9108c
+06:23:09 building idleleo
+06:23:14 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=a0c1703e489929763fd1459b05844cb345b9b566d552a52fc310f6a79e2a8e6d
+06:23:14 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+06:23:14 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+06:23:14 release_cache=seeded templates=vless_reality.json,vless_tls.json
+06:23:14 release_cache=hit
+06:23:14 apt_cache=host-cache debs=75 packages=bc curl dbus git jq lsof python3 qrencode cron fail2ban
+06:23:14 apt_cache=hit (OPS offline apt)
+06:23:14 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+06:23:14 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+06:23:15 argv-verify written
+06:23:15 [OPS-30] start
+06:24:00 [OPS-30] verdict=DIFF
+06:24:00 scope: installs=[] edits=[] ops=[OPS-30]
+06:24:00 P2 finished: tests/e2e-diff/evidence/ops30-language-2ccbeb3c-20261128/p2

@@ -1,10 +1,10 @@
 # 当前候选状态（2026-11-28，取代下方历史快照）
 
-产品代码候选 SHA：`85340b4871fccfac703566a2ce00469e4a8a9371`；分支：`work/go-hardening-parity-20261119`。正式 OPS-34 严格账本已重建，三份摘要与账本一致：**30 DUAL、3 FAIL、1 BASH_ONLY、0 BLOCKED、0 NOT_RUN**，严格验收退出码 `1`。FAIL 是 OPS-14/16/27；BASH_ONLY 是 OPS-30。当前结论仍是 **NO_GO**，发布授权 **NO**。
+产品代码候选 SHA：`2ccbeb3ca56bed006d85c7fa4f582f96a145ccfd`；分支：`work/go-hardening-parity-20261119`。正式 OPS-34 严格账本已按当前候选重建，三份摘要与账本一致：**30 DUAL、4 FAIL、0 BASH_ONLY、0 BLOCKED、0 NOT_RUN**，严格验收退出码 `1`。FAIL 是 OPS-14/16/27/30；当前结论仍是 **NO_GO**，发布授权 **NO**。
 
 OPS-18 已有真实 BBR 宿主闭环：在一次性 GitHub Ubuntu 24.04 VM 上运行真实 Docker（`--privileged --network host`），内核 `7.0.0-1020-azure` 提供 `reno/cubic/bbr`。实际 Go 二进制分别经 Bash 的真实 TCP 包装入口和原生 Go CLI 执行 `bbr-fq` 应用与回滚；两次都核对运行时值、托管配置与事务状态，最后确认原始 `fq_codel/cubic` 已恢复。Docker 镜像 OCI ID、二进制、构建清单、完整 artifact 和 workflow 日志都已留存。正式 OPS-18 因此从 BLOCKED 变为 DUAL，证据：`tests/e2e-diff/evidence/ops18-host-bbr-9d32f5fd-20261128/p2/OPS-18/ops.json`；远程运行 [46070894568](https://github.com/hello-yunshu/Xray_bash_onekey/actions/runs/46070894568)。首次宿主尝试因 harness 的 PATH 被安装脚本重置而失败，完整失败 artifact 保留在 `evidence/ops18-host-bbr-failed-attempt-46070092391/`，修正后真实重跑通过。
 
-七项原有远程 CI 和 OPS-18 专用 workflow 均在提交 `9d32f5fda76f1534486d34ae15acbf2e54a04d94` 上成功；该提交在候选产品代码之外只增加 OPS-18 测试驱动、容器配方和 workflow。正式产品 SHA 仍为 `85340b48…`。Docker Go 工具链再次运行 `go test ./...`，rc=0，完整输出见 `evidence/go-test-all-85340b48-20261128.log`。索引更新后本地隐私扫描最终 0 finding；首轮发现的 68 处 hosted-runner 工作路径只在仓库副本脱敏，原始远程 artifact 保留并逐文件记录 SHA 映射。映射与扫描记录分别见 `evidence/privacy-redaction-map-ops18-host-20261128.json` 和 `evidence/privacy-scan-final-ops18-host-20261128.log`。源码/正式摘要的 scoped `git diff --check` 通过；完整 staged check rc=2，仅由未经改写的远程输出尾随空格和用于 provenance 的原始 `install.sh` 快照引起，诊断见 `evidence/staged-evidence-whitespace-ops18-host-20261128.log`。本轮正式 strict ledger 真实返回 rc=1，唯一未决行是 OPS-14/16/27/30，不把未批准差异包装成通过。
+新候选 SHA `2ccbeb3c` 上七项远程 PR 检查均成功：Privacy Guard `46075930255`、Rill Xray Agent `46075930329`、预览门禁 `46075930397`、real-root 容器验收 `46075930267`、Go parity stage `46075930310`、生产资格检查 `46075930317`、Test Install `46075930250`；push Privacy Guard `46075915776` 也成功。Docker Go 1.27.4 上 `go test ./...`、`go vet ./...` 通过；F23 真实 Linux/arm64 容器 Bash/Go 语言探针为 **106 passed / 0 failed**，完整日志见 `tests/go-parity/evidence/f23-persistent-language-20261128/`。OPS-30 又在真实 Docker P2 双端场景运行：Bash 菜单与 Go `language set en --container` 均将同格式配置从 absent 写成一致 SHA；因 Go 的完整翻译仅 zh/en、TTY 菜单未本地化/自适应，该行仍为 DIFF/FAIL 等待契约裁定。此前 OPS-18 宿主与 CI 证据仍按原 SHA 记载，不改标为 2cc 运行。
 
 ## 已核实的其他边界
 
@@ -18,9 +18,9 @@ OPS-18 已有真实 BBR 宿主闭环：在一次性 GitHub Ubuntu 24.04 VM 上�
 1. OPS-14：正实时速率和真实客户端请求已验证；需要契约所有者决定是否接受 Go 有界 aggregate rate 与 Bash iftop per-peer 粒度差异。
 2. OPS-16：Go 只读机器可读证书状态与 Bash 交互菜单的差异已有证据；需要契约所有者裁定既有契约是否允许该替代。
 3. OPS-27：Go 的所有权校验/第三方保护优于 Bash 递归删除，但正式审批必须绑定当前差异证据，不能由执行者代签。
-4. OPS-30：Go 逐命令 `--lang` 与 Bash 持久默认语言及翻译覆盖并不等价；需要决定是否接受此方案或保留 Bash-only。
+4. OPS-30：Go 已增加持久默认语言、`language show/set`、安全写入门及逐命令 `--lang` 覆盖；当前 Docker 对照证明两端持久化字节一致。Go 的完整翻译仅 zh/en，TTY 菜单未本地化/自适应，仍是未批准 DIFF/FAIL。
 
-因此整体 Xray Go 重构验收仍未完成：严格 OPS-34 还剩三项 FAIL 与一项 BASH_ONLY。当前 CI 通过只证明已配置检查通过，不消除行为差异，也不构成发布授权。
+因此整体 Xray Go 重构验收仍未完成：严格 OPS-34 还剩 OPS-14/16/27/30 四项 FAIL。当前七项 CI 全绿仅证明这些 CI 检查通过，不消除未裁决行为差异，也不构成发布授权。
 
 ---
 

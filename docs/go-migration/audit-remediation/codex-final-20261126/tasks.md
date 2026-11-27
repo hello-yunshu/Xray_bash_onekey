@@ -31,20 +31,20 @@
 
 ## 当前候选更新（2026-11-28；以下状态取代上方较早快照）
 
-产品候选代码 SHA `85340b4871fccfac703566a2ce00469e4a8a9371`，工作分支 `work/go-hardening-parity-20261119`。严格 OPS-34 现为 **30 DUAL / 3 FAIL / 1 BASH_ONLY / 0 BLOCKED / 0 NOT_RUN**，严格退出码 `1`，资格 **NO_GO**。
+产品候选代码 SHA `2ccbeb3ca56bed006d85c7fa4f582f96a145ccfd`，工作分支 `work/go-hardening-parity-20261119`。严格 OPS-34 现为 **30 DUAL / 4 FAIL / 0 BASH_ONLY / 0 BLOCKED / 0 NOT_RUN**，严格退出码 `1`，资格 **NO_GO**。
 
 | 项目 | 当前状态 | 证据与未决事项 |
 |---|---|---|
-| OPS-03 | DUAL，关闭 | 正式基础双端操作与独立短 ID/撤销/重启边界运行均有证据；独立 run `ops03-boundary-23fa585f-20261127` 验证共享 shortId 保留、删除后旧凭据连接拒绝、重启后旧凭据仍拒绝、基线用户持续可用。三段影响映射均证明 `internal/xraycfg` 未变，不伪称在 85340 上重跑。 |
+| OPS-03 | DUAL，关闭 | 正式基础双端操作与独立短 ID/撤销/重启边界运行均有证据；独立 run `ops03-boundary-23fa585f-20261127` 验证共享 shortId 保留、删除后旧凭据连接拒绝、重启后旧凭据仍拒绝、基线用户持续可用。映射证明 `internal/xraycfg` 未变，不伪称在 2cc 上重跑。 |
 | OPS-17a | DUAL，关闭 | `codex-ops17a-85340b48-20261128`；Bash/Go 签名更新替换、摘要、服务健康与更新后真实 Reality 客户端 L4。 |
 | OPS-25/26 | DUAL，关闭 | `codex-ops-backup-85340b48-20261128`；Bash/Go 真实备份恢复、数据、权限、服务和真实连接对照。 |
 | OPS-18 | DUAL，关闭 | 真实 BBR 宿主/Docker run `ops18-host-bbr-9d32f5fd-20261128`：Bash TCP 包装与原生 Go 分别 apply/rollback；核对 BBR/fq、生效状态、托管文件/journal 清除及宿主原值还原。OCI 镜像 ID、执行二进制、manifest、原始 artifact 和 workflow 日志均归档。一次 PATH harness 失败保留并明确被修复后的 run 取代。 |
 | OPS-14 | FAIL / DIFF | 当前候选持续负载下 35/35 HTTP 200、20 个 watch 样本中 32 个正速率点；仍待契约所有者决定 aggregate rate 与 iftop per-peer 的粒度/隐私取舍。 |
 | OPS-16 | FAIL | 只读 JSON 证书状态、scheduler 状态与 Bash 交互菜单存在行为差异；目前没有绑定当前证据的审批。 |
 | OPS-27 | FAIL | Go 保留未管理的第三方证书，Bash 递归清理整个证书目录；安全优势和回滚边界有证据，但执行者不代替契约所有者审批。 |
-| OPS-30 | BASH_ONLY | Go `--lang zh/en/fr` 可用，但逐命令选择、非持久化默认值和较少翻译与 Bash 持久语言偏好不等价；需契约决策。 |
-| 远程 CI | PASS | 对审计提交 `9d32f5fda76f1534486d34ae15acbf2e54a04d94` 的 7 项既有 workflow 与 OPS-18 专用真实宿主 workflow 均通过；产品代码仍绑定 `85340b48…`。 |
-| Go 回归 | PASS | Docker Go 1.27.4-bookworm 上 `go test ./...` rc=0，日志 `evidence/go-test-all-85340b48-20261128.log`。 |
-| Docker 开发候选结论 | **NO_GO** | 正式分类仍有 OPS-14/16/27 FAIL 与 OPS-30 BASH_ONLY；CI 全绿不自动批准行为差异。 |
+| OPS-30 | FAIL / DIFF | Go `language set/show` 已读写 Bash 兼容的持久 `language.conf`，支持逐命令 `--lang` 覆盖；真实 Docker 对照验证两端 English locale 字节相同。Go 完整翻译仅 zh/en，TTY 菜单未本地化/自适应，未获契约裁定。F23 106 项探针见 `tests/go-parity/evidence/f23-persistent-language-20261128/`；P2 证据 `tests/e2e-diff/evidence/ops30-language-2ccbeb3c-20261128/p2/OPS-30/`。 |
+| 远程 CI | PASS | 当前 SHA `2ccbeb3c` 的七项 PR workflow 均通过（Test Install `46075930250`、real-root `46075930267`、Go parity stage `46075930310`、生产资格 `46075930317`、预览 `46075930397`、Rill `46075930329`、Privacy Guard `46075930255`）；push Privacy Guard `46075915776` 通过。 |
+| Go 回归 | PASS | Docker Go 1.27.4 上 `go test ./...`、`go vet ./...` rc=0；F23 106/0。日志见 `tests/go-parity/evidence/f23-persistent-language-20261128/`。 |
+| Docker 开发候选结论 | **NO_GO** | 正式分类仍有 OPS-14/16/27/30 四项 FAIL；CI 全绿不自动批准行为差异。 |
 
-严格账本记录：`evidence/strict-ledger-ops18-host-20261128.log`。当前未决项只剩 OPS-14/16/27/30；OPS-03、OPS-17a、OPS-18、OPS-25/26 均不再列为阻断项。未合并主线、未打 tag、未正式发布、未操作生产 VPS。
+严格账本记录：`evidence/strict-ledger-ops30-language-2ccbeb3c.log`。当前未决项只剩 OPS-14/16/27/30；OPS-03、OPS-17a、OPS-18、OPS-25/26 均不再列为阻断项。未合并主线、未打 tag、未正式发布、未操作生产 VPS。

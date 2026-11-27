@@ -1,12 +1,14 @@
-# 当前候选补记（2026-11-28，更新至产品 SHA 85340b48）
+# 当前候选补记（2026-11-28，产品 SHA 2ccbeb3c）
 
-当前正式账本绑定 `85340b4871fccfac703566a2ce00469e4a8a9371`，34 项为 29 DUAL、3 FAIL（OPS-14/16/27）、1 BASH_ONLY（OPS-30）、1 BLOCKED（OPS-18）、0 NOT_RUN；严格 rc=1。OPS-17a 与 OPS-25/26 现有当前候选真实双端通过证据，详见报告和证据索引。历史复用末段 `9e495b38 → 85340b48` 的 Git 文件列表及 binary diff SHA 在 `evidence/impact-reuse-9e-to-85340b48.json`。
+当前正式账本绑定 `2ccbeb3ca56bed006d85c7fa4f582f96a145ccfd`，34 项为 30 DUAL、4 FAIL（OPS-14/16/27/30）、0 BASH_ONLY、0 BLOCKED、0 NOT_RUN；严格 rc=1。OPS-03/17a/25/26 新证据关闭先前缺项；OPS-18 真实 BBR 运行仍保留其 `85340b48` 原始 provenance，经影响分析复用。复用末段 `85340b48 → 2ccbeb3c` 的确切 Git 文件列表和 binary diff SHA 在 `evidence/impact-reuse-85340-to-2ccbeb3c.json`。
 
-OPS-14 另有当前候选真实负载 stats watch：35/35 Reality 请求 HTTP 200，20 个样本中 32 个正 inbound rate 点；Go 不记录对端地址，Bash iftop 有 per-peer 视图。仍保留 DIFF，等待契约所有者确认信息粒度与隐私取舍。OPS-16 机器可读状态/只读核验优势和 OPS-27 第三方文件保护安全优势保留未批准差异，未由执行者代批。OPS-30 Go `--lang` 逐命令语言选择 Docker 实测正常且不写偏好，但不替代 Bash 持久的完整语言偏好，仍为 BASH_ONLY。
+OPS-14 另有当前候选真实负载 stats watch：35/35 Reality 请求 HTTP 200，20 个样本中 32 个正 inbound rate 点；Go 不记录对端地址，Bash iftop 有 per-peer 视图。仍保留 DIFF，等待契约所有者确认信息粒度与隐私取舍。OPS-16 机器可读只读状态与 Bash 交互菜单存在差异，OPS-27 第三方文件保护有安全优势，均未由执行者代批。OPS-30 已增加安全的持久偏好及 CLI 覆盖，真实双端 Docker 运行确认 Bash 与 Go 写入相同 locale 配置；完整翻译覆盖与 TTY 菜单仍弱于 Bash，故严格 ledger 记录为未批准 DIFF/FAIL，而非 BASH_ONLY。
+
+F23 在 Docker Linux/arm64 上对 Go/Bash 真实 CLI 执行 106 项语言偏好、fallback、显式覆盖、沙箱写入和 Bash 六类目录检查，106 PASS / 0 FAIL。OPS-30 独立 P2 运行 `ops30-language-2ccbeb3c-20261128` 确认 Bash 交互选择与 Go `language set en --container` 均把 absent 配置写为相同 SHA。Go 真实根写入仍走 `RequireSystemWrite`：容器中需 `--container` 与环境确认；root 外调用会被拒绝。F23 与 P2 证据分别记录架构/构建摘要，不更改旧 run 的 SHA。
 
 OPS-18 使用一次性 Docker 对共享 OrbStack Linux 内核进行只读能力检查，available 只有 `reno cubic`、current `cubic`，没有 BBR。Go `tcp status` 返回 rc=0 并如实报告；在 `--network none --cap-drop=ALL` 的丢弃容器中实测 `tcp apply --confirm` rc=12，明确拒绝，`changed=false`，当前算法不变且没有创建受管 sysctl/状态文件。`evidence/ops18-kernel-probe-85340b48-20261128.log` 保留初次可选 qdisc 路径不存在导致的 rc=1 诊断和后续正确只读探测；`evidence/ops18-go-tcp-refusal-85340b48-20261128.log` 记录 Go 拒绝边界。此环境没有 BBR 模块，无法完成成功应用和回滚验证；不加载模块、不触碰宿主/生产 sysctl，OPS-18 继续 BLOCKED。
 
-当前候选 7 项远程 CI 在产品提交 `85340b48` 上均通过；最终交付文档提交的 Privacy Guard 另行通过。最终报告、任务账本、证据索引优先于以下保留的历史快照。
+当前候选 SHA `2ccbeb3c` 的 7 项远程 PR workflow 均 PASS；push Privacy Guard 也 PASS。最终报告、任务账本、证据索引优先于以下保留的历史快照。
 
 ---
 

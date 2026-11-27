@@ -1048,6 +1048,9 @@ ops_snapshot() { # <server> <dir> <tag>
     docker exec "$server" sh -c \
         'sha256sum /etc/idleleo/language.conf 2>/dev/null || echo absent' \
         >"$dir/$tag.language.sha256"
+    docker exec "$server" sh -c \
+        'cat /etc/idleleo/language.conf 2>/dev/null || echo absent' \
+        >"$dir/$tag.language.conf"
     docker exec "$server" systemctl is-active xray >"$dir/$tag.active.txt" 2>&1
     docker exec "$server" sh -c \
         'command -v ss >/dev/null 2>&1 && ss -ltn || netstat -ltn 2>/dev/null' \
@@ -1423,13 +1426,31 @@ elif oid == "OPS-17c":
 elif oid == "OPS-30":
     b_before = (read(snap("bash", "before", "language.sha256")) or "").strip()
     b_after = (read(snap("bash", "after", "language.sha256")) or "").strip()
+    g_before = (read(snap("go", "before", "language.sha256")) or "").strip()
+    g_after = (read(snap("go", "after", "language.sha256")) or "").strip()
+    b_conf = (read(snap("bash", "after", "language.conf")) or "").strip()
+    g_conf = (read(snap("go", "after", "language.conf")) or "").strip()
     if bash_rc != 0:
         reasons.append("bash language change rc=%s" % bash_rc)
+    if go_rc != 0:
+        reasons.append("go language change rc=%s" % go_rc)
     if b_before == b_after:
         reasons.append("language.conf unchanged (before=%s after=%s)" % (b_before, b_after))
-    report["language"] = {"before": b_before, "after": b_after}
-    report["allowedDiff"] = "go has no language capability; row is bash-only"
-    verdict = "BLOCKER" if reasons else "BASH-ONLY"
+    if g_before == g_after:
+        reasons.append("Go language.conf unchanged (before=%s after=%s)" % (g_before, g_after))
+    if b_after != g_after:
+        reasons.append("Bash and Go persisted different locale files")
+    if "LANG=en_US.UTF-8" not in b_conf or "LC_MESSAGES=en_US.UTF-8" not in b_conf:
+        reasons.append("Bash did not persist the requested English locale")
+    if "LANG=en_US.UTF-8" not in g_conf or "LC_MESSAGES=en_US.UTF-8" not in g_conf:
+        reasons.append("Go did not persist the requested English locale")
+    report["language"] = {"bashBefore": b_before, "bashAfter": b_after,
+                          "goBefore": g_before, "goAfter": g_after,
+                          "bashConfig": b_conf, "goConfig": g_conf,
+                          "goCommand": "language set en --container",
+                          "explicitPerCommandOverride": True}
+    report["allowedDiff"] = "Go persists the same locale through an explicit CLI and supports per-command --lang; its catalogs and TTY menu are less complete than Bash"
+    verdict = "BLOCKER" if reasons else "DIFF"
 else:
     verdict = "NOT-RUN"
     reasons = ["no verdict rule"]
@@ -1520,7 +1541,7 @@ ops_simple_job() { # <ops-id> <base-scenario> <go-mode>
                 ops_go_cli "$gserver" "$gdir" 10-op schedule install --interval 3600 --container
                 ops_go_cli "$gserver" "$gdir" 11-status schedule status
                 ;;
-            OPS-30) echo 0 >"$gdir/10-op.rc" ;;
+            OPS-30) ops_go_cli "$gserver" "$gdir" 10-op language set en --container ;;
         esac
         ops_snapshot "$gserver" "$gdir" after
         if [[ "$oid" == "OPS-04" ]]; then
