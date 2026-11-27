@@ -1797,6 +1797,30 @@ PY
                 # performs a real Nginx reload, and records that process/hash.
                 ops_go_cli "$gserver" "$gdir" 13-reloaded xray guard set --policy isolate --container --json
                 ops_go_cli "$gserver" "$gdir" 14-after-reload xray guard show --json
+                # A successful `systemctl reload` can mean only that the reload
+                # signal was sent. Hold the real Nginx master so it cannot
+                # consume that signal, request a materially different policy,
+                # and check both Guard's claim and the live TLS behavior before
+                # allowing the master to process the pending signal.
+                ops_go_cli "$gserver" "$gdir" 15-reject xray guard set --policy reject --container --json
+                docker exec "$gserver" sh -c 'kill -STOP "$(cat /usr/local/nginx/logs/nginx.pid)"'
+                guard_local_ip=$(docker exec "$gserver" sh -c 'set -- $(hostname -i); printf "%s" "$1"' | tr -d '\r')
+                docker exec "$gserver" sh -c "printf '%s guard-async.local\\n' '$guard_local_ip' >> /etc/hosts"
+                ops_go_cli "$gserver" "$gdir" 16-async-decoy xray guard set --policy decoy \
+                    --decoy-domain guard-async.local --container --json
+                ops_go_cli "$gserver" "$gdir" 17-async-show xray guard show --json
+                docker exec "$gserver" sh -c 'test ! -e /etc/idleleo/conf/nginx/03-decoy.conf && echo absent || echo present' \
+                    >"$gdir/17-async-decoy-fragment.txt" 2>&1
+                docker exec "$gserver" timeout 8 openssl s_client -connect 127.0.0.1:443 \
+                    -servername guard-async-unknown.invalid -brief </dev/null \
+                    >"$gdir/17-async-before-apply.sni.out" 2>&1
+                echo $? >"$gdir/17-async-before-apply.sni.rc"
+                docker exec "$gserver" sh -c 'kill -CONT "$(cat /usr/local/nginx/logs/nginx.pid)"'
+                sleep 1
+                docker exec "$gserver" timeout 8 openssl s_client -connect 127.0.0.1:443 \
+                    -servername guard-async-unknown.invalid -brief </dev/null \
+                    >"$gdir/18-async-after-apply.sni.out" 2>&1
+                echo $? >"$gdir/18-async-after-apply.sni.rc"
                 ;;
             OPS-11) ops_go_cli "$gserver" "$gdir" 10-op show --json ;;
             OPS-15) ops_go_cli "$gserver" "$gdir" 10-op service restart --container ;;
@@ -1961,8 +1985,27 @@ if not harness:
             reasons.append("the running old Nginx worker did not reject unknown SNI before reload")
         if reload_rc != 0 or reloaded.get("status") != "active":
             reasons.append("managed Guard reload did not restore verified active status")
+        async_show = jload(os.path.join(base, "go", "17-async-show.out")) or {}
+        async_before_rc = rc(os.path.join(base, "go", "17-async-before-apply.sni.rc"))
+        async_after_rc = rc(os.path.join(base, "go", "18-async-after-apply.sni.rc"))
+        async_probe = {
+            "reportedStatusBeforeWorkerApply": async_show.get("status"),
+            "reportedPolicyAfterUnconfirmedReload": async_show.get("policy"),
+            "setRc": rc(os.path.join(base, "go", "16-async-decoy.rc")),
+            "unknownSniRcBeforeWorkerApply": async_before_rc,
+            "unknownSniRcAfterWorkerApply": async_after_rc,
+        }
+        if async_probe["setRc"] in (None, 0):
+            reasons.append("Guard accepted a policy change before the real Nginx master applied the async reload")
+        if async_show.get("policy") != "reject" or async_show.get("status") not in ("active", "runtime-unverified"):
+            reasons.append("Guard did not preserve and report the prior policy after unconfirmed reload rollback")
+        if async_before_rc in (None, 0) or async_after_rc in (None, 0):
+            reasons.append("unknown SNI did not retain the prior reject behavior through async reload rollback")
+        if text(os.path.join(base, "go", "17-async-decoy-fragment.txt")) != "absent":
+            reasons.append("the unconfirmed decoy policy remained on disk after rollback")
         for side in ("bash", "go"):
             biz_details.setdefault(side, {})["guardRuntime"] = runtime_probe
+        biz_details.setdefault("go", {})["guardAsyncReload"] = async_probe
 
     elif oid == "OPS-11":
         b_out = text(os.path.join(base, "bash", "ops.out"))
@@ -2093,6 +2136,32 @@ ops_bash_pipe() { # <server> <dir> <label> <timeout> <input> [install.sh args...
     echo $? >"$dir/$label.rc"
 }
 
+ops_backup_snapshot() { # <server> <dir> <tag>
+    local server=$1 dir=$2 tag=$3
+    docker exec "$server" bash -c '
+        set +e
+        root=/etc/idleleo
+        for f in conf/xray/config.json conf/install_config.json cert/xray.crt cert/xray.key conf/nginx/00-xray.conf conf/ops25-canary.txt v1/metadata.json; do
+            if [ -f "$root/$f" ]; then printf "%s %s\n" "$f" "$(sha256sum "$root/$f" | cut -d " " -f1)"; fi
+        done
+        stat -c "config-mode %a:%G" "$root/conf/xray/config.json" 2>/dev/null
+        printf "xray-active %s\n" "$(systemctl is-active xray 2>/dev/null)"
+        printf "nginx-active %s\n" "$(systemctl is-active nginx 2>/dev/null)"
+        /usr/local/bin/xray run -test -config "$root/conf/xray/config.json" >/tmp/ops-xray-test.log 2>&1
+        printf "xray-test-rc %s\n" "$?"
+        /usr/local/nginx/sbin/nginx -t >/tmp/ops-nginx-test.log 2>&1
+        printf "nginx-test-rc %s\n" "$?"
+    ' >"$dir/$tag.snapshot.txt" 2>"$dir/$tag.snapshot.err"
+}
+
+ops_backup_mutate() { # <server>
+    docker exec "$1" bash -c '
+        printf "\n" >> /etc/idleleo/conf/xray/config.json
+        printf "mutated-after-backup\n" > /etc/idleleo/conf/ops25-canary.txt
+        chmod 0600 /etc/idleleo/conf/xray/config.json
+    '
+}
+
 ops_observe_job() {
     OPS_NET="e2e-$RUN_ID-observe"
     local base="$EVID/observe" bdir="$EVID/observe/bash" gdir="$EVID/observe/go"
@@ -2116,6 +2185,7 @@ ops_observe_job() {
     done
 
     local d
+    if [[ "${E2E_OBSERVE_BACKUP_ONLY:-0}" != "1" ]]; then
     # OPS-12/13: real live-tail vs finite journal snapshot.
     ops_bash_capture "$bserver" "$EVID/OPS-12/bash" run 6 'exec bash /etc/idleleo/install.sh -xa 20'
     ops_go_cli "$gserver" "$EVID/OPS-12/go" 10-op service logs --unit xray --lines 20
@@ -2149,11 +2219,6 @@ ops_observe_job() {
     # OPS-24: interactive GeoData menu vs schedule status.
     ops_bash_pipe "$bserver" "$EVID/OPS-24/bash" run 40 '6\n7\n'
     ops_go_cli "$gserver" "$EVID/OPS-24/go" 10-op schedule status --json
-
-    # OPS-25/26 are appended after OPS-17b: the Go metadata import turns the
-    # Bash tree into a Go-managed tree, which would change later Bash-only
-    # observations. A canary file inside the backed-up tree proves the restore
-    # really rewrote the live tree instead of merely returning 0.
 
     # OPS-29: Rill status from both sides.
     ops_bash_capture "$bserver" "$EVID/OPS-29/bash" run 30 'exec bash /etc/idleleo/install.sh --rill-agent-status'
@@ -2198,22 +2263,57 @@ ops_observe_job() {
         echo "seed-nginx-cache-missing" >"$EVID/OPS-17b/harness-blocked.txt"
     fi
 
-    # OPS-25: Bash tar backup vs Go metadata export.
-    docker exec "$bserver" sh -c \
-        'printf "ops25-canary\n" > /etc/idleleo/conf/ops25-canary.txt' >/dev/null 2>&1 || true
-    ops_bash_pipe "$bserver" "$EVID/OPS-25/bash" run 90 'e2e-ops25\n' --backup
-    ops_go_cli "$gserver" "$EVID/OPS-25/go" 10-op metadata export --out /tmp/e2e-metadata.json --json
+    fi
 
-    # OPS-26: Bash tar restore vs Go legacy metadata import. The canary is
-    # removed before the restore; only a real restore brings it back.
-    docker exec "$bserver" rm -f /etc/idleleo/conf/ops25-canary.txt >/dev/null 2>&1 || true
-    ops_bash_pipe "$bserver" "$EVID/OPS-26/bash" run 120 '' --restore
-    docker exec "$bserver" sh -c 'cat /etc/idleleo/conf/ops25-canary.txt 2>/dev/null' \
-        >"$EVID/OPS-26/bash/canary.txt" 2>/dev/null || true
-    # The legacy import target is a Bash-installed tree with no Go metadata yet.
-    docker exec "$bserver" install -m 0755 /seed/idleleo /usr/local/bin/idleleo >/dev/null 2>&1 || true
-    ops_go_cli "$bserver" "$EVID/OPS-26/go" 10-op metadata import \
-        --from install_config.json --container --json
+    # OPS-25/26: real native archives on both managers. Capture the managed
+    # state, permissions, validators, services and L4 before/after; corrupt the
+    # live copy after backup so a successful restore must recover archived data.
+    local b25="$EVID/OPS-25/bash" g25="$EVID/OPS-25/go"
+    local b26="$EVID/OPS-26/bash" g26="$EVID/OPS-26/go"
+    mkdir -p "$b25" "$g25" "$b26" "$g26"
+    for side in bash go; do
+        local server dir
+        if [[ "$side" == bash ]]; then server=$bserver; dir=$b25; else server=$gserver; dir=$g25; fi
+        docker exec "$server" sh -c 'printf "ops25-canary\n" > /etc/idleleo/conf/ops25-canary.txt' >/dev/null 2>&1 || true
+        ops_backup_snapshot "$server" "$dir" before
+    done
+    ops_bash_pipe "$bserver" "$b25" create 90 'e2e-ops25\n' --backup
+    docker exec "$bserver" sh -c 'find /etc/idleleo -maxdepth 1 -name "xray_bash_e2e-ops25_*.tar.gz" -print -quit' \
+        >"$b25/archive-path.txt" 2>"$b25/archive-path.err"
+    docker exec "$bserver" bash -c 'a=$(find /etc/idleleo -maxdepth 1 -name "xray_bash_e2e-ops25_*.tar.gz" -print -quit); [ -n "$a" ] && stat -c "%a" "$a" && sha256sum "$a"' \
+        >"$b25/archive-integrity.txt" 2>&1
+    echo $? >"$b25/archive-integrity.rc"
+    docker exec "$bserver" bash -c '
+        set -e
+        a=$(find /etc/idleleo -maxdepth 1 -name "xray_bash_e2e-ops25_*.tar.gz" -print -quit)
+        d=$(mktemp -d)
+        trap "rm -rf \"$d\"" EXIT
+        tar -xzf "$a" -C "$d"
+        (cd "$d" && sha256sum --strict -c etc/idleleo/.backup_sha256sums.txt)
+    ' >"$b25/archive-verify.out" 2>"$b25/archive-verify.err"
+    echo $? >"$b25/archive-verify.rc"
+    ops_go_cli "$gserver" "$g25" create backup create --out /tmp/ops25-go.tar.gz --include-geodata --container --json
+    docker exec "$gserver" bash -c 'stat -c "%a" /tmp/ops25-go.tar.gz; sha256sum /tmp/ops25-go.tar.gz' \
+        >"$g25/archive-integrity.txt" 2>&1
+    echo $? >"$g25/archive-integrity.rc"
+    ops_go_cli "$gserver" "$g25" verify backup verify --archive /tmp/ops25-go.tar.gz --json
+
+    ops_backup_mutate "$bserver"; ops_backup_mutate "$gserver"
+    ops_bash_pipe "$bserver" "$b26" restore 180 '' --restore
+    ops_go_cli "$gserver" "$g26" restore backup restore --archive /tmp/ops25-go.tar.gz --container --json
+    # Bash restore intentionally leaves service startup to the caller; restart
+    # both units after restoring, while Go performs restart inside its restore
+    # transaction. Record these semantics and verify actual runtime afterward.
+    docker exec "$bserver" systemctl restart xray nginx >"$b26/service-restart.out" 2>&1
+    echo $? >"$b26/service-restart.rc"
+    ops_backup_snapshot "$bserver" "$b26" after
+    ops_backup_snapshot "$gserver" "$g26" after
+    docker exec "$bserver" cat /etc/idleleo/conf/ops25-canary.txt >"$b26/canary.txt" 2>&1
+    echo $? >"$b26/canary.rc"
+    docker exec "$gserver" cat /etc/idleleo/conf/ops25-canary.txt >"$g26/canary.txt" 2>&1
+    echo $? >"$g26/canary.rc"
+    run_l4 M2 bash "$bserver" "$b26" "$OPS_NET" reality 3
+    run_l4 M2 go "$gserver" "$g26" "$OPS_NET" reality 3
 
     [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" "$gserver" >/dev/null 2>&1 || true
     docker network rm "$OPS_NET" >/dev/null 2>&1 || true
@@ -2230,6 +2330,7 @@ import re
 import sys
 
 evid = sys.argv[1]
+backup_only = os.environ.get("E2E_OBSERVE_BACKUP_ONLY") == "1"
 
 
 def read(path):
@@ -2248,6 +2349,8 @@ def rc(path):
 
 
 def write(oid, verdict, reasons, extra=None):
+    if backup_only and oid not in ("OPS-25", "OPS-26"):
+        return {"opsRc": {"bash": None, "go": None}}
     entry = {
         "id": oid,
         "verdict": verdict,
@@ -2268,6 +2371,8 @@ def write(oid, verdict, reasons, extra=None):
 
 
 def write_doc(oid, name, payload):
+    if backup_only and oid not in ("OPS-25", "OPS-26"):
+        return
     path = os.path.join(evid, oid)
     os.makedirs(path, exist_ok=True)
     with open(os.path.join(path, name), "w", encoding="utf-8") as fh:
@@ -2353,46 +2458,80 @@ write("OPS-24", "BLOCKED", [
     % rc(os.path.join(evid, "OPS-24", "go", "10-op.rc")),
 ])
 
-# Artifact types differ: a tar tree with a real restore vs JSON metadata import.
-# The canary proves the Bash restore rewrote the live tree; the Go import read
-# the same legacy tree and created the single-source-of-truth metadata.
-for oid, what in (("OPS-25", "backup"), ("OPS-26", "restore/import")):
-    b = out(oid, "bash", "run")
-    g = out(oid, "go", "10-op")
-    reasons = [
-        "Bash %s operates on the managed tree (tar archive); Go %s operates on JSON metadata"
-        % (what, what),
-        "bash rc=%s" % rc(os.path.join(evid, oid, "bash", "run.rc")),
-        "go rc=%s" % rc(os.path.join(evid, oid, "go", "10-op.rc")),
-    ]
-    extra = {}
-    if oid == "OPS-26":
-        canary = read(os.path.join(evid, oid, "bash", "canary.txt"))
-        restored = canary.strip() == "ops25-canary"
-        try:
-            imported = json.loads(g).get("state", "")
-        except ValueError:
-            imported = ""
-        reasons.append("restore canary present=%s" % restored)
-        reasons.append("go import state=%s" % (imported or "unknown"))
-        extra["restoreCanary"] = restored
-        extra["goImportState"] = imported
-    write(oid, "DIFF", reasons, extra)
-    if oid == "OPS-26":
-        write_doc(oid, "metadata-difference.json", {
-            "id": oid,
-            "result": "DIFF",
-            "approved": False,
-            "bash": {"entry": "install.sh --backup/--restore (tar tree)",
-                     "rc": rc(os.path.join(evid, oid, "bash", "run.rc")),
-                     "restoreCanary": canary.strip() == "ops25-canary"},
-            "go": {"entry": "idleleo metadata import --from install_config.json",
-                   "rc": rc(os.path.join(evid, oid, "go", "10-op.rc")),
-                   "state": imported,
-                   "outputBytes": len(g.encode())},
-            "reasons": reasons,
-            "note": "Tar restore rewrites the managed tree; metadata import records the legacy tree as the single source of truth and never overwrites an existing metadata file. Both paths succeeded here; external approval is required before treating them as equal.",
-        })
+def read_snapshot(path):
+    data = {}
+    for line in read(path).splitlines():
+        key, _, value = line.partition(" ")
+        if key:
+            data[key] = value
+    return data
+
+def backup_side_checks(side):
+    base = os.path.join(evid, "OPS-25", side)
+    after_dir = os.path.join(evid, "OPS-26", side)
+    before = read_snapshot(os.path.join(base, "before.snapshot.txt"))
+    after = read_snapshot(os.path.join(after_dir, "after.snapshot.txt"))
+    expected_files = ("conf/xray/config.json", "cert/xray.crt", "cert/xray.key",
+                      "conf/nginx/00-xray.conf", "conf/ops25-canary.txt")
+    present = [name for name in expected_files if before.get(name)]
+    same = bool(present) and all(before[name] == after.get(name) for name in present)
+    wanted_mode = "600:root" if side == "bash" else "640:xray"
+    permissions = before.get("config-mode") == after.get("config-mode") == wanted_mode
+    services = all(after.get(k) == v for k, v in (("xray-active", "active"),
+                                                   ("nginx-active", "active"),
+                                                   ("xray-test-rc", "0"),
+                                                   ("nginx-test-rc", "0")))
+    canary = read(os.path.join(after_dir, "canary.txt")).strip() == "ops25-canary"
+    l4_rows = []
+    try:
+        l4_rows = [json.loads(line) for line in read(os.path.join(after_dir, "L4", "round3.jsonl")).splitlines()
+                   if line.strip()]
+    except ValueError:
+        pass
+    l4 = bool(l4_rows) and all(row.get("rc") == 0 for row in l4_rows)
+    if side == "bash":
+        create_rc = rc(os.path.join(base, "create.rc"))
+        verify_rc = rc(os.path.join(base, "archive-verify.rc"))
+        archive_lines = read(os.path.join(base, "archive-integrity.txt")).splitlines()
+        archive_ok = bool(archive_lines and archive_lines[0].strip() == "600" and len(archive_lines) > 1)
+        restore_rc = rc(os.path.join(after_dir, "restore.rc"))
+    else:
+        create_rc = rc(os.path.join(base, "create.rc"))
+        verify_rc = rc(os.path.join(base, "verify.rc"))
+        archive_lines = read(os.path.join(base, "archive-integrity.txt")).splitlines()
+        archive_ok = bool(archive_lines and archive_lines[0].strip() == "600" and len(archive_lines) > 1)
+        restore_rc = rc(os.path.join(after_dir, "restore.rc"))
+    return {"createRc": create_rc, "verifyRc": verify_rc, "restoreRc": restore_rc,
+            "archiveModeAndDigest": archive_ok, "managedFilesRestored": same,
+            "permissionsRestored": permissions, "servicesAndValidators": services,
+            "canaryRestored": canary, "realClient": l4,
+            "restoreVerified": restore_rc == 0 and services and l4,
+            "checksumMatch": same,
+            "before": before, "after": after}
+
+b26, g26 = backup_side_checks("bash"), backup_side_checks("go")
+for oid in ("OPS-25", "OPS-26"):
+    complete = all(s["createRc"] == 0 and s["archiveModeAndDigest"] and
+                   s["managedFilesRestored"] and s["permissionsRestored"] and
+                   s["servicesAndValidators"] and s["canaryRestored"] and s["realClient"] and
+                   s["verifyRc"] == 0 and (oid != "OPS-26" or s["restoreRc"] == 0)
+                   for s in (b26, g26))
+    reasons = ["Both sides exercised their native backup/restore path with real Docker services and clients",
+               "Bash result=%s" % json.dumps({k:v for k,v in b26.items() if k not in ("before","after")}, sort_keys=True),
+               "Go result=%s" % json.dumps({k:v for k,v in g26.items() if k not in ("before","after")}, sort_keys=True)]
+    operation_rcs = {"bash": b26["createRc"] if oid == "OPS-25" else b26["restoreRc"],
+                     "go": g26["createRc"] if oid == "OPS-25" else g26["restoreRc"]}
+    write(oid, "PASS" if complete else "DIFF", reasons,
+          {"details": {"bash": b26, "go": g26}, "opsRc": operation_rcs})
+write_doc("OPS-26", "native-backup-restore-comparison.json", {
+    "id": "OPS-25/26", "result": "DUAL" if all(
+        s["createRc"] == 0 and s["verifyRc"] == 0 and s["restoreRc"] == 0 and
+        s["archiveModeAndDigest"] and s["managedFilesRestored"] and
+        s["permissionsRestored"] and s["servicesAndValidators"] and
+        s["canaryRestored"] and s["realClient"] for s in (b26, g26)) else "DIFF",
+    "bash": b26, "go": g26,
+    "note": "Native archive formats and scope are not treated as identical. Bash includes broader runtime files and preserves its 0600:root config policy; Go archives only managed state and preserves its 0640:xray policy. The probe compares common managed data, each manager's established permission policy, validation, service state and real-client connectivity. The harness restarts Bash services after restore because Bash restore does not start them; Go restarts services inside its restore transaction."
+})
 
 # Rill status is a genuine read-only query on both sides.
 b29, g29 = out("OPS-29", "bash", "run"), out("OPS-29", "go", "10-op")

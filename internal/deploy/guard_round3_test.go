@@ -3,6 +3,7 @@ package deploy
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -168,6 +169,37 @@ func TestProcessStartTimeComesFromProcStat(t *testing.T) {
 	}
 	if started.IsZero() || started.After(time.Now().Add(time.Minute)) {
 		t.Fatalf("implausible process start time %v", started)
+	}
+}
+
+func TestNginxWorkerGenerationRequiresANewDirectChild(t *testing.T) {
+	masterPID := os.Getpid()
+	masterTicks, _, err := processStartTime(masterPID)
+	if err != nil {
+		t.Skipf("no usable /proc on this host: %v", err)
+	}
+	baselineChild := exec.Command("sleep", "2")
+	if err := baselineChild.Start(); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = baselineChild.Process.Kill()
+		_ = baselineChild.Wait()
+	})
+	previous, err := nginxWorkerIdentities(masterPID)
+	if err != nil {
+		t.Skipf("cannot inspect current process children: %v", err)
+	}
+	child := exec.Command("sleep", "2")
+	if err := child.Start(); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = child.Process.Kill()
+		_ = child.Wait()
+	})
+	if err := waitNginxWorkerGeneration(context.Background(), masterPID, masterTicks, previous, time.Second); err != nil {
+		t.Fatalf("a new live child should confirm the process generation: %v", err)
 	}
 }
 

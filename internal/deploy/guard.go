@@ -265,6 +265,19 @@ func SetSNIGuard(ctx context.Context, spec SNIGuardSpec) (SNIGuardReport, error)
 		return rep, guardRollback(paths, &journal, backups, err, "nginx -t")
 	}
 	rep.Changed = true
+	var workerMasterPID int
+	var workerMasterTicks uint64
+	var workersBefore map[nginxWorkerIdentity]struct{}
+	if serviceManaged(paths.Root) {
+		pid, ticks, identityErr := currentNginxIdentity(paths)
+		if identityErr != nil {
+			rep.Warnings = append(rep.Warnings, "cannot verify the Nginx worker generation before reload: "+identityErr.Error())
+		} else if workers, workersErr := nginxWorkerIdentities(pid); workersErr != nil {
+			rep.Warnings = append(rep.Warnings, "cannot verify the Nginx worker generation before reload: "+workersErr.Error())
+		} else {
+			workerMasterPID, workerMasterTicks, workersBefore = pid, ticks, workers
+		}
+	}
 	if err := balanceReloadWithReport(ctx, paths.Root, &rep.Reloaded, &rep.Warnings); err != nil {
 		rbErr := guardRollback(paths, &journal, backups, err, "reload")
 		if rbErr == nil {
@@ -275,19 +288,28 @@ func SetSNIGuard(ctx context.Context, spec SNIGuardSpec) (SNIGuardReport, error)
 		}
 		return rep, rbErr
 	}
+	if rep.Reloaded {
+		if workersBefore == nil {
+			rep.Warnings = append(rep.Warnings, "the reload command completed, but the Nginx worker generation could not be confirmed; runtime status remains unverified")
+		} else if err := waitNginxWorkerGeneration(ctx, workerMasterPID, workerMasterTicks, workersBefore, 2*time.Second); err != nil {
+			rbErr := guardRollback(paths, &journal, backups, err, "reload confirmation")
+			if rbErr == nil {
+				// Restore the prior on-disk policy and ask the master to converge to
+				// it. The old runtime record remains valid only if that content and
+				// process instance still match.
+				if testErr := balanceNginxTest(ctx, paths.Root); testErr == nil {
+					_ = balanceReloadWithReport(ctx, paths.Root, &rep.Reloaded, &rep.Warnings)
+				}
+			}
+			return rep, rbErr
+		} else if pid, ticks, pidErr := currentNginxIdentity(paths); pidErr != nil {
+			rep.Warnings = append(rep.Warnings, "the reload was applied but the running Nginx instance could not be identified: "+pidErr.Error())
+		} else if err := writeGuardRuntimeRecord(paths, rep.Policy, guardRuntimeEvidence(paths), pid, ticks); err != nil {
+			rep.Warnings = append(rep.Warnings, "the reload was applied but the runtime verification record could not be written: "+err.Error())
+		}
+	}
 	if err := journalMarkCommitted(paths, &journal); err != nil {
 		return rep, err
-	}
-	if rep.Reloaded {
-		// Only a successful reload justifies "the running Nginx loaded these
-		// files". The record is bound to the process instance that performed the
-		// reload (pid + kernel starttime) and to the content hashes, so a later
-		// restart, pid reuse or hand edit falls back to runtime-unverified.
-		if pid, ticks, pidErr := currentNginxIdentity(paths); pidErr != nil {
-			rep.Warnings = append(rep.Warnings, "the reload completed but the running Nginx instance could not be identified: "+pidErr.Error())
-		} else if err := writeGuardRuntimeRecord(paths, rep.Policy, guardRuntimeEvidence(paths), pid, ticks); err != nil {
-			rep.Warnings = append(rep.Warnings, "the reload completed but the runtime verification record could not be written: "+err.Error())
-		}
 	}
 	return rep, nil
 }
@@ -652,6 +674,69 @@ func currentNginxIdentity(paths host.Paths) (int, uint64, error) {
 		return 0, 0, err
 	}
 	return pid, ticks, nil
+}
+
+type nginxWorkerIdentity struct {
+	PID        int
+	StartTicks uint64
+}
+
+// nginxWorkerIdentities returns the direct worker process identities under a
+// managed Nginx master. A new worker generation is the cheapest local signal
+// that the master consumed an asynchronous reload; the reload command's zero
+// exit status alone only proves that a signal was sent.
+func nginxWorkerIdentities(masterPID int) (map[nginxWorkerIdentity]struct{}, error) {
+	path := fmt.Sprintf("/proc/%d/task/%d/children", masterPID, masterPID)
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", path, err)
+	}
+	workers := make(map[nginxWorkerIdentity]struct{})
+	for _, field := range strings.Fields(string(raw)) {
+		pid, err := strconv.Atoi(field)
+		if err != nil || pid <= 0 {
+			return nil, fmt.Errorf("invalid child pid %q in %s", field, path)
+		}
+		ticks, _, err := processStartTime(pid)
+		if err != nil {
+			// A worker can exit while the child list is being read. Ignore that
+			// race; the next poll will observe the stable generation.
+			continue
+		}
+		workers[nginxWorkerIdentity{PID: pid, StartTicks: ticks}] = struct{}{}
+	}
+	if len(workers) == 0 {
+		return nil, fmt.Errorf("managed Nginx master %d has no readable worker processes", masterPID)
+	}
+	return workers, nil
+}
+
+func waitNginxWorkerGeneration(ctx context.Context, masterPID int, masterTicks uint64,
+	previous map[nginxWorkerIdentity]struct{}, timeout time.Duration) error {
+	deadline := time.NewTimer(timeout)
+	defer deadline.Stop()
+	ticker := time.NewTicker(50 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		ticks, _, err := processStartTime(masterPID)
+		if err != nil || ticks != masterTicks {
+			return fmt.Errorf("managed Nginx master changed during reload confirmation")
+		}
+		if workers, err := nginxWorkerIdentities(masterPID); err == nil {
+			for worker := range workers {
+				if _, existed := previous[worker]; !existed {
+					return nil
+				}
+			}
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("reload confirmation canceled before a new Nginx worker generation appeared: %w", ctx.Err())
+		case <-deadline.C:
+			return fmt.Errorf("Nginx reload command succeeded but no new worker generation appeared within %s", timeout)
+		case <-ticker.C:
+		}
+	}
 }
 
 func processAlive(pid int) bool {
