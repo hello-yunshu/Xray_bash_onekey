@@ -1797,6 +1797,8 @@ PY
                 # performs a real Nginx reload, and records that process/hash.
                 ops_go_cli "$gserver" "$gdir" 13-reloaded xray guard set --policy isolate --container --json
                 ops_go_cli "$gserver" "$gdir" 14-after-reload xray guard show --json
+                docker exec "$gserver" cat /etc/idleleo/conf/nginx/03-isolate.conf \
+                    >"$gdir/14-isolate-fragment.txt" 2>&1
                 # A successful `systemctl reload` can mean only that the reload
                 # signal was sent. Hold the real Nginx master so it cannot
                 # consume that signal, request a materially different policy,
@@ -1925,7 +1927,8 @@ if not harness:
         if g_show.get("status") not in ("configured", "active"):
             reasons.append("go guard status=%r (want configured/active)" % g_show.get("status"))
         for side in ("bash", "go"):
-            files = probe(side, "after", "sni-files")
+            files = (read(os.path.join(base, "go", "14-isolate-fragment.txt"))
+                     if side == "go" else probe(side, "after", "sni-files"))
             if "ssl_reject_handshake on" not in files:
                 reasons.append("%s has no isolate TLS-reject fragment" % side)
             if probe(side, "after", "nginx-active") != "active":
@@ -1937,6 +1940,8 @@ if not harness:
         for side in ("bash", "go"):
             known_out = read(os.path.join(base, side, "after.sni-known.txt"))
             unknown_out = read(os.path.join(base, side, "after.sni-unknown.txt"))
+            policy_files = (read(os.path.join(base, "go", "14-isolate-fragment.txt"))
+                            if side == "go" else probe(side, "after", "sni-files"))
             known_rc = rc(os.path.join(base, side, "after.sni-known.rc"))
             unknown_rc = rc(os.path.join(base, side, "after.sni-unknown.rc"))
             if known_rc is None or unknown_rc is None:
@@ -1947,7 +1952,7 @@ if not harness:
             unknown_rejected = not unknown_open and unknown_rc != 0
             if unknown_rejected:
                 policy = ("ssl_reject_handshake"
-                          if "ssl_reject_handshake on" in probe(side, "after", "sni-files")
+                          if "ssl_reject_handshake on" in (policy_files or "")
                           else "handshake-failed")
             else:
                 policy = "accepted"
@@ -1989,7 +1994,7 @@ if not harness:
         async_before_rc = rc(os.path.join(base, "go", "17-async-before-apply.sni.rc"))
         async_after_rc = rc(os.path.join(base, "go", "18-async-after-apply.sni.rc"))
         async_probe = {
-            "reportedStatusBeforeWorkerApply": async_show.get("status"),
+            "reportedStatusAfterRollback": async_show.get("status"),
             "reportedPolicyAfterUnconfirmedReload": async_show.get("policy"),
             "setRc": rc(os.path.join(base, "go", "16-async-decoy.rc")),
             "unknownSniRcBeforeWorkerApply": async_before_rc,
@@ -2127,6 +2132,33 @@ ops_bash_capture() { # <server> <dir> <label> <timeout> <shell-command>
     echo $? >"$dir/$label.rc"
 }
 
+ops_follow_probe() { # <server> <dir> <side> <kind> <marker>
+    local server=$1 dir=$2 side=$3 kind=$4 marker=$5 limit=8 pid rc ready=0 i
+    mkdir -p "$dir"
+    if [[ "$side" == bash ]]; then
+        docker exec "$server" timeout "$limit" bash /etc/idleleo/install.sh "-x${kind:0:1}" \
+            >"$dir/follow.out" 2>"$dir/follow.err" &
+    else
+        docker exec -e IDLELEO_ALLOW_SYSTEM_WRITES=I_ACCEPT_CONTAINER_ONLY "$server" \
+            timeout "$limit" idleleo xray logs show --kind "$kind" --lines 20 --follow \
+            >"$dir/follow.out" 2>"$dir/follow.err" &
+    fi
+    pid=$!
+    for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+        if [[ "$side" == bash ]]; then
+            docker exec "$server" sh -c "ps -eo args | grep -F 'tail -f /var/log/xray/$kind.log' | grep -v grep" >/dev/null 2>&1
+        else
+            docker exec "$server" sh -c "ps -eo args | grep -F 'idleleo xray logs show --kind $kind' | grep -v grep" >/dev/null 2>&1
+        fi
+        if [[ $? == 0 ]]; then ready=1; break; fi
+        sleep 0.2
+    done
+    [[ "$ready" == 1 ]] || echo "follow process did not become visible" >"$dir/follow-ready.txt"
+    docker exec "$server" sh -c "printf '%s\\n' '$marker' >> '/var/log/xray/$kind.log'" >/dev/null 2>&1 || true
+    wait "$pid"; rc=$?
+    echo "$rc" >"$dir/follow.rc"
+}
+
 ops_bash_pipe() { # <server> <dir> <label> <timeout> <input> [install.sh args...]
     local server=$1 dir=$2 label=$3 limit=$4 input=$5; shift 5
     mkdir -p "$dir"
@@ -2186,11 +2218,15 @@ ops_observe_job() {
 
     local d
     if [[ "${E2E_OBSERVE_BACKUP_ONLY:-0}" != "1" ]]; then
-    # OPS-12/13: real live-tail vs finite journal snapshot.
+    # OPS-12/13: compare both bounded file snapshots and opt-in live follow.
     ops_bash_capture "$bserver" "$EVID/OPS-12/bash" run 6 'exec bash /etc/idleleo/install.sh -xa 20'
-    ops_go_cli "$gserver" "$EVID/OPS-12/go" 10-op service logs --unit xray --lines 20
+    ops_go_cli "$gserver" "$EVID/OPS-12/go" snapshot xray logs show --kind access --lines 20
     ops_bash_capture "$bserver" "$EVID/OPS-13/bash" run 6 'exec bash /etc/idleleo/install.sh -xe 20'
-    ops_go_cli "$gserver" "$EVID/OPS-13/go" 10-op service logs --unit xray --lines 20
+    ops_go_cli "$gserver" "$EVID/OPS-13/go" snapshot xray logs show --kind error --lines 20
+    ops_follow_probe "$bserver" "$EVID/OPS-12/bash" bash access e2e-access-live-marker
+    ops_follow_probe "$gserver" "$EVID/OPS-12/go" go access e2e-access-live-marker
+    ops_follow_probe "$bserver" "$EVID/OPS-13/bash" bash error e2e-error-live-marker
+    ops_follow_probe "$gserver" "$EVID/OPS-13/go" go error e2e-error-live-marker
 
     # OPS-14: iftop live UI vs stats query. The Go stats API is not enabled by a
     # default install, so enable it first; otherwise the row would compare a
@@ -2351,13 +2387,16 @@ def rc(path):
 def write(oid, verdict, reasons, extra=None):
     if backup_only and oid not in ("OPS-25", "OPS-26"):
         return {"opsRc": {"bash": None, "go": None}}
+    go_rc = rc(os.path.join(evid, oid, "go", "10-op.rc"))
+    if go_rc is None:
+        go_rc = rc(os.path.join(evid, oid, "go", "snapshot.rc"))
     entry = {
         "id": oid,
         "verdict": verdict,
         "reasons": reasons,
         "opsRc": {
             "bash": rc(os.path.join(evid, oid, "bash", "run.rc")) if os.path.isdir(os.path.join(evid, oid, "bash")) else None,
-            "go": rc(os.path.join(evid, oid, "go", "10-op.rc")),
+            "go": go_rc,
         },
     }
     if extra:
@@ -2388,37 +2427,49 @@ def bash_exists(oid):
     return os.path.isdir(os.path.join(evid, oid, "bash"))
 
 
-# Live-tail Bash vs finite journal Go: the content is real on both sides, but
-# one is an unbounded stream and the other a bounded query.
+# Both implementations read the managed Xray files. Bash streams by default;
+# Go provides a bounded tail and an explicit follow mode.
 for oid, marker, logfile in (
     ("OPS-12", "e2e-access-marker", "/var/log/xray/access.log"),
     ("OPS-13", "e2e-error-marker", "/var/log/xray/error.log"),
 ):
     b = out(oid, "bash", "run")
-    g = out(oid, "go", "10-op")
-    reasons = ["Bash menu entry is an unbounded 'tail -f' stream; Go emits a finite journald snapshot"]
-    if marker not in b:
-        reasons.append("Bash live stream did not surface the seeded %s line" % marker)
-    if not g.strip():
-        reasons.append("Go journal snapshot is empty")
-    entry = write(oid, "DIFF", reasons)
+    gsnap = out(oid, "go", "snapshot")
+    bf = out(oid, "bash", "follow")
+    gf = out(oid, "go", "follow")
+    live_marker = "e2e-%s-live-marker" % ("access" if oid == "OPS-12" else "error")
+    reasons = []
+    if marker not in gsnap: reasons.append("Go bounded snapshot did not show seeded log marker")
+    if marker not in gf: reasons.append("Go follow missed existing seeded log marker")
+    if live_marker not in bf: reasons.append("Bash live tail missed appended marker")
+    if live_marker not in gf: reasons.append("Go follow missed appended live marker")
+    if rc(os.path.join(evid, oid, "go", "snapshot.rc")) != 0:
+        reasons.append("Go bounded snapshot exited nonzero")
+    for side in ("bash", "go"):
+        if rc(os.path.join(evid, oid, side, "follow.rc")) != 124:
+            reasons.append("%s follow probe did not end at its 8s timeout" % side)
+    status = "PASS" if not reasons else "FAIL"
+    entry = write(oid, status, reasons)
     write_doc(oid, "log-source-difference.json", {
         "id": oid,
-        "result": "DIFF",
+        "result": status,
         "approved": False,
         "source": logfile,
         "bash": {
             "entry": "install.sh menu live tail",
             "rc": entry["opsRc"]["bash"],
             "seededMarkerVisible": marker in b,
+            "liveMarkerVisible": live_marker in bf,
         },
         "go": {
-            "entry": "idleleo service logs (journald snapshot)",
+            "entry": "idleleo xray logs show (bounded file tail; optional follow)",
             "rc": entry["opsRc"]["go"],
-            "outputBytes": len(g.encode()),
+            "seededMarkerVisible": marker in gsnap,
+            "liveMarkerVisible": live_marker in gf,
+            "snapshotBytes": len(gsnap.encode()),
         },
         "reasons": reasons,
-        "note": "Live tail is unbounded; the finite Go snapshot is not an equivalent command. External approval is required before treating this as equal.",
+        "note": "Go defaults to a bounded tail of the same real Xray file and provides explicit follow; equality requires both snapshot and live marker probes to pass.",
     })
 
 # iftop vs stats query.

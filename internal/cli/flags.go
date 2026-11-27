@@ -127,6 +127,7 @@ var commandFlags = map[string]flagSpec{
 			"short-id", "short-id-remove", "fp", "spx", "confirm-reality-rotation"},
 		"dry-run", "no-restart", "no-probe", "yes", "rewrite-config", "container", "allow-non-loopback",
 		"short-id-auto", "short-id-list", "rotate-reality-private-key"),
+	"xray logs show":   specOf([]string{"kind", "lines"}, "follow"),
 	"xray logs clean":  specOf(nil, "yes", "container"),
 	"xray logs rotate": specOf(nil, "container"),
 	"xray block": specOf([]string{"path", "kind", "value", "geodata-url"},

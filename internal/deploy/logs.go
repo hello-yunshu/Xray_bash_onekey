@@ -1,8 +1,10 @@
 package deploy
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"os/user"
@@ -26,6 +28,105 @@ const (
 type LogsSpec struct {
 	Root                 string
 	AllowContainerWrites bool
+}
+
+// ShowLog streams a bounded snapshot of one Xray log and, when requested,
+// follows appended records until ctx is cancelled. Only the two managed Xray
+// logs are addressable; callers cannot use this as an arbitrary file reader.
+func ShowLog(ctx context.Context, root, kind string, lines int, follow bool, out io.Writer) error {
+	if kind != "access" && kind != "error" {
+		return fmt.Errorf("log kind must be access or error")
+	}
+	if lines < 1 || lines > 10000 {
+		return fmt.Errorf("lines must be between 1 and 10000")
+	}
+	paths, err := host.NewPaths(root)
+	if err != nil {
+		return err
+	}
+	path, err := paths.Join(logDirRel+"/"+kind+".log", false)
+	if err != nil {
+		return err
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = f.Close() }()
+	stat, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	if !stat.Mode().IsRegular() {
+		return fmt.Errorf("managed log is not a regular file")
+	}
+	if err := writeLastLogLines(f, lines, out); err != nil {
+		return err
+	}
+	if !follow {
+		return nil
+	}
+	pos, err := f.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return err
+	}
+	ticker := time.NewTicker(200 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+			cur, statErr := os.Stat(path)
+			if statErr != nil {
+				if os.IsNotExist(statErr) {
+					continue
+				}
+				return statErr
+			}
+			opened, openErr := f.Stat()
+			if openErr != nil {
+				return openErr
+			}
+			if !os.SameFile(opened, cur) || cur.Size() < pos {
+				_ = f.Close()
+				f, err = os.Open(path)
+				if err != nil {
+					return err
+				}
+				pos = 0
+			}
+			if _, err = f.Seek(pos, io.SeekStart); err != nil {
+				return err
+			}
+			n, copyErr := io.Copy(out, f)
+			pos += n
+			if copyErr != nil {
+				return copyErr
+			}
+		}
+	}
+}
+
+func writeLastLogLines(r io.Reader, count int, out io.Writer) error {
+	buf := make([]string, 0, count)
+	s := bufio.NewScanner(r)
+	for s.Scan() {
+		if len(buf) == count {
+			copy(buf, buf[1:])
+			buf = buf[:count-1]
+		}
+		buf = append(buf, s.Text()+"\n")
+	}
+	if err := s.Err(); err != nil {
+		return err
+	}
+	for _, line := range buf {
+		if _, err := io.WriteString(out, line); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // LogsFailure records one log file that could not be truncated.

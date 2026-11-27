@@ -57,6 +57,8 @@ var zh = map[string]string{
   xray user uuid --email E --new-uuid U [--inbound N]
                        改单个用户的 UUID；命中多个 inbound 时一次事务全改；
                        会重启 Xray，所有用户会话都会秒级中断；--dry-run 只预览
+  xray logs show --kind access|error [--lines N] [--follow]
+                       有界读取 Xray 日志；显式 follow 才持续跟读
   xray logs clean|rotate enable|disable
                        截断 Xray/Nginx 日志；安装或移除 logrotate 自动轮转
   xray balance list --upstream reality|ws|grpc|xhttp
@@ -195,6 +197,8 @@ Commands:
                        rotate one user's UUID; every inbound that carries it is
                        rewritten in one transaction; restarts Xray, so all
                        sessions drop for a few seconds; --dry-run previews only
+  xray logs show --kind access|error [--lines N] [--follow]
+                       read a bounded Xray log tail; follow only when explicitly requested
   xray logs clean|rotate enable|disable
                        truncate Xray/Nginx logs; install or remove logrotate rotation
   xray balance list --upstream reality|ws|grpc|xhttp

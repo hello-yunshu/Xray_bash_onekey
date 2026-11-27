@@ -1,16 +1,31 @@
 package deploy
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/hello-yunshu/Xray_bash_onekey/internal/nginx"
 )
+
+type lockedBuffer struct {
+	mu sync.Mutex
+	b  bytes.Buffer
+}
+
+func (b *lockedBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.b.Write(p)
+}
+func (b *lockedBuffer) String() string { b.mu.Lock(); defer b.mu.Unlock(); return b.b.String() }
 
 func stubLogrotate(t *testing.T, bin string, checkErr error) {
 	t.Helper()
@@ -26,6 +41,49 @@ func stubLogrotate(t *testing.T, bin string, checkErr error) {
 	t.Cleanup(func() {
 		lookPathLogrotate, checkLogrotate, nginxLogAccount = oldLook, oldCheck, oldAccount
 	})
+}
+
+func TestShowLogBoundsSnapshotAndFollowsAppends(t *testing.T) {
+	root := sandbox(t)
+	path := writeLog(t, root, "var/log/xray/access.log", "old-1\nold-2\nold-3\n")
+	var snapshot bytes.Buffer
+	if err := ShowLog(context.Background(), root, "access", 2, false, &snapshot); err != nil {
+		t.Fatal(err)
+	}
+	if got, want := snapshot.String(), "old-2\nold-3\n"; got != want {
+		t.Fatalf("snapshot=%q want %q", got, want)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	var followed lockedBuffer
+	done := make(chan error, 1)
+	go func() { done <- ShowLog(ctx, root, "access", 1, true, &followed) }()
+	deadline := time.Now().Add(time.Second)
+	for time.Now().Before(deadline) && !strings.Contains(followed.String(), "old-3") {
+		time.Sleep(10 * time.Millisecond)
+	}
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0)
+	if err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	_, err = f.WriteString("live-marker\n")
+	_ = f.Close()
+	if err != nil {
+		cancel()
+		t.Fatal(err)
+	}
+	deadline = time.Now().Add(time.Second)
+	for time.Now().Before(deadline) && !strings.Contains(followed.String(), "live-marker") {
+		time.Sleep(10 * time.Millisecond)
+	}
+	cancel()
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	if got := followed.String(); !strings.Contains(got, "old-3") || !strings.Contains(got, "live-marker") {
+		t.Fatalf("follow missed records: %q", got)
+	}
 }
 
 func writeLog(t *testing.T, root, rel, body string) string {
