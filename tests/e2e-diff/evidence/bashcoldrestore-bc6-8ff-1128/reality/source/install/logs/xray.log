@@ -1,0 +1,6 @@
+<TS> e2e-bc6-8ff-1128-cold-source-reality systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-bc6-8ff-1128-cold-source-reality xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-bc6-8ff-1128-cold-source-reality xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-bc6-8ff-1128-cold-source-reality xray[<PID>]: Failed to start: main: failed to load config files: [/etc/idleleo/conf/xray/config.json] > infra/conf: failed to build inbound config with tag VLESS-Reality-in > infra/conf: Failed to build REALITY config. > infra/conf: please fill in a valid value for "target"
+<TS> e2e-bc6-8ff-1128-cold-source-reality systemd[1]: xray.service: Main process exited, code=exited, status=23/n/a
+<TS> e2e-bc6-8ff-1128-cold-source-reality systemd[1]: xray.service: Failed with result 'exit-code'.

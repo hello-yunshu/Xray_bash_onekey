@@ -209,7 +209,7 @@
   ],
   "ops": {
     "total": 34,
-    "dualSideVerified": 26,
+    "dualSideVerified": 28,
     "dualSideVerifiedIds": [
       "OPS-01",
       "OPS-02",
@@ -222,6 +222,8 @@
       "OPS-09",
       "OPS-10",
       "OPS-11",
+      "OPS-12",
+      "OPS-13",
       "OPS-15",
       "OPS-17b",
       "OPS-17c",
@@ -239,10 +241,8 @@
       "OPS-32"
     ],
     "goOnly": 0,
-    "fail": 5,
+    "fail": 3,
     "failIds": [
-      "OPS-12",
-      "OPS-13",
       "OPS-14",
       "OPS-16",
       "OPS-27"
@@ -263,8 +263,6 @@
     "approvedSingleSide": 0,
     "approvedSingleSideIds": [],
     "unresolvedIds": [
-      "OPS-12",
-      "OPS-13",
       "OPS-14",
       "OPS-16",
       "OPS-17a",
@@ -272,7 +270,7 @@
       "OPS-27",
       "OPS-30"
     ],
-    "generatedAt": "2026-11-27T15:20:33+00:00",
+    "generatedAt": "2026-11-27T16:16:19+00:00",
     "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
     "source": "tests/e2e-diff/ledger.json"
   },
@@ -805,5 +803,65 @@
     "strictLog": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/ops-backup-final3-strict-ledger.log",
     "evidence": "tests/e2e-diff/evidence/ops-observe-backup-final3-20261127/p2/OPS-26/native-backup-restore-comparison.json",
     "hygiene": "0 findings in 759 files"
+  },
+  "followup20261128ColdRestoreComparison": {
+    "scope": "Supplemental Bash/Go clean-target cold-restore evidence for Reality, TLS, Relay, and Multi. Does not alter formal OPS-25/26 classifications or current candidate qualification.",
+    "candidateCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+    "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+    "image": "sha256:828040e78d98d640e238b799f1f1c4441a719307e1e80d0b57db89cb9556e5bc",
+    "platform": "linux/arm64",
+    "go": {
+      "runId": "go12-8ff-1128",
+      "evidence": "tests/e2e-diff/evidence/goevo-coldrestore-go12-8ff-1128/run.json",
+      "scenarios": {
+        "reality": "PASS",
+        "tls": "PASS",
+        "relay": "PASS",
+        "multi": "PASS"
+      },
+      "thirdPartyCanary": "All four scenarios verify third-party certificate, key, and note content plus mode/owner unchanged across restore."
+    },
+    "bash": {
+      "reality": {
+        "runId": "bc12-8ff-1128",
+        "result": "PASS",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc12-8ff-1128/reality/run.json"
+      },
+      "relay": {
+        "runId": "bc13-8ff-1128",
+        "result": "RESTORE_AND_CLIENT_PASS_MODE_OWNER_DIFF",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc13-8ff-1128/relay/run.json"
+      },
+      "multi": {
+        "runId": "bc13-8ff-1128",
+        "result": "RESTORE_AND_CLIENT_PASS_MODE_OWNER_DIFF",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc13-8ff-1128/multi/run.json"
+      },
+      "observedDifference": "Relay/Multi Bash restore changes third-party cert/key from source 0644/0600 root:root to target 0640 root:xray. Managed bytes, validators, active services, and real client requests pass; exact mode/owner assertions remain FAIL."
+    },
+    "comparison": "Go preserves target third-party canary bytes and permissions without expanding restore ownership. This is recorded as a safer boundary; no formal OPS row or approval status is changed.",
+    "diagnostics": [
+      {
+        "runId": "bc6-8ff-1128",
+        "result": "REJECTED_SOURCE_XRAY_INACTIVE",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc6-8ff-1128/run.json"
+      },
+      {
+        "runId": "bc7-8ff-1128",
+        "result": "REJECTED_INVALID_VERIFICATION_JSON",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc7-8ff-1128/run.json"
+      },
+      {
+        "runId": "bc10-8ff-1128",
+        "result": "REALITY/TLS_CLIENT_FIXTURE_FAILED_EXPLICIT_EC_PARAMETERS",
+        "evidence": "tests/e2e-diff/evidence/bashcoldrestore-bc10-8ff-1128/run.json"
+      }
+    ],
+    "formalLedgerEffect": {
+      "OPS-25": "DUAL_SIDE_VERIFIED",
+      "OPS-26": "DUAL_SIDE_VERIFIED",
+      "qualification": "NO_GO",
+      "strictExit": 1
+    }
   }
 }

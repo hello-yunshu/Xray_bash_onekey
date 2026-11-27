@@ -1,0 +1,14 @@
+00:08:25 run_id=ops-log-follow-final-8ff26917-20261128
+00:08:25 image_id=sha256:39e0c4fad2ed929652f779c5e773c423addfd58e3a58b3c0995715f45c47e60f
+00:08:25 building idleleo
+00:08:30 xray_sha256=c2d1e66a130556d32089adcf38202fcb6f9027e41fb456cc2cda9a5fabdc093a idleleo_sha256=c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d
+00:08:30 nginx_cache=host-cache build=2026.10.15.7679 arch=arm tarball_sha256=dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79
+00:08:30 nginx_cache=hit (OPS-19/31/32 offline Nginx)
+00:08:30 release_cache=seeded templates=vless_reality.json,vless_tls.json
+00:08:30 release_cache=hit
+00:08:30 apt_cache=skipped (no OPS scenario selected)
+00:08:30 seeded_geo=geoip.dat sha256=ce90dc02a81528109c99d769e1f8fe3071ded6b02a574f31e62d8f4eee312563
+00:08:30 seeded_geo=geosite.dat sha256=9ee94acb06e2f795831fb1589c0dc7af9242b0fb8d9196afd981b915b1097ed3
+00:08:31 argv-verify written
+00:08:32 scope: installs=[] edits=[] ops=[]
+00:08:32 P2 finished: tests/e2e-diff/evidence/ops-log-follow-final-8ff26917-20261128/p2

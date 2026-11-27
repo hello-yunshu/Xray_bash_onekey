@@ -1,0 +1,13 @@
+OPS-17a supplemental PTY follow-up (2026-11-28)
+
+Frozen product candidate: 8ff26917e3e381d4023b7319d5405f7ba871f289
+Runner source tree commit: 4b3ffcd300e848642d8f22f7b1f54cece03605f2
+The runner tree differs from the frozen product commit only in tests/docs; actual Bash script SHA-256 and Go CLI SHA-256 match the frozen candidate artifacts recorded in the manifest.
+
+Attempt 1: E2E_RUN_ID=ops17a-pty-8ff-20261128-01 E2E_ONLY=OPS-OBSERVE E2E_OBSERVE_ONLY_OPS=OPS-17a E2E_CONCURRENCY=1 bash tests/e2e-diff/run_p2_matrix.sh
+Result: rc=1 after the actual Bash updater no-op completed. The first focused driver omitted run_l4's required round argument, so post-update L4 did not run. Preserved as harness diagnostic, not product failure.
+
+Attempt 2: E2E_RUN_ID=ops17a-pty-8ff-20261128-02 E2E_ONLY=OPS-OBSERVE E2E_OBSERVE_ONLY_OPS=OPS-17a E2E_CONCURRENCY=1 bash tests/e2e-diff/run_p2_matrix.sh
+Result: rc=0. Docker image sha256:b014ff7c1ccfbb28abf2f181d92a1239eda85013021341a3f9e414fec1e3ea48, linux/arm64. The real Bash menu action 5>1 was driven with Expect PTY and reported “current version is latest”; /etc/idleleo/install.sh SHA-256 stayed b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373. Xray and Nginx were both active. Bash and Go Reality client probes both returned rc=0 after the action. Go's paired command in this run was update status only; the separately indexed signed Go apply/failure and post-update client evidence remains at ops17a-update-failure-retry2-8ff26917-20261127.
+
+Interpretation: the former Bash rc=124 came from a pipe/EOF menu loop, not from an observed updater failure. This new Bash run exercises only the already-latest no-op path; it does not prove a Bash package replacement. OPS-17a remains formally BLOCKED. No ledger status or acceptance criteria were changed.

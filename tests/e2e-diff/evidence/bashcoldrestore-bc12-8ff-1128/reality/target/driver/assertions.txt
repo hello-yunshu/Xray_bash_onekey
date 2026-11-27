@@ -1,0 +1,3 @@
+PASS	fresh target Bash restore preserved managed state bytes
+PASS	fresh target Bash restore preserved managed state mode and owner
+PASS	restored validators, services, and real client connection succeeded

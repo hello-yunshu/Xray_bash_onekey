@@ -1,0 +1,72 @@
+Command: /opt/homebrew/opt/python@3.14/bin/python3.14 tests/e2e-diff/collect/build_ledger.py --matrix-evidence tests/e2e-diff/evidence/ops-core-7d3e19d9-20261127 --matrix-evidence tests/e2e-diff/evidence/ops-feasible-7d3e19d9-20261127 --matrix-evidence tests/e2e-diff/evidence/ops-observe-ledgerproof-23fa585f-20261127 --matrix-evidence tests/e2e-diff/evidence/ops04-current-7d3e19d9-20261127 --matrix-evidence tests/e2e-diff/evidence/ops17a-live-l4-7d3e19d9-20261127 --matrix-evidence tests/e2e-diff/evidence/ops27-current-7d3e19d9-20261127 --matrix-evidence tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127 --matrix-evidence tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127 --matrix-evidence tests/e2e-diff/evidence/ops23-dual-speedtest-retry3-8ff26917-20261127 --matrix-evidence tests/e2e-diff/evidence/guard-pid-identity-8ff26917-20261127 --matrix-evidence tests/e2e-diff/evidence/ops-log-follow-contract-8ff26917-20261127 --matrix-evidence tests/e2e-diff/evidence/ops-log-follow-current-8ff26917-20261127 --matrix-evidence tests/e2e-diff/evidence/ops-log-follow-final2-8ff26917-20261128 --code-sha 8ff26917e3e381d4023b7319d5405f7ba871f289 --reuse-impact docs/go-migration/audit-remediation/codex-final-20261126/evidence/impact-reuse-7d3-to-8ff26917.json --out /var/folders/ng/57pdwsd97zl6qbjwh_sqrts80000gn/T/xray-strict-ops17a-cyb4p7jo/ledger.json --matrix-json /var/folders/ng/57pdwsd97zl6qbjwh_sqrts80000gn/T/xray-strict-ops17a-cyb4p7jo/matrix.json --acceptance-json /var/folders/ng/57pdwsd97zl6qbjwh_sqrts80000gn/T/xray-strict-ops17a-cyb4p7jo/acceptance.json
+Strict builder rc: 1 (expected nonzero because unresolved FAIL/BLOCKED/BASH_ONLY rows remain)
+ledger: FAIL rows present: OPS-14, OPS-16, OPS-27
+{
+  "total": 34,
+  "dualSideVerified": 28,
+  "dualSideVerifiedIds": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-03",
+    "OPS-04",
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-08",
+    "OPS-09",
+    "OPS-10",
+    "OPS-11",
+    "OPS-12",
+    "OPS-13",
+    "OPS-15",
+    "OPS-17b",
+    "OPS-17c",
+    "OPS-19",
+    "OPS-20",
+    "OPS-21",
+    "OPS-22",
+    "OPS-23",
+    "OPS-24",
+    "OPS-25",
+    "OPS-26",
+    "OPS-28",
+    "OPS-29",
+    "OPS-31",
+    "OPS-32"
+  ],
+  "goOnly": 0,
+  "fail": 3,
+  "failIds": [
+    "OPS-14",
+    "OPS-16",
+    "OPS-27"
+  ],
+  "bashOnly": 1,
+  "bashOnlyIds": [
+    "OPS-30"
+  ],
+  "blocked": 2,
+  "blockedIds": [
+    "OPS-17a",
+    "OPS-18"
+  ],
+  "notRun": 0,
+  "notRunIds": [],
+  "approvedDiff": 0,
+  "approvedDiffIds": [],
+  "approvedSingleSide": 0,
+  "approvedSingleSideIds": [],
+  "unresolvedIds": [
+    "OPS-14",
+    "OPS-16",
+    "OPS-17a",
+    "OPS-18",
+    "OPS-27",
+    "OPS-30"
+  ],
+  "generatedAt": "2026-11-27T18:13:26+00:00",
+  "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+  "source": "tests/e2e-diff/ledger.json"
+}
+
+Verified output JSON counts: {"APPROVED_DIFF": 0, "APPROVED_SINGLE_SIDE": 0, "BASH_ONLY": 1, "BLOCKED": 2, "DUAL_SIDE_VERIFIED": 28, "FAIL": 3, "GO_ONLY": 0, "NOT_RUN": 0, "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289", "opsTotal": 34}

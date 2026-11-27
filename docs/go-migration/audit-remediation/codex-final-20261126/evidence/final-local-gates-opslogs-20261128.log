@@ -1,0 +1,146 @@
+Xray Go final local gates (2026-11-28 Asia/Shanghai)
+Frozen product candidate: 8ff26917e3e381d4023b7319d5405f7ba871f289
+Audit branch: work/go-hardening-parity-20261119
+
+== Python collector contract tests ==
+Command: python3 -m unittest discover -s tests/e2e-diff/collect -p 'test_*.py' -v
+test_all_dual_verified_exits_zero (test_build_ledger.LedgerContractTest.test_all_dual_verified_exits_zero) ... ok
+test_allow_incomplete_keeps_evidence_visible (test_build_ledger.LedgerContractTest.test_allow_incomplete_keeps_evidence_visible) ... ok
+test_approval_cannot_rescue_a_failed_row (test_build_ledger.LedgerContractTest.test_approval_cannot_rescue_a_failed_row) ... ok
+test_approval_fingerprint_must_match_cited_evidence (test_build_ledger.LedgerContractTest.test_approval_fingerprint_must_match_cited_evidence) ... ok
+test_approved_bash_only_row_is_single_side (test_build_ledger.LedgerContractTest.test_approved_bash_only_row_is_single_side) ... ok
+test_approved_diff_is_never_counted_as_verified (test_build_ledger.LedgerContractTest.test_approved_diff_is_never_counted_as_verified) ... ok
+test_approved_single_side_is_resolved_but_not_dual (test_build_ledger.LedgerContractTest.test_approved_single_side_is_resolved_but_not_dual) ... ok
+test_candidate_manifest_artifact_tampering_is_blocked (test_build_ledger.LedgerContractTest.test_candidate_manifest_artifact_tampering_is_blocked) ... ok
+test_cert_clear_difference_without_ops_json_is_not_dropped (test_build_ledger.LedgerContractTest.test_cert_clear_difference_without_ops_json_is_not_dropped) ... ok
+test_declared_difference_without_ops_json_is_not_dropped (test_build_ledger.LedgerContractTest.test_declared_difference_without_ops_json_is_not_dropped) ... ok
+test_diff_verdict_is_failure_not_dropped (test_build_ledger.LedgerContractTest.test_diff_verdict_is_failure_not_dropped) ... ok
+test_expected_diff_without_approval_is_failure (test_build_ledger.LedgerContractTest.test_expected_diff_without_approval_is_failure) ... ok
+test_expired_approval_does_not_resolve_a_difference (test_build_ledger.LedgerContractTest.test_expired_approval_does_not_resolve_a_difference) ... ok
+test_explicit_repo_write_flag_is_required_for_tracked_paths (test_build_ledger.LedgerContractTest.test_explicit_repo_write_flag_is_required_for_tracked_paths) ... ok
+test_failure_in_any_run_wins (test_build_ledger.LedgerContractTest.test_failure_in_any_run_wins) ... ok
+test_forgotten_acceptance_path_cannot_pollute_official_record (test_build_ledger.LedgerContractTest.test_forgotten_acceptance_path_cannot_pollute_official_record) ... ok
+test_impact_reuse_is_limited_to_declared_unaffected_rows (test_build_ledger.LedgerContractTest.test_impact_reuse_is_limited_to_declared_unaffected_rows) ... ok
+test_matrix_summary_lists_blocked_ids_not_only_count (test_build_ledger.LedgerContractTest.test_matrix_summary_lists_blocked_ids_not_only_count) ... ok
+test_missing_ops_json_is_blocked_not_silent (test_build_ledger.LedgerContractTest.test_missing_ops_json_is_blocked_not_silent) ... ok
+test_pass_with_expected_timeout_requires_rc_and_output_proof (test_build_ledger.LedgerContractTest.test_pass_with_expected_timeout_requires_rc_and_output_proof) ... ok
+test_pass_with_nonzero_exit_is_failure (test_build_ledger.LedgerContractTest.test_pass_with_nonzero_exit_is_failure) ... ok
+test_pass_without_both_exit_codes_is_incomplete (test_build_ledger.LedgerContractTest.test_pass_without_both_exit_codes_is_incomplete) ... ok
+test_pass_without_business_fact_is_blocked (test_build_ledger.LedgerContractTest.test_pass_without_business_fact_is_blocked) ... ok
+test_pass_without_provenance_is_blocked (test_build_ledger.LedgerContractTest.test_pass_without_provenance_is_blocked) ... ok
+test_raw_diff_verdict_needs_approval_like_declared_diff (test_build_ledger.LedgerContractTest.test_raw_diff_verdict_needs_approval_like_declared_diff) ... ok
+test_single_side_approval_without_scope_is_rejected (test_build_ledger.LedgerContractTest.test_single_side_approval_without_scope_is_rejected) ... ok
+test_sni_declared_rejection_must_match_observed_rc (test_build_ledger.LedgerContractTest.test_sni_declared_rejection_must_match_observed_rc) ... ok
+test_stale_candidate_evidence_is_blocked (test_build_ledger.LedgerContractTest.test_stale_candidate_evidence_is_blocked) ... ok
+test_superseding_one_failure_does_not_close_another (test_build_ledger.LedgerContractTest.test_superseding_one_failure_does_not_close_another) ... ok
+test_sweep_fail_assertion_wins (test_build_ledger.LedgerContractTest.test_sweep_fail_assertion_wins) ... ok
+test_sweep_malformed_assertion_is_rejected (test_build_ledger.LedgerContractTest.test_sweep_malformed_assertion_is_rejected) ... ok
+test_sweep_without_assertions_is_rejected (test_build_ledger.LedgerContractTest.test_sweep_without_assertions_is_rejected) ... ok
+test_sweep_without_provenance_is_blocked (test_build_ledger.LedgerContractTest.test_sweep_without_provenance_is_blocked) ... ok
+test_sweep_without_real_command_rc_is_blocked (test_build_ledger.LedgerContractTest.test_sweep_without_real_command_rc_is_blocked) ... ok
+test_test_fixture_fix_can_supersede_each_named_failure_on_same_candidate (test_build_ledger.LedgerContractTest.test_test_fixture_fix_can_supersede_each_named_failure_on_same_candidate) ... ok
+test_test_fixture_supersession_rejects_changed_product_artifact (test_build_ledger.LedgerContractTest.test_test_fixture_supersession_rejects_changed_product_artifact) ... ok
+test_wrong_hash_and_manifest_image_timestamp_are_blocked (test_build_ledger.LedgerContractTest.test_wrong_hash_and_manifest_image_timestamp_are_blocked) ... ok
+test_changed_file_output_is_relative_to_root (test_sanitize_evidence.SanitizeEvidenceOutputTests.test_changed_file_output_is_relative_to_root) ... ok
+test_mismatched_real_asset_digest_fails (test_verify_ops24.VerifyOPS24Test.test_mismatched_real_asset_digest_fails) ... ok
+test_nested_schedule_result_and_equal_real_assets_pass (test_verify_ops24.VerifyOPS24Test.test_nested_schedule_result_and_equal_real_assets_pass) ... ok
+
+----------------------------------------------------------------------
+Ran 40 tests in 2.081s
+
+OK
+
+== Bash syntax ==
+Command: bash -n tests/e2e-diff/run_p2_matrix.sh
+rc=0
+
+== Expect/Tcl source completeness ==
+Command: tclsh reads tests/e2e-diff/drivers/bash_ops.exp and evaluates info complete
+Expect Tcl completeness = 1
+rc=0
+
+== Formal artifact isolation ==
+Command: bash tests/e2e-diff/collect/guard_acceptance_artifacts.sh
+........................................
+----------------------------------------------------------------------
+Ran 40 tests in 2.280s
+
+OK
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests
+
+== Strict current-candidate ledger ==
+Command: build_ledger.py with frozen SHA 8ff26917, explicit matrix-evidence roots, and verified impact-reuse map; strict mode, no --allow-incomplete.
+ledger: FAIL rows present: OPS-14, OPS-16, OPS-27
+{
+  "total": 34,
+  "dualSideVerified": 28,
+  "dualSideVerifiedIds": [
+    "OPS-01",
+    "OPS-02",
+    "OPS-03",
+    "OPS-04",
+    "OPS-05",
+    "OPS-06",
+    "OPS-07",
+    "OPS-08",
+    "OPS-09",
+    "OPS-10",
+    "OPS-11",
+    "OPS-12",
+    "OPS-13",
+    "OPS-15",
+    "OPS-17b",
+    "OPS-17c",
+    "OPS-19",
+    "OPS-20",
+    "OPS-21",
+    "OPS-22",
+    "OPS-23",
+    "OPS-24",
+    "OPS-25",
+    "OPS-26",
+    "OPS-28",
+    "OPS-29",
+    "OPS-31",
+    "OPS-32"
+  ],
+  "goOnly": 0,
+  "fail": 3,
+  "failIds": [
+    "OPS-14",
+    "OPS-16",
+    "OPS-27"
+  ],
+  "bashOnly": 1,
+  "bashOnlyIds": [
+    "OPS-30"
+  ],
+  "blocked": 2,
+  "blockedIds": [
+    "OPS-17a",
+    "OPS-18"
+  ],
+  "notRun": 0,
+  "notRunIds": [],
+  "approvedDiff": 0,
+  "approvedDiffIds": [],
+  "approvedSingleSide": 0,
+  "approvedSingleSideIds": [],
+  "unresolvedIds": [
+    "OPS-14",
+    "OPS-16",
+    "OPS-17a",
+    "OPS-18",
+    "OPS-27",
+    "OPS-30"
+  ],
+  "generatedAt": "2026-11-27T16:16:19+00:00",
+  "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+  "source": "tests/e2e-diff/ledger.json"
+}
+
+strict_rc=1
+
+== Evidence hygiene / privacy ==
+Command: python3 tests/go-parity/parity/scripts/check_evidence_hygiene.py --mask .
+hygiene: 0 finding(s) in 73752 file(s)

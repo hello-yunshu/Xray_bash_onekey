@@ -1,0 +1,5 @@
+<TS> e2e-bc7-8ff-1128-cold-target-reality systemd[1]: Started xray.service - Xray Service.
+<TS> e2e-bc7-8ff-1128-cold-target-reality xray[<PID>]: Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+<TS> e2e-bc7-8ff-1128-cold-target-reality xray[<PID>]: A unified platform for anti-censorship.
+<TS> e2e-bc7-8ff-1128-cold-target-reality xray[<PID>]: 2026/11/27 17:05:48.980779 [Info] infra/conf/serial: Reading config: &{Name:/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/27 17:05:48.990315 [Warning] core: Xray 26.11.9 started

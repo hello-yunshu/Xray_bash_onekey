@@ -219,6 +219,23 @@ proc ops17c {} {
     close_menu
 }
 
+proc ops17a {} {
+    # Exercise the real script-update menu with a PTY. On the pinned current
+    # Bash release the updater reports "already latest" and returns to the
+    # menu; draining that menu is part of the operation, otherwise a piped-EOF
+    # harness loops until timeout and misreports the product result.
+    ask {请输入选项} 5 updateMenu
+    ask {请输入选项} 1 updateScript
+    expect {
+        -re {当前已经是最新版本} { puts "STEP\[scriptUpdate\]=already-latest" }
+        -re {更新.*完成} { puts "STEP\[scriptUpdate\]=updated" }
+        -re {更新失败|拒绝更新|校验失败} { harness_error "ops17a: update rejected" }
+        eof { harness_error "ops17a: eof before update result" }
+        timeout { harness_error "ops17a: timeout waiting for update result" }
+    }
+    finish
+}
+
 proc ops30 {} {
     navigate "8"
     ask {请输入数字} 2 language
@@ -370,6 +387,7 @@ switch -- $opsid {
     OPS-06 { ops06 }
     OPS-07 { ops07 }
     OPS-10 { ops10 }
+    OPS-17a { ops17a }
     OPS-17c { ops17c }
     OPS-30 { ops30 }
     OPS-08 { ops08 }

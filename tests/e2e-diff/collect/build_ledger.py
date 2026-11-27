@@ -116,6 +116,63 @@ def _timestamp(value):
     return parsed if parsed.tzinfo is not None else None
 
 
+def _git_fixture_fix_info(commit):
+    """Return (changed paths, commit time, is-ancestor) for a test-only fix."""
+    root = git_toplevel()
+    if not root or not GIT_SHA_RE.fullmatch(str(commit or "")):
+        return None
+    try:
+        paths = subprocess.check_output(
+            ["git", "-C", root, "diff-tree", "--no-commit-id", "--name-only", "-r", commit],
+            text=True, stderr=subprocess.DEVNULL).splitlines()
+        driver = subprocess.check_output(
+            ["git", "-C", root, "show", "%s:tests/e2e-diff/run_p2_matrix.sh" % commit],
+            stderr=subprocess.DEVNULL)
+        committed_at = subprocess.check_output(
+            ["git", "-C", root, "show", "-s", "--format=%cI", commit],
+            text=True, stderr=subprocess.DEVNULL).strip()
+        ancestor = subprocess.run(
+            ["git", "-C", root, "merge-base", "--is-ancestor", commit, "HEAD"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    when = _timestamp(committed_at)
+    if not when or not paths:
+        return None
+    return set(paths), when, ancestor, hashlib.sha256(driver).hexdigest()
+
+
+def _verified_fixture_fix(candidate, prior, code_sha, fixed_by, fixed_by_kind):
+    """Allow a same-product retest only for a committed, isolated driver fix.
+
+    Product artifacts must remain byte-identical and the driver's digest must
+    change. The commit itself must be an ancestor of HEAD and may modify only
+    the audited OPS runner; no product source or acceptance rule can be used as
+    a test-fixture supersession.
+    """
+    if fixed_by_kind != "test-fixture":
+        return False
+    details = _git_fixture_fix_info(fixed_by)
+    if details is None:
+        return False
+    paths, committed_at, ancestor, committed_driver_sha = details
+    candidate_sha = str(candidate.get("productCodeSha") or "")
+    if not ancestor or paths != {"tests/e2e-diff/run_p2_matrix.sh"}:
+        return False
+    if candidate.get("driverSha") != committed_driver_sha:
+        return False
+    if candidate_sha != code_sha or candidate_sha != str(prior.get("productCodeSha") or ""):
+        return False
+    if candidate.get("binarySha256") != prior.get("binarySha256"):
+        return False
+    if candidate.get("bashScriptSha256") != prior.get("bashScriptSha256"):
+        return False
+    if not candidate.get("driverSha") or candidate.get("driverSha") == prior.get("driverSha"):
+        return False
+    started = _timestamp(candidate.get("startedAt"))
+    return started is not None and committed_at <= started
+
+
 def provenance_problems_run(run, code_sha, dirname, evidence_root=None):
     """Return why a run block cannot bind evidence to the frozen candidate.
 
@@ -624,6 +681,9 @@ def matrix_results(root, approvals, code_sha="", reuse_impact=None):
             "driverSha": run_block.get("driverSha"),
             "supersedes": run_block.get("supersedes"),
             "fixedBy": run_block.get("fixedBy"),
+            "fixedByKind": run_block.get("fixedByKind"),
+            "startedAt": run_block.get("startedAt"),
+            "finishedAt": run_block.get("finishedAt"),
         }
         if op_id != name:
             base.update(status="BLOCKED",
@@ -878,23 +938,36 @@ def main():
         good = [e for e in entries if e["status"] in RESOLVED_STATUSES]
         replacements = {}
         for candidate in good:
-            superseded = str(candidate.get("supersedes") or "").strip()
+            supersedes_value = candidate.get("supersedes")
+            if isinstance(supersedes_value, str):
+                superseded_runs = [supersedes_value.strip()] if supersedes_value.strip() else []
+            elif (isinstance(supersedes_value, list)
+                  and all(isinstance(item, str) and item.strip() for item in supersedes_value)):
+                superseded_runs = [item.strip() for item in supersedes_value]
+                if len(set(superseded_runs)) != len(superseded_runs):
+                    continue
+            else:
+                superseded_runs = []
             fixed_by = str(candidate.get("fixedBy") or "").strip()
-            if not superseded or not GIT_SHA_RE.fullmatch(fixed_by):
-                continue
-            prior = next((f for f in failed if f.get("runId") == superseded), None)
-            if prior is None:
+            if not superseded_runs or not GIT_SHA_RE.fullmatch(fixed_by):
                 continue
             candidate_sha = str(candidate.get("productCodeSha") or "")
-            prior_sha = str(prior.get("productCodeSha") or "")
             candidate_started = _timestamp(candidate.get("startedAt"))
-            prior_started = _timestamp(prior.get("startedAt"))
-            if (fixed_by != candidate_sha or candidate_sha == prior_sha
-                    or candidate_sha != sha
-                    or candidate_started is None or prior_started is None
-                    or candidate_started <= prior_started):
+            if candidate_sha != sha or candidate_started is None:
                 continue
-            replacements[superseded] = candidate
+            for superseded in superseded_runs:
+                prior = next((f for f in failed if f.get("runId") == superseded), None)
+                if prior is None:
+                    continue
+                prior_sha = str(prior.get("productCodeSha") or "")
+                prior_started = _timestamp(prior.get("startedAt"))
+                if prior_started is None or candidate_started <= prior_started:
+                    continue
+                product_fix = fixed_by == candidate_sha and candidate_sha != prior_sha
+                fixture_fix = _verified_fixture_fix(
+                    candidate, prior, sha, fixed_by, candidate.get("fixedByKind"))
+                if product_fix or fixture_fix:
+                    replacements[superseded] = candidate
         failed_ids = {str(f.get("runId") or "") for f in failed}
         if failed_ids and failed_ids.issubset(replacements):
             selected = replacements[sorted(replacements)[-1]]

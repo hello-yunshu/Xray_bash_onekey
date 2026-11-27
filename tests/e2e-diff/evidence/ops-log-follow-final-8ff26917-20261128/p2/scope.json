@@ -1,0 +1,11 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OBSERVE",
+  "ops": [],
+  "runId": "ops-log-follow-final-8ff26917-20261128",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

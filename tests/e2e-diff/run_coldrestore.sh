@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cold-restore runner: installs the Go manager in container A, archives the
+# Cold-restore runner: installs a manager in container A, archives the
 # managed state, destroys A, then restores that archive on a freshly installed
 # container B with a new service account, and proves a real client works.
 #
@@ -7,12 +7,14 @@
 #   bash tests/e2e-diff/run_coldrestore.sh                     # all scenarios
 #   E2E_SCENARIO=tls bash tests/e2e-diff/run_coldrestore.sh    # one scenario
 #   E2E_KEEP=1 bash tests/e2e-diff/run_coldrestore.sh          # keep containers
+#   E2E_MANAGER=bash E2E_SCENARIOS='reality relay multi' bash tests/e2e-diff/run_coldrestore.sh
 #
 # Scenarios: reality (default), tls, relay, multi.
 # Evidence: tests/e2e-diff/evidence/goevo-coldrestore-<run-id>/<scenario>/
 # The archive itself stays in a host temp directory and is deleted on exit: it
 # carries private keys and must never be committed.
 set -uo pipefail
+umask 077
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SUITE="$ROOT/tests/e2e-diff"
@@ -27,6 +29,24 @@ SC_DOMAIN="${E2E_TLS_DOMAIN:-example.com}"
 TARGET="${E2E_TARGET:-127.0.0.1:8443}"
 RELAY_TARGET="${E2E_RELAY_TARGET:-1.2.3.4:18080}"
 SCENARIOS="${E2E_SCENARIO:-${E2E_SCENARIOS:-reality tls relay multi}}"
+MANAGER="${E2E_MANAGER:-go}"
+[[ "$MANAGER" == go || "$MANAGER" == bash ]] || { echo "E2E_MANAGER must be go or bash" >&2; exit 2; }
+if [[ "$MANAGER" == bash ]]; then
+    EVID="$SUITE/evidence/bashcoldrestore-$RUN_ID"
+    DOMAIN=example.com
+    SC_DOMAIN=example.com
+    TARGET=www.cloudflare.com
+    RELAY_TARGET=1.2.3.4:18080
+fi
+for sc in $SCENARIOS; do
+    for side in source target; do
+        container_name="e2e-$RUN_ID-cold-$side-$sc"
+        if (( ${#container_name} > 63 )); then
+            echo "E2E_RUN_ID creates a Docker hostname longer than 63 characters: $container_name" >&2
+            exit 2
+        fi
+    done
+done
 
 source "$ROOT/tests/go-parity/lib/docker_common.sh"
 
@@ -44,6 +64,7 @@ cleanup() {
 trap cleanup EXIT
 
 log "run_id=$RUN_ID scenarios=$SCENARIOS"
+log "manager=$MANAGER"
 log "commit=$(git -C "$ROOT" rev-parse HEAD)"
 log "image=$IMAGE_TAG"
 if ! docker image inspect "$IMAGE_TAG" >/dev/null 2>&1; then
@@ -185,9 +206,45 @@ seed_cert() { # seed_cert <name> <domain>
     ' >>"$EVID/run.log" 2>&1
 }
 
+seed_bash_cert() {
+    [[ "$MANAGER" == bash ]] || return 0
+    mkdir -p "$SEED/cert"
+    openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
+        -pkeyopt ec_param_enc:named_curve -nodes -days 3 \
+        -subj "/CN=example.com" -addext "subjectAltName=DNS:example.com" \
+        -keyout "$SEED/cert/xray.key" -out "$SEED/cert/xray.crt" >/dev/null 2>&1
+    chmod 0600 "$SEED/cert/xray.key"
+    chmod 0644 "$SEED/cert/xray.crt"
+    log "bash_seed_cert_sha256=$(host_sha256 "$SEED/cert/xray.crt")"
+}
+
+seed_bash_cert
+
 install_node() { # install_node <name> <scenario> <round> <evidence-dir> [relay-listen-port]
     local name=$1 sc=$2 round=$3 out=$4
     local relay_port="${5:-443}"
+    if [[ "$MANAGER" == bash ]]; then
+        local bash_profile bash_scenario bash_arg bash_transport=1 bash_target=example.com bash_domain=example.com
+        case "$sc" in
+            reality) bash_profile=reality; bash_scenario=M1; bash_arg=-2; bash_target=$TARGET; bash_domain=$TARGET ;;
+            tls) bash_profile=tls; bash_scenario=M4; bash_arg=-1 ;;
+            multi) bash_profile=tls; bash_scenario=M4; bash_arg=-1; bash_transport=5 ;;
+            relay) bash_profile=relay; bash_scenario=M10; bash_arg=--install-relay ;;
+        esac
+        if [[ "$sc" == reality ]]; then
+            docker exec "$name" sh -c 'grep -q "example.com" /etc/hosts || echo "127.0.0.1 example.com" >>/etc/hosts'
+        fi
+        docker exec \
+            "${NGINX_CACHE_ENVS[@]+"${NGINX_CACHE_ENVS[@]}"}" \
+            -e E2E_OUT=/out/install -e E2E_PROFILE="$bash_profile" \
+            -e E2E_SCENARIO="$bash_scenario" -e E2E_ROUND="$round" \
+            -e E2E_ARG="$bash_arg" -e E2E_TRANSPORT="$bash_transport" \
+            -e E2E_DOMAIN="$bash_domain" -e E2E_TARGET="$bash_target" \
+            -e E2E_PORT=443 -e E2E_LOCAL_IP=127.0.0.1 \
+            -e E2E_RELAY_HOST=1.2.3.4 -e E2E_RELAY_PORT=18080 \
+            "$name" bash /src/tests/e2e-diff/drivers/bash_install.sh >>"$EVID/run.log" 2>&1
+        return $?
+    fi
     local -a args=()
     local profile=tls domain="$SC_DOMAIN"
     case "$sc" in
@@ -222,6 +279,15 @@ install_node() { # install_node <name> <scenario> <round> <evidence-dir> [relay-
 }
 
 run_driver() { # run_driver <name> <mode> <scenario> <evidence-dir>
+    if [[ "$MANAGER" == bash ]]; then
+        local client_domain=example.com
+        [[ "$3" == reality ]] && client_domain=$TARGET
+        docker exec -e E2E_OUT=/out/driver -e E2E_DOMAIN="$client_domain" \
+            -e E2E_SCENARIO="$3" -e E2E_HANDOFF=/handoff \
+            -e E2E_MANAGER=bash "$1" bash /src/tests/e2e-diff/drivers/bash_coldrestore.sh "$2" \
+            >>"$EVID/run.log" 2>&1
+        return $?
+    fi
     docker exec -e E2E_OUT=/out/driver -e E2E_DOMAIN="$DOMAIN" \
         -e E2E_SCENARIO="$3" -e E2E_HANDOFF=/handoff \
         "$1" bash /src/tests/e2e-diff/drivers/go_coldrestore.sh "$2" >>"$EVID/run.log" 2>&1
@@ -235,7 +301,7 @@ import os
 import sys
 
 evid, run_id, image_id, commit, source_rc, target_rc, archive_sha, scenario = sys.argv[1:9]
-report = {'schemaVersion': 1, 'runId': run_id, 'scenario': scenario, 'commit': commit,
+report = {'schemaVersion': 1, 'runId': run_id, 'manager': os.environ.get('E2E_MANAGER', 'go'), 'scenario': scenario, 'commit': commit,
           'imageId': image_id, 'sourceDriverExit': int(source_rc),
           'targetDriverExit': int(target_rc), 'sides': {}}
 rows = []
@@ -283,12 +349,13 @@ run_scenario() { # run_scenario <scenario>
         log "[$sc] FATAL: source container failed"
         return 2
     fi
-    if [[ "$sc" == "reality" ]]; then
-        start_tls_target "$source" "$DOMAIN" || { log "[$sc] FATAL: source TLS target failed"; return 2; }
-    elif [[ "$sc" == "tls" || "$sc" == "multi" ]]; then
+    if [[ "$sc" == "reality" && "$MANAGER" == go ]]; then
+        local target_domain="$DOMAIN"
+        start_tls_target "$source" "$target_domain" || { log "[$sc] FATAL: source TLS target failed"; return 2; }
+    elif [[ "$MANAGER" == go && ( "$sc" == "tls" || "$sc" == "multi" ) ]]; then
         seed_cert "$source" "$SC_DOMAIN" || { log "[$sc] FATAL: source certificate failed"; return 2; }
     fi
-    log "[$sc] source: installing Go manager"
+    log "[$sc] source: installing $MANAGER manager"
     if ! install_node "$source" "$sc" 1 "$ev/source"; then
         log "[$sc] FATAL: source install failed"
         return 2
@@ -296,9 +363,25 @@ run_scenario() { # run_scenario <scenario>
     log "[$sc] source: driver"
     run_driver "$source" source "$sc" "$ev/source"
     local source_rc=$?
+    if [[ "$MANAGER" == bash && $source_rc -eq 0 ]]; then
+        if ! grep -q '^source_archive_sha256=' "$ev/source/driver/driver.log" 2>/dev/null || \
+            [[ $(grep -c '^PASS[[:space:]]' "$ev/source/driver/assertions.txt" 2>/dev/null || true) -lt 2 ]]; then
+            log "[$sc] source: reject zero exit without complete client and backup evidence"
+            source_rc=125
+        fi
+    fi
     log "[$sc] source_driver_rc=$source_rc"
     log "[$sc] source: destroying $source"
-    docker rm -f "$source" >/dev/null 2>&1 || true
+    if [[ "${E2E_KEEP:-0}" == "1" ]]; then
+        log "[$sc] source: preserved by E2E_KEEP=1"
+    else
+        docker rm -f "$source" >/dev/null 2>&1 || true
+    fi
+    if [[ $source_rc -ne 0 ]]; then
+        log "[$sc] target: skipped because the source backup/client probe failed"
+        write_report "$sc" "$ev" "$source_rc" 125
+        return 1
+    fi
 
     log "[$sc] target: starting $target"
     if ! start_node "$target" "$sc" "$ev/target"; then
@@ -306,11 +389,13 @@ run_scenario() { # run_scenario <scenario>
         return 2
     fi
     if [[ "$sc" == "reality" ]]; then
-        start_tls_target "$target" "$DOMAIN" || { log "[$sc] FATAL: target TLS target failed"; return 2; }
-    elif [[ "$sc" == "tls" || "$sc" == "multi" ]]; then
+        if [[ "$MANAGER" == go ]]; then
+            start_tls_target "$target" "$DOMAIN" || { log "[$sc] FATAL: target TLS target failed"; return 2; }
+        fi
+    elif [[ "$MANAGER" == go && ( "$sc" == "tls" || "$sc" == "multi" ) ]]; then
         seed_cert "$target" "$SC_DOMAIN" || { log "[$sc] FATAL: target certificate failed"; return 2; }
     fi
-    log "[$sc] target: installing a fresh Go manager"
+    log "[$sc] target: installing a fresh $MANAGER manager"
     # The target relay starts on a different listen port, so the restore is
     # proven by an observable port change instead of a byte comparison.
     local target_port=443
@@ -322,6 +407,23 @@ run_scenario() { # run_scenario <scenario>
     log "[$sc] target: driver"
     run_driver "$target" target "$sc" "$ev/target"
     local target_rc=$?
+    if [[ "$MANAGER" == bash && $target_rc -eq 0 ]]; then
+        if ! grep -q '^PASS Bash cold restore scenario=' "$ev/target/driver/driver.log" 2>/dev/null || \
+            ! python3 - "$ev/target/driver/verification.json" <<'PY'
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+except (OSError, ValueError):
+    raise SystemExit(1)
+raise SystemExit(0 if data.get('realClient') is True and data.get('restoreRc') == 0
+                 and data.get('stateBytesMatch') is True
+                 and data.get('stateModeOwnerMatch') is True else 1)
+PY
+            then
+            log "[$sc] target: reject zero exit without complete restore and client evidence"
+            target_rc=125
+        fi
+    fi
     log "[$sc] target_driver_rc=$target_rc"
 
     write_report "$sc" "$ev" "$source_rc" "$target_rc"

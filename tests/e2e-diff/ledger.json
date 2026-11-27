@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T15:20:33+00:00",
+  "generatedAt": "2026-11-27T16:16:19+00:00",
   "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
   "opsTotal": 34,
   "counts": {
-    "DUAL_SIDE_VERIFIED": 26,
+    "DUAL_SIDE_VERIFIED": 28,
     "GO_ONLY": 0,
-    "FAIL": 5,
+    "FAIL": 3,
     "BASH_ONLY": 1,
     "BLOCKED": 2,
     "NOT_RUN": 0,
@@ -25,6 +25,8 @@
     "OPS-09",
     "OPS-10",
     "OPS-11",
+    "OPS-12",
+    "OPS-13",
     "OPS-15",
     "OPS-17b",
     "OPS-17c",
@@ -43,8 +45,6 @@
   ],
   "goOnlyIds": [],
   "failIds": [
-    "OPS-12",
-    "OPS-13",
     "OPS-14",
     "OPS-16",
     "OPS-27"
@@ -60,8 +60,6 @@
   "approvedDiffIds": [],
   "approvedSingleSideIds": [],
   "unresolvedIds": [
-    "OPS-12",
-    "OPS-13",
     "OPS-14",
     "OPS-16",
     "OPS-17a",
@@ -80,7 +78,10 @@
       "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127",
       "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127",
       "tests/e2e-diff/evidence/ops23-dual-speedtest-retry3-8ff26917-20261127",
-      "tests/e2e-diff/evidence/guard-pid-identity-8ff26917-20261127"
+      "tests/e2e-diff/evidence/guard-pid-identity-8ff26917-20261127",
+      "tests/e2e-diff/evidence/ops-log-follow-contract-8ff26917-20261127",
+      "tests/e2e-diff/evidence/ops-log-follow-current-8ff26917-20261127",
+      "tests/e2e-diff/evidence/ops-log-follow-final2-8ff26917-20261128"
     ],
     "opsEvidence": []
   },
@@ -101,6 +102,9 @@
       "driverSha": "0f4748f27e427268bc09efd462bc086422526ed6d6128700497938fb7092c848",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T07:33:10Z",
+      "finishedAt": "2026-11-27T07:37:44Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -138,6 +142,9 @@
       "driverSha": "0f4748f27e427268bc09efd462bc086422526ed6d6128700497938fb7092c848",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T07:33:10Z",
+      "finishedAt": "2026-11-27T07:37:44Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -176,6 +183,9 @@
       "driverSha": "0f4748f27e427268bc09efd462bc086422526ed6d6128700497938fb7092c848",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T07:33:10Z",
+      "finishedAt": "2026-11-27T07:37:44Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -214,6 +224,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:03:23Z",
+      "finishedAt": "2026-11-27T08:05:00Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -254,6 +267,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -292,6 +308,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -331,6 +350,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -368,6 +390,9 @@
       "driverSha": "ef81c0c75634aa91a18612c3437289986295d29c194b856c3df710d55ae88fa9",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T14:48:06Z",
+      "finishedAt": "2026-11-27T14:49:20Z",
       "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-08",
       "history": [
@@ -410,6 +435,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -449,6 +477,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -487,6 +518,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -512,22 +546,78 @@
       "verdict": "PASS",
       "bashExit": 124,
       "goExit": 0,
-      "expectedRc": null,
-      "expectedRcEvidence": null,
-      "reasons": [
-        "non-zero bash rc 124 has no matching expectedRc declaration",
-        "non-zero go rc 0 has no matching expectedRc declaration"
-      ],
-      "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/ops.json",
-      "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+      "expectedRc": {
+        "bash": 124,
+        "go": 0
+      },
+      "expectedRcEvidence": {
+        "bash": {
+          "markerFiles": [
+            {
+              "contains": [
+                "e2e-access-live-marker"
+              ],
+              "path": "bash/follow.out"
+            }
+          ],
+          "rcFiles": [
+            {
+              "expected": 124,
+              "path": "bash/run.rc"
+            },
+            {
+              "expected": 124,
+              "path": "bash/follow.rc"
+            }
+          ]
+        },
+        "go": {
+          "markerFiles": [
+            {
+              "contains": [
+                "e2e-access-marker"
+              ],
+              "path": "go/snapshot.out"
+            },
+            {
+              "contains": [
+                "e2e-access-live-marker"
+              ],
+              "path": "go/follow.out"
+            }
+          ],
+          "rcFiles": [
+            {
+              "expected": 0,
+              "path": "go/snapshot.rc"
+            },
+            {
+              "expected": 124,
+              "path": "go/follow.rc"
+            }
+          ]
+        }
+      },
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/ops-log-follow-final2-8ff26917-20261128/p2/OPS-12/ops.json",
+      "runId": "ops-log-follow-final2-8ff26917-20261128",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
       "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
       "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
-      "driverSha": "52e1379fa9ec814bab3f11f4569376571239685465dc3504db61ab5f2b937678",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "FAIL",
+      "driverSha": "181335a054a79c33c608d91380b5dc41e569eb80a984879440d8e9c9c1847c3b",
+      "supersedes": [
+        "ops-observe-geodata-real3-8ff26917-20261127",
+        "ops-log-follow-contract-8ff26917-20261127"
+      ],
+      "fixedBy": "4b3ffcd300e848642d8f22f7b1f54cece03605f2",
+      "fixedByKind": "test-fixture",
+      "startedAt": "2026-11-27T16:08:43Z",
+      "finishedAt": "2026-11-27T16:11:52Z",
+      "status": "DUAL_SIDE_VERIFIED",
+      "supersededRuns": [
+        "ops-observe-geodata-real3-8ff26917-20261127"
+      ],
       "id": "OPS-12",
       "history": [
         {
@@ -553,6 +643,24 @@
           "status": "FAIL",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/ops.json"
+        },
+        {
+          "runId": "ops-log-follow-contract-8ff26917-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-log-follow-contract-8ff26917-20261127/p2/OPS-12/ops.json"
+        },
+        {
+          "runId": "ops-log-follow-current-8ff26917-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-log-follow-current-8ff26917-20261127/p2/OPS-12/ops.json"
+        },
+        {
+          "runId": "ops-log-follow-final2-8ff26917-20261128",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-log-follow-final2-8ff26917-20261128/p2/OPS-12/ops.json"
         }
       ],
       "name": "实时访问日志",
@@ -569,22 +677,79 @@
       "verdict": "PASS",
       "bashExit": 124,
       "goExit": 0,
-      "expectedRc": null,
-      "expectedRcEvidence": null,
-      "reasons": [
-        "non-zero bash rc 124 has no matching expectedRc declaration",
-        "non-zero go rc 0 has no matching expectedRc declaration"
-      ],
-      "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/ops.json",
-      "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+      "expectedRc": {
+        "bash": 124,
+        "go": 0
+      },
+      "expectedRcEvidence": {
+        "bash": {
+          "markerFiles": [
+            {
+              "contains": [
+                "e2e-error-live-marker"
+              ],
+              "path": "bash/follow.out"
+            }
+          ],
+          "rcFiles": [
+            {
+              "expected": 124,
+              "path": "bash/run.rc"
+            },
+            {
+              "expected": 124,
+              "path": "bash/follow.rc"
+            }
+          ]
+        },
+        "go": {
+          "markerFiles": [
+            {
+              "contains": [
+                "e2e-error-marker"
+              ],
+              "path": "go/snapshot.out"
+            },
+            {
+              "contains": [
+                "e2e-error-live-marker"
+              ],
+              "path": "go/follow.out"
+            }
+          ],
+          "rcFiles": [
+            {
+              "expected": 0,
+              "path": "go/snapshot.rc"
+            },
+            {
+              "expected": 124,
+              "path": "go/follow.rc"
+            }
+          ]
+        }
+      },
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/ops-log-follow-final2-8ff26917-20261128/p2/OPS-13/ops.json",
+      "runId": "ops-log-follow-final2-8ff26917-20261128",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
       "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
       "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
-      "driverSha": "52e1379fa9ec814bab3f11f4569376571239685465dc3504db61ab5f2b937678",
-      "supersedes": null,
-      "fixedBy": null,
-      "status": "FAIL",
+      "driverSha": "181335a054a79c33c608d91380b5dc41e569eb80a984879440d8e9c9c1847c3b",
+      "supersedes": [
+        "ops-observe-geodata-real3-8ff26917-20261127",
+        "ops-log-follow-contract-8ff26917-20261127"
+      ],
+      "fixedBy": "4b3ffcd300e848642d8f22f7b1f54cece03605f2",
+      "fixedByKind": "test-fixture",
+      "startedAt": "2026-11-27T16:08:43Z",
+      "finishedAt": "2026-11-27T16:11:52Z",
+      "status": "DUAL_SIDE_VERIFIED",
+      "supersededRuns": [
+        "ops-log-follow-contract-8ff26917-20261127",
+        "ops-observe-geodata-real3-8ff26917-20261127"
+      ],
       "id": "OPS-13",
       "history": [
         {
@@ -610,6 +775,24 @@
           "status": "FAIL",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/ops.json"
+        },
+        {
+          "runId": "ops-log-follow-contract-8ff26917-20261127",
+          "status": "FAIL",
+          "verdict": "FAIL",
+          "evidence": "tests/e2e-diff/evidence/ops-log-follow-contract-8ff26917-20261127/p2/OPS-13/ops.json"
+        },
+        {
+          "runId": "ops-log-follow-current-8ff26917-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-log-follow-current-8ff26917-20261127/p2/OPS-13/ops.json"
+        },
+        {
+          "runId": "ops-log-follow-final2-8ff26917-20261128",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-log-follow-final2-8ff26917-20261128/p2/OPS-13/ops.json"
         }
       ],
       "name": "实时错误日志",
@@ -644,6 +827,9 @@
       "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T12:16:44Z",
+      "finishedAt": "2026-11-27T12:22:51Z",
       "status": "FAIL",
       "id": "OPS-14",
       "history": [
@@ -698,6 +884,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -742,6 +931,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -783,6 +975,9 @@
       "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T12:16:44Z",
+      "finishedAt": "2026-11-27T12:22:51Z",
       "status": "BLOCKED",
       "id": "OPS-17a",
       "history": [
@@ -837,6 +1032,9 @@
       "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T12:16:44Z",
+      "finishedAt": "2026-11-27T12:22:51Z",
       "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-17b",
       "history": [
@@ -891,6 +1089,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -932,6 +1133,9 @@
       "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T12:16:44Z",
+      "finishedAt": "2026-11-27T12:22:51Z",
       "status": "BLOCKED",
       "id": "OPS-18",
       "history": [
@@ -986,6 +1190,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -1024,6 +1231,9 @@
       "driverSha": "0f4748f27e427268bc09efd462bc086422526ed6d6128700497938fb7092c848",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T07:33:10Z",
+      "finishedAt": "2026-11-27T07:37:44Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -1061,6 +1271,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -1101,6 +1314,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -1141,6 +1357,9 @@
       "driverSha": "e6f29570a2e89cd9fed32aa2d9338d241767abd6e79c6866362f606aa84351a3",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T14:35:31Z",
+      "finishedAt": "2026-11-27T14:37:28Z",
       "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-23",
       "history": [
@@ -1205,6 +1424,9 @@
       "driverSha": "52e1379fa9ec814bab3f11f4569376571239685465dc3504db61ab5f2b937678",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T13:22:07Z",
+      "finishedAt": "2026-11-27T13:31:47Z",
       "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-24",
       "history": [
@@ -1263,6 +1485,9 @@
       "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T12:16:44Z",
+      "finishedAt": "2026-11-27T12:22:51Z",
       "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-25",
       "history": [
@@ -1321,6 +1546,9 @@
       "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T12:16:44Z",
+      "finishedAt": "2026-11-27T12:22:51Z",
       "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-26",
       "history": [
@@ -1408,6 +1636,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -1448,6 +1679,9 @@
       "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T12:16:44Z",
+      "finishedAt": "2026-11-27T12:22:51Z",
       "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-29",
       "history": [
@@ -1502,6 +1736,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -1538,6 +1775,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
@@ -1577,6 +1817,9 @@
       "driverSha": "ca8b3121cdad11921e21886a9859126f0035b8ef2ce3154a512866caa94264b2",
       "supersedes": null,
       "fixedBy": null,
+      "fixedByKind": null,
+      "startedAt": "2026-11-27T08:11:19Z",
+      "finishedAt": "2026-11-27T08:38:27Z",
       "evidenceReuse": {
         "sourceCodeSha": "7d3e19d92ce0dc4f70ab90dedc81c13a41403f91",
         "targetCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",

@@ -1,0 +1,23 @@
+Local final gates after cold-restore evidence update (2026-11-28)
+
+Frozen product candidate: 8ff26917e3e381d4023b7319d5405f7ba871f289
+
+Command: bash -n tests/e2e-diff/run_coldrestore.sh tests/e2e-diff/drivers/bash_coldrestore.sh tests/e2e-diff/drivers/go_coldrestore.sh
+Result: rc=0
+
+Command: python3 -m unittest discover -s tests/e2e-diff/collect -p 'test_*.py' -v
+Result: rc=0; 40 tests passed
+
+Command: python3 -m json.tool on evidence-index.json, acceptance.json, ledger.json, matrix.json
+Result: rc=0
+
+Command: git diff --check on modified runner, drivers, acceptance, tasks, report, evidence-index
+Result: rc=0
+
+Command: bash tests/e2e-diff/collect/guard_acceptance_artifacts.sh
+Result: rc=0; 40 tests passed; tracked acceptance artifacts byte-identical across test execution
+
+Command: build_ledger.py against the 13 matrix evidence roots in ledger.json, frozen code SHA 8ff26917, and impact-reuse map; output directed to /tmp, no approvals and no allow-incomplete
+Result: rc=1; 28 DUAL_SIDE_VERIFIED, 3 FAIL (OPS-14/16/27), 1 BASH_ONLY (OPS-30), 2 BLOCKED (OPS-17a/18), 0 NOT_RUN. This is the expected strict NO_GO; formal ledger artifacts were not written by this command.
+
+Cold-restore runs: Go Reality/TLS/Relay/Multi completed with source and target driver rc=0. Bash Reality completed with source/target rc=0. Bash Relay/Multi completed backup, state-byte restore, validators, active services, and real client requests, but exact third-party certificate/key mode-owner assertions fail because Bash normalizes them to 0640 root:xray. See run manifests and per-file assertions in tests/e2e-diff/evidence/bashcoldrestore-bc12-8ff-1128, bashcoldrestore-bc13-8ff-1128, and goevo-coldrestore-go12-8ff-1128.

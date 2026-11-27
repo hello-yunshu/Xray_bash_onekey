@@ -62,6 +62,7 @@ def write(path, data):
 def provenance(root, **overrides):
     artifact_dir = os.path.join(root, "build")
     os.makedirs(artifact_dir, exist_ok=True)
+    driver_content = overrides.pop("_driverContent", b"synthetic driver")
     artifacts = {
         "binary": "build/idleleo",
         "bashScript": "build/install.sh",
@@ -69,7 +70,7 @@ def provenance(root, **overrides):
     }
     for key, content in (("binary", b"synthetic binary"),
                          ("bashScript", b"synthetic bash script"),
-                         ("driver", b"synthetic driver")):
+                         ("driver", driver_content)):
         path = os.path.join(root, artifacts[key])
         with open(path, "wb") as fh:
             fh.write(content)
@@ -602,6 +603,53 @@ class LedgerContractTest(unittest.TestCase):
         row = self.row(ledger, "OPS-09")
         self.assertEqual(row["status"], "FAIL")
         self.assertNotIn("supersededRuns", row)
+
+    def test_test_fixture_fix_can_supersede_each_named_failure_on_same_candidate(self):
+        # A driver-only fix may repair an evidence producer without changing
+        # the product candidate. It must name every failed run and bind the
+        # exact committed driver; product artifacts stay byte-identical.
+        fixed_by = "4b3ffcd300e848642d8f22f7b1f54cece03605f2"
+        driver = subprocess.check_output(
+            ["git", "-C", ROOT, "show", fixed_by + ":tests/e2e-diff/run_p2_matrix.sh"])
+        good = os.path.join(self.root, "good")
+        bad1 = os.path.join(self.root, "bad1")
+        bad2 = os.path.join(self.root, "bad2")
+        ops(good, "OPS-09", "PASS", run=provenance(
+            os.path.join(good, "p2"), runId=os.path.basename(good),
+            supersedes=["bad1", "bad2"], fixedBy=fixed_by,
+            fixedByKind="test-fixture", startedAt="2026-11-28T00:02:00Z",
+            finishedAt="2026-11-28T00:03:00Z",
+            _driverContent=driver))
+        ops(bad1, "OPS-09", "FAIL", run=provenance(
+            os.path.join(bad1, "p2"), runId=os.path.basename(bad1),
+            startedAt="2026-11-28T00:00:00Z", finishedAt="2026-11-28T00:00:15Z"))
+        ops(bad2, "OPS-09", "FAIL", run=provenance(
+            os.path.join(bad2, "p2"), runId=os.path.basename(bad2),
+            startedAt="2026-11-28T00:00:30Z", finishedAt="2026-11-28T00:00:45Z"))
+        cmd = [sys.executable, SCRIPT, "--code-sha", TEST_SHA, "--out", self.out,
+               "--matrix-json", os.path.join(self.root, "matrix.json"),
+               "--acceptance-json", os.path.join(self.root, "acceptance.json"),
+               "--matrix-evidence", good, "--matrix-evidence", bad1,
+               "--matrix-evidence", bad2, "--allow-incomplete"]
+        proc = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
+        with open(self.out, encoding="utf-8") as fh:
+            ledger = json.load(fh)
+        self.assertEqual(proc.returncode, 0, proc.stderr + "\n" + proc.stdout + "\n" + json.dumps(self.row(ledger, "OPS-09"), sort_keys=True))
+        row = self.row(ledger, "OPS-09")
+        self.assertEqual(row["status"], "DUAL_SIDE_VERIFIED", row["reasons"])
+        self.assertEqual(row["supersededRuns"], ["bad1", "bad2"])
+
+    def test_test_fixture_supersession_rejects_changed_product_artifact(self):
+        fixed_by = "4b3ffcd300e848642d8f22f7b1f54cece03605f2"
+        driver = subprocess.check_output(
+            ["git", "-C", ROOT, "show", fixed_by + ":tests/e2e-diff/run_p2_matrix.sh"])
+        prior={"productCodeSha":TEST_SHA,"binarySha256":"a"*64,
+               "bashScriptSha256":"b"*64,"driverSha":"c"*64}
+        candidate={"productCodeSha":TEST_SHA,"binarySha256":"d"*64,
+                   "bashScriptSha256":"b"*64,"driverSha":__import__("hashlib").sha256(driver).hexdigest(),
+                   "startedAt":"2026-11-28T00:02:00Z"}
+        self.assertFalse(_BUILDER._verified_fixture_fix(
+            candidate,prior,TEST_SHA,fixed_by,"test-fixture"))
 
     def test_sweep_without_provenance_is_blocked(self):
         sweep_dir = os.path.join(self.root, "sweep")

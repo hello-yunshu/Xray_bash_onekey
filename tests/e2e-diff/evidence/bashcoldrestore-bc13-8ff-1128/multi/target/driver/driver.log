@@ -1,0 +1,3 @@
+FAIL restored mode/owner differs etc_idleleo_cert_thirdparty.crt.mode-owner: source=644 0:0 target=640 0:996
+FAIL restored mode/owner differs etc_idleleo_cert_thirdparty.key.mode-owner: source=600 0:0 target=640 0:996
+DIFF Bash cold restore changed one or more managed state mode/owner values

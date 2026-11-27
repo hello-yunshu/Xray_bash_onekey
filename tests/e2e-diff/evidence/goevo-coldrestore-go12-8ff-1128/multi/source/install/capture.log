@@ -1,0 +1,14 @@
+systemd_state=running
+seeded_xray=Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+idleleo_version=idleleo 0.2.0-phase04 (go)
+seeded_cert=preinstalled sha256=99ad2ca31fbc9bdb03afd5e01faa11a10a59721653005eca0bc0aa56f1383fa9
+go_argv=--binary /usr/local/bin/xray --mode tls --transport ws+grpc+xhttp --domain example.com --cert /etc/idleleo/cert/xray.crt --cert-key /etc/idleleo/cert/xray.key --port 9000 --public-port 443 --container
+install_exit=0
+manifest entries=22
+runtime collected
+logs collected
+identity fingerprints written to /out/install/config/identity.json
+done=tls install_exit=0
+sanitized /out/install/install.log
+sanitized /out/install/expect.log
+sanitized /out/install/capture.log

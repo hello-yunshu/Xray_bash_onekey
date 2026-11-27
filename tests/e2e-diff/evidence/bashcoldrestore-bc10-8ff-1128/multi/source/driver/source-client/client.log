@@ -1,0 +1,126 @@
+Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/27 17:15:48.465358 [Info] infra/conf/serial: Reading config: &{Name:/tmp/bash-cold-client.json Format:json}
+2026/11/27 17:15:48.465405 [Warning] core: Xray 26.11.9 started
+2026/11/27 17:15:48.465416 [Warning] common/errors: The feature WebSocket transport (with ALPN http/1.1, etc.) is deprecated, not recommended for using and might be removed. Please migrate to XHTTP H2 & H3 as soon as possible.
+2026/11/27 17:15:48.465431 [Warning] common/errors: This feature "host" in "headers" is deprecated, will be removed soon and being migrated to independent "host". Please update your config(s) according to release note and documentation before removal.
+2026/11/27 17:15:48.565911 from tcp:127.0.0.1:55060 accepted tcp:1.2.3.4:18080
+2026/11/27 17:15:48.566743 [Error] [1371785445] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:48.567340 [Error] [1371785445] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:48.768583 [Error] [1371785445] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:49.169556 [Error] [1371785445] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:49.772116 [Error] [1371785445] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:51.582927 from tcp:127.0.0.1:55076 accepted tcp:1.2.3.4:18080
+2026/11/27 17:15:51.583684 [Error] [2067374349] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:51.584195 [Error] [2067374349] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:51.787791 [Error] [2067374349] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:52.190708 [Error] [2067374349] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:52.794846 [Error] [2067374349] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:54.603354 from tcp:127.0.0.1:35102 accepted tcp:1.2.3.4:18080
+2026/11/27 17:15:54.603969 [Error] [2349753346] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:54.604510 [Error] [2349753346] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:54.814600 [Error] [2349753346] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:55.222659 [Error] [2349753346] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:55.832996 [Error] [2349753346] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:57.655685 from tcp:127.0.0.1:35106 accepted tcp:1.2.3.4:18080
+2026/11/27 17:15:57.656325 [Error] [3233956048] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:57.656899 [Error] [3233956048] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:57.866759 [Error] [3233956048] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:58.271818 [Error] [3233956048] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:15:58.876319 [Error] [3233956048] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:00.687774 from tcp:127.0.0.1:35120 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:00.688360 [Error] [3443445416] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:00.688749 [Error] [3443445416] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:00.892828 [Error] [3443445416] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:01.302920 [Error] [3443445416] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:01.907316 [Error] [3443445416] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:03.721907 from tcp:127.0.0.1:58514 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:03.722485 [Error] [3826829790] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:03.722884 [Error] [3826829790] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:03.932743 [Error] [3826829790] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:04.336646 [Error] [3826829790] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:04.941996 [Error] [3826829790] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:06.763010 from tcp:127.0.0.1:58526 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:06.768102 [Error] [2675084266] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:06.768594 [Error] [2675084266] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:06.971299 [Error] [2675084266] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:07.380003 [Error] [2675084266] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:07.984201 [Error] [2675084266] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:09.791284 from tcp:127.0.0.1:58528 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:09.791821 [Error] [1903717046] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:09.792712 [Error] [1903717046] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:10.002546 [Error] [1903717046] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:10.404797 [Error] [1903717046] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:11.015209 [Error] [1903717046] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:12.830110 from tcp:127.0.0.1:37468 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:12.830665 [Error] [1948412071] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:12.832739 [Error] [1948412071] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:13.042597 [Error] [1948412071] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:13.444014 [Error] [1948412071] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:14.050573 [Error] [1948412071] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:15.862818 from tcp:127.0.0.1:37478 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:15.863420 [Error] [4068515926] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:15.863984 [Error] [4068515926] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:16.073869 [Error] [4068515926] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:16.483962 [Error] [4068515926] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:17.086492 [Error] [4068515926] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:18.893406 from tcp:127.0.0.1:37492 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:18.893958 [Error] [3105525979] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:18.894328 [Error] [3105525979] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:19.098573 [Error] [3105525979] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:19.509119 [Error] [3105525979] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:20.110488 [Error] [3105525979] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:21.922993 from tcp:127.0.0.1:57282 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:21.923604 [Error] [2430124917] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:21.924042 [Error] [2430124917] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:22.127866 [Error] [2430124917] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:22.532161 [Error] [2430124917] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:23.134692 [Error] [2430124917] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:24.941417 from tcp:127.0.0.1:57292 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:24.942015 [Error] [3737651631] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:24.942409 [Error] [3737651631] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:25.152312 [Error] [3737651631] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:25.563179 [Error] [3737651631] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:26.168788 [Error] [3737651631] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:27.974982 from tcp:127.0.0.1:57308 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:27.975759 [Error] [1664807625] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:27.975968 [Error] [1664807625] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:28.185818 [Error] [1664807625] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:28.589355 [Error] [1664807625] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:29.198496 [Error] [1664807625] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:31.009925 from tcp:127.0.0.1:57316 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:31.010784 [Error] [453589319] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:31.010859 [Error] [453589319] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:31.220713 [Error] [453589319] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:31.630753 [Error] [453589319] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:32.234811 [Error] [453589319] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:34.046757 from tcp:127.0.0.1:42880 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:34.048119 [Error] [889589096] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:34.051476 [Error] [889589096] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:34.253722 [Error] [889589096] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:34.655066 [Error] [889589096] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:35.255994 [Error] [889589096] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:37.079114 from tcp:127.0.0.1:42886 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:37.079669 [Error] [2940823302] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:37.080024 [Error] [2940823302] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:37.280881 [Error] [2940823302] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:37.685589 [Error] [2940823302] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:38.286306 [Error] [2940823302] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:40.101020 from tcp:127.0.0.1:42896 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:40.101574 [Error] [3559659197] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:40.101942 [Error] [3559659197] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:40.308530 [Error] [3559659197] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:40.713447 [Error] [3559659197] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:41.317681 [Error] [3559659197] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:43.129036 from tcp:127.0.0.1:54130 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:43.129606 [Error] [82775921] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:43.129982 [Error] [82775921] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:43.339849 [Error] [82775921] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:43.745090 [Error] [82775921] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:44.355352 [Error] [82775921] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:46.168586 from tcp:127.0.0.1:54138 accepted tcp:1.2.3.4:18080
+2026/11/27 17:16:46.169183 [Error] [742306429] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:46.169582 [Error] [742306429] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:46.379493 [Error] [742306429] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:46.787908 [Error] [742306429] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters
+2026/11/27 17:16:47.398949 [Error] [742306429] transport/internet/websocket: failed to dial to 127.0.0.1:443 > tls: failed to parse certificate from server: x509: invalid ECDSA parameters

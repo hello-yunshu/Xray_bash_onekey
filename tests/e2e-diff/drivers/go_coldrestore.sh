@@ -102,6 +102,30 @@ make_canary() {
     sha /etc/idleleo/conf/thirdparty-note.txt >"$HANDOFF/canary-note.sha256"
 }
 
+snapshot_canary() { # snapshot_canary <dir>
+    local dest="$1" path name
+    mkdir -p "$dest"
+    for path in /etc/idleleo/cert/thirdparty.key /etc/idleleo/cert/thirdparty.crt \
+        /etc/idleleo/conf/thirdparty-note.txt; do
+        [ -f "$path" ] || continue
+        name=${path##*/}
+        sha "$path" >"$dest/$name.sha256"
+        stat -c '%a %u:%g' "$path" >"$dest/$name.mode-owner"
+    done
+}
+
+assert_canary_unchanged() { # assert_canary_unchanged <before> <after>
+    local before="$1" after="$2" file
+    for file in "$before"/*; do
+        [ -f "$file" ] || continue
+        if [ -f "$after/${file##*/}" ] && cmp -s "$file" "$after/${file##*/}"; then
+            assert 0 "third-party canary remained unchanged (${file##*/})"
+        else
+            assert 1 "third-party canary changed (${file##*/})"
+        fi
+    done
+}
+
 curl_once() { # curl_once <url>
     local body
     body=$(curl -sS --max-time 10 "$1" 2>"$OUT/curl.err")
@@ -223,6 +247,7 @@ target)
         "the handoff archive digest matches the source"
 
     make_canary
+    snapshot_canary "$OUT/canary-before-restore"
 
     run T3-restore "$GO" backup restore --archive "$ARCHIVE" --container --json
     rc3=$?
@@ -232,6 +257,8 @@ target)
         "restored state is byte-identical to the source ($SCENARIO)"
     assert $([ -n "$(jq -r '.preBackup // ""' "$OUT/T3-restore/stdout.txt")" ] && echo 0 || echo 1) \
         "the restore wrote a pre-restore backup"
+    snapshot_canary "$OUT/canary-after-restore"
+    assert_canary_unchanged "$OUT/canary-before-restore" "$OUT/canary-after-restore"
 
     if [ "$SCENARIO" != "relay" ]; then
         assert $(jq -e . "$CFG" >/dev/null 2>&1 && echo 0 || echo 1) "restored config is valid JSON"

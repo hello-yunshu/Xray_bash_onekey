@@ -1,0 +1,56 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            [REDACTED_NON_IP_CERT_SERIAL]
+        Signature Algorithm: ecdsa-with-SHA256
+        Issuer: CN = example.com
+        Validity
+            Not Before: Nov 27 17:14:58 2026 GMT
+            Not After : Nov 30 17:14:58 2026 GMT
+        Subject: CN = example.com
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+                pub:
+                    04:18:39:b5:34:b4:27:7c:e8:17:16:8e:cb:27:aa:
+                    41:d2:3c:03:ad:01:14:52:3e:bd:e2:93:11:ed:33:
+                    f2:72:e5:ad:ef:f7:3c:29:30:ab:cf:83:ee:6d:cc:
+                    8a:2d:a9:35:de:e3:32:d3:5f:5c:a1:3b:64:f6:5f:
+                    9d:f4:40:7b:76
+                Field Type: prime-field
+                Prime:
+                    00:ff:ff:ff:ff:00:00:00:01:00:00:00:00:00:00:
+                    00:00:00:00:00:00:ff:ff:ff:ff:ff:ff:ff:ff:ff:
+                    ff:ff:ff
+                A:   
+                    00:ff:ff:ff:ff:00:00:00:01:00:00:00:00:00:00:
+                    00:00:00:00:00:00:ff:ff:ff:ff:ff:ff:ff:ff:ff:
+                    ff:ff:fc
+                B:   
+                    5a:c6:35:d8:aa:3a:93:e7:b3:eb:bd:55:76:98:86:
+                    bc:65:1d:06:b0:cc:53:b0:f6:3b:ce:3c:3e:27:d2:
+                    60:4b
+                Generator (uncompressed):
+                    04:6b:17:d1:f2:e1:2c:42:47:f8:bc:e6:e5:63:a4:
+                    40:f2:77:03:7d:81:2d:eb:33:a0:f4:a1:39:45:d8:
+                    98:c2:96:4f:e3:42:e2:fe:1a:7f:9b:8e:e7:eb:4a:
+                    7c:0f:9e:16:2b:ce:33:57:6b:31:5e:ce:cb:b6:40:
+                    68:37:bf:51:f5
+                Order: 
+                    00:ff:ff:ff:ff:00:00:00:00:ff:ff:ff:ff:ff:ff:
+                    ff:ff:bc:e6:fa:ad:a7:17:9e:84:f3:b9:ca:c2:fc:
+                    63:25:51
+                Cofactor:  1 (0x1)
+                Seed:
+                    c4:9d:36:08:86:e7:04:93:6a:66:78:e1:13:9d:26:
+                    b7:81:9f:7e:90
+        X509v3 extensions:
+            X509v3 Subject Alternative Name: 
+                DNS:example.com
+    Signature Algorithm: ecdsa-with-SHA256
+    Signature Value:
+        30:46:02:21:00:b6:29:c2:22:2b:d4:b5:0e:d5:ae:86:e9:d9:
+        1d:69:9e:24:1f:64:b3:5c:14:ca:d4:e7:db:11:e9:8d:f3:1d:
+        67:02:21:00:ef:0e:a9:d9:8b:03:f2:12:99:ae:31:9f:f1:d1:
+        9b:42:e8:1c:3e:a1:45:65:0a:25:9f:00:89:88:71:fa:24:ef

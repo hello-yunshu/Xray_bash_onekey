@@ -1,0 +1,21 @@
+{
+  "runId": "bashcoldrestore-final-8ff26917-20261128",
+  "scenarios": {
+    "multi": {
+      "archiveSHA256": "ce79f57fd305997ce3fb651500572ae3166b571e2e28820098db02665ca99c19",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    },
+    "reality": {
+      "archiveSHA256": "40af7eae29c8f2bd19cb186cd78a9ffc8401542c328d3d2863c234749a66cfe3",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    },
+    "relay": {
+      "archiveSHA256": "ab642fe5ff4a0b093a0df0325bf9032c0f0db45e5fe186a21e76f0e1c12f9f65",
+      "sourceDriverExit": 0,
+      "targetDriverExit": 0
+    }
+  },
+  "schemaVersion": 1
+}

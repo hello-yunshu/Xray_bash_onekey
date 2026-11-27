@@ -1,0 +1,2 @@
+PASS	source client connected through Bash-managed services
+PASS	Bash archive created, tar listing valid, archive mode 0600
