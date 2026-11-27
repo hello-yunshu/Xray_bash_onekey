@@ -7,12 +7,12 @@
   },
   "ci": {
     "status": "CI_PENDING",
-    "reason": "当前候选所在分支未推送；远程 CI 未对该 SHA 运行。"
+    "reason": "当前开发分支未推送；当前 HEAD 的远程 CI 尚未运行。"
   },
   "files": [
     {
       "path": "docs/go-evolution/hardening/acceptance.json",
-      "sha256": "62029212a60a7c865ede84a33ef75c1df78e8eb98c64df138951e7a88141241e",
+      "sha256": "2502478f6af1ce98a0f3c3a2963296713962be7c7af2265267253ea50e785477",
       "type": "candidate-evidence"
     },
     {
@@ -191,9 +191,19 @@
       "type": "cold-restore-follow-up-evidence"
     },
     {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/consistency-check-op24-final.log",
+      "sha256": "aed920b365522b3562d72d131b917fdbe3b6fa59e6218b8745fb5b9f0cebbcce",
+      "type": "sanitized-log-or-result"
+    },
+    {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/deploy-tests.log",
       "sha256": "1f339ffa2412c4963000e94d87f56edc81770885e30aeffd821b62fe7854d4ae",
       "type": "sanitized-log-or-result"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/final-local-gates-op24-20261127.log",
+      "sha256": "9a59c87c9235b4d86d3489f672ae317192654917b693b00ed0ae439e51a295c1",
+      "type": "candidate-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/go-build-commands.log",
@@ -391,6 +401,11 @@
       "type": "sanitized-log-or-result"
     },
     {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan-op24-final.log",
+      "sha256": "bdf74ed0bd3eef1471e3896a0ed4327ea2bf7fc619dd0b2357b07b22988e8339",
+      "type": "sanitized-log-or-result"
+    },
+    {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/privacy-scan.log",
       "sha256": "9aa2561d078f10e3178d8e5c7d3e476fb6dd5427434073eb6ac46aa117539f38",
       "type": "sanitized-log-or-result"
@@ -419,6 +434,11 @@
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/strict-ledger-final-8ff26917.log",
       "type": "sanitized-log-or-result",
       "sha256": "5407c2f23e411bbc5c53ad12cc3fc330f3f291522404123f88b5aefbf7eb5b50"
+    },
+    {
+      "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/strict-ledger-op24-final.log",
+      "sha256": "c45c4f7182353fd000757c76cbd4e270b6f65bb404a09e1864d3179e3a5dce21",
+      "type": "candidate-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/evidence/update-health-rollback-runtime.log",
@@ -622,7 +642,7 @@
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/impact-analysis.md",
-      "sha256": "62d91ec9fb70482dcabe2cfa7e78d302a9f5fe6edf87694ff1a4a9627141041a",
+      "sha256": "072609fc99d6bda3e4a976843905d52c7dedf5c90fc2636da7ed1e76d2c10601",
       "type": "candidate-evidence"
     },
     {
@@ -632,12 +652,12 @@
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/report.md",
-      "sha256": "ff11e37f275ae47cbb88073c5ccb9977a54c73d2e39ea1c4597561f3aa31115e",
+      "sha256": "bfd7e9119d7957ecefba10537159a423b7e6a06c2fbdc419e8a9a759031607aa",
       "type": "candidate-evidence"
     },
     {
       "path": "docs/go-migration/audit-remediation/codex-final-20261126/tasks.md",
-      "sha256": "a147403e855f95f299d3f6c811b541ee9bc27bacb5b4669a3defaad8e1644b6e",
+      "sha256": "3e5a25dcb14d32c368307ab3c85466aab7ebca05c25fe4a45654a51cc178c882",
       "type": "candidate-evidence"
     },
     {
@@ -654,6 +674,16 @@
       "path": "tests/e2e-diff/collect/test_sanitize_evidence.py",
       "type": "sanitized-log-or-result",
       "sha256": "df05df043d8374b0d16901155fc3cf75db18034f2c2150ec610b51f0c77bb5f8"
+    },
+    {
+      "path": "tests/e2e-diff/collect/test_verify_ops24.py",
+      "sha256": "7b26174a17f41e18d39041980e346e41c79d34e117727b7c0f9e257de85b8973",
+      "type": "test-or-verifier"
+    },
+    {
+      "path": "tests/e2e-diff/collect/verify_ops24.py",
+      "sha256": "01c95287c0de7bfbf6da6923076cd7171765891a1e91916466344b7dc47db3e2",
+      "type": "test-or-verifier"
     },
     {
       "path": "tests/e2e-diff/evidence/bashcold-restore-current-7d3e19d9-20261127/restore/restore.log",
@@ -14236,6 +14266,1046 @@
       "type": "e2e-evidence-artifact"
     },
     {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/bash/follow.err",
+      "sha256": "7e2c986d6ab2537a8066547a18b9a63a2ef880d61a12dafb6ffd2a9296f8a7f2",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/bash/follow.out",
+      "sha256": "a8516c18a2ea4df56a1f0af225dce9719a2aee9d3bdd5aade3a2d95e874731dd",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/bash/follow.rc",
+      "sha256": "ca2ebdf97d7469496b1f4b78958f9dc8447efdcb623953fee7b6996b762f6fff",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/bash/run.err",
+      "sha256": "7e2c986d6ab2537a8066547a18b9a63a2ef880d61a12dafb6ffd2a9296f8a7f2",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/bash/run.out",
+      "sha256": "3f219dd442598f36f26c49780d27071ef3905cb77691d3ba84e4a4bbfd5f14d8",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/bash/run.rc",
+      "sha256": "ca2ebdf97d7469496b1f4b78958f9dc8447efdcb623953fee7b6996b762f6fff",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/go/follow.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/go/follow.out",
+      "sha256": "6fb17cfb3090920728abc4b778676028b8452e15940d298eb9ceeabd8b74493c",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/go/follow.rc",
+      "sha256": "ca2ebdf97d7469496b1f4b78958f9dc8447efdcb623953fee7b6996b762f6fff",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/go/snapshot.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/go/snapshot.out",
+      "sha256": "40adc0f9bf020742d5ad64a70fc937cc91fb1be30773b6fb8b22d4b04d6c3356",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/go/snapshot.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/log-source-difference.json",
+      "sha256": "93e91013d94564d2e040de90b2e0bf8df8e309c705221b52cef2b7ba32e6e479",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/ops.json",
+      "sha256": "35d660ed8e2166f374adea7b5823c16bf0873795e8ae9ab63656ed4277f4842e",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/bash/follow.err",
+      "sha256": "7e2c986d6ab2537a8066547a18b9a63a2ef880d61a12dafb6ffd2a9296f8a7f2",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/bash/follow.out",
+      "sha256": "558988ce8e7fc6d84cda65fa0dfaafc7624355d07e9cb8822726bc14713eaf0a",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/bash/follow.rc",
+      "sha256": "ca2ebdf97d7469496b1f4b78958f9dc8447efdcb623953fee7b6996b762f6fff",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/bash/run.err",
+      "sha256": "7e2c986d6ab2537a8066547a18b9a63a2ef880d61a12dafb6ffd2a9296f8a7f2",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/bash/run.out",
+      "sha256": "fc2cf8257d0ad1b45a9509711324b60f0b031fd15bde5e7ffedc30a695f5de8c",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/bash/run.rc",
+      "sha256": "ca2ebdf97d7469496b1f4b78958f9dc8447efdcb623953fee7b6996b762f6fff",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/go/follow.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/go/follow.out",
+      "sha256": "6093325916b2c99cf93aef17d17242b606aec8b2935d60dd0fdc7cdf54bd5df6",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/go/follow.rc",
+      "sha256": "ca2ebdf97d7469496b1f4b78958f9dc8447efdcb623953fee7b6996b762f6fff",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/go/snapshot.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/go/snapshot.out",
+      "sha256": "58f38a49323fe347c187230b6983f736f290111e87fa7f46f9e6005fae30f99e",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/go/snapshot.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/log-source-difference.json",
+      "sha256": "4edf24042bc1ae0f62a7ad2e6afe02e8d9983a74ce2e7e01e3df1fb26d95d5c2",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/ops.json",
+      "sha256": "37c6e8db1898a7d9626198e46084a2e74c77159e8990ecbb3f95fd9679c08bb1",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/bash/run.err",
+      "sha256": "df054c80fe0a0b5d66a14dc022a361f144c228598491228c6cb5d2d83c7957f2",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/bash/run.out",
+      "sha256": "f208356d29e474c9602b6e4b223d02c76cedda85f97a2a8c6d6e501d986706a1",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/bash/run.rc",
+      "sha256": "ca2ebdf97d7469496b1f4b78958f9dc8447efdcb623953fee7b6996b762f6fff",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/go/09-enable.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/go/09-enable.out",
+      "sha256": "28c0c9a4f65f07f7db3e5dbedb839ad530252d820b4f2d1f4ac15f30a117c88f",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/go/09-enable.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/go/10-op.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/go/10-op.out",
+      "sha256": "46ec2daca416a2954ad09d039bb138a4c63e98be6aa3ee4d0279a1ac087ee62d",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/go/10-op.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/ops.json",
+      "sha256": "d8f83701348873d836956fb7c2ea3bdd4bfdfd1a9741b78a7394fbfd6a242217",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17a/bash/run.err",
+      "sha256": "4cc7928ab84bdc201420d26ce1939e1f8a6d1b0a0fd49a52e1aac005ab11c7ce",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17a/bash/run.out",
+      "sha256": "b7d7a78dba0b5efab4dd2fc6ea8532e004fc283688ea185fa15301eb0a9a61f7",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17a/bash/run.rc",
+      "sha256": "ca2ebdf97d7469496b1f4b78958f9dc8447efdcb623953fee7b6996b762f6fff",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17a/go/10-op.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17a/go/10-op.out",
+      "sha256": "18f27fb392a83f7924cdb56e507f910cea73fdcf522f01e78b7b88fab52d1215",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17a/go/10-op.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17a/ops.json",
+      "sha256": "c0c4cb487be9513156b2a5a0ab4e7661fc288214d9145abf6c80fce3f7edcce1",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/backup.txt",
+      "sha256": "76f7cdd8c1f452b31271701d72ff7e1fa1391bd37980625115570e72f3f3556f",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/install-config-after.json",
+      "sha256": "ca79e65ca864eb8adf0af1f21b8e47d6fb46d0e9b83353693a354b9abda026c0",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/install-config-before.json",
+      "sha256": "f76ebd39aa1ad32d085865efb272a7c0aa0066001784f6880a64b020c570d128",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/nginx-1.27",
+      "sha256": "653bfd40798a15850e342ef568ab18a883a273d3c1dfd8dd0ae3a57d7545f420",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/nginx-after.txt",
+      "sha256": "8a2eca21e33920999a396c6cda6f4023c09e1cefce47cbf89d6f1738eee013e8",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/nginx-before.txt",
+      "sha256": "20dec58bcddd4c6edfd04bd27c2f9731f0706f9b1ef367109ad4191cb5dc6d2b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/previous-binary.txt",
+      "sha256": "9e1fe97c167ed2ce9731346671caf23ed428ba645102b3d0c1cdde09980528e5",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/run.err",
+      "sha256": "4cc7928ab84bdc201420d26ce1939e1f8a6d1b0a0fd49a52e1aac005ab11c7ce",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/run.out",
+      "sha256": "f8f51cab2142fc4be2ac9a7df7ef35d9bf345481fb273c79e8cec4596f15e49b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/run.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/updated.xray-active.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/updated.xray-active.txt",
+      "sha256": "45df5ad5e0ecfa54d3226343e0e6857337494ba6e32f189d1174070665d8c659",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/updated.xray-test.log",
+      "sha256": "de6bdf1d3f7a6d2a2450f781886e2d75c10edce8026329c4fb1d158ee1d37d19",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/bash/updated.xray-test.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/expected-version.txt",
+      "sha256": "77a8934230c0022225c72daf3fb5e0876a9c841e2fe15a9ec3ea6f919c5d6162",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/10-op.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/10-op.out",
+      "sha256": "1ebcb750760ea28e310526a46024a70dd030e21eca8652d424dad43d8f40d32e",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/10-op.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/backup.txt",
+      "sha256": "07746318d389293c7c6d9c6a25c53cdb85a2f6349ce73ec3bd1ce4aa8c1b76dd",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/nginx-1.27",
+      "sha256": "653bfd40798a15850e342ef568ab18a883a273d3c1dfd8dd0ae3a57d7545f420",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/nginx-after.txt",
+      "sha256": "8a2eca21e33920999a396c6cda6f4023c09e1cefce47cbf89d6f1738eee013e8",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/nginx-before.txt",
+      "sha256": "20dec58bcddd4c6edfd04bd27c2f9731f0706f9b1ef367109ad4191cb5dc6d2b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/previous-binary.txt",
+      "sha256": "9e1fe97c167ed2ce9731346671caf23ed428ba645102b3d0c1cdde09980528e5",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/updated.xray-active.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/updated.xray-active.txt",
+      "sha256": "45df5ad5e0ecfa54d3226343e0e6857337494ba6e32f189d1174070665d8c659",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/updated.xray-test.log",
+      "sha256": "2c5761859ff0edf2f4ef46a08e2a17ed3be0b775a81351461d7ec62a3dd24721",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/go/updated.xray-test.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/ops.json",
+      "sha256": "38d2b8073724e56158722a15d74d60be7f7bf82336c601f88b3c247e296b4c4b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-18/bash/run.err",
+      "sha256": "8ba636b268a853159ab82ba8d97b51acae652322728fc4183d20f4585af55f4a",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-18/bash/run.out",
+      "sha256": "1fb8a15dd6b09a204183d66afa7b02bdf18f183508f787c66fb31198aeef651a",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-18/bash/run.rc",
+      "sha256": "ca2ebdf97d7469496b1f4b78958f9dc8447efdcb623953fee7b6996b762f6fff",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-18/go/10-op.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-18/go/10-op.out",
+      "sha256": "4cfcef59b8e8725664f1bef57230153b37a1d254f96554a8f311f1a4dd2b6fc5",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-18/go/10-op.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-18/ops.json",
+      "sha256": "b586413591c4f8e73b077b3b1639828bd56f8c8ec957dcd2cd17840d55ff5743",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-23/bash/run.err",
+      "sha256": "0d58cb12d0a737443ed033a9fff017c7524235693e2ef8f4dff30bd3cf3dbdd4",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-23/bash/run.out",
+      "sha256": "44a0beb86f025ca6bae700c56391753bb7314616c30ba714d1543ccae9b082e7",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-23/bash/run.rc",
+      "sha256": "ca2ebdf97d7469496b1f4b78958f9dc8447efdcb623953fee7b6996b762f6fff",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-23/go/10-op.err",
+      "sha256": "3efed07414221b660474306c7d0fe78a6d7fd2c8177242d03f2fcc0ca9d16e85",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-23/go/10-op.out",
+      "sha256": "eeab286bef3e54d0ebba92cf69104ba3b1084d73e5af1bbd2494647dce4c7ee9",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-23/go/10-op.rc",
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-23/ops.json",
+      "sha256": "d404e1e817aef7d9e708ba8a5a14c1e0ce7d6afaa19bb758c8b0fc531e14fe66",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/bash/after.txt",
+      "sha256": "af34938571775231dfc1946b0931ed321ce9c57b5ab5b623af943824ad009e5d",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/bash/before.txt",
+      "sha256": "253e6cf39076e9bc4d8665acd30a36f6b40b2f521e21ed3ab9f4120b14fa593b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/bash/geo-update.log",
+      "sha256": "63e037dfd708f13d323322bb7559291bef2600d1583c21105b77c7e3991310d2",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/bash/release.txt",
+      "sha256": "9647c072a60b031dd0ac7a0ea385e754bd013785c19c4a473c2b54b7a79699fe",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/bash/run.err",
+      "sha256": "17a7c4c59044504dacb3cf5edccc4d64a3d84e5ec5a0ae2fdc07078416141fb5",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/bash/run.out",
+      "sha256": "59076e015db2bfc9639ff168e8ba77993f09b4e83be26071ef4416ad001b9684",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/bash/run.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/go/09-install.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/go/09-install.out",
+      "sha256": "b17270639fdb883f319416476d220176e94205ad53a9ea858b730d58f4215490",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/go/09-install.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/go/10-op.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/go/10-op.out",
+      "sha256": "4be1686db4eaac50c7e4ce5d7bb70f5315bdcafb3ef149273169d6733f021fc8",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/go/10-op.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/go/after.txt",
+      "sha256": "b19a57d54dc1f8c71a7fd80336c568bf3e0a40f0d5349d0d938e7a729425b335",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/go/before.txt",
+      "sha256": "253e6cf39076e9bc4d8665acd30a36f6b40b2f521e21ed3ab9f4120b14fa593b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/go/release.txt",
+      "sha256": "9647c072a60b031dd0ac7a0ea385e754bd013785c19c4a473c2b54b7a79699fe",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/ops.initial-verdict.json",
+      "sha256": "c9af2d53e94c6acdbe218f985294f159a9c4038e6526de4f31df67ac40daebe9",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/ops.json",
+      "sha256": "05fcc4671137e6099cb1e9a20349f5ad10378fa2aa00de5d50bf7369c5ade818",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/verification.json",
+      "sha256": "f6415d7a515a45d19f3c6d8c234a11e0d34b0e533fb23f128410ae006b64dbfc",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/verifier-run-shell-diagnostic.log",
+      "sha256": "67b91824089c2c2387deac4fc47acc2bd2eedfa61a415beb556301f785d2ac35",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/verifier-run.log",
+      "sha256": "2d6546cf1c4f7d9f8095a69ba5fd40cfb8e37c4546403d96530f65e89b70de26",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/verifier-tests.log",
+      "sha256": "f7c16fe18a4dc79c3c02dbe127c6ddcceee1b12cfe007c7a7464af4a715e5e23",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/archive-integrity.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/archive-integrity.txt",
+      "sha256": "9ca22740c3c78535c99628466acc10c7e7fc4fd84f6202ae894b71d26e1b77a1",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/archive-path.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/archive-path.txt",
+      "sha256": "759d5293034ace79c5358225493556649e7a2a5d71186e48d258ce7948ad8969",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/archive-verify.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/archive-verify.out",
+      "sha256": "92303dac267152e441225f0024c98a851e4de7ca1cca1fac36cfd2f2bf203bad",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/archive-verify.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/before.snapshot.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/before.snapshot.txt",
+      "sha256": "6b4b92d7b29081baeb8bb62271f87d6256db4c73189e9ef8ade3790045f3d5ee",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/create.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/create.out",
+      "sha256": "b76391244e159f629219124e996e282f12266f54afb1f28c7d735dd441f135f7",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/bash/create.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/go/archive-integrity.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/go/archive-integrity.txt",
+      "sha256": "933c0de6e73fdacd8e5c1483d08ddddbd90bcfe82727dbe44e83f731acb14d97",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/go/before.snapshot.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/go/before.snapshot.txt",
+      "sha256": "372590b1ce6232c931eb8135c20017ac725e0f1e4f4cef4c2433a6a183b03fc8",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/go/create.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/go/create.out",
+      "sha256": "2a3ab5684698bf974b511f6dd4b60916d8f6a7a70bc9bd39e2d173272e9e20db",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/go/create.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/go/verify.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/go/verify.out",
+      "sha256": "e657811ddbbefd4b7628178fc08a3c50cd349b01ca498000f1f867666750bb0f",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/go/verify.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/ops.json",
+      "sha256": "159cff9ba628038c7c463f642ae9dcb7a902757291c5774618d6311882e4d6ae",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/L4-reality.log",
+      "sha256": "78a79e439a996e4bf378704ab5b4985a9ce0f58bf3f89cc21f12ed790fca9a54",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/L4/reality/client-config.log",
+      "sha256": "4ff30306322c0410e7f8aa92878b3c398df42dca02de8bce898debc676f9f75b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/L4/reality/client.log",
+      "sha256": "8ae624dce2d0f8b406b5bd109095c9bc4d8f161597fba0101574a9d22b7fdbc5",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/L4/reality/connectivity.json",
+      "sha256": "4a05d06e58dc7d4e7c0f7e9b5ef6a304a12ae1c736802bfc4cdf40165fb609ca",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/L4/reality/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/L4/reality/response.body",
+      "sha256": "25ddf2c883e0d1958ea971d279a7e4f0fd446724ee3db7db19dadabd4a62e484",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/L4/round3.jsonl",
+      "sha256": "941a746d32d1d7e2e15faca0193411efc662a4722050d4d5a64678ec6fbbb119",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/after.snapshot.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/after.snapshot.txt",
+      "sha256": "6b4b92d7b29081baeb8bb62271f87d6256db4c73189e9ef8ade3790045f3d5ee",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/canary.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/canary.txt",
+      "sha256": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/restore.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/restore.out",
+      "sha256": "9220d0a0a8e12be00167761d8bb10977e6668bc03cb35029cad7a56122127240",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/restore.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/service-restart.out",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/bash/service-restart.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/L4-reality.log",
+      "sha256": "78a79e439a996e4bf378704ab5b4985a9ce0f58bf3f89cc21f12ed790fca9a54",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/L4/reality/client-config.log",
+      "sha256": "4ff30306322c0410e7f8aa92878b3c398df42dca02de8bce898debc676f9f75b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/L4/reality/client.log",
+      "sha256": "142fe7c11cacd155499e93045bdd57e8edc88fbb552827f76bca5f47f1fda318",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/L4/reality/connectivity.json",
+      "sha256": "4a05d06e58dc7d4e7c0f7e9b5ef6a304a12ae1c736802bfc4cdf40165fb609ca",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/L4/reality/curl.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/L4/reality/response.body",
+      "sha256": "25ddf2c883e0d1958ea971d279a7e4f0fd446724ee3db7db19dadabd4a62e484",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/L4/round3.jsonl",
+      "sha256": "941a746d32d1d7e2e15faca0193411efc662a4722050d4d5a64678ec6fbbb119",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/after.snapshot.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/after.snapshot.txt",
+      "sha256": "372590b1ce6232c931eb8135c20017ac725e0f1e4f4cef4c2433a6a183b03fc8",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/canary.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/canary.txt",
+      "sha256": "6cc66ca0082cf8b1ae8ed8fab8bf2bbcfd581167e3bb44d07406e2a10423f225",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/restore.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/restore.out",
+      "sha256": "a21ee047ea63ed4dd813674307bb6215ae327a2905697bda219b3ad8f92a62ee",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/go/restore.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/native-backup-restore-comparison.json",
+      "sha256": "62fded6fe04edb710750b10c61d665f8ecfb46f3ed02c682006dcaddcd2988d9",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/ops.json",
+      "sha256": "54aa1fbce41f4585f8ea04980eb0bffb3837bc3ef8dbbf9d1f4ba62ceebe5c20",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-29/bash/run.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-29/bash/run.out",
+      "sha256": "fb25883f3c3aea7728e4b814d853a1f887e88ebfd6689dab88c00531f2d88bdb",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-29/bash/run.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-29/go/10-op.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-29/go/10-op.out",
+      "sha256": "c2774ef27cc3c51f905f4256361066ffc6d57e6bcc85b01eb4d692c7c912448a",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-29/go/10-op.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-29/ops.json",
+      "sha256": "ddd05eb32296c77043cb6683a09e8a0a4c9f64356aee5e4e2979d4fbbed9e7f6",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/apt-cache.json",
+      "sha256": "846ffbcca6d9ca3873dfdf0d58fc8021e6986795088cc8c5c0c630c7e23c56dd",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/argv-verify.md",
+      "sha256": "db7b9d2575fc368170813fa3a3f899e5f44c8dc04d1ba57632a7fdd0291c4211",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/build-manifest.json",
+      "sha256": "d8db38e868ad396181f4f9f198d40631758f9d63cede6833b3d0483e9af5f403",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/build/dependencies/tests/e2e-diff/collect/build_ledger.py",
+      "sha256": "f15e486b1c12d93d839890e4c4a36401008bd39f6e54febb0eca8dd5297999e9",
+      "type": "test-or-verifier"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/build/dependencies/tests/e2e-diff/collect/client_config.py",
+      "sha256": "f973eea05ed61d8e7de06d14597f58b97c0b650d45a88e0d8179d75fdb9d22ef",
+      "type": "test-or-verifier"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/build/dependencies/tests/e2e-diff/collect/l4.sh",
+      "sha256": "5998653d99ae1228e3c6135791732ffcdf6944f97c416a73ee5009082ac59327",
+      "type": "test-or-verifier"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/build/dependencies/tests/e2e-diff/drivers/bash_ops.exp",
+      "sha256": "873a623b51b5ee03b5209c9f8f5080bf87637c3350ce29fefcc3a4713942493e",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/build/dependencies/tests/go-parity/lib/docker_common.sh",
+      "sha256": "eadc0f45b273c1952826022d1835a83d835666e84aed606b0b6a3c933e20fe55",
+      "type": "test-or-verifier"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/build/idleleo",
+      "sha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/build/install.sh",
+      "sha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
+      "type": "test-or-verifier"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/build/run_p2_matrix.sh",
+      "sha256": "52e1379fa9ec814bab3f11f4569376571239685465dc3504db61ab5f2b937678",
+      "type": "test-or-verifier"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/install-matrix.md",
+      "sha256": "533eafaa4c301da233dde6ff9e98c2c0b548cb9288513907fbed4bedf4083f28",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/nginx-cache.json",
+      "sha256": "f186742586013bdfee47d4f9d3721e5db1edd8cb204564549153391ee8bf0877",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/capture.log",
+      "sha256": "e3c931a52dc2b38ed08f919f6c1f245797abfd81a5cd124f10661d0f83193478",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/config/config.sanitized.json",
+      "sha256": "c0f1f9139495b623f0035be28004cbde5f7a3184c0bd34dda325485c2ac0bdce",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/config/identity.json",
+      "sha256": "4b55b40e4cb361391de75b2b46f2f07ff63d884da4501e1f2e04ce30a536f00b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/cron.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/expect.log",
+      "sha256": "8308e5da538fb9fe4d38467802bb77229ffe05087f835bc2a7bb90b30e3e172b",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/install.log",
+      "sha256": "607dc39e46b2e929f5daf7a10a91d6bc200d84b4ee20be336192f555241d4e40",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/install.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/logs.json",
+      "sha256": "7dc9841197c6bba20d0706609834e24b84373f8cb88dcef341531bb6a85a789e",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/logs/nginx.log",
+      "sha256": "65413ca458810de2fea9dcc3ac486a6658a0a32a9894c8a1a2f4188607511f82",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/logs/xray.log",
+      "sha256": "fb518103383b708889020039bd3b9d54b77698dc1270f2f5cfe8222bdb660bb2",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/manifest.json",
+      "sha256": "4c84e3f9410739c50a8f122a6f4e433b67e25c4f8ce79a28f7ff9000122bca71",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/rc.txt",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/runtime.json",
+      "sha256": "d3a9972db5ad0132d89f6a8fa641f092d217fe4d68cfee1ad46792f5a8bf0f6f",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/state/listeners.txt",
+      "sha256": "737b8644f053c260e8852b189f8d744fac6a2b6b70eaef4bc95a46b2c32a2df4",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/state/nginx-test.log",
+      "sha256": "9cb221b6993277a11765b15bdded4e9b090f1c2a8f5ed573e907ae3b6921f27c",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/state/nginx.service",
+      "sha256": "d776e26a9379c75fd0e49be60c11adbdcb532d1d80efb37aca046650b791e18d",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/state/xray-test.log",
+      "sha256": "7a6ef06308c62f02b04a8d8b4430f2e292c0c5e9d47e47263add3f2951460e7c",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/bash/state/xray.service",
+      "sha256": "cfc75dd93d5b1f043732d86f26e71f81378eb14d0a53f0b2f91d4001d5f6e189",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/go/go-install.err",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/go/go-install.json",
+      "sha256": "3d534d044984b919ad438861be31241f94112a31a0deda3548699a4b53951c0a",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/observe/go/go-install.rc",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/run.json",
+      "sha256": "68a0773f4e99dd4e344a19f6b139c85fa306ce51a2232d9a7e10e37d2b263b46",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/run.log",
+      "sha256": "b361d35ed693ac4320cd716536f4e32d2598ec6a8cd33d9e16c0de7de3048e46",
+      "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/scope.json",
+      "sha256": "508a617e194b357ad801adf08f8b4cba02538d521c8042348f11268503cd656c",
+      "type": "candidate-evidence"
+    },
+    {
       "path": "tests/e2e-diff/evidence/ops-observe-native-20261127/p2/OPS-12/bash/run.err",
       "sha256": "7e2c986d6ab2537a8066547a18b9a63a2ef880d61a12dafb6ffd2a9296f8a7f2",
       "type": "sanitized-log-or-result"
@@ -15247,25 +16317,30 @@
     },
     {
       "path": "tests/e2e-diff/ledger.json",
-      "sha256": "1ed8dbb27e44e29a80d104ab8e02468298cbae5a6be9088b6c7099ed846b1823",
+      "sha256": "bcdfbfcb60a3b2defbef8a70223f7a20b20ead74751c8cd856d3afd1f9b0533d",
       "type": "candidate-evidence"
     },
     {
       "path": "tests/e2e-diff/matrix.json",
-      "sha256": "7cbe8c9fa901fa8ac50844d732471ae9b4bf706b1758823bbecca05c93e54075",
+      "sha256": "cb0be6efd730d4d836b8c1f4d7547b8b1233ba8c5b930fd1623eb011756da713",
       "type": "candidate-evidence"
+    },
+    {
+      "path": "tests/e2e-diff/run_p2_matrix.sh",
+      "sha256": "53340bac0ec0bf84627f4ee2bd742b563c7a0f2bc231f914d54a843bb65b8e19",
+      "type": "test-or-verifier"
     }
   ],
   "ledgerSummary": {
-    "opsTotal": 34,
-    "DUAL_SIDE_VERIFIED": 26,
+    "DUAL_SIDE_VERIFIED": 25,
     "GO_ONLY": 0,
-    "FAIL": 3,
+    "FAIL": 5,
     "BASH_ONLY": 1,
-    "BLOCKED": 4,
+    "BLOCKED": 3,
     "NOT_RUN": 0,
     "APPROVED_DIFF": 0,
     "APPROVED_SINGLE_SIDE": 0,
+    "opsTotal": 34,
     "dualSideVerifiedIds": [
       "OPS-01",
       "OPS-02",
@@ -15278,8 +16353,6 @@
       "OPS-09",
       "OPS-10",
       "OPS-11",
-      "OPS-12",
-      "OPS-13",
       "OPS-15",
       "OPS-17b",
       "OPS-17c",
@@ -15287,6 +16360,7 @@
       "OPS-20",
       "OPS-21",
       "OPS-22",
+      "OPS-24",
       "OPS-25",
       "OPS-26",
       "OPS-28",
@@ -15296,6 +16370,8 @@
     ],
     "goOnlyIds": [],
     "failIds": [
+      "OPS-12",
+      "OPS-13",
       "OPS-14",
       "OPS-16",
       "OPS-27"
@@ -15306,19 +16382,19 @@
     "blockedIds": [
       "OPS-17a",
       "OPS-18",
-      "OPS-23",
-      "OPS-24"
+      "OPS-23"
     ],
     "notRunIds": [],
     "approvedDiffIds": [],
     "approvedSingleSideIds": [],
     "unresolvedIds": [
+      "OPS-12",
+      "OPS-13",
       "OPS-14",
       "OPS-16",
       "OPS-17a",
       "OPS-18",
       "OPS-23",
-      "OPS-24",
       "OPS-27",
       "OPS-30"
     ]
@@ -16337,7 +17413,7 @@
       "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
       "qualification": "NO_GO",
       "releaseAuthorized": "NO",
-      "scope": "Current product candidate with Bash fresh-target restore fix; formal strict OPS-34 result remains 26 DUAL, 3 FAIL, 1 BASH_ONLY, 4 BLOCKED.",
+      "scope": "Current product candidate; strict OPS-34 25 DUAL, 5 FAIL, 1 BASH_ONLY, 3 BLOCKED; OPS-24 is now dual-verified; CI pending.",
       "runId": "candidate-8ff26917-20261127",
       "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
       "platform": "linux/arm64",
@@ -16358,7 +17434,7 @@
       ],
       "sourceTargetDriverRc": 0,
       "evidencePath": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127",
-      "comparison": "Go-only four-scenario cold restore; separate Bash fresh-target M4 TLS/WebSocket restore now passes at 8ff26917; Bash fresh-target Reality/Relay/Multi remain unverified."
+      "comparison": "Go-only four-scenario cold restore; Bash fresh-target TLS/WebSocket restore passes; Bash Reality/Relay/Multi remain unverified."
     },
     {
       "runId": "cold-fb55-20261127-rest",
@@ -16375,7 +17451,7 @@
       ],
       "sourceTargetDriverRc": 0,
       "evidencePath": "tests/e2e-diff/evidence/goevo-coldrestore-cold-fb55-20261127-rest",
-      "comparison": "Go-only four-scenario cold restore; separate Bash fresh-target M4 TLS/WebSocket restore now passes at 8ff26917; Bash fresh-target Reality/Relay/Multi remain unverified."
+      "comparison": "Go-only four-scenario cold restore; Bash fresh-target TLS/WebSocket restore passes; Bash Reality/Relay/Multi remain unverified."
     },
     {
       "runId": "ops-observe-backup2-20261127",
@@ -16467,6 +17543,32 @@
       "warning": "restore emitted a non-fatal harden_config_permissions warning; explicit file modes/hashes, services and live L4 passed, exact warning cause not captured",
       "evidencePath": "tests/e2e-diff/evidence/bashcold-restore-retry-current-7d3e19d9-20261127/coldrestore-manifest.json",
       "failedAttemptPath": "tests/e2e-diff/evidence/bashcold-restore-current-7d3e19d9-20261127/restore/restore.log"
+    },
+    {
+      "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+      "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
+      "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
+      "driverSha256": "52e1379fa9ec814bab3f11f4569376571239685465dc3504db61ab5f2b937678",
+      "image": "sha256:29bbc48255b37ad2e4026d0e119ae8f89de31e46b33c9faeb6059ade97b0d41f",
+      "platform": "linux/arm64",
+      "result": "OPS-24 DUAL_SIDE_VERIFIED",
+      "releaseTag": "202611262204",
+      "assetsSha256": {
+        "geoip.dat": "9dc8e7de8db8300ce27b606f4a30632265713d2f33bcc568c0d2c44c825c8687",
+        "geosite.dat": "3f0a3587c23ad94855c839bf5429ffbd7aba752d14757f2ebc340cb262395624"
+      },
+      "evidencePath": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/verification.json",
+      "strictLedgerCounts": {
+        "DUAL_SIDE_VERIFIED": 25,
+        "GO_ONLY": 0,
+        "FAIL": 5,
+        "BASH_ONLY": 1,
+        "BLOCKED": 3,
+        "NOT_RUN": 0,
+        "APPROVED_DIFF": 0,
+        "APPROVED_SINGLE_SIDE": 0
+      },
+      "qualification": "NO_GO"
     }
   ]
 }

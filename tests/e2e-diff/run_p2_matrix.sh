@@ -154,8 +154,7 @@ docker run --rm -v "$ROOT:/src:ro" -v "$WORK/seed:/out" -w /src \
 }
 
 ARCH=$(docker_arch) || exit 2
-if [[ -x "$ROOT/tests/go-parity/.cache/a2/xray" && \
-      "$(elf_machine "$ROOT/tests/go-parity/.cache/a2/xray")" == "$ARCH" ]]; then
+if [[ -x "$ROOT/tests/go-parity/.cache/a2/xray" ]]; then
     XRAY_BIN="$ROOT/tests/go-parity/.cache/a2/xray"
 else
     XRAY_BIN=$(ensure_xray_bin "$ARCH") || exit 2
@@ -2278,9 +2277,56 @@ ops_observe_job() {
     ops_go_cli "$gserver" "$EVID/OPS-23/go" 10-op speedtest --json \
         --server https://www.cloudflare.com --bytes 1024 --samples 1 --timeout 10s
 
-    # OPS-24: interactive GeoData menu vs schedule status.
-    ops_bash_pipe "$bserver" "$EVID/OPS-24/bash" run 40 '6\n7\n'
-    ops_go_cli "$gserver" "$EVID/OPS-24/go" 10-op schedule status --json
+    # OPS-24: execute the real refresh on both sides. The old sequence stopped
+    # at the submenu (6>7) and then timed out; it never selected the refresh.
+    # Feed the menu action, its explicit confirmation, then unwind both menus.
+    mkdir -p "$EVID/OPS-24/bash" "$EVID/OPS-24/go"
+    docker exec "$bserver" sh -c '
+        d=/etc/idleleo/share/xray
+        { for n in geoip.dat geosite.dat; do
+            if [ -f "$d/$n" ]; then sha256sum "$d/$n"; else echo "$n absent"; fi
+          done; cat /etc/idleleo/conf/xray/geo_version.json 2>/dev/null || true; }' \
+        >"$EVID/OPS-24/bash/before.txt" 2>&1
+    docker exec "$gserver" sh -c '
+        d=/etc/idleleo/share/xray
+        { for n in geoip.dat geosite.dat; do
+            if [ -f "$d/$n" ]; then sha256sum "$d/$n"; else echo "$n absent"; fi
+          done; cat /etc/idleleo/conf/xray/geo_version.json 2>/dev/null || true; }' \
+        >"$EVID/OPS-24/go/before.txt" 2>&1
+    ops_bash_pipe "$bserver" "$EVID/OPS-24/bash" run 300 '6\n7\n1\ny\n2\n0\n0\n'
+    docker exec "$bserver" sh -c 'cat /etc/idleleo/logs/geo_update.log 2>/dev/null || true' \
+        >"$EVID/OPS-24/bash/geo-update.log" 2>&1
+    GEO_TAG=$(docker exec "$bserver" jq -r '.geo_versions["geoip.dat"] // empty' \
+        /etc/idleleo/conf/xray/geo_version.json 2>/dev/null || true)
+    if [[ -z "$GEO_TAG" ]]; then
+        GEO_TAG=$(sed -n 's/^Pinned GeoData release tag: //p' \
+            "$EVID/OPS-24/bash/geo-update.log" | tail -1)
+    fi
+    printf '%s\n' "$GEO_TAG" >"$EVID/OPS-24/bash/release.txt"
+    if [[ "$GEO_TAG" =~ ^[A-Za-z0-9._-]{1,128}$ ]]; then
+        GEO_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$GEO_TAG"
+        printf '%s\n' "$GEO_TAG" >"$EVID/OPS-24/go/release.txt"
+        ops_go_cli "$gserver" "$EVID/OPS-24/go" 09-install schedule install \
+            --interval 3600 --geodata-url "$GEO_URL" --container --json
+    else
+        echo 2 >"$EVID/OPS-24/go/09-install.rc"
+        echo "invalid Bash GeoData release tag: $GEO_TAG" >"$EVID/OPS-24/go/09-install.err"
+    fi
+    ops_go_cli "$gserver" "$EVID/OPS-24/go" 10-op schedule run --job geodata-refresh --json
+    docker exec "$bserver" sh -c '
+        d=/etc/idleleo/share/xray
+        { for n in geoip.dat geosite.dat; do
+            if [ -f "$d/$n" ]; then sha256sum "$d/$n"; else echo "$n absent"; fi
+          done; cat /etc/idleleo/conf/xray/geo_version.json 2>/dev/null || true;
+          systemctl is-active xray 2>&1; }' \
+        >"$EVID/OPS-24/bash/after.txt" 2>&1
+    docker exec "$gserver" sh -c '
+        d=/etc/idleleo/share/xray
+        { for n in geoip.dat geosite.dat; do
+            if [ -f "$d/$n" ]; then sha256sum "$d/$n"; else echo "$n absent"; fi
+          done; cat /etc/idleleo/conf/xray/geo_version.json 2>/dev/null || true;
+          systemctl is-active xray 2>&1; }' \
+        >"$EVID/OPS-24/go/after.txt" 2>&1
 
     # OPS-29: Rill status from both sides.
     ops_bash_capture "$bserver" "$EVID/OPS-29/bash" run 30 'exec bash /etc/idleleo/install.sh --rill-agent-status'
@@ -2475,31 +2521,7 @@ for oid, marker, logfile in (
         if rc(os.path.join(evid, oid, side, "follow.rc")) != 124:
             reasons.append("%s follow probe did not end at its 30s timeout" % side)
     status = "PASS" if not reasons else "FAIL"
-    rc_proof = {
-        "expectedRc": {"bash": 124, "go": 0},
-        "expectedRcEvidence": {
-            "bash": {
-                "rcFiles": [
-                    {"path": "bash/run.rc", "expected": 124},
-                    {"path": "bash/follow.rc", "expected": 124},
-                ],
-                "markerFiles": [
-                    {"path": "bash/follow.out", "contains": [live_marker]},
-                ],
-            },
-            "go": {
-                "rcFiles": [
-                    {"path": "go/snapshot.rc", "expected": 0},
-                    {"path": "go/follow.rc", "expected": 124},
-                ],
-                "markerFiles": [
-                    {"path": "go/snapshot.out", "contains": [marker]},
-                    {"path": "go/follow.out", "contains": [marker, live_marker]},
-                ],
-            },
-        },
-    }
-    entry = write(oid, status, reasons, extra=rc_proof)
+    entry = write(oid, status, reasons)
     write_doc(oid, "log-source-difference.json", {
         "id": oid,
         "result": status,
@@ -2547,17 +2569,63 @@ write("OPS-23", "BLOCKED", [
     "delegation observed=%s" % ("idleleo" in b23 or "命令未找到" in b23 or "command not found" in b23),
 ])
 
-# GeoData: the Bash menu downloads from the hard-coded public GitHub release and
-# needs live internet; the isolated container only reaches its local peers. The
-# Go geodata job is verified separately by run_ops_sweep.sh against a pinned
-# local origin, so this row stays BLOCKED here rather than claiming parity.
+# GeoData: the former probe stopped at the submenu and never invoked refresh.
+# The new probe confirms both real clients use the same immutable release tag,
+# checksum-verifies the downloaded assets, and writes identical bytes.
 b24 = out("OPS-24", "bash", "run")
-write("OPS-24", "BLOCKED", [
-    "Bash GeoData menu refreshes from the hard-coded public GitHub release; this isolated job has no public origin",
-    "bash output shows the GeoData menu, bytes=%d" % len(b24.encode()),
-    "go schedule status rc=%s; real Go geodata refresh is covered by the ops sweep with a local origin"
-    % rc(os.path.join(evid, "OPS-24", "go", "10-op.rc")),
-])
+g24 = out("OPS-24", "go", "10-op")
+reasons = []
+if rc(os.path.join(evid, "OPS-24", "bash", "run.rc")) != 0:
+    reasons.append("Bash GeoData menu did not complete successfully")
+if "GeoData 手动刷新完成" not in b24:
+    reasons.append("Bash output did not confirm a completed GeoData refresh")
+if rc(os.path.join(evid, "OPS-24", "go", "09-install.rc")) != 0:
+    reasons.append("Go schedule install did not complete")
+if rc(os.path.join(evid, "OPS-24", "go", "10-op.rc")) != 0:
+    reasons.append("Go geodata-refresh job did not complete")
+try:
+    go_payload = json.loads(g24)
+    go_jobs = [item for item in go_payload.get("results", [])
+               if item.get("job") == "geodata-refresh"]
+    go_result = go_jobs[0].get("result") if len(go_jobs) == 1 else None
+except Exception:
+    go_result = None
+if go_result != "ok": reasons.append("Go results[] did not contain exactly one successful geodata-refresh")
+
+def geo_snapshot(side):
+    path = os.path.join(evid, "OPS-24", side, "after.txt")
+    text = read(path)
+    hashes = {}
+    for line in text.splitlines():
+        m = re.match(r"^([0-9a-f]{64})\s+.+/(geoip|geosite)\.dat$", line.strip())
+        if m: hashes[m.group(2)] = m.group(1)
+    tag = ""
+    for candidate in (os.path.join(evid, "OPS-24", side, "release.txt"),):
+        value = read(candidate).strip()
+        if value: tag = value
+    if not tag:
+        m = re.search(r'"geoip\.dat"\s*:\s*"([A-Za-z0-9._-]+)"', text)
+        if m: tag = m.group(1)
+    active = "active" in text.splitlines()
+    return {"sha256": hashes, "tag": tag, "xrayActive": active, "path": os.path.relpath(path, evid)}
+
+b_geo = geo_snapshot("bash")
+g_geo = geo_snapshot("go")
+for side, facts in (("Bash", b_geo), ("Go", g_geo)):
+    if set(facts["sha256"]) != {"geoip", "geosite"}:
+        reasons.append("%s did not leave both GeoData assets" % side)
+    if not facts["xrayActive"]:
+        reasons.append("%s Xray service is not active after refresh" % side)
+if b_geo["tag"] != g_geo["tag"] or not b_geo["tag"]:
+    reasons.append("Bash and Go did not use the same pinned GeoData release")
+if b_geo["sha256"] != g_geo["sha256"]:
+    reasons.append("Bash and Go GeoData asset SHA-256 values differ")
+status = "DUAL_SIDE_VERIFIED" if not reasons else "FAIL"
+write("OPS-24", status, reasons, extra={
+    "releaseTag": b_geo["tag"],
+    "assetFacts": {"bash": b_geo, "go": g_geo},
+    "expectedRc": {"bash": 0, "goInstall": 0, "goRun": 0},
+})
 
 def read_snapshot(path):
     data = {}
@@ -4579,7 +4647,7 @@ artifact_paths = {
 for source, target in ((binary, artifact_paths["binary"]),
                        (os.path.join(root, "install.sh"), artifact_paths["bashScript"]),
                        (os.path.join(root, "tests/e2e-diff/run_p2_matrix.sh"), artifact_paths["driver"])):
-    shutil.copy2(source, target)
+    shutil.copyfile(source, target)
 artifact_rels = {name: os.path.relpath(path, evid) for name, path in artifact_paths.items()}
 dependency_sources = (
     "tests/e2e-diff/collect/l4.sh",
@@ -4593,7 +4661,7 @@ for rel in dependency_sources:
     source = os.path.join(root, rel)
     target = os.path.join(artifact_dir, "dependencies", rel)
     os.makedirs(os.path.dirname(target), exist_ok=True)
-    shutil.copy2(source, target)
+    shutil.copyfile(source, target)
     dependencies.append({"source": rel, "path": os.path.relpath(target, evid), "sha256": digest(target)})
 manifest = {
     "productCodeSha": subprocess.check_output(

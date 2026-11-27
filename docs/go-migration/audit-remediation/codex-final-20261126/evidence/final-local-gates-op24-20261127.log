@@ -1,0 +1,28 @@
+$ python3 -m unittest -q tests/e2e-diff/collect/test_build_ledger.py
+----------------------------------------------------------------------
+Ran 35 tests in 1.922s
+
+OK
+rc=0
+$ python3 -m unittest discover -s tests/e2e-diff/collect -p test_\*.py
+......................................
+----------------------------------------------------------------------
+Ran 38 tests in 1.971s
+
+OK
+rc=0
+$ bash tests/e2e-diff/collect/guard_acceptance_artifacts.sh
+......................................
+----------------------------------------------------------------------
+Ran 38 tests in 1.872s
+
+OK
+PASS: tracked acceptance artifacts are byte-identical after the ledger tests
+rc=0
+$ bash -n tests/e2e-diff/run_p2_matrix.sh
+rc=0
+$ git diff --check
+rc=0
+$ python3 tests/go-parity/parity/scripts/check_evidence_hygiene.py --mask .
+hygiene: 0 finding(s) in 72977 file(s)
+rc=0

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-27T12:41:51+00:00",
+  "generatedAt": "2026-11-27T13:48:20+00:00",
   "codeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
   "opsTotal": 34,
   "counts": {
-    "DUAL_SIDE_VERIFIED": 26,
+    "DUAL_SIDE_VERIFIED": 25,
     "GO_ONLY": 0,
-    "FAIL": 3,
+    "FAIL": 5,
     "BASH_ONLY": 1,
-    "BLOCKED": 4,
+    "BLOCKED": 3,
     "NOT_RUN": 0,
     "APPROVED_DIFF": 0,
     "APPROVED_SINGLE_SIDE": 0
@@ -25,8 +25,6 @@
     "OPS-09",
     "OPS-10",
     "OPS-11",
-    "OPS-12",
-    "OPS-13",
     "OPS-15",
     "OPS-17b",
     "OPS-17c",
@@ -34,6 +32,7 @@
     "OPS-20",
     "OPS-21",
     "OPS-22",
+    "OPS-24",
     "OPS-25",
     "OPS-26",
     "OPS-28",
@@ -43,6 +42,8 @@
   ],
   "goOnlyIds": [],
   "failIds": [
+    "OPS-12",
+    "OPS-13",
     "OPS-14",
     "OPS-16",
     "OPS-27"
@@ -53,19 +54,19 @@
   "blockedIds": [
     "OPS-17a",
     "OPS-18",
-    "OPS-23",
-    "OPS-24"
+    "OPS-23"
   ],
   "notRunIds": [],
   "approvedDiffIds": [],
   "approvedSingleSideIds": [],
   "unresolvedIds": [
+    "OPS-12",
+    "OPS-13",
     "OPS-14",
     "OPS-16",
     "OPS-17a",
     "OPS-18",
     "OPS-23",
-    "OPS-24",
     "OPS-27",
     "OPS-30"
   ],
@@ -77,7 +78,8 @@
       "tests/e2e-diff/evidence/ops04-current-7d3e19d9-20261127",
       "tests/e2e-diff/evidence/ops17a-live-l4-7d3e19d9-20261127",
       "tests/e2e-diff/evidence/ops27-current-7d3e19d9-20261127",
-      "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127"
+      "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127",
+      "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127"
     ],
     "opsEvidence": []
   },
@@ -504,70 +506,22 @@
       "verdict": "PASS",
       "bashExit": 124,
       "goExit": 0,
-      "expectedRc": {
-        "bash": 124,
-        "go": 0
-      },
-      "expectedRcEvidence": {
-        "bash": {
-          "markerFiles": [
-            {
-              "contains": [
-                "e2e-access-live-marker"
-              ],
-              "path": "bash/follow.out"
-            }
-          ],
-          "rcFiles": [
-            {
-              "expected": 124,
-              "path": "bash/run.rc"
-            },
-            {
-              "expected": 124,
-              "path": "bash/follow.rc"
-            }
-          ]
-        },
-        "go": {
-          "markerFiles": [
-            {
-              "contains": [
-                "e2e-access-marker"
-              ],
-              "path": "go/snapshot.out"
-            },
-            {
-              "contains": [
-                "e2e-access-marker",
-                "e2e-access-live-marker"
-              ],
-              "path": "go/follow.out"
-            }
-          ],
-          "rcFiles": [
-            {
-              "expected": 0,
-              "path": "go/snapshot.rc"
-            },
-            {
-              "expected": 124,
-              "path": "go/follow.rc"
-            }
-          ]
-        }
-      },
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-12/ops.json",
-      "runId": "ops-observe-restorefix-8ff26917-20261127",
+      "expectedRc": null,
+      "expectedRcEvidence": null,
+      "reasons": [
+        "non-zero bash rc 124 has no matching expectedRc declaration",
+        "non-zero go rc 0 has no matching expectedRc declaration"
+      ],
+      "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/ops.json",
+      "runId": "ops-observe-geodata-real3-8ff26917-20261127",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
       "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
       "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
-      "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
+      "driverSha": "52e1379fa9ec814bab3f11f4569376571239685465dc3504db61ab5f2b937678",
       "supersedes": null,
       "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "FAIL",
       "id": "OPS-12",
       "history": [
         {
@@ -587,6 +541,12 @@
           "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-12/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "FAIL",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-12/ops.json"
         }
       ],
       "name": "实时访问日志",
@@ -603,70 +563,22 @@
       "verdict": "PASS",
       "bashExit": 124,
       "goExit": 0,
-      "expectedRc": {
-        "bash": 124,
-        "go": 0
-      },
-      "expectedRcEvidence": {
-        "bash": {
-          "markerFiles": [
-            {
-              "contains": [
-                "e2e-error-live-marker"
-              ],
-              "path": "bash/follow.out"
-            }
-          ],
-          "rcFiles": [
-            {
-              "expected": 124,
-              "path": "bash/run.rc"
-            },
-            {
-              "expected": 124,
-              "path": "bash/follow.rc"
-            }
-          ]
-        },
-        "go": {
-          "markerFiles": [
-            {
-              "contains": [
-                "e2e-error-marker"
-              ],
-              "path": "go/snapshot.out"
-            },
-            {
-              "contains": [
-                "e2e-error-marker",
-                "e2e-error-live-marker"
-              ],
-              "path": "go/follow.out"
-            }
-          ],
-          "rcFiles": [
-            {
-              "expected": 0,
-              "path": "go/snapshot.rc"
-            },
-            {
-              "expected": 124,
-              "path": "go/follow.rc"
-            }
-          ]
-        }
-      },
-      "reasons": [],
-      "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-13/ops.json",
-      "runId": "ops-observe-restorefix-8ff26917-20261127",
+      "expectedRc": null,
+      "expectedRcEvidence": null,
+      "reasons": [
+        "non-zero bash rc 124 has no matching expectedRc declaration",
+        "non-zero go rc 0 has no matching expectedRc declaration"
+      ],
+      "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/ops.json",
+      "runId": "ops-observe-geodata-real3-8ff26917-20261127",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
       "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
       "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
-      "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
+      "driverSha": "52e1379fa9ec814bab3f11f4569376571239685465dc3504db61ab5f2b937678",
       "supersedes": null,
       "fixedBy": null,
-      "status": "DUAL_SIDE_VERIFIED",
+      "status": "FAIL",
       "id": "OPS-13",
       "history": [
         {
@@ -686,6 +598,12 @@
           "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-13/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "FAIL",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-13/ops.json"
         }
       ],
       "name": "实时错误日志",
@@ -740,6 +658,12 @@
           "status": "FAIL",
           "verdict": "DIFF",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-14/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "FAIL",
+          "verdict": "DIFF",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-14/ops.json"
         }
       ],
       "name": "端口实时流量",
@@ -873,6 +797,12 @@
           "status": "BLOCKED",
           "verdict": "BLOCKED",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-17a/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "BLOCKED",
+          "verdict": "BLOCKED",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17a/ops.json"
         }
       ],
       "name": "更新脚本",
@@ -921,6 +851,12 @@
           "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-17b/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-17b/ops.json"
         }
       ],
       "name": "更新Nginx",
@@ -1010,6 +946,12 @@
           "status": "BLOCKED",
           "verdict": "BLOCKED",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-18/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "BLOCKED",
+          "verdict": "BLOCKED",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-18/ops.json"
         }
       ],
       "name": "TCP加速",
@@ -1213,6 +1155,12 @@
           "status": "BLOCKED",
           "verdict": "BLOCKED",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-23/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "BLOCKED",
+          "verdict": "BLOCKED",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-23/ops.json"
         }
       ],
       "name": "服务器网速",
@@ -1226,26 +1174,26 @@
       "notes": "Go speedtest 指向本地 1MiB origin（run_ops_sweep.sh OPS-23，FINAL-OPS4-20261121）；Bash 菜单 6>6 使用外部测速端点，未纳入本轮双端。"
     },
     {
-      "verdict": "BLOCKED",
-      "bashExit": 124,
+      "verdict": "PASS",
+      "bashExit": 0,
       "goExit": 0,
-      "expectedRc": null,
+      "expectedRc": {
+        "bash": 0,
+        "goInstall": 0,
+        "goRun": 0
+      },
       "expectedRcEvidence": null,
-      "reasons": [
-        "Bash GeoData menu refreshes from the hard-coded public GitHub release; this isolated job has no public origin",
-        "bash output shows the GeoData menu, bytes=428204",
-        "go schedule status rc=0; real Go geodata refresh is covered by the ops sweep with a local origin"
-      ],
-      "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-24/ops.json",
-      "runId": "ops-observe-restorefix-8ff26917-20261127",
+      "reasons": [],
+      "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/ops.json",
+      "runId": "ops-observe-geodata-real3-8ff26917-20261127",
       "layer": "L0-L4 driver evidence",
       "productCodeSha": "8ff26917e3e381d4023b7319d5405f7ba871f289",
       "binarySha256": "c7fd0055b157fc8c7e848f1edb640161ba245a4373e3a5b0b57b36dbc18e237d",
       "bashScriptSha256": "b754d9d98f1506388490776ee0445b6c0eb6b9c5d4d969ad5eac58ca2f6bb373",
-      "driverSha": "c6e65ec80378b0ad7abd98fa3ac5f6e6a73aa3e47353d06659b144dd791e6885",
+      "driverSha": "52e1379fa9ec814bab3f11f4569376571239685465dc3504db61ab5f2b937678",
       "supersedes": null,
       "fixedBy": null,
-      "status": "BLOCKED",
+      "status": "DUAL_SIDE_VERIFIED",
       "id": "OPS-24",
       "history": [
         {
@@ -1265,6 +1213,12 @@
           "status": "BLOCKED",
           "verdict": "BLOCKED",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-24/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-24/ops.json"
         }
       ],
       "name": "刷新GeoData",
@@ -1317,6 +1271,12 @@
           "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-25/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-25/ops.json"
         }
       ],
       "name": "备份管理文件",
@@ -1369,6 +1329,12 @@
           "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-26/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-26/ops.json"
         }
       ],
       "name": "恢复管理文件",
@@ -1490,6 +1456,12 @@
           "status": "DUAL_SIDE_VERIFIED",
           "verdict": "PASS",
           "evidence": "tests/e2e-diff/evidence/ops-observe-restorefix-8ff26917-20261127/p2/OPS-29/ops.json"
+        },
+        {
+          "runId": "ops-observe-geodata-real3-8ff26917-20261127",
+          "status": "DUAL_SIDE_VERIFIED",
+          "verdict": "PASS",
+          "evidence": "tests/e2e-diff/evidence/ops-observe-geodata-real3-8ff26917-20261127/p2/OPS-29/ops.json"
         }
       ],
       "name": "Rill AI 状态",

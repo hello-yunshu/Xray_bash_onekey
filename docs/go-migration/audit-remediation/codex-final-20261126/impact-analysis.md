@@ -12,7 +12,7 @@
 
 | 证据族 / 旧路径 | 原候选与产物 | 影响分析 | 本轮处理与当前结果 |
 |---|---|---|---|
-| OPS-01…32 历史完整矩阵（round4 / round5 / f4deaf77） | 各自 run 的代码、二进制和 driver SHA | Guard、日志、更新器与验收器范围内的 OPS 不能因历史全绿继承当前通过；其他行也不能只靠旧 run 身份签收 | 当前候选分批执行真实双端 OPS，严格账本最终 26 DUAL、3 FAIL、1 Bash-only、4 BLOCKED、0 NOT_RUN；结果路径和每行来源见 `ledger.json` 与本轮 `evidence-index.json` |
+| OPS-01…32 历史完整矩阵（round4 / round5 / f4deaf77） | 各自 run 的代码、二进制和 driver SHA | Guard、日志、更新器与验收器范围内的 OPS 不能因历史全绿继承当前通过；其他行也不能只靠旧 run 身份签收 | 当前候选分批执行真实双端 OPS，严格账本最新为 25 DUAL、5 FAIL、1 Bash-only、3 BLOCKED、0 NOT_RUN；结果路径和每行来源见 `ledger.json` 与本轮 `evidence-index.json` |
 | OPS-03 shortId、撤销和重启边界 | `ops03-boundary-23fa585f-20261127`，产品 SHA 需按 `run.json` 解读 | `internal/xraycfg` 自 f4deaf77 起未变；共享凭据、撤销旧连接和重启属于用户生命周期行为，不能由一般 add/remove 流程推断 | 边界探针保留共享 shortId、移除后旧凭据拒绝、存活用户与重启后连接证据；当前 OPS-03 又在 `ops-core-7d3e19d9` 双端复跑。流程结果可复用，Go 显式 shortId 清理与 Bash 自动清理的命令语义仍单独披露 |
 | OPS-04 分享 URI、OPS-17b Nginx 更新、OPS-25/26 备份恢复 | 早期 round5 / `obsfix-final-fb55` | 旧候选不能替代新账本；更新器改动直接影响 OPS-17b；restore 修复直接影响 OPS-25/26 | OPS-04 与 OPS-17b 的 7d3e19d9 证据按影响映射复用；OPS-25/26 在 8ff26917 双端重跑，真实备份、完整性校验、修改后恢复、权限、服务校验及 Reality L4 均通过。另以全新目标复现并修复 Bash cold restore：M4 TLS/WebSocket 归档恢复后配置、证书、二进制 SHA 和权限与源端一致，Xray/Nginx active 并通过实际客户端请求。首次冷恢复失败日志保留，证明问题不是单测推断 |
 | Guard 旧 mtime / 未 reload / 异步 reload / rollback / Nginx master restart | `guard-ops08-23fa585f-20261127`，产品 SHA `23fa585f…`；更早红/绿记录在 `guard-ops08-async-*` | 该后续提交相对当前 `7d3e19d9` 的 Guard 产品文件无差异（由 Git diff 复核）；它晚于旧 f4deaf77，覆盖当前 Guard 实现。验收器和报告代码改动不改变被测进程行为 | 保留真实 `nginx -t`、磁盘编辑并保留旧 mtime、reload 前 runtime-unverified、reload 后 active、异步 reload 超时回滚、restart 后 runtime-unverified、未知 SNI 请求 rc。PID 数值被强制复用没有独立真机证据，未声称测试过 |
@@ -31,6 +31,6 @@
 
 - 没有把历史二进制、驱动、runId 或代码 SHA 改写成当前候选。复用只用于代码文件未变且测试输出仍对应同一契约的专项，并由上表标明原产物。
 - 当前 M1–M10、98 项、P3、冷恢复及 OPS 主矩阵均有新候选运行。完整真实业务连接、配置/服务状态、退出码来自输出证据，不由单测或 run 摘要代替。
-- OPS-14 与 OPS-16 的当前差异以及 OPS-27 第三方文件保护的差异保持正式 FAIL；OPS-30 保持 Bash-only；OPS-17a/18/23/24 保持 BLOCKED。未取得绑定候选、scope、证据指纹和期限的独立批准记录，不自动将它们转成批准差异。
+- OPS-14 与 OPS-16 的当前差异以及 OPS-27 第三方文件保护的差异保持正式 FAIL；OPS-30 保持 Bash-only；OPS-17a/18/23 保持 BLOCKED。未取得绑定候选、scope、证据指纹和期限的独立批准记录，不自动将它们转成批准差异。
 - 当前 ARM64 Docker 不证明 amd64、Debian 12、外部公共 CA/IPv6、宿主 BBR、生产服务器或真实掉电行为。
 - 对 `7d3e19d9 → 8ff26917` 的机器可校验复用边界：受影响项仅 OPS-25/26，已有当前 SHA 真实双端证据；其余 32 项保留 `7d3e19d9` 的原始 provenance 并附 `evidenceReuse` 映射。严格结果为 26 DUAL、3 FAIL、1 BASH-only、4 BLOCKED、0 NOT_RUN，严格验收器 rc=1。

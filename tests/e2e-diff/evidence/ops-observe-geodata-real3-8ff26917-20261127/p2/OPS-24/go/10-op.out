@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "root": "/",
+  "startedAt": "2026-11-27T13:28:44Z",
+  "results": [
+    {
+      "job": "geodata-refresh",
+      "result": "ok",
+      "detail": "geoip.dat=16676025 bytes geosite.dat=11565574 bytes; xray restarted",
+      "at": "2026-11-27T13:28:44Z"
+    }
+  ]
+}

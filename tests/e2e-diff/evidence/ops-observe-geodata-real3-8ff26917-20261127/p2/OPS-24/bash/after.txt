@@ -1,0 +1,9 @@
+9dc8e7de8db8300ce27b606f4a30632265713d2f33bcc568c0d2c44c825c8687  /etc/idleleo/share/xray/geoip.dat
+3f0a3587c23ad94855c839bf5429ffbd7aba752d14757f2ebc340cb262395624  /etc/idleleo/share/xray/geosite.dat
+{
+  "geo_versions": {
+    "geoip.dat": "202611262204",
+    "geosite.dat": "202611262204"
+  }
+}
+active
