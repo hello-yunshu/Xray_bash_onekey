@@ -1,10 +1,6 @@
-# 最新候选更新（2026-11-28）
+# 历史候选快照（9e495b38；由下方“当前候选更新”取代）
 
-当前产品候选 `9e495b38a5574f53e37bd11e4b3c8f196f76e25b`。已将 OPS-14、OPS-16、OPS-20 的真实 Docker/Xray/Nginx/client 运行纳入严格 OPS-34；保留 OPS-14/16 的 FAIL，严格结果为 28 DUAL、3 FAIL（14/16/27）、1 BASH_ONLY（30）、2 BLOCKED（17a/18）、0 NOT_RUN，退出码 1。严格原始结果：`evidence/strict-ledger-final-9e495b38-20261128.log`。OPS-14 的 Go 30 样本 stats 与 Reality L4 成功；OPS-16 的只读证书状态 JSON、dry-run 预检与证书/私钥 SHA 不变均成功；OPS-20 当前候选双端 1 MiB HTTP/body SHA 与真实 inbound counter 增量通过。
-
-历史复用链为 `7d3e19d9 → 8ff26917 → 9e495b38`，逐段通过验收器校验。末段仅 OPS-14/16 受影响，故当前候选对其补跑；OPS-03/17b 与四类冷恢复等原候选证据按链式映射保留原始 SHA，不改标为当前运行。
-
-仍未闭环：OPS-14/16/27 需要在既有验收口径下取得可核验的正式差异裁决或达到契约一致；OPS-17a 需要 Bash 实际替换更新包的双端证据；OPS-18 需要真实宿主 BBR 验证；OPS-30 仍无 Go 等价实现/正式单侧裁决；当前 SHA 七项远程 CI 仍 CI_PENDING。Go 方案仅在有证据证明优于 Bash 时才能作为差异提案，不能由执行者自行批准。
+本段保留 2026-11-28 较早候选的审计原文，不代表当前账本状态。当前状态见文末“当前候选更新”。
 
 # 本轮任务账本（2026-11-28 更新）
 
@@ -44,7 +40,7 @@
 | OPS-14 | FAIL/DIFF；持续流量已验证 | `codex-ops14-ratecheck-85340b48-20261128/p2/OPS-14/go/12-loaded-watch/summary.json`：真实 Reality 客户端 35/35 HTTP 200；Go watch 20 样本、32 个正 inbound rate 点，最高 1201.13 bytes/s；Xray active。初始零速率探针保留。Go 有界、机器可读并避免对端地址收集；Bash iftop 有 per-peer 视图。运行功能已证实，仍需契约所有者确认粒度/隐私取舍。 |
 | OPS-16 | FAIL，待契约裁决 | Go 只读 JSON 状态与 dry-run 实际成功且证书/私钥 hash 不变；Bash 交互菜单。证据 `tests/e2e-diff/evidence/codex-ops16-85340b48-20261128/p2/OPS-16/ops.json`。差异未获批准。 |
 | OPS-27 | FAIL，待契约裁决 | Go 保留第三方证书文件、Bash 递归删除的安全差异已有 canary 和故障边界证据；执行者不自行批准。 |
-| OPS-18 | BLOCKED | 需非生产真实 BBR 宿主内核/权限，本轮不可用；不触碰生产 VPS。 |
+| OPS-18 | BLOCKED；已核验当前内核不支持 | `evidence/ops18-kernel-probe-85340b48-20261128.log` 与 `evidence/ops18-go-tcp-refusal-85340b48-20261128.log`：容器共享内核仅 reno/cubic；Go apply 明确拒绝且不写 sysctl/state。成功路径仍需真实支持 BBR 的非生产内核。 |
 | OPS-30 | BASH_ONLY；Go 的不同方式已实测 | `evidence/ops30-go-lang-85340b48-retry2-20261128.log`：当前候选 Go 二进制在 Docker 实测逐命令 `--lang zh/en/fr`，zh/en 输出正常，fr 显示清晰的英文回退提示；命令不写任何语言配置。该方式更适合自动化，但不提供 Bash 菜单的持久默认值且翻译覆盖较少，仍未证明替代持久偏好，正式 BASH_ONLY 不变。 |
 | CI | PASS（产品候选 SHA） | 远程 7 项 workflow 已对 `85340b4871fccfac703566a2ce00469e4a8a9371` 通过，证据和 run URL/ID 在 evidence-index。 |
 | 总结 | NO_GO | 仍有未裁决 FAIL、单侧项与环境 BLOCKED。Go 方案可以不同，但 OPS-14 尚未展示正实时速率，OPS-16/27 的优势不能由执行者代替所有者批准。 |
@@ -53,3 +49,6 @@
 
 
 附加 OPS-14 负载探针说明：另一次保持容器的真实 Docker run 初始矩阵结果仍为 DIFF；之后在同一个 Go Reality 服务和存活代理客户端上并行运行 stats watch 与 35 个连续 HTTP 请求，收集 20 个采样、40 个 inbound counters、32 个正速率点。Nginx 在该 direct Reality 场景 inactive，不在请求路径；Xray active，客户端 35 个结果均 HTTP 200。摘要记录此服务边界，不把 Nginx 标作通过。
+
+
+OPS-18 本轮环境审查：当前 Docker 共享的 OrbStack 7.2.12 内核不提供 BBR；真实 Go CLI 在无网络、无 capability 的一次性容器里读取状态并拒绝 apply（rc=12），确认不会尝试替换内核或留下 managed file/state。此证据覆盖安全拒绝边界，不覆盖 BBR 成功应用；OPS-18 状态不变。

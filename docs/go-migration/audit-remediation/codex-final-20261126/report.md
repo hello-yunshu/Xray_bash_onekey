@@ -12,15 +12,16 @@
 - **OPS-17a**：在一次性 Docker 中用本地签名发布夹具分别触发 Bash 菜单和 Go updater 实际替换更新资产。双方安装前后版本变化，安装二进制 SHA 与候选资产 SHA 精确匹配，Xray/Nginx 健康，更新后真实 Reality 客户端 L4 成功，且保持手动触发。正式状态 DUAL。证据：`tests/e2e-diff/evidence/codex-ops17a-85340b48-20261128/p2/OPS-17a/ops.json`。此前失败的 r0/r1/r2 诊断仍保留，不覆盖为成功。
 - **OPS-25/26**：Bash tar 与 Go 备份/恢复在实际容器中均完成归档、完整性校验、破坏 live 数据后恢复；记录业务文件摘要、权限、服务验证、canary 恢复和真实 Reality L4。双方实际命令 rc=0，正式状态 DUAL。Go 将服务恢复置于事务流程；Bash driver 在恢复后重启服务。证据：`tests/e2e-diff/evidence/codex-ops-backup-85340b48-20261128/p2/OPS-25/ops.json` 与 `OPS-26/ops.json`。
 - **OPS-14**：当前正式双端矩阵仍是 FAIL/DIFF，但已补做真实负载探针：在 Go `stats --watch` 20 秒采样期间，经存活的 Reality 客户端发起 35 个真实请求，HTTP 200 为 35/35；40 个 inbound 计数点中 32 个给出正速率，最高 1201.13 bytes/s，Xray active。初次单请求探针曾得到 0 正速率点，失败事实保留。Go 汇总速率有界、机器可读且不采集对端地址；Bash iftop 提供更细的 per-peer 观察。该证据证明 Go 实时汇总速率有效并有隐私优势，但两者能力粒度不同，未由执行者自行改变正式 DIFF/FAIL。证据：`tests/e2e-diff/evidence/codex-ops14-ratecheck-85340b48-20261128/p2/OPS-14/go/12-loaded-watch/summary.json`；初始完整双端证据仍见 `codex-ops14-85340b48-20261128/p2/OPS-14/ops.json`。
+- **OPS-18 当前内核拒绝路径**：一次性 Docker 的共享 OrbStack 内核 available algorithms 只有 `reno/cubic`；Go `tcp status --json` rc=0 报告 BBR 不可用，隔离容器内 apply rc=12 明确拒绝，运行时 `cubic` 未变、managed file/state 均未写。此项证明缺少 BBR 时的安全拒绝，不证明成功应用，继续 BLOCKED。证据：`evidence/ops18-kernel-probe-85340b48-20261128.log`、`evidence/ops18-go-tcp-refusal-85340b48-20261128.log`。
 - **OPS-16**：双方状态路径 rc=0。Go `cert status` 输出机器可读证书与 scheduler 状态，dry-run 预检成功，读取过程未改变证书/私钥摘要；Bash 提供交互菜单。可读性/自动化优势已有证据，但没有独立裁决替代原交互契约，仍 FAIL。证据：`tests/e2e-diff/evidence/codex-ops16-85340b48-20261128/p2/OPS-16/ops.json`。
 - 影响分析链：`7d3e19d9 → 8ff26917 → 9e495b38 → 85340b48`。末段的实际 Git 文件清单、二进制 diff SHA 与 OPS 互斥分区在 `evidence/impact-reuse-9e-to-85340b48.json`；涉及行由当前候选证据重跑，其余只复用不受影响的原始证据并保留原 SHA。
 
 ## 仍未闭环与下一步
 
-1. OPS-14：在同一真实客户端持续流量期间重跑 Go watch，证实速率样本为正，并明确 bounded interval/rate 与 iftop 可观察性的业务映射；若结果达不到，需要修复 Go 行为或保留失败。
+1. OPS-14：持续真实流量下的正速率样本已证明；仅需契约所有者裁决 Go 有界 aggregate rate 与 iftop per-peer 视图的粒度/隐私取舍，执行者不代签。
 2. OPS-16/27：把已展示的机器可读状态/只读完整性优势、以及 Go 防止递归删除第三方证书的安全优势交由契约所有者按既有口径确认是否接受。执行者未生成审批，也未把 FAIL 直接升级为 approved。
-3. OPS-18：需要真实支持 BBR 的宿主内核与权限；不得使用生产 VPS，本轮环境无法提供，继续 BLOCKED。
-4. OPS-30：Go 缺少等价行；需要实现并双端验证或由契约所有者做单侧裁决。
+3. OPS-18：当前隔离 Docker 共享内核不支持 BBR；Go 在真实不可用场景中安全拒绝已证实。成功应用/回滚仍需要非生产且真实支持 BBR 的宿主内核与权限，继续 BLOCKED。
+4. OPS-30：Go `--lang` 按命令选择已实测，但不持久保存默认语言且可用翻译少于 Bash；需要契约所有者决定是否接受该 CLI 方案/保留 Bash-only，或明确要求补足持久偏好。
 5. OPS-14/16/27/30/18 状态未解决前严格验收必须非零。OPS-17a 已不在待办内。
 
 详细历史过程保留在下方报告和 `tasks.md`；遇到与本节冲突的旧快照时，以本节与正式 `tests/e2e-diff/ledger.json` 为当前状态。

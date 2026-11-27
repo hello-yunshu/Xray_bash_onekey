@@ -1,3 +1,15 @@
+# 当前候选补记（2026-11-28，更新至产品 SHA 85340b48）
+
+当前正式账本绑定 `85340b4871fccfac703566a2ce00469e4a8a9371`，34 项为 29 DUAL、3 FAIL（OPS-14/16/27）、1 BASH_ONLY（OPS-30）、1 BLOCKED（OPS-18）、0 NOT_RUN；严格 rc=1。OPS-17a 与 OPS-25/26 现有当前候选真实双端通过证据，详见报告和证据索引。历史复用末段 `9e495b38 → 85340b48` 的 Git 文件列表及 binary diff SHA 在 `evidence/impact-reuse-9e-to-85340b48.json`。
+
+OPS-14 另有当前候选真实负载 stats watch：35/35 Reality 请求 HTTP 200，20 个样本中 32 个正 inbound rate 点；Go 不记录对端地址，Bash iftop 有 per-peer 视图。仍保留 DIFF，等待契约所有者确认信息粒度与隐私取舍。OPS-16 机器可读状态/只读核验优势和 OPS-27 第三方文件保护安全优势保留未批准差异，未由执行者代批。OPS-30 Go `--lang` 逐命令语言选择 Docker 实测正常且不写偏好，但不替代 Bash 持久的完整语言偏好，仍为 BASH_ONLY。
+
+OPS-18 使用一次性 Docker 对共享 OrbStack Linux 内核进行只读能力检查，available 只有 `reno cubic`、current `cubic`，没有 BBR。Go `tcp status` 返回 rc=0 并如实报告；在 `--network none --cap-drop=ALL` 的丢弃容器中实测 `tcp apply --confirm` rc=12，明确拒绝，`changed=false`，当前算法不变且没有创建受管 sysctl/状态文件。`evidence/ops18-kernel-probe-85340b48-20261128.log` 保留初次可选 qdisc 路径不存在导致的 rc=1 诊断和后续正确只读探测；`evidence/ops18-go-tcp-refusal-85340b48-20261128.log` 记录 Go 拒绝边界。此环境没有 BBR 模块，无法完成成功应用和回滚验证；不加载模块、不触碰宿主/生产 sysctl，OPS-18 继续 BLOCKED。
+
+当前候选 7 项远程 CI 在产品提交 `85340b48` 上均通过；最终交付文档提交的 Privacy Guard 另行通过。最终报告、任务账本、证据索引优先于以下保留的历史快照。
+
+---
+
 # 最新候选更新（2026-11-28）
 
 当前产品候选 `9e495b38a5574f53e37bd11e4b3c8f196f76e25b`。已将 OPS-14、OPS-16、OPS-20 的真实 Docker/Xray/Nginx/client 运行纳入严格 OPS-34；保留 OPS-14/16 的 FAIL，严格结果为 28 DUAL、3 FAIL（14/16/27）、1 BASH_ONLY（30）、2 BLOCKED（17a/18）、0 NOT_RUN，退出码 1。严格原始结果：`evidence/strict-ledger-final-9e495b38-20261128.log`。OPS-14 的 Go 30 样本 stats 与 Reality L4 成功；OPS-16 的只读证书状态 JSON、dry-run 预检与证书/私钥 SHA 不变均成功；OPS-20 当前候选双端 1 MiB HTTP/body SHA 与真实 inbound counter 增量通过。
