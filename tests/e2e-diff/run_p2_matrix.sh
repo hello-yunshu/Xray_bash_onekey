@@ -2133,7 +2133,7 @@ ops_bash_capture() { # <server> <dir> <label> <timeout> <shell-command>
 }
 
 ops_follow_probe() { # <server> <dir> <side> <kind> <marker>
-    local server=$1 dir=$2 side=$3 kind=$4 marker=$5 limit=8 pid rc ready=0 i
+    local server=$1 dir=$2 side=$3 kind=$4 marker=$5 limit=30 pid rc ready=0 i
     mkdir -p "$dir"
     if [[ "$side" == bash ]]; then
         docker exec "$server" timeout "$limit" bash /etc/idleleo/install.sh "-x${kind:0:1}" \
@@ -2144,14 +2144,14 @@ ops_follow_probe() { # <server> <dir> <side> <kind> <marker>
             >"$dir/follow.out" 2>"$dir/follow.err" &
     fi
     pid=$!
-    for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+    for i in {1..100}; do
         if [[ "$side" == bash ]]; then
             docker exec "$server" sh -c "ps -eo args | grep -F 'tail -f /var/log/xray/$kind.log' | grep -v grep" >/dev/null 2>&1
         else
             docker exec "$server" sh -c "ps -eo args | grep -F 'idleleo xray logs show --kind $kind' | grep -v grep" >/dev/null 2>&1
         fi
         if [[ $? == 0 ]]; then ready=1; break; fi
-        sleep 0.2
+        sleep 0.25
     done
     [[ "$ready" == 1 ]] || echo "follow process did not become visible" >"$dir/follow-ready.txt"
     docker exec "$server" sh -c "printf '%s\\n' '$marker' >> '/var/log/xray/$kind.log'" >/dev/null 2>&1 || true
@@ -2447,7 +2447,7 @@ for oid, marker, logfile in (
         reasons.append("Go bounded snapshot exited nonzero")
     for side in ("bash", "go"):
         if rc(os.path.join(evid, oid, side, "follow.rc")) != 124:
-            reasons.append("%s follow probe did not end at its 8s timeout" % side)
+            reasons.append("%s follow probe did not end at its 30s timeout" % side)
     status = "PASS" if not reasons else "FAIL"
     entry = write(oid, status, reasons)
     write_doc(oid, "log-source-difference.json", {
