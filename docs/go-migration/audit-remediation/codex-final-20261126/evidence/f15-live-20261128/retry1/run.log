@@ -1,0 +1,29 @@
+PASS Bash xray_stats.sh baseline is present: /repo/scripts/xray_stats.sh
+PASS real Xray Stats API is listening: 127.0.0.1:53121
+PASS real Xray HTTP inbound is listening: 35123
+PASS HTTP proxy request reached the origin: HTTP/1.1 200 OK
+Content-Length: 65536
+Connection: keep-alive
+Content-Type: ap
+PASS origin body came back through Xray
+PASS StatsService recorded inbound uplink: 83
+PASS StatsService recorded inbound downlink >= body size: 65769
+Traceback (most recent call last):
+  File "/repo/tests/go-parity/parity/features/fixture_support.py", line 264, in run_fixture
+    main(fixture)
+  File "/repo/tests/go-parity/parity/features/F15_test.py", line 289, in main
+    go_json = f.run([f.go, "--root", str(root), "stats", "--json"], timeout=60)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/repo/tests/go-parity/parity/features/fixture_support.py", line 118, in run
+    proc = subprocess.run(
+           ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/lib/python3.12/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/work/bin/idleleo'
+FAIL uncaught exception
+== F15: 7 passed, 1 failed, 0.67s ==

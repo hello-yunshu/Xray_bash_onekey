@@ -1,0 +1,15 @@
+Xray 26.11.9 (Xray, Penetrates Everything.) 676eaf6 (go1.27.3 linux/arm64)
+A unified platform for anti-censorship.
+2026/11/27 20:24:19.664564 [Info] infra/conf/serial: Reading config: &{Name:/work/evidence/stats-work/sandbox/etc/idleleo/conf/xray/config.json Format:json}
+2026/11/27 20:24:19.665899 [Warning] core: Xray 26.11.9 started
+2026/11/27 20:24:19.765191 from 127.0.0.1:47114 accepted tcp:127.0.0.1:37429 [api-in >> direct]
+2026/11/27 20:24:19.765464 from 127.0.0.1:56580 accepted http://127.0.0.1:58507/payload [http-in >> direct]
+2026/11/27 20:24:20.080964 from 127.0.0.1:47160 accepted tcp:127.0.0.1:37429 [api-in >> direct]
+2026/11/27 20:24:20.080996 from 127.0.0.1:47164 accepted tcp:127.0.0.1:37429 [api-in >> direct]
+2026/11/27 20:24:20.605686 from 127.0.0.1:47188 accepted tcp:127.0.0.1:37429 [api-in >> direct]
+2026/11/27 20:24:20.605840 from 127.0.0.1:47200 accepted tcp:127.0.0.1:37429 [api-in >> direct]
+2026/11/27 20:24:20.862497 from 127.0.0.1:47212 accepted tcp:127.0.0.1:37429 [api-in >> direct]
+2026/11/27 20:24:20.862615 from 127.0.0.1:47214 accepted tcp:127.0.0.1:37429 [api-in >> direct]
+2026/11/27 20:24:20.884186 from 127.0.0.1:47242 accepted tcp:127.0.0.1:37429 [api-in >> direct]
+2026/11/27 20:24:20.903056 from 127.0.0.1:47266 accepted tcp:127.0.0.1:37429 [api-in >> direct]
+2026/11/27 20:24:20.936538 from 127.0.0.1:47294 accepted tcp:127.0.0.1:37429 [api-in >> direct]

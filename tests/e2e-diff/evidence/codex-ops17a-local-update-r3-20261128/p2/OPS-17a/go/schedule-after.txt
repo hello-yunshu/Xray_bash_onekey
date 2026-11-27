@@ -1,0 +1,11 @@
+NEXT                            LEFT LAST PASSED UNIT                         ACTIVATES
+Fri 2026-11-27 20:32:34 UTC    14min -         - systemd-tmpfiles-clean.timer systemd-tmpfiles-clean.service
+Sat 2026-11-28 00:00:00 UTC 3h 41min -         - dpkg-db-backup.timer         dpkg-db-backup.service
+Sat 2026-11-28 00:18:32 UTC  4h 0min -         - motd-news.timer              motd-news.service
+Sat 2026-11-28 06:37:18 UTC      10h -         - apt-daily-upgrade.timer      apt-daily-upgrade.service
+Sat 2026-11-28 10:48:47 UTC      14h -         - apt-daily.timer              apt-daily.service
+Sun 2026-11-29 03:10:11 UTC 1 day 6h -         - e2scrub_all.timer            e2scrub_all.service
+-                                  - -         - fstrim.timer                 fstrim.service
+
+7 timers listed.
+no crontab for root

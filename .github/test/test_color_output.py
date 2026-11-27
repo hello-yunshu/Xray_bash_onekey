@@ -194,6 +194,9 @@ TEST_PREFIXES = (".github/test/", "i18n/tests/", "tests/")
 # executable output; a scanner that treated them as production paths would
 # either stay red forever or force a blanket .log exclusion.
 HISTORICAL_PREFIXES = ("tests/e2e-diff/evidence/",)
+HISTORICAL_FILES = frozenset({
+    "docs/go-migration/audit-remediation/codex-final-20261126/evidence/xhttp-repeat-path-debug.log",
+})
 # Only these test trees must carry the per-file annotation; broader test
 # fixtures may legitimately contain ESC for parsing without color intent.
 ANNOTATED_PREFIXES = (".github/test/", "i18n/tests/")
@@ -229,7 +232,7 @@ def ansi_category(rel, line):
     posix = rel.as_posix()
     suffix = pathlib.Path(posix).suffix.lower()
     stripped = line.strip()
-    if posix.startswith(HISTORICAL_PREFIXES):
+    if posix in HISTORICAL_FILES or posix.startswith(HISTORICAL_PREFIXES):
         return "historical-evidence"
     if posix.startswith(TEST_PREFIXES):
         return "test-fixture"
@@ -357,6 +360,8 @@ def test_static():
           "the ANSI scanner flags a plain shell output")
     check(ansi_category(pathlib.Path("tests/e2e-diff/evidence/run/bash/install.log"), "\x1b[32m") == "historical-evidence",
           "captured differential logs are history, not production output")
+    check(ansi_category(pathlib.Path("docs/go-migration/audit-remediation/codex-final-20261126/evidence/xhttp-repeat-path-debug.log"), "\\033") == "historical-evidence",
+          "the indexed XHTTP diagnostic capture is treated as historical evidence")
     check(ansi_category(pathlib.Path("tests/e2e-diff/collect/normalize.py"), "\\033") == "test-fixture",
           "test tooling is a fixture regardless of the file name")
 

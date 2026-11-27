@@ -1,0 +1,13 @@
+{
+  "edits": [],
+  "installs": [],
+  "only": "OPS-OBSERVE",
+  "ops": [
+    "OPS-OBSERVE"
+  ],
+  "runId": "codex-ops17a-local-update-r1-20261128",
+  "sides": [
+    "bash",
+    "go"
+  ]
+}

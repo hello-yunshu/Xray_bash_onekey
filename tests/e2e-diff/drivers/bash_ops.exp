@@ -220,14 +220,18 @@ proc ops17c {} {
 }
 
 proc ops17a {} {
-    # Exercise the real script-update menu with a PTY. On the pinned current
-    # Bash release the updater reports "already latest" and returns to the
-    # menu; draining that menu is part of the operation, otherwise a piped-EOF
-    # harness loops until timeout and misreports the product result.
+    # Exercise the real script-update menu with a PTY. The focused acceptance
+    # run supplies a checksum-pinned local release and its signed/hashed helper
+    # manifest, so this path performs an actual script replacement without
+    # publishing a release or depending on the public latest tag.
     ask {请输入选项} 5 updateMenu
     ask {请输入选项} 1 updateScript
     expect {
-        -re {当前已经是最新版本} { puts "STEP\[scriptUpdate\]=already-latest" }
+        -re {存在新版本.*是否更新|是否更新} {
+            send "y\r"
+            puts "STEP\[scriptUpdateConfirm\]=y"
+            exp_continue
+        }
         -re {更新.*完成} { puts "STEP\[scriptUpdate\]=updated" }
         -re {更新失败|拒绝更新|校验失败} { harness_error "ops17a: update rejected" }
         eof { harness_error "ops17a: eof before update result" }

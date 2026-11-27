@@ -1,0 +1,21 @@
+{
+  "inbounds": [
+    {
+      "downlinkBytes": 1145,
+      "tag": "api-in",
+      "totalBytes": 5183,
+      "uplinkBytes": 4038
+    },
+    {
+      "downlinkBytes": 65769,
+      "tag": "http-in",
+      "totalBytes": 65852,
+      "uplinkBytes": 83
+    }
+  ],
+  "reset": false,
+  "schemaVersion": 1,
+  "server": "127.0.0.1:36907",
+  "uptimeSeconds": 1,
+  "version": "1.2.0"
+}

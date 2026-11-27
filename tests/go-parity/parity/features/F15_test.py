@@ -14,9 +14,10 @@ through the proxy, and then compares:
     config, 2 invalid arguments), and
   * the scheduled `stats-collect` job writing `schedule/stats.json`.
 
-`watch` and `reset` are not implemented in Go on purpose. The fixture asserts
-they are refused explicitly (unknown flag, exit 2) instead of being silently
-accepted, and records the Bash baseline exit-code differences in evidence.
+Go implements a bounded, read-only `--watch` mode that the Bash baseline does
+not provide. The fixture verifies multiple real samples and continues to
+assert that counter-mutating `--reset` is refused. It also records the Bash
+baseline exit-code differences in evidence.
 """
 import json
 import os
@@ -356,8 +357,19 @@ def main(f):
                 "stats queries leave the root tree byte-identical",
                 f"{before_config[:12]} -> {after_config[:12]}")
 
-        # 6) Explicit unsupported watch/reset instead of silent acceptance.
-        for flag in ("--watch", "--reset", "--yes"):
+        # 6) Go's bounded watch mode adds live sampling beyond Bash's snapshot.
+        watch = f.run([f.go, "--root", str(root), "stats", "--watch",
+                       "--samples", "2", "--interval", "250ms"], timeout=30)
+        f.check(watch.rc == 0, "stats --watch exits 0", f"rc={watch.rc} {watch.err[:200]}")
+        f.check("sample=1/2" in watch.out and "sample=2/2" in watch.out,
+                "stats --watch emits both bounded samples", watch.out[:1200])
+        f.check(up_name in watch.out and down_name in watch.out,
+                "stats --watch includes live inbound counters", watch.out[:1200])
+        f.write_json("watch-output.json", {"stdout": watch.out, "stderr": watch.err,
+                                            "exitCode": watch.rc})
+
+        # Counter mutation is deliberately not part of the Go stats contract.
+        for flag in ("--reset", "--yes"):
             refused = f.run([f.go, "--root", str(root), "stats", flag], timeout=30)
             f.check(refused.rc == 2, f"stats {flag} is refused with exit 2",
                     f"rc={refused.rc}")

@@ -1,0 +1,10 @@
+{
+  "build": "2026.10.15.7679",
+  "arch": "arm",
+  "asset": "xray-nginx-custom-arm.tar.gz",
+  "source": "host-cache",
+  "tarballSha256": "dc78117f2ebd490a0c17ab08f0b9ef1c7db79058cd19426af6432ccb2026ef79",
+  "tarballSizeBytes": 9645047,
+  "manifestSha256": "d9f6e1628268661541e118fc3d3e1d91371541e2b697617c33eb7331b1572033",
+  "versionsSha256": "332dff7984de8ab153b73200742827d5212c02c2b2e973048b1d4e607f490381"
+}

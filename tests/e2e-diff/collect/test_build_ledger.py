@@ -581,6 +581,29 @@ class LedgerContractTest(unittest.TestCase):
         self.assertTrue(any("business evidence" in r for r in row["reasons"]),
                         row["reasons"])
 
+    def test_ops17a_pass_requires_update_and_live_client_facts(self):
+        ops(self.matrix, "OPS-17a", "PASS", details={"bash": {}, "go": {}})
+        proc, ledger = self.run_ledger(matrix=self.matrix)
+        self.assertEqual(proc.returncode, 2, proc.stderr)
+        row = self.row(ledger, "OPS-17a")
+        self.assertEqual(row["status"], "BLOCKED")
+        self.assertTrue(any("required business fact" in r for r in row["reasons"]),
+                        row["reasons"])
+
+    def test_ops26_pass_requires_full_restore_results_on_both_sides(self):
+        ops(self.matrix, "OPS-26", "PASS", details={"bash": {}, "go": {}})
+        proc, ledger = self.run_ledger(matrix=self.matrix)
+        self.assertEqual(proc.returncode, 2, proc.stderr)
+        row = self.row(ledger, "OPS-26")
+        self.assertEqual(row["status"], "BLOCKED")
+        required = {"createRc", "verifyRc", "restoreRc", "archiveModeAndDigest",
+                    "managedFilesRestored", "permissionsRestored", "servicesAndValidators",
+                    "canaryRestored", "realClient", "restoreVerified", "checksumMatch"}
+        missing = {fact for side in ("bash", "go") for fact in required
+                   if not any(f"required business fact {fact}" in reason
+                              for reason in row["reasons"])}
+        self.assertFalse(missing, row["reasons"])
+
     def test_approval_fingerprint_must_match_cited_evidence(self):
         ops(self.matrix, "OPS-07", "EXPECTED_DIFF")
         approvals = os.path.join(self.root, "approvals.json")

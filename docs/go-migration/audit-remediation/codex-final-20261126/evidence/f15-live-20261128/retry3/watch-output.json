@@ -1,0 +1,5 @@
+{
+  "exitCode": 0,
+  "stderr": "",
+  "stdout": "sample=1/2 at=2026-11-27T20:25:10.463667022Z\ninbound>>>http-in>>>traffic>>>uplink=83\ninbound>>>http-in>>>traffic>>>downlink=65769\ninbound>>>api-in>>>traffic>>>uplink=5045\ninbound>>>api-in>>>traffic>>>downlink=1321\nsample=2/2 at=2026-11-27T20:25:10.726247452Z\ninbound>>>http-in>>>traffic>>>uplink=83 rate=0.00 B/s\ninbound>>>http-in>>>traffic>>>downlink=65769 rate=0.00 B/s\ninbound>>>api-in>>>traffic>>>uplink=5045 rate=0.00 B/s\ninbound>>>api-in>>>traffic>>>downlink=1494 rate=658.85 B/s\n"
+}

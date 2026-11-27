@@ -2514,68 +2514,79 @@ PY
     # require unchanged installed script bytes, healthy services and live
     # Reality traffic. This is supplemental when the public release is already
     # current; it does not claim a Bash package replacement occurred.
+    # OPS-17a: execute actual Bash menu and Go CLI replacements from fixed,
+    # checksum-pinned local packages. The fixture uses the current production
+    # source with only its release version changed; no public release is made.
     if [[ "${E2E_OBSERVE_ONLY_OPS:-}" == "OPS-17a" ]]; then
         local b17a="$EVID/OPS-17a/bash" g17a="$EVID/OPS-17a/go"
+        local shell_fixture="$WORK/ops17a-shell-release"
         mkdir -p "$b17a" "$g17a"
+        python3 "$SUITE/collect/prepare_ops17a_shell_release.py" "$ROOT" "$shell_fixture" \
+            >"$b17a/fixture-prepare.out" 2>"$b17a/fixture-prepare.err"
+        local fixture_rc=$?
+        echo "$fixture_rc" >"$b17a/fixture-prepare.rc"
+        if [[ $fixture_rc == 0 ]]; then
+            cp "$shell_fixture/fixture.json" "$b17a/fixture.json"
+            docker cp "$shell_fixture" "$bserver:/tmp/ops17a-shell-release" \
+                >"$b17a/fixture-copy.out" 2>"$b17a/fixture-copy.err"
+            echo "$?" >"$b17a/fixture-copy.rc"
+            docker exec "$bserver" openssl genpkey -algorithm Ed25519 \
+                -out /tmp/ops17a-shell-release/versions-key.pem >/dev/null 2>&1
+            docker exec "$bserver" chmod 0600 /tmp/ops17a-shell-release/versions-key.pem
+            docker exec "$bserver" openssl pkey \
+                -in /tmp/ops17a-shell-release/versions-key.pem -pubout \
+                -out /tmp/ops17a-shell-release/versions-pub.pem >/dev/null 2>&1
+            docker cp "$ROOT/scripts/sign_json_ed25519.sh" \
+                "$bserver:/tmp/ops17a-shell-release/sign_json_ed25519.sh" >/dev/null
+            docker exec "$bserver" bash /tmp/ops17a-shell-release/sign_json_ed25519.sh \
+                /tmp/ops17a-shell-release/versions.unsigned.json \
+                /tmp/ops17a-shell-release/versions-key.pem metadata_signature \
+                >"$b17a/versions.json" 2>"$b17a/versions-sign.err"
+            echo "$?" >"$b17a/versions-sign.rc"
+            docker cp "$b17a/versions.json" \
+                "$bserver:/tmp/ops17a-shell-release/versions.json" >/dev/null 2>&1
+            docker cp "$bserver:/tmp/ops17a-shell-release/versions-pub.pem" \
+                "$b17a/versions-pub.pem" >/dev/null 2>&1
+        else
+            echo "not-run" >"$b17a/fixture-copy.rc"
+        fi
+        docker exec "$bserver" sh -c 'systemctl list-timers --all --no-pager 2>&1; (crontab -l 2>&1 || true)' \
+            >"$b17a/schedule-before.txt" 2>&1
         docker exec "$bserver" sha256sum /etc/idleleo/install.sh >"$b17a/script-before.sha256" 2>&1
-        docker exec -e E2E_OPS_ID=OPS-17a -e E2E_TIMEOUT=180 \
+        docker exec -e TERM=xterm -e XRAY_QUALIFICATION_MODE=1 \
+            -e IDLELEO_VERSIONS_PUBKEY_FILE=/tmp/ops17a-shell-release/versions-pub.pem \
+            -e SHELL_RELEASE_BASE_OVERRIDE=file:///tmp/ops17a-shell-release \
+            -e XRAY_VERSIONS_FILE=/tmp/ops17a-shell-release/versions.json \
+            -e E2E_OPS_ID=OPS-17a -e E2E_TIMEOUT=300 \
             -e E2E_INSTALL_SRC=/etc/idleleo/install.sh \
             -e E2E_LOG=/tmp/e2e-OPS-17a.expect.log "$bserver" \
             expect -f /src/tests/e2e-diff/drivers/bash_ops.exp \
             >"$b17a/run.out" 2>"$b17a/run.err"
-        echo $? >"$b17a/run.rc"
+        echo "$?" >"$b17a/run.rc"
         docker cp "$bserver:/tmp/e2e-OPS-17a.expect.log" "$b17a/run.log" >/dev/null 2>&1 || true
         docker exec "$bserver" sha256sum /etc/idleleo/install.sh >"$b17a/script-after.sha256" 2>&1
+        docker exec "$bserver" sh -c 'sed -n "s/^shell_version=\"\([0-9.]*\)\"$/\1/p" /etc/idleleo/install.sh | head -n1' \
+            >"$b17a/version-after.txt" 2>&1
+        docker exec "$bserver" sh -c 'systemctl list-timers --all --no-pager 2>&1; (crontab -l 2>&1 || true)' \
+            >"$b17a/schedule-after.txt" 2>&1
         docker exec "$bserver" sh -c 'systemctl is-active xray; systemctl is-active nginx' \
             >"$b17a/services-after.txt" 2>&1
-        echo $? >"$b17a/services-after.rc"
-        ops_go_cli "$gserver" "$g17a" 10-op update status --json
+        echo "$?" >"$b17a/services-after.rc"
+        docker exec "$bserver" /usr/local/nginx/sbin/nginx -t >"$b17a/nginx-test.out" 2>&1
+        echo "$?" >"$b17a/nginx-test.rc"
+        docker exec "$bserver" /usr/local/bin/xray -test -config /etc/idleleo/conf/xray/config.json \
+            >"$b17a/xray-test.out" 2>&1
+        echo "$?" >"$b17a/xray-test.rc"
+        bash "$SUITE/collect/run_ops17a_go_update.sh" "$ROOT" "$g17a" "$gserver" \
+            "$IMAGE_TAG" "$GO_IMAGE" "$IMAGE_PLATFORM" >"$g17a/driver.out" 2>"$g17a/driver.err"
+        echo "$?" >"$g17a/driver.rc"
+        docker exec "$gserver" sh -c 'systemctl list-timers --all --no-pager 2>&1; (crontab -l 2>&1 || true)' \
+            >"$g17a/schedule-after.txt" 2>&1
         run_l4 M2 bash "$bserver" "$b17a" "$OPS_NET" reality 1
         run_l4 M2 go "$gserver" "$g17a" "$OPS_NET" reality 1
-        python3 - "$EVID" <<'PY'
-import json, os, sys
-evid=sys.argv[1]
-base=os.path.join(evid,"OPS-17a")
-def read(rel):
-    try: return open(os.path.join(base,rel),encoding="utf-8",errors="replace").read()
-    except OSError: return ""
-def rc(rel):
-    try: return int(read(rel).strip())
-    except ValueError: return None
-before=read("bash/script-before.sha256").split()
-after=read("bash/script-after.sha256").split()
-runlog=read("bash/run.log")
-runout=read("bash/run.out")
-services=read("bash/services-after.txt").split()
-def l4rc(side):
-    try:
-        rows=[json.loads(line) for line in read(f"{side}/L4/round1.jsonl").splitlines() if line.strip()]
-        row=next((item for item in rows if item.get("transport")=="reality"),{})
-        return row.get("rc")
-    except (ValueError,TypeError): return None
-reasons=[]
-if rc("bash/run.rc")!=0: reasons.append("Bash Expect updater action rc is not zero")
-if "STEP[scriptUpdate]=already-latest" not in runout and "STEP[scriptUpdate]=updated" not in runout:
-    reasons.append("Bash updater did not report a recognized result")
-if not before or not after or before[0]!=after[0]: reasons.append("installed Bash script hash changed during no-op check")
-if rc("bash/services-after.rc")!=0 or services!=["active","active"]:
-    reasons.append("Bash Xray/Nginx services are not both active")
-for side in ("bash","go"):
-    if l4rc(side)!=0: reasons.append(f"{side} real Reality client request failed")
-entry={"id":"OPS-17a","verdict":"SUPPLEMENTAL_PASS_NOOP_ONLY" if not reasons else "SUPPLEMENTAL_FAIL",
-       "formalLedgerEffect":"none; OPS-17a remains BLOCKED until a Bash package-update path can be compared to the Go signed local-package workflow",
-       "reasons":reasons,"opsRc":{"bash":rc("bash/run.rc"),"go":rc("go/10-op.rc")},
-       "expectedRc":{"bash":0,"go":0},
-       "details":{"bash":{"result":"already latest" if "STEP[scriptUpdate]=already-latest" in runout else "updated",
-                            "installedScriptSha256Before":before[0] if before else None,
-                            "installedScriptSha256After":after[0] if after else None,
-                            "services":services,"l4Rc":l4rc("bash")},
-                 "go":{"entry":"update status only in this paired run; signed apply and post-update L4 are separately evidenced",
-                       "l4Rc":l4rc("go")}}}
-with open(os.path.join(base,"ops.json"),"w",encoding="utf-8") as f:
-    json.dump(entry,f,ensure_ascii=False,indent=2,sort_keys=True); f.write("\n")
-print(json.dumps(entry,ensure_ascii=False,sort_keys=True))
-PY
+        python3 "$SUITE/collect/summarize_ops17a.py" "$EVID" \
+            >"$EVID/OPS-17a/summary.out" 2>"$EVID/OPS-17a/summary.err"
+        echo "$?" >"$EVID/OPS-17a/summary.rc"
         [[ "${E2E_KEEP:-0}" == "1" ]] || docker rm -f "$bserver" "$gserver" >/dev/null 2>&1 || true
         docker network rm "$OPS_NET" >/dev/null 2>&1 || true
         return
@@ -5062,6 +5073,9 @@ dependency_sources = (
     "tests/e2e-diff/collect/l4.sh",
     "tests/e2e-diff/collect/client_config.py",
     "tests/e2e-diff/collect/build_ledger.py",
+    "tests/e2e-diff/collect/prepare_ops17a_shell_release.py",
+    "tests/e2e-diff/collect/run_ops17a_go_update.sh",
+    "tests/e2e-diff/collect/summarize_ops17a.py",
     "tests/e2e-diff/drivers/bash_ops.exp",
     "tests/go-parity/lib/docker_common.sh",
 )

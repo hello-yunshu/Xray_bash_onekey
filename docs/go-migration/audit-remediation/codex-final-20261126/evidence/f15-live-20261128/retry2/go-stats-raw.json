@@ -1,0 +1,18 @@
+{
+  "stat": [
+    {
+      "name": "inbound>>>http-in>>>traffic>>>uplink",
+      "value": 83
+    },
+    {
+      "name": "inbound>>>http-in>>>traffic>>>downlink",
+      "value": 65769
+    },
+    {
+      "name": "inbound>>>api-in>>>traffic>>>uplink"
+    },
+    {
+      "name": "inbound>>>api-in>>>traffic>>>downlink"
+    }
+  ]
+}

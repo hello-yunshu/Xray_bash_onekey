@@ -1,0 +1,2 @@
+2026-11-27T20:25:10Z job=stats-collect result=ok detail=server=127.0.0.1:36907 bytes=453
+2026-11-27T20:25:17Z job=stats-collect result=failed detail=statsquery exit 1: failed to dial 127.0.0.1:36907

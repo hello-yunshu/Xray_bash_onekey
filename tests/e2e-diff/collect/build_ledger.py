@@ -365,6 +365,10 @@ def _true(value):
     return value is True
 
 
+def _zero(value):
+    return isinstance(value, int) and not isinstance(value, bool) and value == 0
+
+
 def _nonempty(value):
     return bool(value)
 
@@ -391,9 +395,25 @@ BUSINESS_FACTS = {
     "OPS-04": [("portListening", _true), ("clientConnected", _true), ("shareInfo", _nonempty)],
     "OPS-08": [("sniProbe", _sni_probe)],
     "OPS-10": [("serverNames", _nonempty)],
+    "OPS-17a": [
+        ("updateApplied", _true), ("versionChanged", _true),
+        ("assetShaMatched", _true), ("servicesHealthy", _true),
+        ("postUpdateClientOk", _true), ("manualOnly", _true),
+    ],
     "OPS-20": [("trafficBytes", _positive)],
-    "OPS-25": [("restoreVerified", _true), ("checksumMatch", _true)],
-    "OPS-26": [("restoreVerified", _true), ("checksumMatch", _true)],
+    "OPS-25": [
+        ("createRc", _zero), ("verifyRc", _zero), ("restoreRc", _zero),
+        ("archiveModeAndDigest", _true), ("managedFilesRestored", _true),
+        ("permissionsRestored", _true), ("servicesAndValidators", _true),
+        ("canaryRestored", _true), ("realClient", _true),
+    ],
+    "OPS-26": [
+        ("createRc", _zero), ("verifyRc", _zero), ("restoreRc", _zero),
+        ("archiveModeAndDigest", _true), ("managedFilesRestored", _true),
+        ("permissionsRestored", _true), ("servicesAndValidators", _true),
+        ("canaryRestored", _true), ("realClient", _true),
+        ("restoreVerified", _true), ("checksumMatch", _true),
+    ],
     "OPS-32": [("faultRemoved", _true), ("recovered", _true)],
 }
 
