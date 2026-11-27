@@ -21,6 +21,10 @@ func statsCommand(ctx context.Context, opts Options, cfg config, args []string) 
 		return rc
 	}
 	cfg.json = cfg.json || hasFlag(args, "--json")
+	if !hasFlag(args, "--watch") && (flagValue(args, "--interval") != "" || flagValue(args, "--samples") != "") {
+		fmt.Fprint(opts.Err, "--interval and --samples require --watch\n")
+		return 2
+	}
 	// The legacy `--stats` flag required root; keeping the same exit code and
 	// boundary avoids silently widening what a non-root caller can query on a
 	// real installation.
@@ -79,6 +83,27 @@ func statsCommand(ctx context.Context, opts Options, cfg config, args []string) 
 	if pattern == "" {
 		pattern = "inbound>>>"
 	}
+	if hasFlag(args, "--watch") {
+		interval := 5 * time.Second
+		if raw := flagValue(args, "--interval"); raw != "" {
+			d, parseErr := time.ParseDuration(raw)
+			if parseErr != nil || d < 250*time.Millisecond || d > 5*time.Minute {
+				fmt.Fprint(opts.Err, "--interval must be between 250ms and 5m\n")
+				return 2
+			}
+			interval = d
+		}
+		samples := 3
+		if raw := flagValue(args, "--samples"); raw != "" {
+			n, parseErr := strconv.Atoi(raw)
+			if parseErr != nil || n < 2 || n > 120 {
+				fmt.Fprint(opts.Err, "--samples must be an integer from 2 to 120\n")
+				return 2
+			}
+			samples = n
+		}
+		return watchStats(ctx, opts, cfg, server, pattern, timeout, interval, samples)
+	}
 	res, err := host.Run(ctx, host.ExecSpec{
 		Path:    "xray",
 		Args:    []string{"api", "statsquery", "--server=" + server, "-pattern", pattern, "-reset=false"},
@@ -118,6 +143,128 @@ func statsCommand(ctx context.Context, opts Options, cfg config, args []string) 
 		fmt.Fprintf(opts.Out, "%s=%v\n", s.Name, s.Value)
 	}
 	return 0
+}
+
+type statsWatchPoint struct {
+	Name         string   `json:"name"`
+	Value        any      `json:"value"`
+	BytesPerSec  *float64 `json:"bytesPerSecond,omitempty"`
+	CounterReset bool     `json:"counterReset,omitempty"`
+}
+
+type statsWatchSample struct {
+	At    string            `json:"at"`
+	Stats []statsWatchPoint `json:"stats"`
+}
+
+// watchStats samples Xray's own monotonic byte counters. It is deliberately
+// bounded: operators get per-inbound rates without iftop's packet visibility,
+// raw destination addresses, optional package dependency, or an infinite CLI.
+func watchStats(ctx context.Context, opts Options, cfg config, server, pattern string, timeout, interval time.Duration, samples int) int {
+	var out []statsWatchSample
+	previous := map[string]float64{}
+	var previousAt time.Time
+	for i := 0; i < samples; i++ {
+		started := time.Now()
+		res, err := host.Run(ctx, host.ExecSpec{
+			Path:    "xray",
+			Args:    []string{"api", "statsquery", "--server=" + server, "-pattern", pattern, "-reset=false"},
+			Timeout: timeout,
+		})
+		if err != nil {
+			fmt.Fprint(opts.Err, "stats query failed: "+err.Error()+"\n")
+			return 8
+		}
+		if res.ExitCode != 0 {
+			fmt.Fprintf(opts.Err, "stats query failed (exit %d): %s\n", res.ExitCode, strings.TrimSpace(res.Stderr))
+			return 8
+		}
+		var response struct {
+			Stat []struct {
+				Name  string `json:"name"`
+				Value any    `json:"value"`
+			} `json:"stat"`
+		}
+		if err := json.Unmarshal([]byte(res.Stdout), &response); err != nil {
+			fmt.Fprint(opts.Err, "stats query returned invalid JSON\n")
+			return 8
+		}
+		at := time.Now().UTC()
+		point := statsWatchSample{At: at.Format(time.RFC3339Nano), Stats: make([]statsWatchPoint, 0, len(response.Stat))}
+		elapsed := at.Sub(previousAt).Seconds()
+		for _, stat := range response.Stat {
+			item := statsWatchPoint{Name: stat.Name, Value: stat.Value}
+			if i > 0 {
+				if value, ok := counterValue(stat.Value); ok {
+					if old, exists := previous[stat.Name]; exists && value >= old && elapsed > 0 {
+						rate := (value - old) / elapsed
+						item.BytesPerSec = &rate
+					} else if exists && value < old {
+						item.CounterReset = true
+					}
+				}
+			}
+			point.Stats = append(point.Stats, item)
+		}
+		out = append(out, point)
+		previous = make(map[string]float64, len(response.Stat))
+		for _, stat := range response.Stat {
+			if value, ok := counterValue(stat.Value); ok {
+				previous[stat.Name] = value
+			}
+		}
+		previousAt = at
+		if i+1 < samples {
+			wait := interval - time.Since(started)
+			if wait <= 0 {
+				continue
+			}
+			timer := time.NewTimer(wait)
+			select {
+			case <-ctx.Done():
+				if !timer.Stop() {
+					<-timer.C
+				}
+				fmt.Fprint(opts.Err, "stats watch interrupted\n")
+				return 8
+			case <-timer.C:
+			}
+		}
+	}
+	if cfg.json {
+		return writeJSON(opts, out)
+	}
+	for i, sample := range out {
+		fmt.Fprintf(opts.Out, "sample=%d/%d at=%s\n", i+1, len(out), sample.At)
+		if len(sample.Stats) == 0 {
+			fmt.Fprintln(opts.Out, "stats=empty")
+		}
+		for _, stat := range sample.Stats {
+			if stat.BytesPerSec != nil {
+				fmt.Fprintf(opts.Out, "%s=%v rate=%.2f B/s\n", stat.Name, stat.Value, *stat.BytesPerSec)
+			} else if stat.CounterReset {
+				fmt.Fprintf(opts.Out, "%s=%v rate=unavailable counter-reset=true\n", stat.Name, stat.Value)
+			} else {
+				fmt.Fprintf(opts.Out, "%s=%v\n", stat.Name, stat.Value)
+			}
+		}
+	}
+	return 0
+}
+
+func counterValue(value any) (float64, bool) {
+	switch n := value.(type) {
+	case float64:
+		return n, n >= 0
+	case json.Number:
+		v, err := n.Float64()
+		return v, err == nil && v >= 0
+	case string:
+		v, err := strconv.ParseFloat(n, 64)
+		return v, err == nil && v >= 0
+	default:
+		return 0, false
+	}
 }
 
 func statsListen(doc map[string]any) string {

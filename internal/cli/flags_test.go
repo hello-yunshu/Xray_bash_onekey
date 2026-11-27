@@ -24,6 +24,7 @@ func TestUnknownFlagIsRejectedForEveryCommand(t *testing.T) {
 		{"xray", "user", "add", "--bogus"},
 		{"xray", "cert", "issue", "--bogus"},
 		{"xray", "cert", "renew", "--bogus"},
+		{"xray", "cert", "status", "--bogus"},
 		{"bridge", "audit", "--bogus"},
 		{"bridge", "prepare", "--bogus"},
 		{"bridge", "validate", "--bogus"},

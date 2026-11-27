@@ -417,3 +417,19 @@ func TestInspectReportsMissingCertificate(t *testing.T) {
 		t.Fatalf("inspection = %+v, want missing+due", ins)
 	}
 }
+
+func TestInspectReportsValidityWindow(t *testing.T) {
+	dir := t.TempDir()
+	certPath := filepath.Join(dir, "xray.crt")
+	chain, _ := testPair(t, 87, "example.com")
+	if err := os.WriteFile(certPath, chain, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	ins, err := Inspect(certPath, 30*24*time.Hour)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ins.NotBefore == "" || ins.NotAfter == "" || ins.Expired || ins.ElapsedDays < 0 || ins.RemainingDays < 0 || !ins.Due {
+		t.Fatalf("inspection = %+v, want valid, dated, and inside the 30-day renewal window", ins)
+	}
+}

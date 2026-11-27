@@ -119,7 +119,8 @@ var commandFlags = map[string]flagSpec{
 	"xray guard set": specOf(
 		[]string{"policy", "decoy-domain", "decoy-cert", "decoy-key", "decoy-ip"},
 		"dry-run", "container"),
-	"xray cert clear": specOf(nil, "yes", "dry-run", "container"),
+	"xray cert clear":  specOf(nil, "yes", "dry-run", "container"),
+	"xray cert status": specOf([]string{"cert", "key"}),
 	"xray config edit": specOf(
 		[]string{"path", "listen", "port", "public-port", "transport", "ws-path", "xhttp-path",
 			"grpc-service-name", "target", "server-names", "uuid", "ws-port", "grpc-port", "xhttp-port",
@@ -189,7 +190,7 @@ var commandFlags = map[string]flagSpec{
 	"update configure": specOf([]string{"manifest-url", "install-path"}, "container"),
 	"update apply":     specOf([]string{"manifest-url"}, "container"),
 
-	"stats": specOf([]string{"path", "pattern", "timeout"}),
+	"stats": specOf([]string{"path", "pattern", "timeout", "interval", "samples"}, "watch"),
 
 	"service status":  specOf([]string{"unit"}),
 	"service start":   specOf([]string{"unit"}, "container"),

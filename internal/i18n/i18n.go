@@ -76,6 +76,8 @@ var zh = map[string]string{
                        nginx -t 失败自动还原
   xray cert clear [--yes] [--dry-run]
                        清空 /etc/idleleo/cert 与管理托管的 ACME 状态
+  xray cert status [--json] [--cert REL] [--key REL]
+                       只读查看证书有效期与 Go 自动续期任务状态
   xray block status    只读查看阻断开关、已写规则数与 drift
   xray block apply|off [--yes] [--dry-run]
                        按状态文件重建/移除 Xray 路由层阻断规则；apply 前做
@@ -112,6 +114,8 @@ var zh = map[string]string{
   update status|check|apply|configure --manifest-url URL
                        Go 发布通道自更新（校验 manifest/SHA256/ELF/健康检查）
   stats [--json]       只读查询 Xray 统计（reset=false）
+  stats --watch [--interval 5s] [--samples 3] [--json]
+                       有界采样并显示入站速率，不重置计数器、不读取连接地址
   service status|start|stop|restart|reload|logs [--unit xray|nginx]
                        服务类操作（仅真实 systemd）
   container status|up|down [--json] [--container] [--dry-run]
@@ -216,6 +220,8 @@ Commands:
                        pointing at this host; roll back if nginx -t fails
   xray cert clear [--yes] [--dry-run]
                        remove /etc/idleleo/cert and managed ACME state
+  xray cert status [--json] [--cert REL] [--key REL]
+                       read certificate lifetime and native renewal status
   xray block status    read-only view of switches, owned rule count and drift
   xray block apply|off [--yes] [--dry-run]
                        rebuild/remove Xray routing-layer block rules; apply
@@ -254,6 +260,8 @@ Commands:
   update status|check|apply|configure --manifest-url URL
                        Go release channel self-update (manifest/SHA256/ELF/health checks)
   stats [--json]       read-only Xray stats query (reset=false)
+  stats --watch [--interval 5s] [--samples 3] [--json]
+                       bounded inbound-rate sampling; no reset or peer addresses
   service status|start|stop|restart|reload|logs [--unit xray|nginx]
                        service-class operations (real systemd only)
   container status|up|down [--json] [--container] [--dry-run]

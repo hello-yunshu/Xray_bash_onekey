@@ -253,16 +253,20 @@ func Preflight(ctx context.Context, cfg Config) error {
 
 // Inspection is the read-only view printed by `cert renew --dry-run`.
 type Inspection struct {
-	Domain      string `json:"domain,omitempty"`
-	Certificate string `json:"certificateFile"`
-	Key         string `json:"keyFile"`
-	NotAfter    string `json:"notAfter,omitempty"`
-	RenewAt     string `json:"renewAt,omitempty"`
-	RenewBefore string `json:"renewBefore"`
-	Due         bool   `json:"due"`
-	Missing     bool   `json:"missing,omitempty"`
-	UserManaged bool   `json:"userManaged,omitempty"`
-	Reason      string `json:"reason,omitempty"`
+	Domain        string `json:"domain,omitempty"`
+	Certificate   string `json:"certificateFile"`
+	Key           string `json:"keyFile"`
+	NotBefore     string `json:"notBefore,omitempty"`
+	NotAfter      string `json:"notAfter,omitempty"`
+	RenewAt       string `json:"renewAt,omitempty"`
+	RenewBefore   string `json:"renewBefore"`
+	ElapsedDays   int    `json:"elapsedDays"`
+	RemainingDays int    `json:"remainingDays"`
+	Due           bool   `json:"due"`
+	Expired       bool   `json:"expired"`
+	Missing       bool   `json:"missing,omitempty"`
+	UserManaged   bool   `json:"userManaged,omitempty"`
+	Reason        string `json:"reason,omitempty"`
 }
 
 // Inspect reports certificate lifetime and the next renewal point without
@@ -273,7 +277,7 @@ func Inspect(certFile string, renewBefore time.Duration) (Inspection, error) {
 		RenewBefore: renewBefore.String(),
 		UserManaged: IsUserManaged(certFile),
 	}
-	notAfter, err := certNotAfter(certFile)
+	notBefore, notAfter, err := certValidity(certFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			ins.Due = true
@@ -283,10 +287,15 @@ func Inspect(certFile string, renewBefore time.Duration) (Inspection, error) {
 		}
 		return ins, err
 	}
+	now := time.Now()
+	ins.NotBefore = notBefore.UTC().Format(time.RFC3339)
 	ins.NotAfter = notAfter.UTC().Format(time.RFC3339)
 	renewAt := notAfter.Add(-renewBefore)
 	ins.RenewAt = renewAt.UTC().Format(time.RFC3339)
-	ins.Due = !time.Now().Before(renewAt)
+	ins.ElapsedDays = int(now.Sub(notBefore).Hours() / 24)
+	ins.RemainingDays = int(notAfter.Sub(now).Hours() / 24)
+	ins.Expired = !now.Before(notAfter)
+	ins.Due = !now.Before(renewAt)
 	switch {
 	case ins.UserManaged:
 		ins.Reason = "certificate is user-managed; renewal is external"
@@ -382,15 +391,20 @@ func firstCertificate(chain []byte) (*x509.Certificate, error) {
 }
 
 func certNotAfter(path string) (time.Time, error) {
+	_, notAfter, err := certValidity(path)
+	return notAfter, err
+}
+
+func certValidity(path string) (time.Time, time.Time, error) {
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, time.Time{}, err
 	}
 	cert, err := firstCertificate(raw)
 	if err != nil {
-		return time.Time{}, err
+		return time.Time{}, time.Time{}, err
 	}
-	return cert.NotAfter, nil
+	return cert.NotBefore, cert.NotAfter, nil
 }
 
 // validToken accepts only the RFC 8555 base64url token alphabet. A token is
